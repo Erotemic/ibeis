@@ -45,10 +45,11 @@ python _ibeis_setup.py -y --gg "git branch"
 
 
 # -- MERGE next -> master
-python _ibeis_setup.py -y --gg "git checkout next"
+python _ibeis_setup.py -y --gg "git checkout master"
 python _ibeis_setup.py -y --gg "git merge next"
 
 # -- SAFER MERGE topic -> next
+python super_setup.py --checkout next
 python super_setup.py --newlocalbranch merge_next_joncrall_dev_branch
 python super_setup.py --merge joncrall_dev_branch
 ./run_tests.py
@@ -66,6 +67,9 @@ python _ibeis_setup.py -y --gg "git push"
 python super_setup.py --newbranch joncrall_dev_branch
 python super_setup.py --checkout joncrall_dev_branch
 python super_setup.py --checkout next
+
+python super_setup.py --newbranch jdb
+python super_setup.py --checkout jdb
 
 
 GitReferences:
@@ -242,7 +246,7 @@ for nametup, repo_url in TPL_MODULES_AND_REPOS:
             raise ex
         print('found %s=%r' % (nametup, module,))
     except ImportError:
-        assert repo_url is not None, ('FATAL ERROR: Need to manually install %s' % nametup)
+        assert repo_url is not None, ('FATAL ERROR: Need to manually install %s' % (nametup, ) )
         print('!!! NEED TO BUILD %s=%r' % (nametup, repo_url,))
         TPL_REPO_URLS.append(repo_url)
 
@@ -256,14 +260,14 @@ for nametup, repo_url in TPL_MODULES_AND_REPOS:
 # Non local project repos
 (IBEIS_REPO_URLS, IBEIS_REPO_DIRS) = ut.repo_list([
     'https://github.com/Erotemic/utool.git',
+    'https://github.com/Erotemic/vtool.git',
     'https://github.com/Erotemic/guitool.git',
     'https://github.com/Erotemic/plottool.git',
-    'https://github.com/Erotemic/vtool.git',
     'https://github.com/bluemellophone/detecttools.git',
-    'https://github.com/Erotemic/hesaff.git',
     'https://github.com/bluemellophone/pyrf.git',
+    'https://github.com/Erotemic/hesaff.git',
     'https://github.com/Erotemic/ibeis.git',
-    'https://github.com/aweinstock314/cyth.git',
+    #'https://github.com/aweinstock314/cyth.git',
     #'https://github.com/hjweide/pygist',
 ], CODE_DIR, forcessh=False)
 

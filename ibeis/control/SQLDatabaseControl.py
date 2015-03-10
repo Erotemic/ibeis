@@ -25,7 +25,7 @@ VERBOSE        = utool.VERBOSE
 VERYVERBOSE    = utool.VERYVERBOSE
 QUIET          = utool.QUIET or utool.get_argflag('--quiet-sql')
 VERBOSE_SQL    = utool.get_argflag('--verb-sql')
-AUTODUMP       = utool.get_argflag('--auto-dump')
+#AUTODUMP       = utool.get_argflag('--auto-dump')
 COPY_TO_MEMORY = utool.get_argflag(('--copy-db-to-memory'))
 
 """ If would be really great if we could get a certain set of setters, getters,
@@ -318,7 +318,7 @@ class SQLDatabaseController(object):
                 to be added. It should return None for any new rows to be inserted.
                 It should return the existing rowid if one exists
 
-            superkey_paramx (tuple of ints): indicies of tuples in params_iter which
+            superkey_paramx (tuple of ints): indices of tuples in params_iter which
                 correspond to superkeys. defaults to (0,)
 
         Returns:
@@ -451,7 +451,10 @@ class SQLDatabaseController(object):
     #@setter_sql
     def set(db, tblname, colnames, val_iter, id_iter, id_colname='rowid',
             duplicate_behavior='error', **kwargs):
-        """ setter """
+        """ setter
+
+        TODO: Test
+        """
         assert isinstance(colnames, tuple)
         #if isinstance(colnames, six.string_types):
         #    colnames = (colnames,)
@@ -474,10 +477,11 @@ class SQLDatabaseController(object):
                 raise
         elif duplicate_behavior == 'filter':
             # Keep only the first setting of every row
-            isunique_list = utool.flag_unique_items(id_iter)
+            isunique_list = utool.flag_unique_items(id_list)
+            id_list  = utool.filter_items(id_list, isunique_list)
             val_list = utool.filter_items(val_list, isunique_list)
         else:
-            raise AssertionError('unknown duplicate_behavior=%r' % (duplicate_behavior,))
+            raise AssertionError('unknown duplicate_behavior=%r. known behaviors are: error and filter' % (duplicate_behavior,))
 
         try:
             num_val = len(val_list)
@@ -598,7 +602,7 @@ class SQLDatabaseController(object):
                 constraint_fmtstr = 'CONSTRAINT superkey UNIQUE ({colnames_str})'
                 assert isinstance(superkey_colnames_list, list), 'must be list got %r' % (type(superkey_colnames_list))
                 for superkey_colnames in superkey_colnames_list:
-                    assert isinstance(superkey_colnames, tuple), 'must be list of tuples'
+                    assert isinstance(superkey_colnames, tuple), 'must be list of tuples got list of %r' % (type(superkey_colnames,))
                     colnames_str = ','.join(superkey_colnames)
                     unique_constraint = constraint_fmtstr.format(colnames_str=colnames_str)
                     table_constraints.append(unique_constraint)
@@ -669,7 +673,7 @@ class SQLDatabaseController(object):
         assert colmap_list is not None, 'must specify colmaplist'
         assert tablename is not None, 'must specify tablename'
         """
-        funciton to modify the schema - only columns that are being added, removed or changed need to be enumerated
+        function to modify the schema - only columns that are being added, removed or changed need to be enumerated
 
         Args:
            tablename (str): tablename
@@ -745,14 +749,13 @@ class SQLDatabaseController(object):
                     del colname_list[index]
                     del coltype_list[index]
                     del colname_dict[src]
-                elif (len(src) > 0 and len(dst) > 0 and src != dst and
-                      (len(type_) == 0 or type_ == coltype_list[index])):
+                elif (len(src) > 0 and len(dst) > 0 and src != dst):
                     # Rename column
-                    if len(type_) == 0:
-                        type_ = coltype_list[index]
                     colname_list[index] = dst
-                    coltype_list[index] = type_
                     colname_dict[src] = dst
+                    # Check if type should change as well
+                    if ((type_ is None or len(type_) == 0) and type_ != coltype_list[index]):
+                        coltype_list[index] = type_
                 elif len(type_) > 0 and type_ != coltype_list[index]:
                     # Change column type
                     if len(dst) == 0:
@@ -1084,20 +1087,26 @@ class SQLDatabaseController(object):
                 file_.write(table_csv)
 
     @default_decorator
-    def get_schema_current_autogeneration_str(db):
+    def get_schema_current_autogeneration_str(db, autogen_cmd):
         """ Convenience: Autogenerates the most up-to-date database schema
 
         Example:
+            >>> # ENABLE_DOCTEST
             >>> import ibeis
             >>> ibs = ibeis.opendb('testdb1')
-            >>> result = ibs.db.get_schema_current_autogeneration_str()
+            >>> result = ibs.db.get_schema_current_autogeneration_str('')
             >>> print(result)
         """
         db_version_current = db.get_db_version()
 
         line_list = []
+        #autogen_cmd = 'python -m ibeis.control.DB_SCHEMA --test-test_dbschema --force-incremental-db-update --dump-autogen-schema'
         # File Header
-        line_list.append('# AUTOGENERATED ON ' + utool.timestamp('printable'))
+        line_list.append(ut.TRIPLE_DOUBLE_QUOTE)
+        line_list.append('AUTOGENERATED ON ' + utool.timestamp('printable'))
+        line_list.append('AutogenCommandLine:')
+        line_list.append('     ' + autogen_cmd)
+        line_list.append(ut.TRIPLE_DOUBLE_QUOTE)
         line_list.append('from __future__ import absolute_import, division, print_function')
         line_list.append('from ibeis import constants as const')
         line_list.append('\n')
@@ -1142,17 +1151,17 @@ class SQLDatabaseController(object):
             line_list.append('%s),' % tab)
             superkey_colnames_list = db.get_table_superkeys(tablename)
             docstr = db.get_table_docstr(tablename)
-            line_list.append('%s%ssuperkey_colnames=%r,' % (tab, tab, superkey_colnames_list, ))
+            line_list.append('%s%ssuperkey_colnames_list=%r,' % (tab, tab, superkey_colnames_list, ))
             line_list.append('%s%sdocstr=\'\'\'%s\'\'\')' % (tab, tab, docstr, ))
         line_list.append('')
         return '\n'.join(line_list)
 
     @default_decorator
-    def dump_schema_current_autogeneration(db, output_dir, output_filename):
+    def dump_schema_current_autogeneration(db, output_dir, output_filename, autogen_cmd):
         """ Convenience: Autogenerates the most up-to-date database schema """
         print('[sqldb] dumping current schema to output_filename=%r' % (output_filename,))
         dump_fpath = join(output_dir, output_filename)
-        schema_current_str = db.get_schema_current_autogeneration_str()
+        schema_current_str = db.get_schema_current_autogeneration_str(autogen_cmd)
         with open(dump_fpath, 'w') as file_:
             file_.write(schema_current_str)
 
@@ -1235,7 +1244,9 @@ class SQLDatabaseController(object):
             # Sometimes the metadata gets moved for some reason
             # Hack the information out of the constraints
             constraint_list = db.get_table_constraints(tablename)
-            assert len(constraint_list) == 1, 'INVALID DEVELOPER ASSUMPTION IN SQLCONTROLLER. MORE THAN 1 CONSTRAINT'
+            #with ut.embed_on_exception_context:
+            # it is ok to have more than one constriant now
+            #assert len(constraint_list) == 1, 'INVALID DEVELOPER ASSUMPTION IN SQLCONTROLLER. MORE THAN 1 CONSTRAINT: %r' % (constraint_list,)
             superkey_colnames_list = []
             if constraint_list is not None:
                 import parse
@@ -1257,7 +1268,7 @@ class SQLDatabaseController(object):
         #    None if superkey_colname is None else str(superkey_colname)
         #    for superkey_colname in superkey_colnames
         #]
-        #superkey_colnames_list = list(map(tuple, superkey_colnames_list))
+        superkey_colnames_list = list(map(tuple, superkey_colnames_list))
         return superkey_colnames_list
 
     get_table_superkey_colnames = get_table_superkeys

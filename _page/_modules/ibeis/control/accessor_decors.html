@@ -1,52 +1,110 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>ibeis.control.accessor_decors &mdash; ibeis 0.1.0.dev1 documentation</title>
-    
-    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../../../',
-        VERSION:     '0.1.0.dev1',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <link rel="top" title="ibeis 0.1.0.dev1 documentation" href="../../../index.html" />
-    <link rel="up" title="ibeis.control" href="../control.html" /> 
-  </head>
-  <body>
-    <div class="related">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../../../genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="../../../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li><a href="../../../index.html">ibeis 0.1.0.dev1 documentation</a> &raquo;</li>
-          <li><a href="../../index.html" >Module code</a> &raquo;</li>
-          <li><a href="../../ibeis.html" >ibeis</a> &raquo;</li>
-          <li><a href="../control.html" accesskey="U">ibeis.control</a> &raquo;</li> 
-      </ul>
-    </div>  
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.control.accessor_decors &mdash; ibeis 0.1.0.dev1 documentation</title>
+  
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body">
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="ibeis 0.1.0.dev1 documentation" href="../../../index.html"/>
+        <link rel="up" title="ibeis.control" href="../control.html"/> 
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        <a href="../../../index.html" class="fa fa-home"> ibeis</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+        
+            <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#subpackages">Subpackages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.params">ibeis.params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../ibeis.html">ibeis</a> &raquo;</li>
+      
+          <li><a href="../control.html">ibeis.control</a> &raquo;</li>
+      
+    <li>ibeis.control.accessor_decors</li>
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
             
   <h1>Source code for ibeis.control.accessor_decors</h1><div class="highlight"><pre>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
@@ -55,6 +113,7 @@
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="n">builtins</span>
 <span class="kn">from</span> <span class="nn">utool._internal.meta_util_six</span> <span class="kn">import</span> <span class="n">get_funcname</span>
+<span class="c">#import numpy as np</span>
 <span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[decor]&#39;</span><span class="p">)</span>
 
 <span class="n">DEBUG_ADDERS</span>  <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--debug-adders&#39;</span><span class="p">)</span>
@@ -96,17 +155,23 @@
 
 <span class="c">#    def __delitem__(self, index):</span>
 <span class="c">#        del self._cache[index]</span>
-
-
-<span class="c">#API_CACHE = ut.get_argflag(&#39;--api-cache&#39;)</span></div>
-<span class="n">API_CACHE</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--no-api-cache&#39;</span><span class="p">)</span>
+</div>
 <span class="n">DEV_CACHE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--dev-cache&#39;</span><span class="p">,</span> <span class="s">&#39;--devcache&#39;</span><span class="p">))</span>
-<span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">in_main_process</span><span class="p">():</span>
-    <span class="k">if</span> <span class="n">API_CACHE</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[accessor_decors] API_CACHE IS ENABLED&#39;</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="c">#print(&#39;[accessor_decors] API_CACHE IS DISABLED&#39;)</span>
-        <span class="k">pass</span>
+
+<span class="n">RELEASE_MODE</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="k">if</span> <span class="n">RELEASE_MODE</span><span class="p">:</span>
+    <span class="n">API_CACHE</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--no-api-cache&#39;</span><span class="p">)</span>
+    <span class="n">ASSERT_API_CACHE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--assert-api-cache&#39;</span><span class="p">,</span> <span class="s">&#39;--naac&#39;</span><span class="p">))</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">API_CACHE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--api-cache&#39;</span><span class="p">)</span>
+    <span class="n">ASSERT_API_CACHE</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--noassert-api-cache&#39;</span><span class="p">,</span> <span class="s">&#39;--naac&#39;</span><span class="p">))</span>
+
+<span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">in_main_process</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">API_CACHE</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[accessor_decors] API_CACHE IS ENABLED&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[accessor_decors] API_CACHE IS DISABLED&#39;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="init_tablecache"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.accessor_decors.init_tablecache">[docs]</a><span class="k">def</span> <span class="nf">init_tablecache</span><span class="p">():</span>
@@ -197,10 +262,48 @@
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">[get] </span><span class="si">%s</span><span class="s">.</span><span class="si">%s</span><span class="s"> </span><span class="si">%d</span><span class="s"> / </span><span class="si">%d</span><span class="s"> cache hits&#39;</span> <span class="o">%</span>
                   <span class="p">(</span><span class="n">tblname</span><span class="p">,</span> <span class="n">colname</span><span class="p">,</span> <span class="n">num_hit</span><span class="p">,</span> <span class="n">num_total</span><span class="p">))</span>
 
+        <span class="k">def</span> <span class="nf">assert_cache_hits</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">ismiss_list</span><span class="p">,</span> <span class="n">rowid_list</span><span class="p">,</span> <span class="n">kwargs_hash</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="n">cached_rowid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filterfalse_items</span><span class="p">(</span><span class="n">rowid_list</span><span class="p">,</span> <span class="n">ismiss_list</span><span class="p">)</span>
+            <span class="n">cache_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">table_cache</span><span class="p">[</span><span class="n">tblname</span><span class="p">][</span><span class="n">colname</span><span class="p">][</span><span class="n">kwargs_hash</span><span class="p">]</span>
+            <span class="c"># Load cached values for each rowid</span>
+            <span class="n">cache_vals_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take_list</span><span class="p">(</span><span class="n">cache_</span><span class="p">,</span> <span class="n">cached_rowid_list</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+            <span class="n">db_vals_list</span> <span class="o">=</span> <span class="n">getter_func</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cached_rowid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="c"># Assert everything is valid</span>
+            <span class="n">msg_fmt</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+                <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">                [assert_cache_hits] tblname = %r</span>
+<span class="sd">                [assert_cache_hits] colname = %r</span>
+<span class="sd">                [assert_cache_hits] cfgkeys = %r</span>
+<span class="sd">                [assert_cache_hits] CACHE INVALID: %r != %r</span>
+<span class="sd">                &#39;&#39;&#39;</span>
+            <span class="p">)</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="n">msg_fmt</span> <span class="o">%</span> <span class="p">(</span><span class="n">tblname</span><span class="p">,</span> <span class="n">colname</span><span class="p">,</span> <span class="n">cfgkeys</span><span class="p">,</span> <span class="n">cache_vals_list</span><span class="p">,</span> <span class="n">db_vals_list</span><span class="p">,</span> <span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">list1</span> <span class="o">=</span> <span class="n">cache_vals_list</span>
+                <span class="n">list2</span> <span class="o">=</span> <span class="n">db_vals_list</span>
+                <span class="k">assert</span> <span class="n">ut</span><span class="o">.</span><span class="n">lists_eq</span><span class="p">(</span><span class="n">list1</span><span class="p">,</span> <span class="n">list2</span><span class="p">),</span> <span class="n">msg</span>
+                <span class="c">#if isinstance(db_vals_list, list):</span>
+                <span class="c">#    assert cache_vals_list == db_vals_list, msg</span>
+                <span class="c">#else:</span>
+                <span class="c">#    assert np.all(cache_vals_list == db_vals_list), msg</span>
+            <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">ex</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex2</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">cache_vals_list</span><span class="p">))</span>
+                <span class="k">print</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">db_vals_list</span><span class="p">))</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex2</span><span class="p">)</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">embed</span><span class="p">()</span>
+                <span class="k">raise</span>
+
         <span class="c">#@profile cannot profile this because it is alrady being profiled by</span>
         <span class="k">def</span> <span class="nf">wrp_getter_cacher</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">rowid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Wrapper function that caches rowid values in a dictionary</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="c"># HACK TAKE OUT GETTING DEBUG OUT OF KWARGS</span>
+            <span class="n">debug_</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;debug&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">cfgkeys</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-                <span class="n">kwargs_hash</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_dict_hashid</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_take_list</span><span class="p">(</span><span class="n">kwargs</span><span class="p">,</span> <span class="n">cfgkeys</span><span class="p">))</span>
+                <span class="n">kwargs_hash</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_dict_hashid</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_take_list</span><span class="p">(</span><span class="n">kwargs</span><span class="p">,</span> <span class="n">cfgkeys</span><span class="p">,</span> <span class="bp">None</span><span class="p">))</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">kwargs_hash</span> <span class="o">=</span> <span class="bp">None</span>
 
@@ -209,8 +312,13 @@
             <span class="n">vals_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take_list</span><span class="p">(</span><span class="n">cache_</span><span class="p">,</span> <span class="n">rowid_list</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
             <span class="c"># Mark rowids with cache misses</span>
             <span class="n">ismiss_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">val</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">vals_list</span><span class="p">]</span>
-            <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">debug</span> <span class="ow">or</span> <span class="n">debug_</span><span class="p">:</span>
                 <span class="n">debug_cache_hits</span><span class="p">(</span><span class="n">ismiss_list</span><span class="p">,</span> <span class="n">rowid_list</span><span class="p">)</span>
+            <span class="c"># HACK !!! DEBUG THESE GETTERS BY ASSERTING INFORMATION IN CACHE IS CORRECT</span>
+            <span class="n">with_assert</span> <span class="o">=</span> <span class="n">ASSERT_API_CACHE</span>
+            <span class="k">if</span> <span class="n">with_assert</span><span class="p">:</span>
+                <span class="n">assert_cache_hits</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">ismiss_list</span><span class="p">,</span> <span class="n">rowid_list</span><span class="p">,</span> <span class="n">kwargs_hash</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="c"># END HACK</span>
             <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">ismiss_list</span><span class="p">):</span>
                 <span class="n">miss_indices</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_where</span><span class="p">(</span><span class="n">ismiss_list</span><span class="p">)</span>
                 <span class="n">miss_rowids</span>  <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">rowid_list</span><span class="p">,</span> <span class="n">ismiss_list</span><span class="p">)</span>
@@ -221,7 +329,7 @@
                     <span class="n">vals_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>  <span class="c"># Output write</span>
                 <span class="c"># cache save</span>
                 <span class="k">for</span> <span class="n">rowid</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">miss_rowids</span><span class="p">,</span> <span class="n">miss_vals</span><span class="p">):</span>
-                    <span class="n">cache_</span><span class="p">[</span><span class="n">rowid</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>     <span class="c"># Cache write</span>
+                    <span class="n">cache_</span><span class="p">[</span><span class="n">rowid</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>     <span class="c"># Cache writd(ne</span>
             <span class="k">return</span> <span class="n">vals_list</span>
         <span class="n">wrp_getter_cacher</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">preserve_sig</span><span class="p">(</span><span class="n">wrp_getter_cacher</span><span class="p">,</span> <span class="n">getter_func</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">wrp_getter_cacher</span>
@@ -430,45 +538,58 @@
 </pre></div>
 
           </div>
-        </div>
-      </div>
-      <div class="sphinxsidebar">
-        <div class="sphinxsidebarwrapper">
-<div id="searchbox" style="display: none">
-  <h3>Quick search</h3>
-    <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
-    </p>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="related">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../../../genindex.html" title="General Index"
-             >index</a></li>
-        <li class="right" >
-          <a href="../../../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li><a href="../../../index.html">ibeis 0.1.0.dev1 documentation</a> &raquo;</li>
-          <li><a href="../../index.html" >Module code</a> &raquo;</li>
-          <li><a href="../../ibeis.html" >ibeis</a> &raquo;</li>
-          <li><a href="../control.html" >ibeis.control</a> &raquo;</li> 
-      </ul>
-    </div>
-    <div class="footer">
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
         &copy; Copyright 2015, Jon Crall.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
-    </div>
-  </body>
+    </p>
+  </div>
+
+  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.1.0.dev1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
 </html>

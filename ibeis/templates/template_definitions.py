@@ -1,8 +1,8 @@
 """
 CommandLine:
     # Regenerate command
-    python ibeis/control/template_generator.py
-    python ibeis/control/template_generator.py --dump-autogen-controller
+    python ibeis/templates/template_generator.py
+    python ibeis/templates/template_generator.py --dump-autogen-controller
 """
 import utool as ut
 
@@ -25,18 +25,17 @@ Theader_ibeiscontrol = ut.codeblock(
         autogen_key = {autogen_key}
 
     ToRegenerate:
-        python -m ibeis.control.template_generator --key {autogen_key}
-        python -m ibeis.control.template_generator --key {autogen_key} --write
+        python -m ibeis.templates.template_generator --key {autogen_key}
+        python -m ibeis.templates.template_generator --key {autogen_key} --write
     """
     from __future__ import absolute_import, division, print_function
     import functools  # NOQA
     import six  # NOQA
-    from six.moves import map, range  # NOQA
+    from six.moves import map, range, zip  # NOQA
     from ibeis import constants as const
     # REM dont circular import
     # REM from ibeis.control.IBEISControl import IBEISController
-    import utool  # NOQA
-    import utool as ut  # NOQA
+    import utool as ut
     from ibeis.control.controller_inject import make_ibs_register_decorator
     from ibeis.control import accessor_decors
     print, print_, printDBG, rrr, profile = ut.inject(__name__, '[autogen_{autogen_key}]')
@@ -45,9 +44,10 @@ Theader_ibeiscontrol = ut.codeblock(
     CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 
 
-    def get_autogen_testdata():
+    # REM def get_autogen_testdata():
+    def testdata_ibs(defaultdb='testdb1'):
         import ibeis
-        ibs = ibeis.opendb('testdb1')
+        ibs = ibeis.opendb(defaultdb=defaultdb)
         qreq_ = None
         return ibs, qreq_
 
@@ -61,12 +61,18 @@ Theader_ibeiscontrol = ut.codeblock(
 # --- ADDERS ---
 #-----------------
 
-
+"""
+CommandLine:
+    python -c "import utool as ut; ut.write_modscript_alias('Tgen.sh', 'ibeis.templates.template_generator')"
+    sh Tgen.sh --key chip --Tcfg with_setters=False with_getters=False  with_adders=True
+    sh Tgen.sh --key feat --Tcfg with_setters=False with_getters=False  with_adders=True
+    sh Tgen.sh --key featweight --Tcfg with_setters=False with_getters=False  with_adders=True
+"""
 Tadder_pl_dependant = ut.codeblock(
     r'''
     # STARTBLOCK
     # REM @adder
-    def add_{parent}_{leaf}s({self}, {parent}_rowid_list, qreq_=None):
+    def add_{parent}_{leaf}s({self}, {parent}_rowid_list, qreq_=None, verbose=not ut.QUIET, return_num_dirty=False):
         """ {parent}.{leaf}.add({parent}_rowid_list)
 
         CRITICAL FUNCTION MUST EXIST FOR ALL DEPENDANTS
@@ -83,38 +89,81 @@ Tadder_pl_dependant = ut.codeblock(
             parent = {parent}
             leaf = {leaf}
 
-        Example:
+        Example0:
             >>> # ENABLE_DOCTEST
             >>> from {autogen_modname} import *  # NOQA
-            >>> {self}, qreq_ = get_autogen_testdata()
-            >>> {parent}_rowid_list = {self}._get_all_{parent}_rowids()[::3]
+            >>> {self}, qreq_ = testdata_ibs()
+            # REM >>> {root}_rowid_list = {self}._get_all_{root}_rowids()[::3]
+            # REM HACK
+            >>> from ibeis import constants as const
+            >>> {root}_rowid_list = {self}.get_valid_{root}_rowids(species=const.Species.ZEB_PLAIN)[::3]
+            >>> if '{root}' != '{parent}':
+            ...     {parent}_rowid_list = {self}.get_{root}_{parent}_rowids({root}_rowid_list, qreq_=qreq_, ensure=True)
             >>> {leaf}_rowid_list = {self}.add_{parent}_{leaf}s({parent}_rowid_list, qreq_=qreq_)
             >>> assert len({leaf}_rowid_list) == len({parent}_rowid_list)
             >>> ut.assert_all_not_None({leaf}_rowid_list)
+
+        Example1:
+            >>> # ENABLE_DOCTEST
+            >>> from {autogen_modname} import *  # NOQA
+            >>> {self}, qreq_ = testdata_ibs('PZ_MTEST')
+            >>> from ibeis import constants as const
+            >>> {root}_rowid_list = {self}.get_valid_{root}_rowids(species=const.Species.ZEB_PLAIN)[0:7]
+            >>> if '{root}' != '{parent}':
+            ...     {parent}_rowid_list = {self}.get_{root}_{parent}_rowids({root}_rowid_list, qreq_=qreq_, ensure=True)
+            >>> sub_{parent}_rowid_list1 = {parent}_rowid_list[0:6]
+            >>> sub_{parent}_rowid_list2 = {parent}_rowid_list[5:7]
+            >>> sub_{parent}_rowid_list3 = {parent}_rowid_list[0:7]
+            >>> sub_{leaf}_rowid_list1 = {self}.get_{parent}_{leaf}_rowids(sub_{parent}_rowid_list1, qreq_=qreq_, ensure=True)
+            >>> {self}.get_{parent}_{leaf}_rowids(sub_{parent}_rowid_list1, qreq_=qreq_, ensure=True)
+            >>> sub_{leaf}_rowid_list1, num_dirty0 = {self}.add_{parent}_{leaf}s(sub_{parent}_rowid_list1, qreq_=qreq_, return_num_dirty=True)
+            >>> assert num_dirty0 == 0
+            >>> ut.assert_all_not_None(sub_{leaf}_rowid_list1)
+            >>> {self}.delete_{parent}_{leaf}(sub_{parent}_rowid_list2)
+            >>> #{self}.delete_{parent}_{leaf}(sub_{parent}_rowid_list2)?
+            >>> sub_{leaf}_rowid_list3 = {self}.get_{parent}_{leaf}_rowids(sub_{parent}_rowid_list3, qreq_=qreq_, ensure=False)
+            >>> # Only the last two should be None
+            >>> ut.assert_all_not_None(sub_{leaf}_rowid_list3[0:5], 'sub_{leaf}_rowid_list3[0:5])')
+            >>> ut.assert_eq(sub_{leaf}_rowid_list3[5:7], [None, None])
+            >>> sub_{leaf}_rowid_list3_ensured, num_dirty1 = {self}.add_{parent}_{leaf}s(sub_{parent}_rowid_list3, qreq_=qreq_,  return_num_dirty=True)
+            >>> ut.assert_eq(num_dirty1, 2, 'Only two params should have been computed here')
+            >>> ut.assert_all_not_None(sub_{leaf}_rowid_list3_ensured)
         """
         #REM raise NotImplementedError('this code is a stub, you must populate it')
         from ibeis.model.preproc import preproc_{leaf}
+        ut.assert_all_not_None({parent}_rowid_list, ' {parent}_rowid_list')
         # Get requested configuration id
         config_rowid = {self}.get_{leaf}_config_rowid(qreq_=qreq_)
         # Find leaf rowids that need to be computed
-        {leaf}_rowid_list = get_{parent}_{leaf}_rowids_({self}, {parent}_rowid_list, qreq_=qreq_)
+        initial_{leaf}_rowid_list = get_{parent}_{leaf}_rowids_({self}, {parent}_rowid_list, qreq_=qreq_)
         # Get corresponding "dirty" parent rowids
-        dirty_{parent}_rowid_list = utool.get_dirty_items({parent}_rowid_list, {leaf}_rowid_list)
-        if len(dirty_{parent}_rowid_list) > 0:
-            if utool.VERBOSE:
-                print('[{self}] adding %d / %d {leaf}' % (len(dirty_{parent}_rowid_list), len({parent}_rowid_list)))
+        isdirty_list = ut.flag_None_items(initial_{leaf}_rowid_list)
+        dirty_{parent}_rowid_list = ut.filter_items({parent}_rowid_list, isdirty_list)
+        num_dirty = len(dirty_{parent}_rowid_list)
+        num_total = len({parent}_rowid_list)
+        if num_dirty > 0:
+            if verbose:
+                fmtstr = '[add_{parent}_{leaf}s] adding %d / %d new {leaf} for config_rowid=%r'
+                print(fmtstr % (num_dirty, num_total, config_rowid))
             # Dependant columns do not need true from_superkey getters.
             # We can use the Tgetter_pl_dependant_rowids_ instead
             get_rowid_from_superkey = functools.partial({self}.get_{parent}_{leaf}_rowids_, qreq_=qreq_)
             # REM proptup_gen = preproc_{leaf}.add_{leaf}_params_gen({self}, {parent}_rowid_list)
-            proptup_gen = preproc_{leaf}.generate_{leaf}_properties({self}, {parent}_rowid_list)
-            params_iter = (
+            proptup_gen = preproc_{leaf}.generate_{leaf}_properties({self}, dirty_{parent}_rowid_list, qreq_=qreq_)
+            dirty_params_iter = (
                 ({parent}_rowid, config_rowid, {leaf_other_propnames})
                 for {parent}_rowid, ({leaf_other_propnames},) in
-                zip({parent}_rowid_list, proptup_gen)
+                zip(dirty_{parent}_rowid_list, proptup_gen)
             )
             colnames = {nonprimary_leaf_colnames}
-            {leaf}_rowid_list = {self}.{dbself}.add_cleanly({LEAF_TABLE}, colnames, params_iter, get_rowid_from_superkey)
+            #{leaf}_rowid_list = {self}.{dbself}.add_cleanly({LEAF_TABLE}, colnames, dirty_params_iter, get_rowid_from_superkey)
+            {self}.{dbself}._add({LEAF_TABLE}, colnames, dirty_params_iter)
+            # Now that the dirty params are added get the correct order of rowids
+            {leaf}_rowid_list = get_rowid_from_superkey({parent}_rowid_list)
+        else:
+            {leaf}_rowid_list = initial_{leaf}_rowid_list
+        if return_num_dirty:
+            return {leaf}_rowid_list, num_dirty
         return {leaf}_rowid_list
     # ENDBLOCK
     '''
@@ -172,7 +221,7 @@ Tadder_rl_dependant = ut.codeblock(
         Example:
             >>> # ENABLE_DOCTEST
             >>> from {autogen_modname} import *  # NOQA
-            >>> {self}, qreq_ = get_autogen_testdata()
+            >>> {self}, qreq_ = testdata_ibs()
             >>> {root}_rowid_list = {self}._get_all_{root}_rowids()[::3]
             >>> {leaf}_rowid_list = {self}.add_{root}_{leaf}s({root}_rowid_list, qreq_=qreq_)
             >>> assert len({leaf}_rowid_list) == len({root}_rowid_list)
@@ -212,7 +261,7 @@ Tcfg_rowid_getter = ut.codeblock(
         Example:
             >>> # ENABLE_DOCTEST
             >>> from {autogen_modname} import *  # NOQA
-            >>> {self}, qreq_ = get_autogen_testdata()
+            >>> {self}, qreq_ = testdata_ibs()
             >>> {leaf}_cfg_rowid = {self}.get_{leaf}_config_rowid()
         """
         if qreq_ is not None:
@@ -265,16 +314,66 @@ Tdeleter_rl_depenant = ut.codeblock(
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> {self}, qreq_ = get_autogen_testdata()
-            >>> {root}_rowid_list = {self}._get_all_{root}_rowids()[::3]
-            >>> {self}.delete_{root}_{leaf}({root}_rowid_list, qreq_=qreq_)
+            >>> from {autogen_modname} import *  # NOQA
+            >>> {self}, qreq_ = testdata_ibs()
+            >>> {root}_rowid_list = {self}._get_all_{root}_rowids()[:1]
+            >>> # Ensure there are  some leafs to delete
+            >>> {leaf}_rowid_list = ibs.get_{root}_{leaf}_rowids({root}_rowid_list, qreq_=qreq_, ensure=True)
+            >>> num_deleted1 = {self}.delete_{root}_{leaf}({root}_rowid_list, qreq_=qreq_)
+            >>> num_deleted2 = {self}.delete_{root}_{leaf}({root}_rowid_list, qreq_=qreq_)
+            >>> # The first delete should remove everything
+            >>> ut.assert_eq(num_deleted1, len({leaf}_rowid_list))
+            >>> # The second delete should have removed nothing
+            >>> ut.assert_eq(num_deleted2, 0)
         """
-        if utool.VERBOSE:
+        if ut.VERBOSE:
             print('[{self}] deleting %d {root}s leaf nodes' % len({root}_rowid_list))
         # Delete any dependants
         _{leaf}_rowid_list = {self}.get_{root}_{leaf}_rowids({root}_rowid_list, qreq_=qreq_, ensure=False)
         {leaf}_rowid_list = ut.filter_Nones(_{leaf}_rowid_list)
-        {self}.delete_{leaf}({leaf}_rowid_list)
+        num_deleted = {self}.delete_{leaf}({leaf}_rowid_list)
+        return num_deleted
+    # ENDBLOCK
+    '''
+)
+
+
+# DELETER RL_DEPEND
+#pluralize?
+#{pc_dependant_delete_lines}
+Tdeleter_pl_depenant = ut.codeblock(
+    r'''
+    # STARTBLOCK
+    # REM @deleter
+    # REM @cache_invalidator({ROOT_TABLE})
+    def delete_{parent}_{leaf}({self}, {parent}_rowid_list, qreq_=None):
+        """ {parent}.{leaf}.delete({parent}_rowid_list)
+
+        Args:
+            {parent}_rowid_list
+
+        Returns:
+             int: num_deleted
+
+        TemplateInfo:
+            Tdeleter_rl_depenant
+            parent = {parent}
+            leaf = {leaf}
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from {autogen_modname} import *  # NOQA
+            >>> {self}, qreq_ = testdata_ibs()
+            >>> {parent}_rowid_list = {self}._get_all_{parent}_rowids()[::3]
+            >>> {self}.delete_{parent}_{leaf}({parent}_rowid_list, qreq_=qreq_)
+        """
+        if ut.VERBOSE:
+            print('[{self}] deleting %d {parent}s leaf nodes' % len({parent}_rowid_list))
+        # Delete any dependants
+        _{leaf}_rowid_list = {self}.get_{parent}_{leaf}_rowids({parent}_rowid_list, qreq_=qreq_, ensure=False)
+        {leaf}_rowid_list = ut.filter_Nones(_{leaf}_rowid_list)
+        num_deleted = {self}.delete_{leaf}({leaf}_rowid_list)
+        return num_deleted
     # ENDBLOCK
     '''
 )
@@ -286,13 +385,16 @@ Tdeleter_native_tbl = ut.codeblock(
     # STARTBLOCK
     # REM @deleter
     # REM @cache_invalidator({TABLE})
-    def delete_{tbl}({self}, {tbl}_rowid_list):
+    def delete_{tbl}({self}, {tbl}_rowid_list, qreq_=None):
         """ {tbl}.delete({tbl}_rowid_list)
 
         delete {tbl} rows
 
         Args:
             {tbl}_rowid_list
+
+        Returns:
+            int: num_deleted
 
         TemplateInfo:
             Tdeleter_native_tbl
@@ -302,17 +404,20 @@ Tdeleter_native_tbl = ut.codeblock(
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> {self}, qreq_ = get_autogen_testdata()
+            >>> from {autogen_modname} import *  # NOQA
+            >>> {self}, qreq_ = testdata_ibs()
             >>> {tbl}_rowid_list = {self}._get_all_{tbl}_rowids()[::3]
             >>> {self}.delete_{tbl}({tbl}_rowid_list)
         """
         from ibeis.model.preproc import preproc_{tbl}
-        if utool.VERBOSE:
+        if ut.VERBOSE:
             print('[{self}] deleting %d {tbl} rows' % len({tbl}_rowid_list))
         # Prepare: Delete externally stored data (if any)
-        preproc_{tbl}.on_delete({self}, {tbl}_rowid_list)
+        preproc_{tbl}.on_delete({self}, {tbl}_rowid_list, qreq_=qreq_)
         # Finalize: Delete self
         {self}.{dbself}.delete_rowids({TABLE}, {tbl}_rowid_list)
+        num_deleted = len({tbl}_rowid_list)
+        return num_deleted
     # ENDBLOCK
     '''
 )
@@ -340,7 +445,8 @@ Tider_all_rowids = ut.codeblock(
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> {self}, qreq_ = get_autogen_testdata()
+            >>> from {autogen_modname} import *  # NOQA
+            >>> {self}, qreq_ = testdata_ibs()
             >>> {self}._get_all_{tbl}_rowids()
         """
         all_{tbl}_rowids = {self}.{dbself}.get_all_rowids({TABLE})
@@ -419,7 +525,9 @@ Tgetter_rl_pclines_dependant_multicolumn = ut.codeblock(
             leaf = {leaf}
 
         Example:
-            >>> {self}, qreq_ = get_autogen_testdata()
+            >>> # DISABLE_DOCTEST
+            >>> from {autogen_modname} import *  # NOQA
+            >>> {self}, qreq_ = testdata_ibs()
             >>> {root}_rowid_list = {self}._get_all_{root}_rowids()
             >>> {multicol}_list = {self}.get_{root}_{multicol}s({root}_rowid_list, qreq_=qreq_)
             >>> assert len({multicol}_list) == len({root}_rowid_list)
@@ -455,7 +563,7 @@ Tgetter_native_multicolumn = ut.codeblock(
         Example:
             >>> # ENABLE_DOCTEST
             >>> from {autogen_modname} import *  # NOQA
-            >>> {self}, qreq_ = get_autogen_testdata()
+            >>> {self}, qreq_ = testdata_ibs()
             >>> {tbl}_rowid_list = {self}._get_all_{tbl}_rowids()
             >>> ensure = False
             >>> {multicol}_list = {self}.get_{tbl}_{multicol}s({tbl}_rowid_list, eager=eager)
@@ -522,7 +630,7 @@ Tgetter_table_column = ut.codeblock(
         Example:
             >>> # ENABLE_DOCTEST
             >>> from {autogen_modname} import *  # NOQA
-            >>> {self}, qreq_ = get_autogen_testdata()
+            >>> {self}, qreq_ = testdata_ibs()
             >>> {tbl}_rowid_list = {self}._get_all_{tbl}_rowids()
             >>> eager = True
             >>> {tbl}_{col}_list = {self}.get_{tbl}_{col}s({tbl}_rowid_list, eager=eager)
@@ -559,7 +667,8 @@ Tgetter_rl_dependant_rowids = ut.codeblock(
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> {self}, qreq_ = get_autogen_testdata()
+            >>> from {autogen_modname} import *  # NOQA
+            >>> {self}, qreq_ = testdata_ibs()
             >>> {root}_rowid_list = {self}._get_all_{root}_rowids()
             >>> {leaf}_rowid_list1 = {self}.get_{root}_{leaf}_rowids({root}_rowid_list, qreq_, ensure=False)
             >>> {leaf}_rowid_list2 = {self}.get_{root}_{leaf}_rowids({root}_rowid_list, qreq_, ensure=True)
@@ -596,8 +705,8 @@ Tgetter_pl_dependant_rowids_ = ut.codeblock(
         equivalent to get_{parent}_{leaf}_rowids_ except ensure is constrained
         to be False.
 
-        You basically save a stack frame by calling this, because
-        get_{parent}_{leaf}_rowids just calls this function if ensure is False
+        Also you save a stack frame because get_{parent}_{leaf}_rowids just
+        calls this function if ensure is False
 
         TemplateInfo:
             Tgetter_pl_dependant_rowids_
@@ -638,7 +747,7 @@ Tgetter_pl_dependant_rowids = ut.codeblock(
 
         Timeit:
             >>> from {autogen_modname} import *  # NOQA
-            >>> {self}, qreq_ = get_autogen_testdata()
+            >>> {self}, qreq_ = testdata_ibs()
             >>> # Test to see if there is any overhead to injected vs native functions
             >>> %timeit get_{parent}_{leaf}_rowids({self}, {parent}_rowid_list)
             >>> %timeit {self}.get_{parent}_{leaf}_rowids({parent}_rowid_list)
@@ -646,7 +755,7 @@ Tgetter_pl_dependant_rowids = ut.codeblock(
         Example:
             >>> # ENABLE_DOCTEST
             >>> from {autogen_modname} import *  # NOQA
-            >>> {self}, qreq_ = get_autogen_testdata()
+            >>> {self}, qreq_ = testdata_ibs()
             >>> {parent}_rowid_list = {self}._get_all_{parent}_rowids()
             >>> ensure = False
             >>> {leaf}_rowid_list = {self}.get_{parent}_{leaf}_rowids({parent}_rowid_list, qreq_, ensure)
@@ -655,7 +764,8 @@ Tgetter_pl_dependant_rowids = ut.codeblock(
         if ensure:
             {leaf}_rowid_list = add_{parent}_{leaf}s({self}, {parent}_rowid_list, qreq_=qreq_)
         else:
-            {leaf}_rowid_list = get_{parent}_{leaf}_rowids_({self}, {parent}_rowid_list, qreq_=qreq_)
+            {leaf}_rowid_list = get_{parent}_{leaf}_rowids_(
+                {self}, {parent}_rowid_list, qreq_=qreq_, eager=eager, nInput=nInput)
         return {leaf}_rowid_list
     # ENDBLOCK
     ''')
@@ -702,7 +812,7 @@ Tsetter_native_column = ut.codeblock(
     r'''
     # STARTBLOCK
     # REM @setter
-    def set_{tbl}_{col}s({self}, {tbl}_rowid_list, {col}_list):
+    def set_{tbl}_{col}s({self}, {tbl}_rowid_list, {col}_list, duplicate_behavior='error'):
         """ {col}_list -> {tbl}.{col}[{tbl}_rowid_list]
 
         Args:
@@ -716,7 +826,7 @@ Tsetter_native_column = ut.codeblock(
         """
         id_iter = {tbl}_rowid_list
         colnames = ({COLNAME},)
-        {self}.{dbself}.set({TABLE}, colnames, {col}_list, id_iter)
+        {self}.{dbself}.set({TABLE}, colnames, {col}_list, id_iter, duplicate_behavior=duplicate_behavior)
     # ENDBLOCK
     ''')
 
@@ -724,7 +834,7 @@ Tsetter_native_column = ut.codeblock(
 Tsetter_native_multicolumn = ut.codeblock(
     r'''
     # STARTBLOCK
-    def set_{tbl}_{multicol}s({self}, {tbl}_rowid_list, {multicol}_list):
+    def set_{tbl}_{multicol}s({self}, {tbl}_rowid_list, {multicol}_list, duplicate_behavior='error'):
         """ {multicol}_list -> {tbl}.{multicol}[{tbl}_rowid_list]
 
         Tsetter_native_multicolumn
@@ -735,12 +845,12 @@ Tsetter_native_multicolumn = ut.codeblock(
         Example:
             >>> # ENABLE_DOCTEST
             >>> from {autogen_modname} import *  # NOQA
-            >>> {self}, qreq_ = get_autogen_testdata()
+            >>> {self}, qreq_ = testdata_ibs()
             >>> {multicol}_list = get_{tbl}_{multicol}s({self}, {tbl}_rowid_list)
         """
         id_iter = {tbl}_rowid_list
         colnames = {MULTICOLNAMES}
-        {self}.{dbself}.set({TABLE}, colnames,  {multicol}_list, id_iter)
+        {self}.{dbself}.set({TABLE}, colnames,  {multicol}_list, id_iter, duplicate_behavior=duplicate_behavior)
     # ENDBLOCK
     ''')
 
@@ -760,7 +870,7 @@ Tdeleter_table_relation = ut.codeblock(
         Deletes the relationship between an {tbl} row and a label
         """
         {relation}_rowids_list = {self}.get_{tbl}_{relation}_rowids({tbl}_rowid_list)
-        {relation}_rowid_list = utool.flatten({relation}_rowids_list)
+        {relation}_rowid_list = ut.flatten({relation}_rowids_list)
         {self}.{dbself}.delete_rowids({RELATION_TABLE}, {relation}_rowid_list)
     # ENDBLOCK
     '''

@@ -32,15 +32,16 @@ sh Tinc.sh --test-test_inc_query:1 --num-init 0 --no-normcache --test-title "PZ_
 sh Tinc.sh --test-test_inc_query:2 --num-init 0 --devcache --no-normcache --vsone-errs --test-title "GZ_DEV" --gzdev --ninit 34 --naac --interupt-case
 sh Tinc.sh --test-test_inc_query:2 --num-init 0 --devcache --no-normcache --vsone-errs --test-title "GZ_DEV" --gzdev --ninit 47 --naac --interupt-case
 
-
 """
 from __future__ import absolute_import, division, print_function
 import six
 import utool as ut
 import numpy as np
+import vtool as vt
 from ibeis.model.hots import hstypes
 from ibeis.model.hots import match_chips4 as mc4
 from ibeis.model.hots import distinctiveness_normalizer
+from ibeis.model.hots import automated_params
 from six.moves import filter
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[special_query]')
 
@@ -225,8 +226,8 @@ def test_vsone_errors(ibs, daids, qaid2_qres_vsmany, qaid2_qres_vsone, incinfo):
                 >>> all_nids_t = ut.search_stack_for_localvar('all_nids_t')
                 >>> # Find index in daids of correct matches
                 >>> qres = qres_vsone
-                >>> correct_indicies = np.where(np.array(all_nids_t) == qnid_t)[0]
-                >>> correct_aids2 = ut.list_take(daids, correct_indicies)
+                >>> correct_indices = np.where(np.array(all_nids_t) == qnid_t)[0]
+                >>> correct_aids2 = ut.list_take(daids, correct_indices)
                 >>> qaid = qres.qaid
                 >>> aid = correct_aids2[0]
                 >>> # Report visual uuid for inclusion or exclusion in script
@@ -253,7 +254,7 @@ def test_vsone_errors(ibs, daids, qaid2_qres_vsmany, qaid2_qres_vsone, incinfo):
                 >>> match_interaction = match_interaction_good
                 >>> self = match_interaction
                 >>> self.select_ith_match(mx)
-                >>> #impossible_to_match = len(correct_indicies) > 0
+                >>> #impossible_to_match = len(correct_indices) > 0
                 """
                 y = """
                 >>> from ibeis.model.preproc import preproc_probchip
@@ -343,54 +344,6 @@ def test_vsone_errors(ibs, daids, qaid2_qres_vsmany, qaid2_qres_vsone, incinfo):
 
 
 @profile
-def choose_vsmany_K(num_names, qaids, daids):
-    """
-    TODO: Should also scale up the number of checks as well
-
-    method for choosing K in the initial vsmany queries
-
-    Ignore:
-        >>> # DISABLE_DOCTEST
-        >>> # Shows plot for K vs number of names
-        >>> from ibeis.model.hots.special_query import *  # NOQA
-        >>> from ibeis.all_imports import *  # NOQA
-        >>> ibs, valid_aids = testdata_special_query()
-        >>> num_names = np.arange(0, 1000)
-        >>> num_names_slope = .1
-        >>> K_max = 10
-        >>> K_min = 1
-        >>> K_list = np.floor(num_names_slope * num_names)
-        >>> K_list[K_list > K_max] = K_max
-        >>> K_list[K_list < K_min] = K_min
-        >>> clip_index_list = np.where(K_list >= K_max)[0]
-        >>> clip_index = clip_index_list[min(len(clip_index_list) - 1, 10)]
-        >>> K_list = K_list[0:clip_index]
-        >>> num_names = num_names[0:clip_index]
-        >>> pt.plot2(num_names, K_list, x_label='num_names', y_label='K',
-        ...          equal_aspect=False, marker='g-', pad=1, dark=True)
-        >>> pt.update()
-    """
-    #K = ibs.cfg.query_cfg.nn_cfg.K
-    # TODO: paramaterize in config
-    num_names_slope = .1  # increase K every fifty names
-    K_max = 10
-    K_min = 1
-    num_names_lower = K_min / num_names_slope
-    num_names_upper = K_max / num_names_slope
-    if num_names < num_names_lower:
-        K = K_min
-    elif num_names < num_names_upper:
-        K = num_names_slope * num_names
-    else:
-        K  = K_max
-
-    if len(ut.intersect_ordered(qaids, daids)) > 0:
-        # if self is in query bump k
-        K += 1
-    return K
-
-
-@profile
 def query_vsmany_initial(ibs, qaids, daids, use_cache=False, qreq_vsmany_=None,
                          save_qcache=False):
     r"""
@@ -425,7 +378,7 @@ def query_vsmany_initial(ibs, qaids, daids, use_cache=False, qreq_vsmany_=None,
     """
     num_names = len(set(ibs.get_annot_nids(daids)))
     vsmany_cfgdict = dict(
-        K=choose_vsmany_K(num_names, qaids, daids),
+        K=automated_params.choose_vsmany_K(num_names, qaids, daids),
         Knorm=3,
         index_method='multi',
         pipeline_root='vsmany',
@@ -474,13 +427,13 @@ def build_vsone_shortlist(ibs, qaid2_qres_vsmany):
 
     """
     vsone_query_pairs = []
-    nNameShortlistVsone = 3
+    nNameShortlist = 3
     nAnnotPerName = 2
     for qaid, qres_vsmany in six.iteritems(qaid2_qres_vsmany):
         nscoretup = qres_vsmany.get_nscoretup(ibs)
         (sorted_nids, sorted_nscores, sorted_aids, sorted_scores) = nscoretup
-        #top_nid_list = ut.listclip(sorted_nids, nNameShortlistVsone)
-        top_aids_list = ut.listclip(sorted_aids, nNameShortlistVsone)
+        #top_nid_list = ut.listclip(sorted_nids, nNameShortlist)
+        top_aids_list = ut.listclip(sorted_aids, nNameShortlist)
         top_aids_list_ = [ut.listclip(aids, nAnnotPerName) for aids in top_aids_list]
         top_aid_list = ut.flatten(top_aids_list_)
         # get top annotations beloning to the database query
@@ -685,7 +638,11 @@ def get_new_qres_distinctiveness(qres_vsone, qres_vsmany, top_aids, filtkey):
         # Get the distinctiveness score from the neighborhood
         # around each query point in the vsmany query result
         norm_sqared_dist = qres_vsmany.qfx2_dist.T[-1].take(qfx_vsone)
-        dstncvs = distinctiveness_normalizer.compute_distinctiveness_from_dist(norm_sqared_dist)
+        norm_dist = np.sqrt(norm_sqared_dist)
+        # FIXME: params not used
+        # but this is probably depricated anyway
+        dcvs_power, dcvs_max_clip, dcvs_min_clip = 1.0, 1.0, 0.0
+        dstncvs = distinctiveness_normalizer.compute_distinctiveness_from_dist(norm_dist, dcvs_power, dcvs_max_clip, dcvs_min_clip)
         # Copy new scores to the new fsv vector
         new_fsv_vsone.T[-1].T[:] = dstncvs  #
         newfsv_list.append(new_fsv_vsone)
@@ -743,7 +700,7 @@ def get_extern_distinctiveness(qreq_, qres, **kwargs):
     daid_list = list(six.iterkeys(qres.aid2_fsv))
     # Find subset of features to get distinctivness of
     qfxs_list = [qres.aid2_fm[daid].T[0] for daid in daid_list]
-    query_vecs = qreq_.ibs.get_annot_vecs(qres.qaid)
+    query_vecs = qreq_.ibs.get_annot_vecs(qres.qaid, qreq_=qreq_)
     # there might be duplicate feature indexes in the list of feature index
     # lists. We can use to perform neighbor lookup more efficiently by only
     # performing a single query per feature index. Utool does the mapping for us
@@ -786,77 +743,6 @@ def get_extern_distinctiveness(qreq_, qres, **kwargs):
                 fsv.T[_index] **= _power
     #new_aid2_fsv = dict(zip(daid_list, new_fsv_list))
     return new_fsv_list, daid_list
-
-
-def index_partition(item_list, part1_items):
-    """
-    returns two lists. The first are the indecies of items in item_list that
-    are in part1_items. the second is the indicies in item_list that are not
-    in part1_items. items in part1_items that are not in item_list are
-    ignored
-
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> item_list = ['dist', 'fg', 'distinctiveness']
-        >>> part1_items = ['fg', 'distinctiveness']
-        >>> part1_indexes, part2_indexes = index_partition(item_list, part1_items)
-        >>> ut.assert_eq(part1_indexes.tolist(), [1, 2])
-        >>> ut.assert_eq(part2_indexes.tolist(), [0])
-    """
-    part1_indexes_ = [
-        item_list.index(item)
-        for item in part1_items
-        if item in item_list
-    ]
-    part1_indexes = np.array(part1_indexes_)
-    part2_indexes = np.setdiff1d(np.arange(len(item_list)), part1_indexes)
-    part1_indexes = part1_indexes.astype(np.int32)
-    part2_indexes = part2_indexes.astype(np.int32)
-    return part1_indexes, part2_indexes
-
-
-def weighted_average_scoring(new_fsv_vsone, weight_filtxs, nonweight_filtxs):
-    r"""
-    does \frac{\sum_i w^f_i * w^d_i * r_i}{\sum_i w^f_i, w^d_i}
-    to get a weighed average of ratio scores
-
-    If we normalize the weight part to sum to 1 then we can get per-feature
-    scores.
-
-    References:
-        http://en.wikipedia.org/wiki/Weighted_arithmetic_mean
-
-    Ignore:
-        # Show that the formulat is the same
-        new_fsv_vsone_numer = np.multiply(weight_fs, nonweight_fs)
-        new_fsv_vsone_denom = weight_fs
-        assert new_fs_vsone.sum() == new_fsv_vsone_numer.sum() / new_fsv_vsone_denom.sum()
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> new_fsv_vsone = np.array([
-        ...     [ 0.82992172,  1.56136119,  0.66465378],
-        ...     [ 0.8000412 ,  2.14719748,  1.        ],
-        ...     [ 0.80848503,  2.6816361 ,  1.        ],
-        ...     [ 0.86761665,  2.70189977,  1.        ],
-        ...     [ 0.8004055 ,  1.58753884,  0.92178345],])
-        >>> weight_filtxs = np.array([1, 2], dtype=np.int32)
-        >>> nonweight_filtxs = np.array([0], dtype=np.int32)
-        >>> new_fs_vsone = weighted_average_scoring(new_fsv_vsone, weight_filtxs, nonweight_filtxs)
-        >>> result = new_fs_vsone
-        >>> print(result)
-        [ 0.08585277  0.17123899  0.21611761  0.23367671  0.11675666]
-
-    """
-    weight_fs    = new_fsv_vsone.T.take(weight_filtxs, axis=0).T.prod(axis=1)
-    nonweight_fs = new_fsv_vsone.T.take(nonweight_filtxs, axis=0).T.prod(axis=1)
-    weight_fs_norm01 = weight_fs / weight_fs.sum()
-    #weight_fs_norm01[np.isnan(weight_fs_norm01)] = 0.0
-    # If weights are nan, fill them with zeros
-    weight_fs_norm01 = np.nan_to_num(weight_fs_norm01)
-    new_fs_vsone = np.multiply(nonweight_fs, weight_fs_norm01)
-    return new_fs_vsone
 
 
 def product_scoring(new_fsv_vsone):
@@ -919,7 +805,7 @@ def apply_new_qres_filter_scores(qreq_vsone_, qres_vsone, newfsv_list, newscore_
     #numer_filters  = [hstypes.FiltKeys.LNBNN, hstypes.FiltKeys.RATIO]
 
     weight_filters = hstypes.WEIGHT_FILTERS
-    weight_filtxs, nonweight_filtxs = index_partition(qres_vsone.filtkey_list, weight_filters)
+    weight_filtxs, nonweight_filtxs = vt.index_partition(qres_vsone.filtkey_list, weight_filters)
 
     for new_fsv_vsone, daid in zip(newfsv_list, newscore_aids):
         #scorex_vsone  = ut.listfind(qres_vsone.filtkey_list, filtkey)
@@ -930,7 +816,7 @@ def apply_new_qres_filter_scores(qreq_vsone_, qres_vsone, newfsv_list, newscore_
         weighted_ave_score = True
         if weighted_ave_score:
             # weighted average scoring
-            new_fs_vsone = weighted_average_scoring(new_fsv_vsone, weight_filtxs, nonweight_filtxs)
+            new_fs_vsone = vt.weighted_average_scoring(new_fsv_vsone, weight_filtxs, nonweight_filtxs)
         else:
             # product scoring
             new_fs_vsone = product_scoring(new_fsv_vsone)

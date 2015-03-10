@@ -1,23 +1,24 @@
 from __future__ import absolute_import, division, print_function
 import numpy as np
+#from ibeis import constants as const
 from six.moves import zip
 import plottool.draw_func2 as df2
 from plottool import plot_helpers as ph
-import utool
+import utool as ut
 import vtool.keypoint as ktool
 from ibeis import ibsfuncs
 from ibeis.control.accessor_decors import getter, getter_vector_output
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[viz_helpers]', DEBUG=False)
+(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[viz_helpers]', DEBUG=False)
 
 
-NO_LBL_OVERRIDE = utool.get_argval('--no-lbl-override', type_=bool, default=None)
+NO_LBL_OVERRIDE = ut.get_argval('--no-lbl-override', type_=bool, default=None)
 
 
 FNUMS = dict(image=1, chip=2, res=3, inspect=4, special=5, name=6)
 
-IN_IMAGE_OVERRIDE = utool.get_argval('--in-image-override', type_=bool, default=None)
-SHOW_QUERY_OVERRIDE = utool.get_argval('--show-query-override', type_=bool, default=None)
-NO_LBL_OVERRIDE = utool.get_argval('--no-lbl-override', type_=bool, default=None)
+IN_IMAGE_OVERRIDE = ut.get_argval('--in-image-override', type_=bool, default=None)
+SHOW_QUERY_OVERRIDE = ut.get_argval('--show-query-override', type_=bool, default=None)
+NO_LBL_OVERRIDE = ut.get_argval('--no-lbl-override', type_=bool, default=None)
 
 SIFT_OR_VECFIELD  = ph.SIFT_OR_VECFIELD
 
@@ -34,18 +35,18 @@ set_ibsdat = ph.set_plotdat
 
 
 @getter_vector_output
-def get_annot_kpts_in_imgspace(ibs, aid_list, **kwargs):
+def get_annot_kpts_in_imgspace(ibs, aid_list, qreq_=None, **kwargs):
     """ Transforms keypoints so they are plotable in imagespace """
     ensure = kwargs.get('ensure', True)
     bbox_list   = ibs.get_annot_bboxes(aid_list)
     theta_list  = ibs.get_annot_thetas(aid_list)
     try:
-        chipsz_list = ibs.get_annot_chipsizes(aid_list, ensure=ensure)
+        chipsz_list = ibs.get_annot_chip_sizes(aid_list, ensure=ensure)
     except AssertionError as ex:
-        utool.printex(ex, '[!ibs.get_annot_kpts_in_imgspace]')
+        ut.printex(ex, '[!ibs.get_annot_kpts_in_imgspace]')
         print('[!ibs.get_annot_kpts_in_imgspace] aid_list = %r' % (aid_list,))
         raise
-    kpts_list    = ibs.get_annot_kpts(aid_list, ensure=ensure)
+    kpts_list    = ibs.get_annot_kpts(aid_list, ensure=ensure, qreq_=qreq_)
     imgkpts_list = [ktool.transform_kpts_to_imgspace(kpts, bbox, theta, chipsz)
                     for kpts, bbox, theta, chipsz
                     in zip(kpts_list, bbox_list, theta_list, chipsz_list)]
@@ -53,27 +54,27 @@ def get_annot_kpts_in_imgspace(ibs, aid_list, **kwargs):
 
 
 @getter_vector_output
-def get_chips(ibs, aid_list, in_image=False, **kwargs):
+def get_chips(ibs, aid_list, in_image=False, qreq_=None, **kwargs):
     #if 'chip' in kwargs:
         #return kwargs['chip']
     if in_image:
         return ibs.get_annot_images(aid_list)
     else:
-        return ibs.get_annot_chips(aid_list)
+        return ibs.get_annot_chips(aid_list, qreq_=qreq_)
 
 
 @getter_vector_output
-def get_kpts(ibs, aid_list, in_image=False, **kwargs):
+def get_kpts(ibs, aid_list, in_image=False, qreq_=None, **kwargs):
     if 'kpts' in kwargs:
         return kwargs['kpts']
     kpts_subset = kwargs.get('kpts_subset', None)
     ensure = kwargs.get('ensure', True)
     if in_image:
-        kpts_list = get_annot_kpts_in_imgspace(ibs, aid_list, **kwargs)
+        kpts_list = get_annot_kpts_in_imgspace(ibs, aid_list, qreq_=qreq_, **kwargs)
     else:
-        kpts_list = ibs.get_annot_kpts(aid_list, ensure=ensure)
+        kpts_list = ibs.get_annot_kpts(aid_list, ensure=ensure, qreq_=qreq_)
     if kpts_subset is not None:
-        kpts_list = [utool.spaced_items(kpts, kpts_subset, trunc=True) for kpts in kpts_list]
+        kpts_list = [ut.spaced_items(kpts, kpts_subset, trunc=True) for kpts in kpts_list]
     return kpts_list
 
 
@@ -90,14 +91,14 @@ def get_bboxes(ibs, aid_list, offset_list=None):
 
 
 def get_aidstrs(aid_list, **kwargs):
-    if utool.isiterable(aid_list):
+    if ut.isiterable(aid_list):
         return [ibsfuncs.aidstr(aid, **kwargs) for aid in aid_list]
     else:
         return ibsfuncs.aidstr(aid_list, **kwargs)
 
 
 def get_nidstrs(nid_list, **kwargs):
-    if utool.isiterable(nid_list):
+    if ut.isiterable(nid_list):
         return ['nid%d' for nid in nid_list]
     else:
         return 'nid%d' % nid_list
@@ -115,7 +116,8 @@ def get_bbox_centers(bbox_list):
 
 
 def is_unknown(ibs, nid_list):
-    return [ not isinstance(nid, utool.VALID_INT_TYPES) and len(nid) == 0 for nid in nid_list]
+    # this func seems unused
+    return [ not isinstance(nid, ut.VALID_INT_TYPES) and len(nid) == 0 for nid in nid_list]
 
 
 def get_truth_text(ibs, truth):
@@ -150,19 +152,58 @@ def get_timedelta_str(ibs, aid1, aid2):
         timedelta_str_ = 'NA'
     else:
         unixtime_diff = unixtime2 - unixtime1
-        timedelta_str_ = utool.get_unix_timedelta_str(unixtime_diff)
+        timedelta_str_ = ut.get_unix_timedelta_str(unixtime_diff)
     timedelta_str = 'timedelta(%s)' % (timedelta_str_)
     return timedelta_str
 
 
 def get_annot_texts(ibs, aid_list, **kwargs):
-    """ Add each type of text_list to the strings list """
+    """ Add each type of text_list to the strings list
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aid_list (int):  list of annotation ids
+
+    Returns:
+        list: annotation_text_list
+
+    CommandLine:
+        python -m ibeis.viz.viz_helpers --test-get_annot_texts
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.viz.viz_helpers import *  # NOQA
+        >>> import ibeis
+        >>> import collections
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> # Default all kwargs to true
+        >>> class KwargsProxy(object):
+        ...    def get(self, a, b):
+        ...        return True
+        >>> kwargs_proxy = KwargsProxy()
+        >>> aid_list = ibs.get_valid_aids()[::3]
+        >>> # execute function
+        >>> annotation_text_list = get_annot_texts(ibs, aid_list, kwargs_proxy=kwargs_proxy)
+        >>> # verify results
+        >>> result = ut.list_str(annotation_text_list)
+        >>> print(result)
+        [
+            u'aid1, gname=easy1.JPG, name=____, nid=-1, , nGt=0, quality=UNKNOWN, yaw=None',
+            u'aid4, gname=hard1.JPG, name=____, nid=-4, , nGt=0, quality=UNKNOWN, yaw=None',
+            u'aid7, gname=jeff.png, name=jeff, nid=3, EX, nGt=0, quality=UNKNOWN, yaw=None',
+            u'aid10, gname=occl2.JPG, name=occl, nid=5, EX, nGt=0, quality=UNKNOWN, yaw=None',
+            u'aid13, gname=zebra.jpg, name=zebra, nid=7, EX, nGt=0, quality=UNKNOWN, yaw=None',
+        ]
+    """
+    # HACK FOR TEST
+    if 'kwargs_proxy' in kwargs:
+        kwargs = kwargs['kwargs_proxy']
     try:
         ibsfuncs.assert_valid_aids(ibs, aid_list)
-        assert utool.isiterable(aid_list), 'input must be iterable'
-        assert all([isinstance(aid, utool.VALID_INT_TYPES) for aid in aid_list]), 'invalid input'
+        assert ut.isiterable(aid_list), 'input must be iterable'
+        assert all([isinstance(aid, ut.VALID_INT_TYPES) for aid in aid_list]), 'invalid input'
     except AssertionError as ex:
-        utool.printex(ex, 'invalid input', 'viz', key_list=['aid_list'])
+        ut.printex(ex, 'invalid input', 'viz', key_list=['aid_list'])
         raise
     texts_list = []  # list of lists of texts
     if kwargs.get('show_aidstr', True):
@@ -185,6 +226,14 @@ def get_annot_texts(ibs, aid_list, **kwargs):
         # allowed annotations
         nGt_list = ibs.get_annot_num_groundtruth(aid_list)
         texts_list.append(['nGt=%r' % nGt for nGt in nGt_list])
+    if kwargs.get('show_quality_text', False):
+        qualtext_list = ibs.get_annot_quality_texts(aid_list)
+        texts_list.append(list(map(lambda text: 'quality=%s' % text, qualtext_list)))
+    if kwargs.get('show_yawtext', False):
+        # FIXME: This should be num_groundtruth with respect to the currently
+        # allowed annotations
+        yawtext_list = ibs.get_annot_yaw_texts(aid_list)
+        texts_list.append(list(map(lambda text: 'yaw=%s' % text, yawtext_list)))
     # zip them up to get a tuple for each chip and join the fields
     if len(texts_list) > 0:
         annotation_text_list = [', '.join(tup) for tup in zip(*texts_list)]
@@ -198,7 +247,7 @@ def get_annot_texts(ibs, aid_list, **kwargs):
 def get_image_titles(ibs, gid_list):
     gname_list = ibs.get_image_gnames(gid_list)
     title_list = [
-        'gid=%r gname=%r' % (gid, str(gname))
+        'gname=%r, gid=%r ' % (str(gname), gid)
         for gid, gname in zip(gid_list, gname_list)
     ]
     return title_list
@@ -208,40 +257,50 @@ def get_annot_text(ibs, aid_list, draw_lbls):
     if draw_lbls:
         text_list = ibs.get_annot_names(aid_list)
     else:
-        text_list = utool.alloc_nones(len(aid_list))
+        text_list = ut.alloc_nones(len(aid_list))
     return text_list
 
 
 def get_query_text(ibs, qres, aid2, truth, **kwargs):
     """ returns title based on the query chip and result """
     text_list = []
+    if qres is not None:
+        qaid = qres.qaid
+        score = qres.get_aid_scores([aid2])[0]
+        rawscore = qres.get_aid_scores([aid2], rawscore=True)[0]
+        aid2_raw_rank = qres.get_aid_ranks([aid2])[0]
+    else:
+        qaid          = kwargs.get('qaid', None)
+        score         = kwargs.get('score', None)
+        rawscore      = kwargs.get('rawscore', None)
+        aid2_raw_rank = kwargs.get('aid2_raw_rank', None)
     if kwargs.get('show_truth', False):
         truth_str = '*%s*' % get_truth_text(ibs, truth)
         text_list.append(truth_str)
-    if kwargs.get('show_rank', True):
+    if kwargs.get('show_rank', aid2_raw_rank is not None or qres is not None):
         try:
-            aid2_raw_rank = qres.get_aid_ranks([aid2])[0]
+            #aid2_raw_rank = qres.get_aid_ranks([aid2])[0]
             aid2_rank = aid2_raw_rank + 1 if aid2_raw_rank is not None else None
             rank_str = 'rank=%s' % str(aid2_rank)
         except Exception as ex:
-            utool.printex(ex)
-            #utool.embed()
+            ut.printex(ex)
+            #ut.embed()
             raise
         text_list.append(rank_str)
-    if kwargs.get('show_rawscore', True):
-        rawscore = qres.get_aid_scores([aid2], rawscore=True)[0]
-        rawscore_str = ('rawscore=' + utool.num_fmt(rawscore))
+    if kwargs.get('show_rawscore', rawscore is not None or qres is not None):
+        #rawscore = qres.get_aid_scores([aid2], rawscore=True)[0]
+        rawscore_str = ('rawscore=' + ut.num_fmt(rawscore))
         if len(text_list) > 0:
             rawscore_str = '\n' + rawscore_str
         text_list.append(rawscore_str)
-    if kwargs.get('show_score', True):
-        score = qres.get_aid_scores([aid2])[0]
-        score_str = ('score=' + utool.num_fmt(score))
+    if kwargs.get('show_score', score is not None or qres is not None):
+        #score = qres.get_aid_scores([aid2])[0]
+        score_str = ('score=' + ut.num_fmt(score))
         if len(text_list) > 0:
             score_str = '\n' + score_str
         text_list.append(score_str)
     if kwargs.get('show_timedelta', False):
-        timedelta_str = ('\n' + get_timedelta_str(ibs, qres.qaid, aid2))
+        timedelta_str = ('\n' + get_timedelta_str(ibs, qaid, aid2))
         text_list.append(timedelta_str)
     query_text = ', '.join(text_list)
     return query_text
@@ -252,13 +311,13 @@ def get_query_text(ibs, qres, aid2, truth, **kwargs):
 #==========================#
 
 
-def show_keypoint_gradient_orientations(ibs, aid, fx, fnum=None, pnum=None):
+def show_keypoint_gradient_orientations(ibs, aid, fx, fnum=None, pnum=None, qreq_=None):
     # Draw the gradient vectors of a patch overlaying the keypoint
     if fnum is None:
         fnum = df2.next_fnum()
-    rchip = ibs.get_annot_chips(aid)
-    kp    = ibs.get_annot_kpts(aid)[fx]
-    sift  = ibs.get_annot_vecs(aid)[fx]
+    rchip = ibs.get_annot_chips(aid, qreq_=qreq_)
+    kp    = ibs.get_annot_kpts(aid, qreq_=qreq_)[fx]
+    sift  = ibs.get_annot_vecs(aid, qreq_=qreq_)[fx]
     df2.draw_keypoint_gradient_orientations(rchip, kp, sift=sift,
                                             mode='vec', fnum=fnum, pnum=pnum)
     df2.set_title('Gradient orientation\n %s, fx=%d' % (get_aidstrs(aid), fx))
@@ -273,3 +332,16 @@ def kp_info(kp):
     scale = ktool.get_scales(kpts)[0]
     return xy_str, shape_str, scale, ori_str
 #----
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m ibeis.viz.viz_helpers
+        python -m ibeis.viz.viz_helpers --allexamples
+        python -m ibeis.viz.viz_helpers --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

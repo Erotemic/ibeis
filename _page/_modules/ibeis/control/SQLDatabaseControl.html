@@ -1,52 +1,110 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>ibeis.control.SQLDatabaseControl &mdash; ibeis 0.1.0.dev1 documentation</title>
-    
-    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../../../',
-        VERSION:     '0.1.0.dev1',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <link rel="top" title="ibeis 0.1.0.dev1 documentation" href="../../../index.html" />
-    <link rel="up" title="ibeis.control" href="../control.html" /> 
-  </head>
-  <body>
-    <div class="related">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../../../genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="../../../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li><a href="../../../index.html">ibeis 0.1.0.dev1 documentation</a> &raquo;</li>
-          <li><a href="../../index.html" >Module code</a> &raquo;</li>
-          <li><a href="../../ibeis.html" >ibeis</a> &raquo;</li>
-          <li><a href="../control.html" accesskey="U">ibeis.control</a> &raquo;</li> 
-      </ul>
-    </div>  
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.control.SQLDatabaseControl &mdash; ibeis 0.1.0.dev1 documentation</title>
+  
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body">
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="ibeis 0.1.0.dev1 documentation" href="../../../index.html"/>
+        <link rel="up" title="ibeis.control" href="../control.html"/> 
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        <a href="../../../index.html" class="fa fa-home"> ibeis</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+        
+            <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#subpackages">Subpackages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.params">ibeis.params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../ibeis.html">ibeis</a> &raquo;</li>
+      
+          <li><a href="../control.html">ibeis.control</a> &raquo;</li>
+      
+    <li>ibeis.control.SQLDatabaseControl</li>
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
             
   <h1>Source code for ibeis.control.SQLDatabaseControl</h1><div class="highlight"><pre>
 <span class="sd">&quot;&quot;&quot;</span>
@@ -76,7 +134,7 @@
 <span class="n">VERYVERBOSE</span>    <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERYVERBOSE</span>
 <span class="n">QUIET</span>          <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">QUIET</span> <span class="ow">or</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--quiet-sql&#39;</span><span class="p">)</span>
 <span class="n">VERBOSE_SQL</span>    <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--verb-sql&#39;</span><span class="p">)</span>
-<span class="n">AUTODUMP</span>       <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--auto-dump&#39;</span><span class="p">)</span>
+<span class="c">#AUTODUMP       = utool.get_argflag(&#39;--auto-dump&#39;)</span>
 <span class="n">COPY_TO_MEMORY</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--copy-db-to-memory&#39;</span><span class="p">))</span>
 
 <span class="sd">&quot;&quot;&quot; If would be really great if we could get a certain set of setters, getters,</span>
@@ -369,7 +427,7 @@
 <span class="sd">                to be added. It should return None for any new rows to be inserted.</span>
 <span class="sd">                It should return the existing rowid if one exists</span>
 
-<span class="sd">            superkey_paramx (tuple of ints): indicies of tuples in params_iter which</span>
+<span class="sd">            superkey_paramx (tuple of ints): indices of tuples in params_iter which</span>
 <span class="sd">                correspond to superkeys. defaults to (0,)</span>
 
 <span class="sd">        Returns:</span>
@@ -502,7 +560,10 @@
     <span class="c">#@setter_sql</span></div>
 <div class="viewcode-block" id="SQLDatabaseController.set"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.SQLDatabaseControl.SQLDatabaseController.set">[docs]</a>    <span class="k">def</span> <span class="nf">set</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">tblname</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">val_iter</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s">&#39;rowid&#39;</span><span class="p">,</span>
             <span class="n">duplicate_behavior</span><span class="o">=</span><span class="s">&#39;error&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; setter &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot; setter</span>
+
+<span class="sd">        TODO: Test</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">colnames</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span>
         <span class="c">#if isinstance(colnames, six.string_types):</span>
         <span class="c">#    colnames = (colnames,)</span>
@@ -525,10 +586,11 @@
                 <span class="k">raise</span>
         <span class="k">elif</span> <span class="n">duplicate_behavior</span> <span class="o">==</span> <span class="s">&#39;filter&#39;</span><span class="p">:</span>
             <span class="c"># Keep only the first setting of every row</span>
-            <span class="n">isunique_list</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">flag_unique_items</span><span class="p">(</span><span class="n">id_iter</span><span class="p">)</span>
+            <span class="n">isunique_list</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">flag_unique_items</span><span class="p">(</span><span class="n">id_list</span><span class="p">)</span>
+            <span class="n">id_list</span>  <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">id_list</span><span class="p">,</span> <span class="n">isunique_list</span><span class="p">)</span>
             <span class="n">val_list</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">val_list</span><span class="p">,</span> <span class="n">isunique_list</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;unknown duplicate_behavior=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">duplicate_behavior</span><span class="p">,))</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;unknown duplicate_behavior=</span><span class="si">%r</span><span class="s">. known behaviors are: error and filter&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">duplicate_behavior</span><span class="p">,))</span>
 
         <span class="k">try</span><span class="p">:</span>
             <span class="n">num_val</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">val_list</span><span class="p">)</span>
@@ -649,7 +711,7 @@
                 <span class="n">constraint_fmtstr</span> <span class="o">=</span> <span class="s">&#39;CONSTRAINT superkey UNIQUE ({colnames_str})&#39;</span>
                 <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">superkey_colnames_list</span><span class="p">,</span> <span class="nb">list</span><span class="p">),</span> <span class="s">&#39;must be list got </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">superkey_colnames_list</span><span class="p">))</span>
                 <span class="k">for</span> <span class="n">superkey_colnames</span> <span class="ow">in</span> <span class="n">superkey_colnames_list</span><span class="p">:</span>
-                    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">superkey_colnames</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">),</span> <span class="s">&#39;must be list of tuples&#39;</span>
+                    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">superkey_colnames</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">),</span> <span class="s">&#39;must be list of tuples got list of </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">superkey_colnames</span><span class="p">,))</span>
                     <span class="n">colnames_str</span> <span class="o">=</span> <span class="s">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">superkey_colnames</span><span class="p">)</span>
                     <span class="n">unique_constraint</span> <span class="o">=</span> <span class="n">constraint_fmtstr</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">colnames_str</span><span class="o">=</span><span class="n">colnames_str</span><span class="p">)</span>
                     <span class="n">table_constraints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">unique_constraint</span><span class="p">)</span>
@@ -720,7 +782,7 @@
         <span class="k">assert</span> <span class="n">colmap_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;must specify colmaplist&#39;</span>
         <span class="k">assert</span> <span class="n">tablename</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;must specify tablename&#39;</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        funciton to modify the schema - only columns that are being added, removed or changed need to be enumerated</span>
+<span class="sd">        function to modify the schema - only columns that are being added, removed or changed need to be enumerated</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">           tablename (str): tablename</span>
@@ -796,14 +858,13 @@
                     <span class="k">del</span> <span class="n">colname_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
                     <span class="k">del</span> <span class="n">coltype_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
                     <span class="k">del</span> <span class="n">colname_dict</span><span class="p">[</span><span class="n">src</span><span class="p">]</span>
-                <span class="k">elif</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">src</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">dst</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">src</span> <span class="o">!=</span> <span class="n">dst</span> <span class="ow">and</span>
-                      <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">type_</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">type_</span> <span class="o">==</span> <span class="n">coltype_list</span><span class="p">[</span><span class="n">index</span><span class="p">])):</span>
+                <span class="k">elif</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">src</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">dst</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">src</span> <span class="o">!=</span> <span class="n">dst</span><span class="p">):</span>
                     <span class="c"># Rename column</span>
-                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">type_</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                        <span class="n">type_</span> <span class="o">=</span> <span class="n">coltype_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
                     <span class="n">colname_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">dst</span>
-                    <span class="n">coltype_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">type_</span>
                     <span class="n">colname_dict</span><span class="p">[</span><span class="n">src</span><span class="p">]</span> <span class="o">=</span> <span class="n">dst</span>
+                    <span class="c"># Check if type should change as well</span>
+                    <span class="k">if</span> <span class="p">((</span><span class="n">type_</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">type_</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">and</span> <span class="n">type_</span> <span class="o">!=</span> <span class="n">coltype_list</span><span class="p">[</span><span class="n">index</span><span class="p">]):</span>
+                        <span class="n">coltype_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">type_</span>
                 <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">type_</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">type_</span> <span class="o">!=</span> <span class="n">coltype_list</span><span class="p">[</span><span class="n">index</span><span class="p">]:</span>
                     <span class="c"># Change column type</span>
                     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dst</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -1135,20 +1196,26 @@
                 <span class="n">file_</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">table_csv</span><span class="p">)</span>
 </div>
     <span class="nd">@default_decorator</span>
-<div class="viewcode-block" id="SQLDatabaseController.get_schema_current_autogeneration_str"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.SQLDatabaseControl.SQLDatabaseController.get_schema_current_autogeneration_str">[docs]</a>    <span class="k">def</span> <span class="nf">get_schema_current_autogeneration_str</span><span class="p">(</span><span class="n">db</span><span class="p">):</span>
+<div class="viewcode-block" id="SQLDatabaseController.get_schema_current_autogeneration_str"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.SQLDatabaseControl.SQLDatabaseController.get_schema_current_autogeneration_str">[docs]</a>    <span class="k">def</span> <span class="nf">get_schema_current_autogeneration_str</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">autogen_cmd</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Convenience: Autogenerates the most up-to-date database schema</span>
 
 <span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">            &gt;&gt;&gt; import ibeis</span>
 <span class="sd">            &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
-<span class="sd">            &gt;&gt;&gt; result = ibs.db.get_schema_current_autogeneration_str()</span>
+<span class="sd">            &gt;&gt;&gt; result = ibs.db.get_schema_current_autogeneration_str(&#39;&#39;)</span>
 <span class="sd">            &gt;&gt;&gt; print(result)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">db_version_current</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_db_version</span><span class="p">()</span>
 
         <span class="n">line_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c">#autogen_cmd = &#39;python -m ibeis.control.DB_SCHEMA --test-test_dbschema --force-incremental-db-update --dump-autogen-schema&#39;</span>
         <span class="c"># File Header</span>
-        <span class="n">line_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;# AUTOGENERATED ON &#39;</span> <span class="o">+</span> <span class="n">utool</span><span class="o">.</span><span class="n">timestamp</span><span class="p">(</span><span class="s">&#39;printable&#39;</span><span class="p">))</span>
+        <span class="n">line_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">TRIPLE_DOUBLE_QUOTE</span><span class="p">)</span>
+        <span class="n">line_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;AUTOGENERATED ON &#39;</span> <span class="o">+</span> <span class="n">utool</span><span class="o">.</span><span class="n">timestamp</span><span class="p">(</span><span class="s">&#39;printable&#39;</span><span class="p">))</span>
+        <span class="n">line_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;AutogenCommandLine:&#39;</span><span class="p">)</span>
+        <span class="n">line_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;     &#39;</span> <span class="o">+</span> <span class="n">autogen_cmd</span><span class="p">)</span>
+        <span class="n">line_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">TRIPLE_DOUBLE_QUOTE</span><span class="p">)</span>
         <span class="n">line_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;from __future__ import absolute_import, division, print_function&#39;</span><span class="p">)</span>
         <span class="n">line_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;from ibeis import constants as const&#39;</span><span class="p">)</span>
         <span class="n">line_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
@@ -1193,17 +1260,17 @@
             <span class="n">line_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s">),&#39;</span> <span class="o">%</span> <span class="n">tab</span><span class="p">)</span>
             <span class="n">superkey_colnames_list</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_table_superkeys</span><span class="p">(</span><span class="n">tablename</span><span class="p">)</span>
             <span class="n">docstr</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_table_docstr</span><span class="p">(</span><span class="n">tablename</span><span class="p">)</span>
-            <span class="n">line_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s%s</span><span class="s">superkey_colnames=</span><span class="si">%r</span><span class="s">,&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tab</span><span class="p">,</span> <span class="n">tab</span><span class="p">,</span> <span class="n">superkey_colnames_list</span><span class="p">,</span> <span class="p">))</span>
+            <span class="n">line_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s%s</span><span class="s">superkey_colnames_list=</span><span class="si">%r</span><span class="s">,&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tab</span><span class="p">,</span> <span class="n">tab</span><span class="p">,</span> <span class="n">superkey_colnames_list</span><span class="p">,</span> <span class="p">))</span>
             <span class="n">line_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s%s</span><span class="s">docstr=</span><span class="se">\&#39;\&#39;\&#39;</span><span class="si">%s</span><span class="se">\&#39;\&#39;\&#39;</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tab</span><span class="p">,</span> <span class="n">tab</span><span class="p">,</span> <span class="n">docstr</span><span class="p">,</span> <span class="p">))</span>
         <span class="n">line_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">line_list</span><span class="p">)</span>
 </div>
     <span class="nd">@default_decorator</span>
-<div class="viewcode-block" id="SQLDatabaseController.dump_schema_current_autogeneration"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.SQLDatabaseControl.SQLDatabaseController.dump_schema_current_autogeneration">[docs]</a>    <span class="k">def</span> <span class="nf">dump_schema_current_autogeneration</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">,</span> <span class="n">output_filename</span><span class="p">):</span>
+<div class="viewcode-block" id="SQLDatabaseController.dump_schema_current_autogeneration"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.SQLDatabaseControl.SQLDatabaseController.dump_schema_current_autogeneration">[docs]</a>    <span class="k">def</span> <span class="nf">dump_schema_current_autogeneration</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">,</span> <span class="n">output_filename</span><span class="p">,</span> <span class="n">autogen_cmd</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Convenience: Autogenerates the most up-to-date database schema &quot;&quot;&quot;</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[sqldb] dumping current schema to output_filename=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">output_filename</span><span class="p">,))</span>
         <span class="n">dump_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="n">output_filename</span><span class="p">)</span>
-        <span class="n">schema_current_str</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_schema_current_autogeneration_str</span><span class="p">()</span>
+        <span class="n">schema_current_str</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_schema_current_autogeneration_str</span><span class="p">(</span><span class="n">autogen_cmd</span><span class="p">)</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">dump_fpath</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
             <span class="n">file_</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">schema_current_str</span><span class="p">)</span>
 </div>
@@ -1286,7 +1353,9 @@
             <span class="c"># Sometimes the metadata gets moved for some reason</span>
             <span class="c"># Hack the information out of the constraints</span>
             <span class="n">constraint_list</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_table_constraints</span><span class="p">(</span><span class="n">tablename</span><span class="p">)</span>
-            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">constraint_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&#39;INVALID DEVELOPER ASSUMPTION IN SQLCONTROLLER. MORE THAN 1 CONSTRAINT&#39;</span>
+            <span class="c">#with ut.embed_on_exception_context:</span>
+            <span class="c"># it is ok to have more than one constriant now</span>
+            <span class="c">#assert len(constraint_list) == 1, &#39;INVALID DEVELOPER ASSUMPTION IN SQLCONTROLLER. MORE THAN 1 CONSTRAINT: %r&#39; % (constraint_list,)</span>
             <span class="n">superkey_colnames_list</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">if</span> <span class="n">constraint_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
                 <span class="kn">import</span> <span class="nn">parse</span>
@@ -1308,7 +1377,7 @@
         <span class="c">#    None if superkey_colname is None else str(superkey_colname)</span>
         <span class="c">#    for superkey_colname in superkey_colnames</span>
         <span class="c">#]</span>
-        <span class="c">#superkey_colnames_list = list(map(tuple, superkey_colnames_list))</span>
+        <span class="n">superkey_colnames_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="n">superkey_colnames_list</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">superkey_colnames_list</span>
 </div>
     <span class="n">get_table_superkey_colnames</span> <span class="o">=</span> <span class="n">get_table_superkeys</span>
@@ -1415,7 +1484,31 @@
 </div>
     <span class="nd">@default_decorator</span>
 <div class="viewcode-block" id="SQLDatabaseController.get_table_csv"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.SQLDatabaseControl.SQLDatabaseController.get_table_csv">[docs]</a>    <span class="k">def</span> <span class="nf">get_table_csv</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">tablename</span><span class="p">,</span> <span class="n">exclude_columns</span><span class="o">=</span><span class="p">[]):</span>
-        <span class="sd">&quot;&quot;&quot; Conveinience: Converts a tablename to csv format &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot; Conveinience: Converts a tablename to csv format</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            tablename (str):</span>
+<span class="sd">            exclude_columns (list):</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str: csv_table</span>
+
+<span class="sd">        CommandLine:</span>
+<span class="sd">            python -m ibeis.control.SQLDatabaseControl --test-get_table_csv</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">            &gt;&gt;&gt; from ibeis.control.SQLDatabaseControl import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; # build test data</span>
+<span class="sd">            &gt;&gt;&gt; db = &#39;?&#39;</span>
+<span class="sd">            &gt;&gt;&gt; tablename = &#39;?&#39;</span>
+<span class="sd">            &gt;&gt;&gt; exclude_columns = []</span>
+<span class="sd">            &gt;&gt;&gt; # execute function</span>
+<span class="sd">            &gt;&gt;&gt; csv_table = db.get_table_csv(tablename, exclude_columns)</span>
+<span class="sd">            &gt;&gt;&gt; # verify results</span>
+<span class="sd">            &gt;&gt;&gt; result = str(csv_table)</span>
+<span class="sd">            &gt;&gt;&gt; print(result)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">column_names</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_column_names</span><span class="p">(</span><span class="n">tablename</span><span class="p">)</span>
         <span class="n">column_list</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">column_lbls</span> <span class="o">=</span> <span class="p">[]</span>
@@ -1591,45 +1684,58 @@
 </pre></div>
 
           </div>
-        </div>
-      </div>
-      <div class="sphinxsidebar">
-        <div class="sphinxsidebarwrapper">
-<div id="searchbox" style="display: none">
-  <h3>Quick search</h3>
-    <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
-    </p>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="related">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../../../genindex.html" title="General Index"
-             >index</a></li>
-        <li class="right" >
-          <a href="../../../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li><a href="../../../index.html">ibeis 0.1.0.dev1 documentation</a> &raquo;</li>
-          <li><a href="../../index.html" >Module code</a> &raquo;</li>
-          <li><a href="../../ibeis.html" >ibeis</a> &raquo;</li>
-          <li><a href="../control.html" >ibeis.control</a> &raquo;</li> 
-      </ul>
-    </div>
-    <div class="footer">
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
         &copy; Copyright 2015, Jon Crall.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
-    </div>
-  </body>
+    </p>
+  </div>
+
+  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.1.0.dev1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
 </html>

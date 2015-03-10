@@ -10,6 +10,13 @@ CommandLine:
     python -m ibeis.control.template_generator --key featweight
     python -m ibeis.control.template_generator --key encounter
 
+    python -m ibeis.control.template_generator --key image --onlyfn
+    python -m ibeis.control.template_generator --key image --fnfilt timedelta_posix --modfname manual_image_funcs
+    python -m ibeis.control.template_generator --key image --fnfilt location --modfname manual_image_funcs
+    python -m ibeis.control.template_generator --key image --fnfilt set_.*time --modfname manual_image_funcs
+
+    image_timedelta_posix
+
 """
 from __future__ import absolute_import, division, print_function
 import six  # NOQA
@@ -41,15 +48,48 @@ ENCOUNTER_START_TIME_POSIX = 'encounter_start_time_posix'
 ENCOUNTER_SMART_WAYPOINT_ID = 'encounter_smart_waypoint_id'
 ENCOUNTER_SMART_XML_FNAME   = 'encounter_smart_xml_fname'
 
+IMAGE_TIME_POSIX      = 'image_time_posix'
+IMAGE_LOCATION_CODE   = 'image_location_code'
+IMAGE_TIMEDELTA_POSIX = 'image_timedelta_posix'
+
 
 @register_ibs_method
 @ider
 def _get_all_gids(ibs):
     """
+    alias
+
     Returns:
         list_ (list):  all unfiltered gids (image rowids) """
-    all_gids = ibs.db.get_all_rowids(const.IMAGE_TABLE)
+    all_gids = ibs._get_all_image_rowids()
     return all_gids
+
+
+@register_ibs_method
+def _get_all_image_rowids(ibs):
+    """ all_image_rowids <- image.get_all_rowids()
+
+    Returns:
+        list_ (list): unfiltered image_rowids
+
+    TemplateInfo:
+        Tider_all_rowids
+        tbl = image
+
+    CommandLine:
+        python -m ibeis.control.manual_image_funcs --test-_get_all_image_rowids
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_image_funcs import *  # NOQA
+        >>> ibs, qreq_ = testdata_ibs()
+        >>> all_image_rowids = ibs._get_all_image_rowids()
+        >>> result = str(all_image_rowids)
+        >>> print(result)
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+    """
+    all_image_rowids = ibs.db.get_all_rowids(const.IMAGE_TABLE)
+    return all_image_rowids
 
 
 @register_ibs_method
@@ -73,6 +113,35 @@ def _get_all_eids(ibs):
 @register_ibs_method
 @ider
 def get_valid_gids(ibs, eid=None, require_unixtime=False, reviewed=None):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        eid (None):
+        require_unixtime (bool):
+        reviewed (None):
+
+    Returns:
+        list: gid_list
+
+    CommandLine:
+        python -m ibeis.control.manual_image_funcs --test-get_valid_gids
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_image_funcs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> eid = None
+        >>> require_unixtime = False
+        >>> reviewed = None
+        >>> # execute function
+        >>> gid_list = get_valid_gids(ibs, eid, require_unixtime, reviewed)
+        >>> # verify results
+        >>> result = str(gid_list)
+        >>> print(result)
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+    """
     if eid is None:
         gid_list = ibs._get_all_gids()
     else:
@@ -87,6 +156,13 @@ def get_valid_gids(ibs, eid=None, require_unixtime=False, reviewed=None):
         isvalid_list = [reviewed == flag for flag in reviewed_list]
         gid_list = ut.filter_items(gid_list, isvalid_list)
     return gid_list
+
+
+@register_ibs_method
+@ider
+def get_valid_image_rowids(ibs, eid=None, require_unixtime=False, reviewed=None):
+    """ alias """
+    return get_valid_gids(ibs, eid, require_unixtime, reviewed)
 
 
 @register_ibs_method
@@ -140,10 +216,33 @@ def add_images(ibs, gpath_list, params_list=None, as_annots=False, auto_localize
     Returns:
         gid_list (list of rowids): gids are image rowids
 
-    Examples:
-        >>> from ibeis.all_imports import *  # NOQA  # doctest.SKIP
-        >>> gpath_list = grabdata.get_test_gpaths(ndata=7) + ['doesnotexist.jpg']
-        >>> ibs.add_images(gpath_list)
+    Example0:
+        >>> # ENABLE_DOCTEST
+        >>> # Test returns None on fail to add
+        >>> from ibeis.control.manual_image_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> gpath_list = ['doesnotexist.jpg']
+        >>> assert not ut.checkpath(gpath_list[0])
+        >>> gid_list = ibs.add_images(gpath_list)
+        >>> assert len(gid_list) == len(gpath_list)
+        >>> assert gid_list[0] is None
+
+    Example1:
+        >>> # ENABLE_DOCTSET
+        >>> # test double add
+        >>> from ibeis.control.manual_image_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> new_gpath_list = [ut.grab_test_imgpath('carl.jpg')]
+        >>> new_gids1 = ibs.add_images(new_gpath_list, auto_localize=False)
+        >>> new_gids2 = ibs.add_images(new_gpath_list, auto_localize=False)
+        >>> #new_gids2 = ibs.add_images(new_gpath_list, auto_localize=True)
+        >>> assert new_gids1 == new_gids2, 'should be the same'
+        >>> new_gpath_list2 = ibs.get_image_paths(new_gids1)
+        >>> assert new_gpath_list == new_gpath_list2, 'should not move when autolocalize is False'
+        >>> # Clean things up
+        >>> ibs.delete_images(new_gids1)
     """
     from ibeis.model.preproc import preproc_image
     print('[ibs] add_images')
@@ -165,7 +264,8 @@ def add_images(ibs, gpath_list, params_list=None, as_annots=False, auto_localize
                 'image_gps_lon', 'image_note',)
     # <DEBUG>
     if ut.VERBOSE:
-        uuid_list = [None if params_ is None else params_[0] for params_ in params_list]
+        uuid_colx = colnames.index('image_uuid')
+        uuid_list = [None if params_ is None else params_[uuid_colx] for params_ in params_list]
         gid_list_ = ibs.get_image_gids_from_uuid(uuid_list)
         valid_gids = ibs.get_valid_gids()
         valid_uuids = ibs.get_image_uuids(valid_gids)
@@ -173,6 +273,14 @@ def add_images(ibs, gpath_list, params_list=None, as_annots=False, auto_localize
         print('[preadd] valid uuid / gid = ' + ut.indentjoin(zip(valid_uuids, valid_gids)))
     # </DEBUG>
     # Execute SQL Add
+    from distutils.version import LooseVersion
+
+    if LooseVersion(ibs.db.get_db_version()) >= LooseVersion('1.3.4'):
+        colnames = colnames + ('image_original_path', 'image_location_code')
+        params_list = [tuple(params) + (gpath, ibs.cfg.other_cfg.location_for_names)
+                        if params is not None else None
+                        for params, gpath in zip(params_list, gpath_list)]
+
     gid_list = ibs.db.add_cleanly(const.IMAGE_TABLE, colnames, params_list, ibs.get_image_gids_from_uuid)
 
     if ut.duplicates_exist(gid_list):
@@ -192,6 +300,7 @@ def add_images(ibs, gpath_list, params_list=None, as_annots=False, auto_localize
 
     #ibs.cfg.other_cfg.ensure_attr('auto_localize', True)
     if auto_localize is None:
+        # grab value from config
         auto_localize = ibs.cfg.other_cfg.auto_localize
     if auto_localize:
         # Move to ibeis database local cache
@@ -237,6 +346,39 @@ def localize_images(ibs, gid_list_=None):
     """
     Moves the images into the ibeis image cache.
     Images are renamed to img_uuid.ext
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        gid_list_ (list):
+
+    CommandLine:
+        python -m ibeis.control.manual_image_funcs --test-localize_images
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_image_funcs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> gpath_list  = [ut.unixpath(ut.grab_test_imgpath('carl.jpg'))]
+        >>> gid_list_   = ibs.add_images(gpath_list, auto_localize=False)
+        >>> gpath_list2 = ibs.get_image_paths(gid_list_)
+        >>> ut.assert_eq(gpath_list, gpath_list2, 'should not move when autolocalize is False')
+        >>> # execute function
+        >>> result = localize_images(ibs, gid_list_)
+        >>> gpath_list3 = ibs.get_image_paths(gid_list_)
+        >>> assert gpath_list3 != gpath_list2, 'should now be different'
+        >>> gpath3 = gpath_list3[0]
+        >>> rel_gpath3 = ut.relpath_unix(gpath3, ibs.get_workdir())
+        >>> result = rel_gpath3
+        >>> print(result)
+        >>> # Clean things up
+        >>> ibs.delete_images(gid_list_)
+        testdb1/_ibsdb/images/f498fa6f-6b24-b4fa-7932-2612144fedd5.jpg
+
+    Ignore:
+        ibs.vd()
+
     """
     if gid_list_ is None:
         print('WARNING: you are localizing all gids')
@@ -275,11 +417,11 @@ def set_image_uris(ibs, gid_list, new_gpath_list):
 
 @register_ibs_method
 @setter
-def set_image_contributor_rowid(ibs, gid_list, contributor_rowid_list):
+def set_image_contributor_rowid(ibs, gid_list, contributor_rowid_list, **kwargs):
     """ Sets the image contributor rowid """
     id_iter = ((gid,) for gid in gid_list)
     val_list = ((contrib_rowid,) for contrib_rowid in contributor_rowid_list)
-    ibs.db.set(const.IMAGE_TABLE, ('contributor_rowid',), val_list, id_iter)
+    ibs.db.set(const.IMAGE_TABLE, ('contributor_rowid',), val_list, id_iter, **kwargs)
 
 
 @register_ibs_method
@@ -311,11 +453,36 @@ def set_image_notes(ibs, gid_list, notes_list):
 
 @register_ibs_method
 @setter
-def set_image_unixtime(ibs, gid_list, unixtime_list):
-    """ Sets the image unixtime (does not modify exif yet) """
+def set_image_unixtime(ibs, gid_list, unixtime_list, duplicate_behavior='error'):
+    """ Sets the image unixtime (does not modify exif yet)
+        alias for set_image_time_posix
+    """
     id_iter = ((gid,) for gid in gid_list)
     val_list = ((unixtime,) for unixtime in unixtime_list)
-    ibs.db.set(const.IMAGE_TABLE, ('image_time_posix',), val_list, id_iter)
+    ibs.db.set(const.IMAGE_TABLE, (IMAGE_TIME_POSIX,), val_list, id_iter, duplicate_behavior=duplicate_behavior)
+
+
+@register_ibs_method
+#@accessor_decors.cache_invalidator(const.IMAGE_TABLE, IMAGE_TIME_POSIX, native_rowids=True)
+def set_image_time_posix(ibs, image_rowid_list, image_time_posix_list, duplicate_behavior='error'):
+    """ image_time_posix_list -> image.image_time_posix[image_rowid_list]
+
+    SeeAlso:
+        set_image_unixtime
+
+    Args:
+        image_rowid_list
+        image_time_posix_list
+
+    TemplateInfo:
+        Tsetter_native_column
+        tbl = image
+        col = image_time_posix
+    """
+    id_iter = image_rowid_list
+    colnames = (IMAGE_TIME_POSIX,)
+    ibs.db.set(const.IMAGE_TABLE, colnames, image_time_posix_list,
+               id_iter, duplicate_behavior=duplicate_behavior)
 
 
 @register_ibs_method
@@ -365,6 +532,30 @@ def get_images(ibs, gid_list):
     """
     Returns:
         list_ (list): a list of images in numpy matrix form by gid
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        gid_list (list):
+
+    Returns:
+        list: image_list
+
+    CommandLine:
+        python -m ibeis.control.manual_image_funcs --test-get_images
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_image_funcs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> gid_list = ibs.get_valid_gids()[0:1]
+        >>> # execute function
+        >>> image_list = get_images(ibs, gid_list)
+        >>> # verify results
+        >>> result = str(image_list[0].shape)
+        >>> print(result)
+        (715, 1047, 3)
     """
     from vtool import image as gtool
     gpath_list = ibs.get_image_paths(gid_list)
@@ -417,7 +608,46 @@ def get_image_thumbpath(ibs, gid_list, thumbsize=None):
 def get_image_uuids(ibs, gid_list):
     """
     Returns:
-        list_ (list): a list of image uuids by gid """
+        list_ (list): a list of image uuids by gid
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        gid_list (list):
+
+    Returns:
+        list: image_uuid_list
+
+    CommandLine:
+        python -m ibeis.control.manual_image_funcs --test-get_image_uuids
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_image_funcs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> gid_list = ibs.get_valid_gids()
+        >>> # execute function
+        >>> image_uuid_list = ibs.get_image_uuids(gid_list)
+        >>> # verify results
+        >>> result = ut.list_str(image_uuid_list)
+        >>> print(result)
+        [
+            UUID('66ec193a-1619-b3b6-216d-1784b4833b61'),
+            UUID('d8903434-942f-e0f5-d6c2-0dcbe3137bf7'),
+            UUID('b73b72f4-4acb-c445-e72c-05ce02719d3d'),
+            UUID('0cd05978-3d83-b2ee-2ac9-798dd571c3b3'),
+            UUID('0a9bc03d-a75e-8d14-0153-e2949502aba7'),
+            UUID('2deeff06-5546-c752-15dc-2bd0fdb1198a'),
+            UUID('a9b70278-a936-c1dd-8a3b-bc1e9a998bf0'),
+            UUID('42fdad98-369a-2cbc-67b1-983d6d6a3a60'),
+            UUID('c459d381-fd74-1d99-6215-e42e3f432ea9'),
+            UUID('33fd9813-3a2b-774b-3fcc-4360d1ae151b'),
+            UUID('97e8ea74-873f-2092-b372-f928a7be30fa'),
+            UUID('588bc218-83a5-d400-21aa-d499832632b0'),
+            UUID('163a890c-36f2-981e-3529-c552b6d668a3'),
+        ]
+        """
     image_uuid_list = ibs.db.get(const.IMAGE_TABLE, ('image_uuid',), gid_list)
     return image_uuid_list
 
@@ -469,11 +699,39 @@ def get_image_gids_from_uuid(ibs, uuid_list):
 @getter_1to1
 def get_image_paths(ibs, gid_list):
     """
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        gid_list (list): a list of image absolute paths to img_dir
+
     Returns:
-        list_ (list): a list of image absolute paths to img_dir """
+        list: gpath_list
+
+    CommandLine:
+        python -m ibeis.control.manual_image_funcs --test-get_image_paths
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_image_funcs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> #gid_list = ibs.get_valid_gids()
+        >>> # execute function
+        >>> #gpath_list = get_image_paths(ibs, gid_list)
+        >>> new_gpath = ut.unixpath(ut.grab_test_imgpath('carl.jpg'))
+        >>> new_gids = ibs.add_images([new_gpath], auto_localize=False)
+        >>> new_gpath_list = get_image_paths(ibs, new_gids)
+        >>> # verify results
+        >>> ut.assert_eq(new_gpath, new_gpath_list[0])
+        >>> result = str(new_gpath_list)
+        >>> # clean up the database!
+        >>> ibs.delete_images(new_gids)
+        >>> print(result)
+        """
     ut.assert_all_not_None(gid_list, 'gid_list', key_list=['gid_list'])
     uri_list = ibs.get_image_uris(gid_list)
     # Images should never have null uris
+    # If the uri is not absolute then it is infered to be relative to ibs.imgdir
     ut.assert_all_not_None(uri_list, 'uri_list', key_list=['uri_list', 'gid_list'])
     gpath_list = [join(ibs.imgdir, uri) for uri in uri_list]
     return gpath_list
@@ -498,8 +756,43 @@ def get_image_detectpaths(ibs, gid_list):
 @getter_1to1
 def get_image_gnames(ibs, gid_list):
     """
+    Args:
+        gid_list (list):
+
     Returns:
-        list_ (list): a list of original image names """
+        list: gname_list - a list of original image names
+
+    CommandLine:
+        python -m ibeis.control.manual_image_funcs --test-get_image_gnames
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_image_funcs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> gid_list = ibs.get_valid_gids()
+        >>> # execute function
+        >>> gname_list = get_image_gnames(ibs, gid_list)
+        >>> # verify results
+        >>> result = ut.list_str(gname_list)
+        >>> print(result)
+        [
+            u'easy1.JPG',
+            u'easy2.JPG',
+            u'easy3.JPG',
+            u'hard1.JPG',
+            u'hard2.JPG',
+            u'hard3.JPG',
+            u'jeff.png',
+            u'lena.jpg',
+            u'occl1.JPG',
+            u'occl2.JPG',
+            u'polar1.jpg',
+            u'polar2.jpg',
+            u'zebra.jpg',
+        ]
+    """
     gname_list = ibs.db.get(const.IMAGE_TABLE, ('image_original_name',), gid_list)
     return gname_list
 
@@ -512,6 +805,26 @@ def get_image_sizes(ibs, gid_list):
         list_ (list): a list of (width, height) tuples """
     gsize_list = ibs.db.get(const.IMAGE_TABLE, ('image_width', 'image_height'), gid_list)
     return gsize_list
+
+
+@register_ibs_method
+@getter_1to1
+def get_image_widths(ibs, gid_list):
+    """
+    Returns:
+        list_ (list): a list of (width, height) tuples """
+    gwidth_list = ibs.db.get(const.IMAGE_TABLE, ('image_width',), gid_list)
+    return gwidth_list
+
+
+@register_ibs_method
+@getter_1to1
+def get_image_heights(ibs, gid_list):
+    """
+    Returns:
+        list_ (list): a list of (width, height) tuples """
+    gheight_list = ibs.db.get(const.IMAGE_TABLE, ('image_height',), gid_list)
+    return gheight_list
 
 
 @register_ibs_method
@@ -731,7 +1044,7 @@ def get_image_aids(ibs, gid_list):
         pair_list = ibs.db.connection.execute(opstr).fetchall()
         aidscol = np.array(ut.get_list_column(pair_list, 0))
         gidscol = np.array(ut.get_list_column(pair_list, 1))
-        unique_gids, groupx = vt.group_indicies(gidscol)
+        unique_gids, groupx = vt.group_indices(gidscol)
         grouped_aids_ = vt.apply_grouping(aidscol, groupx)
         #aids_list = [sorted(arr.tolist()) for arr in grouped_aids_]
         structured_aids_list = [arr.tolist() for arr in grouped_aids_]
@@ -805,7 +1118,7 @@ def get_image_egrids(ibs, gid_list):
 @deleter
 def delete_images(ibs, gid_list):
     """ deletes images from the database that belong to gids"""
-    if ut.VERBOSE:
+    if not ut.QUIET:
         print('[ibs] deleting %d images' % len(gid_list))
     # Move images to trash before deleting them. #
     # TODO: only move localized images
@@ -1134,7 +1447,7 @@ def get_encounter_end_time_posix(ibs, encounter_rowid_list):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_image_funcs import *  # NOQA
-        >>> ibs, qreq_ = get_autogen_testdata()
+        >>> ibs, qreq_ = testdata_ibs()
         >>> encounter_rowid_list = ibs._get_all_encounter_rowids()
         >>> encounter_end_time_posix_list = ibs.get_encounter_end_time_posix(encounter_rowid_list)
         >>> assert len(encounter_rowid_list) == len(encounter_end_time_posix_list)
@@ -1167,7 +1480,7 @@ def get_encounter_gps_lats(ibs, encounter_rowid_list):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_image_funcs import *  # NOQA
-        >>> ibs, qreq_ = get_autogen_testdata()
+        >>> ibs, qreq_ = testdata_ibs()
         >>> encounter_rowid_list = ibs._get_all_encounter_rowids()
         >>> encounter_gps_lat_list = ibs.get_encounter_gps_lats(encounter_rowid_list)
         >>> assert len(encounter_rowid_list) == len(encounter_gps_lat_list)
@@ -1221,7 +1534,7 @@ def get_encounter_gps_lons(ibs, encounter_rowid_list):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_image_funcs import *  # NOQA
-        >>> ibs, qreq_ = get_autogen_testdata()
+        >>> ibs, qreq_ = testdata_ibs()
         >>> encounter_rowid_list = ibs._get_all_encounter_rowids()
         >>> encounter_gps_lon_list = ibs.get_encounter_gps_lons(encounter_rowid_list)
         >>> assert len(encounter_rowid_list) == len(encounter_gps_lon_list)
@@ -1254,7 +1567,7 @@ def get_encounter_notes(ibs, encounter_rowid_list):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_image_funcs import *  # NOQA
-        >>> ibs, qreq_ = get_autogen_testdata()
+        >>> ibs, qreq_ = testdata_ibs()
         >>> encounter_rowid_list = ibs._get_all_encounter_rowids()
         >>> encounter_note_list = ibs.get_encounter_notes(encounter_rowid_list)
         >>> assert len(encounter_rowid_list) == len(encounter_note_list)
@@ -1287,7 +1600,7 @@ def get_encounter_processed_flags(ibs, encounter_rowid_list):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_image_funcs import *  # NOQA
-        >>> ibs, qreq_ = get_autogen_testdata()
+        >>> ibs, qreq_ = testdata_ibs()
         >>> encounter_rowid_list = ibs._get_all_encounter_rowids()
         >>> encounter_processed_flag_list = ibs.get_encounter_processed_flags(encounter_rowid_list)
         >>> assert len(encounter_rowid_list) == len(encounter_processed_flag_list)
@@ -1320,7 +1633,7 @@ def get_encounter_shipped_flags(ibs, encounter_rowid_list):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_image_funcs import *  # NOQA
-        >>> ibs, qreq_ = get_autogen_testdata()
+        >>> ibs, qreq_ = testdata_ibs()
         >>> encounter_rowid_list = ibs._get_all_encounter_rowids()
         >>> encounter_shipped_flag_list = ibs.get_encounter_shipped_flags(encounter_rowid_list)
         >>> assert len(encounter_rowid_list) == len(encounter_shipped_flag_list)
@@ -1353,7 +1666,7 @@ def get_encounter_start_time_posix(ibs, encounter_rowid_list):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_image_funcs import *  # NOQA
-        >>> ibs, qreq_ = get_autogen_testdata()
+        >>> ibs, qreq_ = testdata_ibs()
         >>> encounter_rowid_list = ibs._get_all_encounter_rowids()
         >>> encounter_start_time_posix_list = ibs.get_encounter_start_time_posix(encounter_rowid_list)
         >>> assert len(encounter_rowid_list) == len(encounter_start_time_posix_list)
@@ -1543,7 +1856,7 @@ def get_encounter_smart_waypoint_ids(ibs, encounter_rowid_list):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_image_funcs import *  # NOQA
-        >>> ibs, qreq_ = get_autogen_testdata()
+        >>> ibs, qreq_ = testdata_ibs()
         >>> encounter_rowid_list = ibs._get_all_encounter_rowids()
         >>> encounter_smart_waypoint_id_list = ibs.get_encounter_smart_waypoint_ids(encounter_rowid_list)
         >>> assert len(encounter_rowid_list) == len(encounter_smart_waypoint_id_list)
@@ -1576,7 +1889,7 @@ def get_encounter_smart_xml_fnames(ibs, encounter_rowid_list):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_image_funcs import *  # NOQA
-        >>> ibs, qreq_ = get_autogen_testdata()
+        >>> ibs, qreq_ = testdata_ibs()
         >>> encounter_rowid_list = ibs._get_all_encounter_rowids()
         >>> encounter_smart_xml_fname_list = ibs.get_encounter_smart_xml_fnames(encounter_rowid_list)
         >>> assert len(encounter_rowid_list) == len(encounter_smart_xml_fname_list)
@@ -1628,7 +1941,143 @@ def set_encounter_smart_xml_fnames(ibs, encounter_rowid_list, encounter_smart_xm
                encounter_smart_xml_fname_list, id_iter)
 
 
-def get_autogen_testdata():
+@register_ibs_method
+#@accessor_decors.cache_getter(const.IMAGE_TABLE, IMAGE_TIMEDELTA_POSIX)
+def get_image_timedelta_posix(ibs, image_rowid_list, eager=True):
+    """ image_timedelta_posix_list <- image.image_timedelta_posix[image_rowid_list]
+
+    gets data from the "native" column "image_timedelta_posix" in the "image" table
+
+    Args:
+        image_rowid_list (list):
+
+    Returns:
+        list: image_timedelta_posix_list
+
+    TemplateInfo:
+        Tgetter_table_column
+        col = image_timedelta_posix
+        tbl = image
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_image_funcs import *  # NOQA
+        >>> ibs, qreq_ = testdata_ibs()
+        >>> image_rowid_list = ibs._get_all_image_rowids()
+        >>> eager = True
+        >>> image_timedelta_posix_list = ibs.get_image_timedelta_posix(image_rowid_list, eager=eager)
+        >>> assert len(image_rowid_list) == len(image_timedelta_posix_list)
+    """
+    id_iter = image_rowid_list
+    colnames = (IMAGE_TIMEDELTA_POSIX,)
+    image_timedelta_posix_list = ibs.db.get(
+        const.IMAGE_TABLE, colnames, id_iter, id_colname='rowid', eager=eager)
+    return image_timedelta_posix_list
+
+
+@register_ibs_method
+#@accessor_decors.cache_invalidator(const.IMAGE_TABLE, IMAGE_TIMEDELTA_POSIX, native_rowids=True)
+def set_image_timedelta_posix(ibs, image_rowid_list, image_timedelta_posix_list, duplicate_behavior='error'):
+    """ image_timedelta_posix_list -> image.image_timedelta_posix[image_rowid_list]
+
+    Args:
+        image_rowid_list
+        image_timedelta_posix_list
+
+    TemplateInfo:
+        Tsetter_native_column
+        tbl = image
+        col = image_timedelta_posix
+    """
+    id_iter = image_rowid_list
+    colnames = (IMAGE_TIMEDELTA_POSIX,)
+    ibs.db.set(const.IMAGE_TABLE, colnames, image_timedelta_posix_list,
+               id_iter, duplicate_behavior=duplicate_behavior)
+
+
+@register_ibs_method
+#@accessor_decors.cache_getter(const.IMAGE_TABLE, IMAGE_LOCATION_CODE)
+def get_image_location_codes(ibs, image_rowid_list, eager=True):
+    """ image_location_code_list <- image.image_location_code[image_rowid_list]
+
+    gets data from the "native" column "image_location_code" in the "image" table
+
+    Args:
+        image_rowid_list (list):
+
+    Returns:
+        list: image_location_code_list
+
+    TemplateInfo:
+        Tgetter_table_column
+        col = image_location_code
+        tbl = image
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_image_funcs import *  # NOQA
+        >>> ibs, qreq_ = testdata_ibs()
+        >>> image_rowid_list = ibs._get_all_image_rowids()
+        >>> eager = True
+        >>> image_location_code_list = ibs.get_image_location_codes(image_rowid_list, eager=eager)
+        >>> assert len(image_rowid_list) == len(image_location_code_list)
+    """
+    id_iter = image_rowid_list
+    colnames = (IMAGE_LOCATION_CODE,)
+    image_location_code_list = ibs.db.get(
+        const.IMAGE_TABLE, colnames, id_iter, id_colname='rowid', eager=eager)
+    return image_location_code_list
+
+
+@register_ibs_method
+#@accessor_decors.cache_invalidator(const.IMAGE_TABLE, IMAGE_LOCATION_CODE, native_rowids=True)
+def set_image_location_codes(ibs, image_rowid_list, image_location_code_list, duplicate_behavior='error'):
+    """ image_location_code_list -> image.image_location_code[image_rowid_list]
+
+    Args:
+        image_rowid_list
+        image_location_code_list
+
+    TemplateInfo:
+        Tsetter_native_column
+        tbl = image
+        col = image_location_code
+    """
+    id_iter = image_rowid_list
+    colnames = (IMAGE_LOCATION_CODE,)
+    ibs.db.set(const.IMAGE_TABLE, colnames, image_location_code_list,
+               id_iter, duplicate_behavior=duplicate_behavior)
+
+
+@register_ibs_method
+def delete_empty_eids(ibs):
+    """ Removes encounters without images
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+
+    CommandLine:
+        python -m ibeis.control.manual_image_funcs --test-delete_empty_eids
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_image_funcs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> # execute function
+        >>> result = ibs.delete_empty_eids()
+        >>> # verify results
+        >>> print(result)
+    """
+    eid_list = ibs.get_valid_eids(min_num_gids=0)
+    nGids_list = ibs.get_encounter_num_gids(eid_list)
+    is_invalid = [nGids == 0 for nGids in nGids_list]
+    invalid_eids = ut.filter_items(eid_list, is_invalid)
+    ibs.delete_encounters(invalid_eids)
+
+
+def testdata_ibs():
     import ibeis
     ibs = ibeis.opendb('testdb1')
     qreq_ = None

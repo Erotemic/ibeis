@@ -191,10 +191,10 @@ DISABLE THESE ERRORS
 * 'E272', # multiple spaces before keyword
 * 'E301', # expected 1 blank line, found 0
 * 'E501', # > 79
-* 'N802', # 
-* 'N803', # 
-* 'N805', # 
-* 'N806', # 
+* 'N802', # function name should be lowercase
+* 'N803', # argument name should be lowercase
+* 'N805', # first argument of a method should be named 'self'
+* 'N806', # variable in function should be lowercase
 
 flake8 --ignore=E127,E201,E202,E203,E221,E222,E241,E265,E271,E272,E301,E501,N802,N803,N805,N806 ~/code/ibeis
 
@@ -411,8 +411,11 @@ python dev.py --allgt -t inspect -w
 # Profiling Code
 #----------------
 
-profiler.sh dev.py -t best --db testdb1 --allgt --nocache-query --prof-mod "spatial;linalg;keypoint"
-profiler.sh dev.py -t best --db PZ_MTEST --all --nocache-query --prof-mod "spatial;linalg;keypoint"
+utprof.py dev.py -t best --db testdb1 --allgt --nocache-query --prof-mod "spatial;linalg;keypoint"
+utprof.py dev.py -t best --db PZ_MTEST --all --nocache-query --prof-mod "spatial;linalg;keypoint"
+utprof.py dev.py -t best --db PZ_MTEST --all --nocache-query --prof-mod "spatial;linalg;keypoint"
+utprof.py dev.py -t custom --db PZ_MTEST --allgt --noqcache
+utprof.py dev.py -t custom:sv_on=False --db PZ_MTEST --allgt --noqcache
 
 
 #----------------
@@ -524,13 +527,13 @@ python dev.py --dbdir /raid/work2/DanPrinctonDrive/elephants-dan-princton-drive-
 
 # Current Experiments:
 
-profiler.sh dev.py -t upsize --allgt --quiet --noshow
+utprof.py dev.py -t upsize --allgt --quiet --noshow
 
 python dev.py -t upsize --db PZ_MTEST --qaid 1:30:3 -w
 
 
 dev.py -t upsize --allgt --quiet --noshow
-profiler.sh dev.py -t upsize --quiet --db PZ_MTEST --qaid 1:30
+utprof.py dev.py -t upsize --quiet --db PZ_MTEST --qaid 1:30
 python dev.py -t upsize --quiet --db PZ_MTEST --qaid 1:30
 python dev.py -t upsize --quiet --db PZ_MTEST --allgt -w
 
@@ -539,7 +542,7 @@ python dev.py -t upsize --quiet --db PZ_MTEST --allgt -w
 python dev.py -t upsize --quiet --db PZ_MTEST --qaid 1:10:3 -w
 
 
-profiler.sh dev.py -t best --allgt --db PZ_MTEST --nocache-big --nocache-query
+utprof.py dev.py -t best --allgt --db PZ_MTEST --nocache-big --nocache-query
 ./dev.py -t best --qaid 1:10 --db PZ_MTEST --nocache-big --nocache-query
 
 ./main.py --db PZ_RoseMary --cmd
@@ -574,7 +577,7 @@ python dev.py --db PZ_RoseMary -t upsize --allgt --screen --cyth
 # Correct output 
 python dev.py --db PZ_MTEST -t best --qaid 1:20
 python dev.py --db PZ_MTEST -t upsize --allgt --screen --cyth
-python dev.py --db PZ_RoseMary -t upsize --allgt --screen --cyth
+python dev.py --db PZ_Master0 -t upsize --allgt --screen --cyth
 
 # EXPERIMENT DATABASES
 python dev.py --db testdb1 --setdb 
@@ -593,8 +596,8 @@ python dev.py -t best --allgt --view-hard
 python dev.py -t upsize --allgt 
 
 
-profiler.sh dev.py --prof-mod smk_,pandas_helpers,hstypes -t asmk --allgt --qindex 0:20 --db PZ_MTEST --nocache-big --nocache-query --nocache-save
-profiler.sh dev.py --prof-mod smk_,pandas_helpers,hstypes -t smk --allgt --qindex 0:20 --db PZ_MTEST --nocache-big --nocache-query --nocache-save
+utprof.py dev.py --prof-mod smk_,pandas_helpers,hstypes -t asmk --allgt --qindex 0:20 --db PZ_MTEST --nocache-big --nocache-query --nocache-save
+utprof.py dev.py --prof-mod smk_,pandas_helpers,hstypes -t smk --allgt --qindex 0:20 --db PZ_MTEST --nocache-big --nocache-query --nocache-save
 ./dev.py -t smk --allgt --db PZ_MTEST --nocache-big --nocache-query --qindex 0:20
 ./dev.py -t asmk --allgt --db PZ_MTEST --nocache-big --nocache-query --qindex 0:20
 
@@ -637,6 +640,7 @@ python dev.py -t best --db PZ_MTEST --allgt --echo-hardcase --set-aids-as-hard [
 # EG: dev.py -t best --db PZ_MTEST --allgt --echo-hardcase --set-aids-as-hard 27 28 44 49 50 51 53 54 66 72 89 97 110  # Hard as of 2014-11-4
 # EG: dev.py -t best --db PZ_MTEST --allgt --echo-hardcase --set-aids-as-hard 27 44 49 50 51 53 54 66 69 89 97 110  # Hard as of 2014-11-6
 # EG: dev.py -t best --db PZ_MTEST --allgt --echo-hardcase --set-aids-as-hard 27 43 45 49 51 53 54 66 97  # FGWEIGHT Hard as of 2014-11-6
+# python dev.py --db PZ_MTEST --set-aids-as-hard 27 28 43 44 45 49 50 51 53 54 66 97
 
 
 
@@ -671,28 +675,227 @@ python dev.py -t best --db seals2 --allgt
 # Make sure things are working on Naut_Dan
 python dev.py --allgt -t nsum vsmany vsone smk --print-all --db NAUT_Dan
 # Debug spatial verification
-python dev.py --db PZ_MTEST -t vary_sver --allhard  --print-rankmat
-python dev.py --db PZ_MTEST -t vary_sver --allhard  --print-rankmat --va --vh --fig-dname debug_sver
-python dev.py --db PZ_MTEST -t vary_sver --allhard  --print-rankmat --va --vh --fig-dname debug_sver_excludequery --exclude-query --use-figcache
+python dev.py --db PZ_MTEST -t vary_sver --allhard  --print-best-rankmat
+python dev.py --db PZ_MTEST -t vary_sver --allhard  --print-best-rankmat --va --vh --fig-dname debug_sver
+python dev.py --db PZ_MTEST -t vary_sver --allhard  --print-best-rankmat --va --vh --fig-dname debug_sver_excludequery --exclude-query --use-figcache
 
-python dev.py --db PZ_MTEST -t vary_sver --allhard  --print-rankmat
-python dev.py --db PZ_MTEST -t sver_new --allhard  --print-rankmat
+python dev.py --db PZ_MTEST -t vary_sver --allhard  --print-best-rankmat
+python dev.py --db PZ_MTEST -t sver_new --allhard  --print-best-rankmat
 python dev.py --db PZ_MTEST -t sver_new best --allgt
 python dev.py --db GZ_ALL -t sver_new best --allgt
 
 
-# CLEARNING QUERY RESULT CACHE
+# DELETE / CLEAN / CLEAR QUERY RESULT CACHE
 python dev.py --db PZ_MTEST --delete-qres-cache
 python dev.py --db PZ_Master0 --delete-qres-cache
 python dev.py --db GZ_ALL --delete-qres-cache
 python dev.py --db Oxford --delete-qres-cache
 
+# DELETE / CLEAN / CLEAR ALL CACHE
+python dev.py --db PZ_MTEST --delete-cache
+
+
+#RECENT DEBUGGING
+python dev.py -t best --db PZ_MTEST --allgt --echo-hardcase
+python dev.py -t best --db PZ_MTEST --allgt --echo-hardcase
+python dev.py -t best --db PZ_MTEST --allgt --echo-hardcase --verbose --noqcache --print-rowscore --qindex 0:4 --print-all --verb-pipeline --debug-pipeline
+
+python dev.py -t nsum --db PZ_MTEST --allgt --echo-hardcase --verbose --noqcache --print-rowscore --qindex 0 --print-all --verb-pipeline --debug-pipeline
+ --vf --va
+
+# Runs some hard cases and some easy cases
+python dev.py --setdb --db PZ_MTEST
+python dev.py --setdb --db GZ_ALL
+python dev.py --setdb --db PZ_Master0
+python dev.py --allhard --qaid 1:10:2 --noqcache -t best
+
+python dev.py --allhard --qaid 1:10:2 -t custom
+python dev.py --allhard --qaid 1:10:2 -t best --cfg rrvsone_on=True 
+
+python dev.py --allhard --qaid 1:10:2 -t best nsum custom custom:rrvsone_on=True
+python dev.py --allhard --qaid 1:10:2 -t best nsum custom custom:rrvsone_on=True custom:sv_on=False
+
+
+python dev.py --allgt -t best nsum custom custom:rrvsone_on=True custom:sv_on=False
+
+python dev.py --allgt -t custom best --print-scorediff-mat-stats
+
+python dev.py --allgt -t custom custom:rrvsone_on=True --print-scorediff-mat-stats
+python dev.py --allgt -t custom custom:rrvsone_on=True --print-scorediff-mat-stats
+
+
+export PRINTFLAGS="--print-scorediff-mat-stats --print-confusion-stats --print-best-rankmat --print-next-rankmat"
+export CASEFLAGS="--qaids 1 2 3 4 5 45 49 50 51"
+
+python dev.py $CASEFLAGS $PRINTFLAGS -t custom:rrvsone_on=True 
+python dev.py $CASEFLAGS $PRINTFLAGS -t custom 
+
+python dev.py $CASEFLAGS $PRINTFLAGS -t custom custom:rrvsone_on=True \
+ custom:rrvsone_on=True,grid_steps=4 custom:rrvsone_on=True,grid_steps=1\
+ custom:rrvsone_on=True,grid_scale_factor=1.00,grid_steps=4\
+ custom:rrvsone_on=True,grid_scale_factor=0.10,grid_steps=4\
+ custom:rrvsone_on=True,grid_scale_factor=0.01,grid_steps=1
+
+# Case failed because grid was too small. Fixed by clamping grid to min(1, ...)
+python dev.py $CASEFLAGS $PRINTFLAGS -t custom:rrvsone_on=True,grid_scale_factor=.001,grid_steps=1
+
+python dev.py $CASEFLAGS $PRINTFLAGS -t\
+ custom:rrvsone_on=True,grid_scale_factor=0.30,grid_steps=1\
+ custom:rrvsone_on=True,grid_scale_factor=0.25,grid_steps=1\
+ custom:rrvsone_on=True,grid_scale_factor=0.20,grid_steps=1\
+ custom:rrvsone_on=True,grid_scale_factor=0.15,grid_steps=1\
+ custom:rrvsone_on=True,grid_scale_factor=0.10,grid_steps=1\
+ custom:rrvsone_on=True,grid_scale_factor=0.05,grid_steps=1\
+
+python dev.py $CASEFLAGS $PRINTFLAGS -t\
+ custom:rrvsone_on=True,grid_scale_factor=0.30,grid_steps=3\
+ custom:rrvsone_on=True,grid_scale_factor=0.25,grid_steps=3\
+ custom:rrvsone_on=True,grid_scale_factor=0.20,grid_steps=3\
+ custom:rrvsone_on=True,grid_scale_factor=0.15,grid_steps=3\
+ custom:rrvsone_on=True,grid_scale_factor=0.10,grid_steps=3\
+ custom:rrvsone_on=True,grid_scale_factor=0.05,grid_steps=3\
+
+python dev.py $CASEFLAGS $PRINTFLAGS -t\
+ custom:rrvsone_on=True,grid_scale_factor=0.30,grid_steps=7\
+ custom:rrvsone_on=True,grid_scale_factor=0.25,grid_steps=7\
+ custom:rrvsone_on=True,grid_scale_factor=0.20,grid_steps=7\
+ custom:rrvsone_on=True,grid_scale_factor=0.15,grid_steps=7\
+ custom:rrvsone_on=True,grid_scale_factor=0.10,grid_steps=7\
+ custom:rrvsone_on=True,grid_scale_factor=0.05,grid_steps=7\
+
+python dev.py $CASEFLAGS $PRINTFLAGS -t rrvsone_grid
+python dev.py --allgt $PRINTFLAGS -t rrvsone_grid
+
+python dev.py --allgt --print-scorediff-mat-stats --print-confusion-stats --print-best-rankmat --print-next-rankmat -t rrvsone_grid
+
+
+# Testing Distinctivness Parameters
+python -m ibeis.model.hots.distinctiveness_normalizer --test-get_distinctiveness --show --db GZ_ALL --aid 2
+python -m ibeis.model.hots.distinctiveness_normalizer --test-get_distinctiveness --show --db PZ_MTEST --aid 10
+python -m ibeis.model.hots.distinctiveness_normalizer --test-test_single_annot_distinctiveness_params --show --db GZ_ALL --aid 2
+
+python -m ibeis.model.hots.distinctiveness_normalizer --test-test_single_annot_distinctiveness_params --show --db PZ_MTEST --aid 5
+python -m ibeis.model.hots.distinctiveness_normalizer --test-test_single_annot_distinctiveness_params --show --db PZ_MTEST --aid 1
+
+
+# 2D Gaussian Curves
+python -m vtool.patch --test-test_show_gaussian_patches2 --show
+
+# Test Keypoint Coverage
+python -m vtool.coverage_kpts --test-gridsearch_kpts_coverage_mask --show
+python -m vtool.coverage_kpts --test-make_kpts_coverage_mask --show
+
+# Test Grid Coverage
+python -m vtool.coverage_grid --test-gridsearch_coverage_grid_mask --show
+python -m vtool.coverage_grid --test-sparse_grid_coverage --show
+python -m vtool.coverage_grid --test-gridsearch_coverage_grid --show
+
+# Test Spatially Constrained Scoring
+python -m ibeis.model.hots.vsone_pipeline --test-compute_query_constrained_matches --show
+python -m ibeis.model.hots.vsone_pipeline --test-gridsearch_constrained_matches --show
+python -m ibeis.model.hots.vsone_pipeline --test-gridsearch_constrained_matches --show --testindex 2
+
+# Test VsMany ReRanking
+python -m ibeis.model.hots.vsone_pipeline --test-vsone_reranking --show
+python -m ibeis.model.hots.vsone_pipeline --test-vsone_reranking --show --homog
+python -m ibeis.model.hots.vsone_pipeline --test-vsone_reranking --show --homog --db GZ_ALL
+python -m ibeis.model.hots.vsone_pipeline --test-vsone_reranking --show --db GZ_ALL
+
+# Problem cases with the back spot
+python -m ibeis.model.hots.vsone_pipeline --test-vsone_reranking --show --homog --db GZ_ALL --qaid 425
+python -m ibeis.model.hots.vsone_pipeline --test-vsone_reranking --show --homog --db GZ_ALL --qaid 662
+python dev.py -t custom:score_method=csum,prescore_method=csum --db GZ_ALL --show --va -w --qaid 425 --noqcache
+# Shows vsone results with some of the competing cases
+python -m ibeis.model.hots.vsone_pipeline --test-vsone_reranking --show --homog --db GZ_ALL --qaid 662 --daid_list=425,342,678,233
+
+
+# More rerank vsone tests
+python -c "import utool as ut; ut.write_modscript_alias('Tbig.sh', 'dev.py', '--allgt  --db PZ_Master0')"
+sh Tbig.sh -t custom:rrvsone_on=True custom 
+sh Tbig.sh -t custom:rrvsone_on=True custom --noqcache
+
+
+# TODO: 
+# static lnbnn, normonly, and count test
+# combinme vsone and vsmany matches in vsone rr 
+
+# Sanity Check 
+# Make sure vsmany and onevsone are exactly the same
+python dev.py --setdb --db PZ_Master0
+python dev.py --setdb --db PZ_MTEST
+
+# These yeild the same results for vsmany and vsone reanking
+# notice that name scoring and feature scoring are turned off. 
+# also everything is reranked
+#----
+python dev.py --allgt -t \
+    custom:fg_on=False \
+    custom:rrvsone_on=True,prior_coeff=1,unconstrained_coeff=0.0,fs_lnbnn_min=0,fs_lnbnn_max=1,nAnnotPerNameVsOne=200,nNameShortlistVsone=200,fg_on=False \
+    --print-confusion-stats --print-gtscore --noqcache
+#----
+
+#----
+# Turning back on name scoring and feature scoring and restricting to rerank a subset
+# This gives results that are closer to what we should actually expect
+python dev.py --allgt -t custom \
+    custom:rrvsone_on=True,prior_coeff=1.0,unconstrained_coeff=0.0,fs_lnbnn_min=0,fs_lnbnn_max=1 \
+    custom:rrvsone_on=True,prior_coeff=0.5,unconstrained_coeff=0.5,fs_lnbnn_min=0,fs_lnbnn_max=1 \
+    custom:rrvsone_on=True,prior_coeff=0.1,unconstrained_coeff=0.9,fs_lnbnn_min=0,fs_lnbnn_max=1 \
+    --print-bestcfg
+#----
+
+#----
+# VsOneRerank Tuning: Tune linar combination
+python dev.py --allgt -t \
+    custom:fg_weight=0.0 \
+\
+    custom:rrvsone_on=True,prior_coeff=1.0,unconstrained_coeff=0.0,fs_lnbnn_min=0.0,fs_lnbnn_max=1.0,nAnnotPerNameVsOne=200,nNameShortlistVsone=200 \
+\
+    custom:rrvsone_on=True,prior_coeff=.5,unconstrained_coeff=0.5,fs_lnbnn_min=0.0,fs_lnbnn_max=1.0,nAnnotPerNameVsOne=200,nNameShortlistVsone=200 \
+\
+  --db PZ_MTEST
+
+#--print-confusion-stats --print-gtscore
+#----
+
+#----
+python dev.py --allgt -t \
+    custom \
+    custom:rrvsone_on=True,prior_coeff=1.0,unconstrained_coeff=0.0,fs_lnbnn_min=0.0,fs_lnbnn_max=1.0,nAnnotPerNameVsOne=200,nNameShortlistVsone=200 \
+    custom:rrvsone_on=True,prior_coeff=.5,unconstrained_coeff=0.5,fs_lnbnn_min=0.0,fs_lnbnn_max=1.0,nAnnotPerNameVsOne=2,nNameShortlistVsone=20 \
+    custom:rrvsone_on=True,prior_coeff=.0,unconstrained_coeff=1.0,fs_lnbnn_min=0.0,fs_lnbnn_max=1.0,nAnnotPerNameVsOne=2,nNameShortlistVsone=20 \
+   --db PZ_Master0 
+#----
+
+python dev.py --allgt -t \
+    custom:rrvsone_on=True,prior_coeff=1.0,unconstrained_coeff=0.0\
+    custom:rrvsone_on=True,prior_coeff=.0,unconstrained_coeff=1.0 \
+    custom:rrvsone_on=True,prior_coeff=.5,unconstrained_coeff=0.5 \
+   --db PZ_Master0
+
+python dev.py --allgt -t custom --db PZ_Master0 --va --show
+
+
+
+--noqcache
+
+python dev.py --allgt -t custom custom:rrvsone_on=True
+
+
+# Testing no affine invaraiance and rotation invariance
+dev.py -t custom:affine_invariance=True,rotation_invariance=True custom:affine_invariance=False,rotation_invariance=True custom:affine_invariance=True,rotation_invariance=False custom:affine_invariance=False,rotation_invariance=False --db PZ_MTEST --va --show
+
+dev.py -t custom:affine_invariance=True,rotation_invariance=True custom:affine_invariance=False,rotation_invariance=True custom:affine_invariance=True,rotation_invariance=False custom:affine_invariance=False,rotation_invariance=False --db PZ_MTEST --allgt
+
+dev.py -t custom:affine_invariance=True,rotation_invariance=True custom:affine_invariance=False,rotation_invariance=True custom:affine_invariance=True,rotation_invariance=False custom:affine_invariance=False,rotation_invariance=False --db GZ_ALL --allgt
+
+
+python dev.py -t custom:affine_invariance=True,rotation_invariance=True custom:affine_invariance=False,rotation_invariance=True custom:affine_invariance=True,rotation_invariance=False custom:affine_invariance=False,rotation_invariance=False --db PZ_Master0 --allgt
 ```
 
 #---------------
 # Caveats / Things we are not currently doing
 
-* No orientation invariance, gravity vector is always assumed
+* FIXED: No orientation invariance, gravity vector is always assumed
 * We do not add or remove points from kdtrees. They are always rebuilt
 * Feature weights are never recomputed unless the database cache is deleted
-

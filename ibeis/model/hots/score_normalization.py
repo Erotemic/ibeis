@@ -193,46 +193,70 @@ class ScoreNormalizer(ut.Cachable):
 
     def add_support(normalizer, tp_scores, tn_scores, tp_labels, tn_labels):
         """
+
+        CommandLine:
+            python -m ibeis.model.hots.score_normalization --test-add_support --show
+
         Example:
             >>> # DISABLE_DOCTEST
             >>> from ibeis.model.hots.score_normalization import *  # NOQA
             >>> # build test data
-            >>> tp_scores = [100]
-            >>> tn_scores = [10]
-            >>> tp_labels = [110]
-            >>> tn_labels = [10]
-            >>> # empty normalizer
-            >>> normalizer = ScoreNormalizer()
+            >>> normalizer = ScoreNormalizer('testnorm')
+            >>> tp_scores = [100, 100, 70, 60, 60, 60, 100]
+            >>> tn_scores = [10, 10, 20, 30, 30, 30, 10]
+            >>> tp_labels = list(map(ut.deterministic_uuid, [110, 110, 111, 112, 112, 112, 110]))
+            >>> tn_labels = list(map(ut.deterministic_uuid, [10, 10, 11, 12, 12, 12, 10]))
+            >>> # call test function
             >>> normalizer.add_support(tp_scores, tn_scores, tp_labels, tn_labels)
-            >>> normalizer.retrain()
             >>> # verify results
-            >>> normalizer.visualize()
-            >>> #--
+            >>> normalizer.retrain()
+            >>> if ut.show_was_requested():
+            >>>      normalizer.visualize()
             >>> # build test data
             >>> tp_scores = np.random.randint(100, size=100)
             >>> tn_scores = np.random.randint(50, size=100)
-            >>> tp_labels = np.arange(0, 100)
-            >>> tn_labels = np.arange(100, 200)
+            >>> tp_labels = list(map(ut.deterministic_uuid, np.arange(1000, 1100)))
+            >>> tn_labels = list(map(ut.deterministic_uuid, np.arange(2000, 2100)))
             >>> normalizer.add_support(tp_scores, tn_scores, tp_labels, tn_labels)
             >>> normalizer.retrain()
-            >>> normalizer.visualize()
+            >>> if ut.show_was_requested():
+            >>>     import plottool as pt
+            >>>     normalizer.visualize()
+            >>>     pt.show_if_requested()
         """
-        # Ensure input in list format
-        #(tp_scores, tn_scores, tp_labels, tn_labels) = list(
-        #    map(ut.ensure_iterable,
-        #        (tp_scores, tn_scores, tp_labels, tn_labels)))
-        # Assert that lengths are the same
-        assert ut.list_allsame(map(
-            len, (tp_scores, tn_scores, tp_labels, tn_labels))), ('unequal lengths')
+        # Initialize support if empty
         if normalizer.tp_support is None:
             normalizer.tp_support = np.array([])
             normalizer.tn_support = np.array([])
             normalizer.tp_labels = np.array([])
             normalizer.tn_label = np.array([])
-        normalizer.tp_support = np.append(normalizer.tp_support, tp_scores)
-        normalizer.tn_support = np.append(normalizer.tn_support, tn_scores)
-        normalizer.tp_labels  = np.append(normalizer.tp_labels, tp_labels)
-        normalizer.tn_label   = np.append(normalizer.tn_labels, tn_labels)
+
+        # Ensure that incoming data is unique w.r.t. data that already exists
+        def filter_seen_data(seen_labels, input_labels, input_data):
+            """
+            seen_labels, input_labels, input_data = normalizer.tp_labels, tp_labels, tp_scores
+            """
+            unique_labels, unique_indiceis = np.unique(input_labels,  return_index=True)
+            unique_data = np.array(input_data).take(unique_indiceis, axis=0)
+            isold_flags = np.in1d(unique_labels, seen_labels)
+            isnew_flags = np.logical_not(isold_flags, out=isold_flags)
+            filtered_labels = unique_labels.compress(isnew_flags)
+            filtered_data = unique_data.compress(isnew_flags)
+            return filtered_labels, filtered_data
+        filtered_tp_labels, filtered_tp_scores = filter_seen_data(normalizer.tp_labels, tp_labels, tp_scores)
+        filtered_tn_labels, filtered_tn_scores = filter_seen_data(normalizer.tn_labels, tn_labels, tn_scores)
+
+        # Ensure input in list format
+        assert ut.list_allsame(map(
+            len, (tp_scores, tn_scores, tp_labels, tn_labels))), ('unequal lengths')
+
+        if len(filtered_tp_scores) == 0:
+            return
+
+        normalizer.tp_support = np.append(normalizer.tp_support, filtered_tp_scores)
+        normalizer.tn_support = np.append(normalizer.tn_support, filtered_tn_scores)
+        normalizer.tp_labels  = np.append(normalizer.tp_labels, filtered_tp_labels)
+        normalizer.tn_label   = np.append(normalizer.tn_labels, filtered_tn_labels)
 
     def retrain(normalizer):
         tp_support = np.array(normalizer.tp_support)
@@ -659,13 +683,17 @@ def cached_ibeis_score_normalizer(ibs, qres_list, qreq_,
         >>> qaid_list = daid_list = ibs.get_valid_aids()[1:10]
         >>> cfgdict = dict(codename='vsone_unnorm')
         >>> use_cache = True
-        >>> qres_list, qreq_ = ibs.query_chips(qaid_list, daid_list, cfgdict, use_cache=use_cache, return_request=True)
+        >>> qres_list, qreq_ = ibs.query_chips(qaid_list, daid_list, cfgdict, use_cache=True, save_qcache=True, return_request=True)
         >>> score_normalizer = cached_ibeis_score_normalizer(ibs, qres_list, qreq_)
         >>> result = score_normalizer.get_fname()
         >>> result += '\n' + score_normalizer.get_cfgstr()
         >>> print(result)
-        zebra_plains_normalizer_x@!cxcgfncxz97mo.cPkl
-        _vsone_NN(single,K1+1,last,cks704)_FILT(ratio<0.625;1.0,fg;1.0)_SV(0.01;2;1.57minIn=4,nRR=50,nsum,)_AGG(nsum)_FLANN(8_kdtrees)_FEATWEIGHT(ON,uselabel,rf)_FEAT(hesaff+sift_)_CHIP(sz450)
+        zebra_plains_normalizer_hm%pysdf1vgffms@.cPkl
+        _vsone_NN(single,K1+1,last,cks704)_NNWeight(ratio_thresh=0.625,fg)_SV(0.01;2.0;1.57minIn=4,nRR=50,nRR=50,nsum,)_AGG(nsum)_FLANN(8_kdtrees)_RRVsOne(False)_FEATWEIGHT(ON,uselabel,rf)_FEAT(hesaff+sift_)_CHIP(sz450)
+
+
+    zebra_plains_normalizer_x@!cxcgfncxz97mo.cPkl
+    _vsone_NN(single,K1+1,last,cks704)_FILT(ratio<0.625;1.0,fg;1.0)_SV(0.01;2;1.57minIn=4,nRR=50,nsum,)_AGG(nsum)_FLANN(8_kdtrees)_FEATWEIGHT(ON,uselabel,rf)_FEAT(hesaff+sift_)_CHIP(sz450)
 
     zebra_plains_normalizer_n%w@df%th@i@seel.cPkl
     _vsone_NN(single,K1+1,last,cks1024)_FILT(ratio<0.625;1.0,fg;1.0)_SV(0.01;2;1.57minIn=4,nRR=50,nsum,)_AGG(nsum)_FLANN(4_kdtrees)_FEATWEIGHT(ON,uselabel,rf)_FEAT(hesaff+sift_)_CHIP(sz450)
@@ -692,6 +720,7 @@ def cached_ibeis_score_normalizer(ibs, qres_list, qreq_,
         normalizer.load(cachedir)
         print('returning cached normalizer')
     except Exception as ex:
+        print('cannot load noramlizer so computing on instead')
         ut.printex(ex, iswarning=True)
         qaid_list = qreq_.get_external_qaids()
         normalizer = learn_ibeis_score_normalizer(ibs, qaid_list, qres_list,
@@ -723,7 +752,9 @@ def learn_ibeis_score_normalizer(ibs, qaid_list, qres_list, cfgstr, prefix, **le
     if len(tp_support) < 2 or len(tn_support) < 2:
         print('len(tp_support) = %r' % (len(tp_support),))
         print('len(tn_support) = %r' % (len(tn_support),))
-        print('Warning: not enough data')
+        print('Warning: [score_normalization] not enough data')
+        import warnings
+        warnings.warn('Warning: [score_normalization] not enough data')
     # Train normalizer
     learntup = learn_score_normalization(tp_support, tn_support,
                                          return_all=False, **learnkw)

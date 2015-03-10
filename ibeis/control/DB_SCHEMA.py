@@ -4,6 +4,8 @@ Module Licence and docstring
 TODO: ideally the ibeis.constants module would not be used here
 and each function would use its own constant variables that are suffixed
 with the last version number that they existed in
+
+TODO: Add a table for original_image_path
 """
 from __future__ import absolute_import, division, print_function
 from ibeis import constants as const
@@ -19,10 +21,13 @@ import utool
 profile = utool.profile
 
 
-NAME_TABLE_v121     = const.NAME_TABLE_v121
-NAME_TABLE_v130     = const.NAME_TABLE_v130
-ANNOT_VISUAL_UUID   = 'annot_visual_uuid'
-ANNOT_UUID = 'annot_uuid'
+NAME_TABLE_v121   = const.NAME_TABLE_v121
+NAME_TABLE_v130   = const.NAME_TABLE_v130
+ANNOT_VISUAL_UUID = 'annot_visual_uuid'
+ANNOT_SEMANTIC_UUID = 'annot_semantic_uuid'
+ANNOT_UUID        = 'annot_uuid'
+ANNOT_YAW         = 'annot_yaw'
+ANNOT_VIEWPOINT   = 'annot_viewpoint'
 
 
 # =======================
@@ -38,7 +43,6 @@ def update_1_0_0(db, ibs=None):
         ('image_uri',                    'TEXT NOT NULL'),
         ('image_ext',                    'TEXT NOT NULL'),
         ('image_original_name',          'TEXT NOT NULL'),  # We could parse this out of original_path
-        #('image_original_path',          'TEXT NOT NULL'),
         ('image_width',                  'INTEGER DEFAULT -1'),
         ('image_height',                 'INTEGER DEFAULT -1'),
         ('image_time_posix',             'INTEGER DEFAULT -1'),  # this should probably be UCT
@@ -395,7 +399,6 @@ def post_1_2_1(db, ibs=None):
         # Put new rowids back into annotation table
         db.set(ANNOTATION_TABLE, (NAME_ROWID,), name_rowids2, aid_list)
         db.set(ANNOTATION_TABLE, (SPECIES_ROWID,), species_rowid2, aid_list)
-        #ut.embed()
         # HACK TODO use actual SQL to fix and move to 1.2.0
 
         def get_annot_names_v121(aid_list):
@@ -412,7 +415,11 @@ def post_1_2_1(db, ibs=None):
             visual_infotup = _visual_infotup
             image_uuid_list, verts_list, theta_list = visual_infotup
             # It is visual info augmented with name and species
-            view_list       = ibs.get_annot_viewpoints(aid_list)
+            def get_annot_viewpoints(ibs, aid_list):
+                viewpoint_list = ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_VIEWPOINT,), aid_list)
+                viewpoint_list = [viewpoint if viewpoint >= 0.0 else None for viewpoint in viewpoint_list]
+                return viewpoint_list
+            view_list       = get_annot_viewpoints(ibs, aid_list)
             name_list       = get_annot_names_v121(aid_list)
             species_list    = ibs.get_annot_species_texts(aid_list)
             semantic_infotup = (image_uuid_list, verts_list, theta_list, view_list,
@@ -440,6 +447,13 @@ def post_1_2_1(db, ibs=None):
         update_annot_visual_uuids_v121(aid_list)
 
 
+def post_1_3_4(db, ibs=None):
+    if ibs is not None:
+        ibs._init_rowid_constants()
+        ibs._init_config()
+        ibs.update_annot_visual_uuids(ibs.get_valid_aids())
+
+
 def pre_1_3_1(db, ibs=None):
     """
     need to ensure that visual uuid columns are unique before we add that
@@ -452,7 +466,38 @@ def pre_1_3_1(db, ibs=None):
         ibs._init_rowid_constants()
         ibs._init_config()
         aid_list = ibs.get_valid_aids()
-        ibs.update_annot_visual_uuids(aid_list)
+        def pre_1_3_1_update_visual_uuids(ibs, aid_list):
+            from ibeis.model.preproc import preproc_annot
+            def pre_1_3_1_get_annot_visual_uuid_info(ibs, aid_list):
+                image_uuid_list = ibs.get_annot_image_uuids(aid_list)
+                verts_list      = ibs.get_annot_verts(aid_list)
+                theta_list      = ibs.get_annot_thetas(aid_list)
+                visual_infotup = (image_uuid_list, verts_list, theta_list)
+                return visual_infotup
+            def pre_1_3_1_get_annot_semantic_uuid_info(ibs, aid_list, _visual_infotup):
+                image_uuid_list, verts_list, theta_list = visual_infotup
+                def get_annot_viewpoints(ibs, aid_list):
+                    viewpoint_list = ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_VIEWPOINT,), aid_list)
+                    viewpoint_list = [viewpoint if viewpoint >= 0.0 else None for viewpoint in viewpoint_list]
+                    return viewpoint_list
+                # It is visual info augmented with name and species
+                viewpoint_list  = get_annot_viewpoints(ibs, aid_list)
+                name_list       = ibs.get_annot_names(aid_list)
+                species_list    = ibs.get_annot_species_texts(aid_list)
+                semantic_infotup = (image_uuid_list, verts_list, theta_list, viewpoint_list,
+                                    name_list, species_list)
+                return semantic_infotup
+            visual_infotup = pre_1_3_1_get_annot_visual_uuid_info(ibs, aid_list)
+            annot_visual_uuid_list = preproc_annot.make_annot_visual_uuid(visual_infotup)
+            ibs.db.set(const.ANNOTATION_TABLE, (ANNOT_VISUAL_UUID,), annot_visual_uuid_list, aid_list)
+            # If visual uuids are changes semantic ones are also changed
+            # update semeantic pre 1_3_1
+            _visual_infotup = visual_infotup
+            semantic_infotup = pre_1_3_1_get_annot_semantic_uuid_info(ibs, aid_list, _visual_infotup)
+            annot_semantic_uuid_list = preproc_annot.make_annot_semantic_uuid(semantic_infotup)
+            ibs.db.set(const.ANNOTATION_TABLE, (ANNOT_SEMANTIC_UUID,), annot_semantic_uuid_list, aid_list)
+            pass
+        pre_1_3_1_update_visual_uuids(ibs, aid_list)
         #ibsfuncs.fix_remove_visual_dupliate_annotations(ibs)
         aid_list = ibs.get_valid_aids()
         visual_uuid_list = ibs.get_annot_visual_uuids(aid_list)
@@ -546,7 +591,7 @@ def update_1_1_0(db, ibs=None):
     # Add viewpoint (radians) to annotations
     db.modify_table(const.ANNOTATION_TABLE, (
         # add column to v1.0.2 at index 11
-        (11, 'annot_viewpoint', 'REAL DEFAULT 0.0', None),
+        (11, ANNOT_VIEWPOINT, 'REAL DEFAULT 0.0', None),
     ))
 
     # Add contributor to configs
@@ -616,7 +661,6 @@ def update_1_2_0(db, ibs=None):
     )
     aid_before = db.get_all_rowids(const.ANNOTATION_TABLE)
     #import utool as ut
-    #ut.embed()
     db.modify_table(tablename, colmap_list)
     # Sanity check
     aid_after = db.get_all_rowids(const.ANNOTATION_TABLE)
@@ -735,6 +779,87 @@ def update_1_3_3(db, ibs=None):
     ))
 
 
+def update_1_3_4(db, ibs=None):
+    # OLD ANNOT VIEWPOINT FUNCS. Hopefully these are not needed
+    #def get_annot_viewpoints(ibs, aid_list):
+    #    viewpoint_list = ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_VIEWPOINT,), aid_list)
+    #    viewpoint_list = [viewpoint if viewpoint >= 0.0 else None for viewpoint in viewpoint_list]
+    #    return viewpoint_list
+    #def set_annot_viewpoint(ibs, aid_list, viewpoint_list, input_is_degrees=False):
+    #    id_iter = ((aid,) for aid in aid_list)
+    #    #viewpoint_list = [-1 if viewpoint is None else viewpoint for viewpoint in viewpoint_list]
+    #    if input_is_degrees:
+    #        viewpoint_list = [-1 if viewpoint is None else ut.deg_to_rad(viewpoint)
+    #                          for viewpoint in viewpoint_list]
+    #    #assert all([0.0 <= viewpoint < 2 * np.pi or viewpoint == -1.0 for viewpoint in viewpoint_list])
+    #    val_iter = ((viewpoint, ) for viewpoint in viewpoint_list)
+    #    ibs.db.set(const.ANNOTATION_TABLE, (ANNOT_VIEWPOINT,), val_iter, id_iter)
+    #    ibs.update_annot_visual_uuids(aid_list)
+    print('executing update_1_3_4')
+    TAU = const.TAU
+
+    def convert_old_viewpoint_to_yaw(angle):
+        """ we initially had viewpoint coordinates inverted
+
+        Example:
+            >>> import math
+            >>> TAU = 2 * math.pi
+            >>> old_viewpoint_labels = [
+            >>>     ('left'       , 0.000 * TAU,),
+            >>>     ('frontleft'  , 0.125 * TAU,),
+            >>>     ('front'      , 0.250 * TAU,),
+            >>>     ('frontright' , 0.375 * TAU,),
+            >>>     ('right'      , 0.500 * TAU,),
+            >>>     ('backright'  , 0.625 * TAU,),
+            >>>     ('back'       , 0.750 * TAU,),
+            >>>     ('backleft'   , 0.875 * TAU,),
+            >>> ]
+            >>> for lbl, angle in old_viewpoint_labels:
+            >>>     yaw = convert_old_viewpoint_to_yaw(angle)
+            >>>     angle2 = convert_old_viewpoint_to_yaw(yaw)
+            >>>     print('old %15r %.2f -> new %15r %.2f' % (lbl, angle, lbl, yaw))
+            >>>     print('old %15r %.2f -> new %15r %.2f' % (lbl, yaw, lbl, angle2))
+        """
+        if angle is None:
+            return None
+        yaw = (-angle + (TAU / 2)) % TAU
+        return yaw
+
+    from ibeis.control import SQLDatabaseControl
+    assert isinstance(db,  SQLDatabaseControl.SQLDatabaseController)
+
+    db.modify_table(const.IMAGE_TABLE, (
+        # Add original image path to image table for more data persistance and
+        # stewardship
+        (None, 'image_original_path',          'TEXT', None),
+        # Add image location as a simple workaround for not using the gps
+        (None, 'image_location_code',          'TEXT', None),
+    ))
+    db.modify_table(const.ANNOTATION_TABLE, (
+        # Add image quality as an integer to filter the database more easilly
+        (None, 'annot_quality',          'INTEGER', None),
+        # Add a path to a file that will represent if a pixel belongs to the
+        # object of interest within the annotation.
+        #(None, 'annot_mask_fpath',       'STRING', None),
+        (ANNOT_VIEWPOINT, ANNOT_YAW,  'REAL', convert_old_viewpoint_to_yaw),
+    ))
+
+
+def update_1_3_5(db, ibs=None):
+    """ expand datasets to use new quality measures """
+    if ibs is not None:
+        aid_list = ibs.get_valid_aids()
+        qual_list = ibs.get_annot_qualities(aid_list)
+        assert len(qual_list) == 0 or max(qual_list) < 3, 'there were no qualities higher than 3 at this point'
+        old_to_new = {
+            2: 3,
+            1: 2,
+        }
+        new_qual_list = [old_to_new.get(qual, qual) for qual in qual_list]
+        ibs.set_annot_qualities(aid_list, new_qual_list)
+    # Adds a few different degrees of quality
+    pass
+
 # ========================
 # Valid Versions & Mapping
 # ========================
@@ -757,26 +882,30 @@ VALID_VERSIONS = utool.odict([
     ('1.3.1',    (pre_1_3_1,            update_1_3_1,       None                )),
     ('1.3.2',    (None,                 update_1_3_2,       None                )),
     ('1.3.3',    (None,                 update_1_3_3,       None                )),
+    ('1.3.4',    (None,                 update_1_3_4,       post_1_3_4          )),
+    ('1.3.5',    (None,                 update_1_3_5,       None          )),
 ])
 
 
-def test_dbschema():
+def test_db_schema():
     """
-    test_dbschema
+    test_db_schema
 
     CommandLine:
-        python -m ibeis.control.DB_SCHEMA --test-test_dbschema
-        python -m ibeis.control.DB_SCHEMA --test-test_dbschema -n=-1
-        python -m ibeis.control.DB_SCHEMA --test-test_dbschema -n=0
-        python -m ibeis.control.DB_SCHEMA --test-test_dbschema -n=1
+        python -m ibeis.control.DB_SCHEMA --test-test_db_schema
+        python -m ibeis.control.DB_SCHEMA --test-test_db_schema -n=-1
+        python -m ibeis.control.DB_SCHEMA --test-test_db_schema -n=0
+        python -m ibeis.control.DB_SCHEMA --test-test_db_schema -n=1
         python -m ibeis.control.DB_SCHEMA --force-incremental-db-update
-        python -m ibeis.control.DB_SCHEMA --test-test_dbschema --dump-autogen-schema
-        python -m ibeis.control.DB_SCHEMA --test-test_dbschema --force-incremental-db-update --dump-autogen-schema
+        python -m ibeis.control.DB_SCHEMA --test-test_db_schema --dump-autogen-schema
+        python -m ibeis.control.DB_SCHEMA --test-test_db_schema --force-incremental-db-update --dump-autogen-schema
+        python -m ibeis.control.DB_SCHEMA --test-test_db_schema --force-incremental-db-update
+
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.DB_SCHEMA import *  # NOQA
-        >>> test_dbschema()
+        >>> test_db_schema()
     """
     from ibeis.control import DB_SCHEMA
     from ibeis.control import _sql_helpers
@@ -784,7 +913,8 @@ def test_dbschema():
     autogenerate = params.args.dump_autogen_schema
     n = utool.get_argval('-n', int, default=-1)
     db = _sql_helpers.get_nth_test_schema_version(DB_SCHEMA, n=n, autogenerate=autogenerate)
-    autogen_str = db.get_schema_current_autogeneration_str()
+    autogen_cmd = 'python -m ibeis.control.DB_SCHEMA --test-test_db_schema --force-incremental-db-update --dump-autogen-schema'
+    autogen_str = db.get_schema_current_autogeneration_str(autogen_cmd)
     print(autogen_str)
     print(' Run with --dump-autogen-schema to autogenerate latest schema version')
 

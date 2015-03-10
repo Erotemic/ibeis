@@ -3,20 +3,18 @@ from plottool import draw_func2 as df2
 import utool as ut  # NOQA
 import numpy as np
 from ibeis import ibsfuncs
-from . import viz_helpers as vh
-from . import viz_chip
-from . import viz_matches
-import utool
-(print, print_, printDBG, rrr, profile) = utool.inject(
-    __name__, '[viz_qres]')
+from ibeis.viz import viz_helpers as vh
+from ibeis.viz import viz_chip
+from ibeis.viz import viz_matches
+(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[viz_qres]')
 
 
 DEFAULT_NTOP = 3
 
 
-@utool.indent_func
+@ut.indent_func
 @profile
-def show_qres_top(ibs, qres, **kwargs):
+def show_qres_top(ibs, qres, qreq_=None, **kwargs):
     """
     Wrapper around show_qres.
     """
@@ -28,7 +26,7 @@ def show_qres_top(ibs, qres, **kwargs):
     if len(figtitle) > 0:
         figtitle = ' ' + figtitle
     kwargs['figtitle'] = ('q%s -- TOP %r' % (aidstr, N)) + figtitle
-    return show_qres(ibs, qres, top_aids=top_aids,
+    return show_qres(ibs, qres, top_aids=top_aids, qreq_=qreq_,
                      # dont use these. use annot mode instead
                      #draw_kpts=False,
                      #draw_ell=False,
@@ -36,9 +34,9 @@ def show_qres_top(ibs, qres, **kwargs):
                      **kwargs)
 
 
-@utool.indent_func
+@ut.indent_func
 @profile
-def show_qres_analysis(ibs, qres, **kwargs):
+def show_qres_analysis(ibs, qres, qreq_=None, **kwargs):
     """
     Wrapper around show_qres.
 
@@ -88,7 +86,7 @@ def show_qres_analysis(ibs, qres, **kwargs):
         _gtaids = np.setdiff1d(_gtaids, top_aids)
         # Sort missed grountruth by score
         _gtscores = qres.get_aid_scores(_gtaids)
-        _gtaids = utool.sortedby(_gtaids, _gtscores, reverse=True)
+        _gtaids = ut.sortedby(_gtaids, _gtscores, reverse=True)
         if len(_gtaids) > 3:
             # Hack to not show too many unmatched groundtruths
             #_isexmp = ibs.get_annot_exemplar_flags(_gtaids)
@@ -96,16 +94,16 @@ def show_qres_analysis(ibs, qres, **kwargs):
         showgt_aids = _gtaids
 
     return show_qres(ibs, qres, gt_aids=showgt_aids, top_aids=top_aids,
-                     figtitle=figtitle, show_query=show_query, **kwargs)
+                     figtitle=figtitle, show_query=show_query, qreq_=qreq_, **kwargs)
 
 
-@utool.indent_func
-def show_qres(ibs, qres, **kwargs):
+@ut.indent_func
+def show_qres(ibs, qres, qreq_=None, **kwargs):
     """
     Display Query Result Logic
 
     Defaults to: query chip, groundtruth matches, and top matches
-    python -c "import utool, ibeis; print(utool.auto_docstr('ibeis.viz.viz_qres', 'show_qres'))"
+    python -c "import ut, ibeis; print(ut.auto_docstr('ibeis.viz.viz_qres', 'show_qres'))"
     qres.ishow calls down into this
 
     Args:
@@ -122,22 +120,27 @@ def show_qres(ibs, qres, **kwargs):
             elif annot_mode == 2, then draw only lines
 
     Returns:
-        ?: fig
+        mpl.Figure: fig
 
     CommandLine:
-        python -m ibeis.viz.viz_qres --test-show_qres
+        ./main.py --query 1 -y --db PZ_MTEST --noshow-qtres
+
+        python -m ibeis.viz.viz_qres --test-show_qres --show
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.viz.viz_qres import *  # NOQA
+        >>> import plottool as pt
         >>> import ibeis
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
         >>> qres = ibs.query_chips(ibs.get_valid_aids()[0:1])[0]
         >>> # execute function
-        >>> fig = show_qres(ibs, qres, sidebyside=False, show_query=True, top_aids=3)
+        >>> qreq_ = None
+        >>> fig = show_qres(ibs, qres, sidebyside=False, show_query=True, qreq_=qreq_, top_aids=3)
         >>> # verify results
-        >>> fig.show()
+        >>> #fig.show()
+        >>> pt.show_if_requested()
 
     """
     annot_mode    = kwargs.get('annot_mode', 1) % 3  # this is toggled
@@ -152,7 +155,7 @@ def show_qres(ibs, qres, **kwargs):
     sidebyside    = kwargs.get('sidebyside', True)
     name_scoring  = kwargs.get('name_scoring', False)
 
-    fnum = df2.kwargs_fnum(kwargs)
+    fnum = df2.ensure_fnum(kwargs.get('fnum', None))
 
     if make_figtitle is True:
         figtitle = qres.make_title(pack=True)
@@ -174,7 +177,7 @@ def show_qres(ibs, qres, **kwargs):
     try:
         assert len(list(set(top_aids).intersection(set(gt_aids)))) == 0, 'gts should be missed.  not in top'
     except AssertionError as ex:
-        utool.printex(ex, keys=['top_aids', 'gt_aids'])
+        ut.printex(ex, keys=['top_aids', 'gt_aids'])
         raise
 
     printDBG(qres.get_inspect_str())
@@ -223,7 +226,7 @@ def show_qres(ibs, qres, **kwargs):
         print('[show_qres] * figtitle=%r' % (figtitle,))
         print('[show_qres] * max_nCols=%r' % (max_nCols,))
         print('[show_qres] * show_query=%r' % (show_query,))
-        print('[show_qres] * kwargs=%s' % (utool.dict_str(kwargs),))
+        print('[show_qres] * kwargs=%s' % (ut.dict_str(kwargs),))
 
     # HACK:
     _color_list = df2.distinct_colors(nTop)
@@ -241,44 +244,49 @@ def show_qres(ibs, qres, **kwargs):
         _kwshow['pnum'] = pnum
         _kwshow['aid2_color'] = aid2_color
         _kwshow['draw_ell'] = annot_mode >= 1
-        viz_chip.show_chip(ibs, qres.qaid, annote=False, **_kwshow)
+        viz_chip.show_chip(ibs, qres.qaid, annote=False, qreq_=qreq_, **_kwshow)
 
     def _plot_matches_aids(aid_list, plotx_shift, rowcols):
         """ helper for show_qres to draw many aids """
+        _kwshow  = dict(draw_ell=annot_mode, draw_pts=False, draw_lines=annot_mode,
+                        ell_alpha=.5, all_kpts=all_kpts)
+        _kwshow.update(kwargs)
+        _kwshow['fnum'] = fnum
+        _kwshow['in_image'] = in_image
+        if sidebyside:
+            # Draw each match side by side the query
+            _kwshow['draw_ell'] = annot_mode == 1
+            _kwshow['draw_lines'] = annot_mode >= 1
+        else:
+            #print('annot_mode = %r' % (annot_mode,))
+            _kwshow['draw_ell'] = annot_mode == 1
+            #_kwshow['draw_pts'] = annot_mode >= 1
+            #_kwshow['draw_lines'] = False
+            _kwshow['show_query'] = False
         def _show_matches_fn(aid, orank, pnum):
             """ Helper function for drawing matches to one aid """
             aug = 'rank=%r\n' % orank
+            _kwshow['pnum'] = pnum
+            _kwshow['title_aug'] = aug
             #printDBG('[show_qres()] plotting: %r'  % (pnum,))
             #draw_ell = annot_mode == 1
             #draw_lines = annot_mode >= 1
-            _kwshow  = dict(draw_ell=annot_mode, draw_pts=False, draw_lines=annot_mode,
-                            ell_alpha=.5, all_kpts=all_kpts)
-            _kwshow.update(kwargs)
-            _kwshow['fnum'] = fnum
-            _kwshow['pnum'] = pnum
-            _kwshow['title_aug'] = aug
-            _kwshow['in_image'] = in_image
             # If we already are showing the query dont show it here
             if sidebyside:
-                _kwshow['draw_ell'] = annot_mode == 1
-                _kwshow['draw_lines'] = annot_mode >= 1
-                viz_matches.show_matches(ibs, qres, aid, **_kwshow)
+                # Draw each match side by side the query
+                viz_matches.show_matches(ibs, qres, aid, qreq_=qreq_, **_kwshow)
             else:
-                _kwshow['draw_ell'] = annot_mode >= 1
-                if annot_mode == 2:
-                    # TODO Find a better name
-                    _kwshow['color'] = aid2_color[aid]
-                    _kwshow['sel_fx2'] = qres.aid2_fm[aid][:, 1]
-                viz_chip.show_chip(ibs, aid, annote=False, **_kwshow)
-                viz_matches.annotate_matches(ibs, qres, aid, show_query=not show_query)
+                # Draw each match by themselves
+                viz_chip.show_chip(ibs, aid, annote=False, qreq_=qreq_, **_kwshow)
+                viz_matches.annotate_matches(ibs, qres, aid, qreq_=qreq_, **_kwshow)
 
         if DEBUG_SHOW_QRES:
             print('[show_qres()] Plotting Chips %s:' % vh.get_aidstrs(aid_list))
         if aid_list is None:
             return
         # Do lazy load before show
-        vh.get_chips(ibs, aid_list, **kwargs)
-        vh.get_kpts(ibs, aid_list, **kwargs)
+        vh.get_chips(ibs, aid_list, qreq_=qreq_, **kwargs)
+        vh.get_kpts(ibs, aid_list, qreq_=qreq_, **kwargs)
         for ox, aid in enumerate(aid_list):
             plotx = ox + plotx_shift + 1
             pnum = (rowcols[0], rowcols[1], plotx)
@@ -323,5 +331,4 @@ def show_qres(ibs, qres, **kwargs):
     return fig
 
 if __name__ == '__main__':
-    print ("Utool dir: %r" % (dir(utool),))
-    utool.doctest_module()
+    ut.doctest_funcs()

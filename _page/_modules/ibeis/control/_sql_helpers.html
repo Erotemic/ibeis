@@ -1,52 +1,110 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>ibeis.control._sql_helpers &mdash; ibeis 0.1.0.dev1 documentation</title>
-    
-    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../../../',
-        VERSION:     '0.1.0.dev1',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <link rel="top" title="ibeis 0.1.0.dev1 documentation" href="../../../index.html" />
-    <link rel="up" title="ibeis.control" href="../control.html" /> 
-  </head>
-  <body>
-    <div class="related">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../../../genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="../../../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li><a href="../../../index.html">ibeis 0.1.0.dev1 documentation</a> &raquo;</li>
-          <li><a href="../../index.html" >Module code</a> &raquo;</li>
-          <li><a href="../../ibeis.html" >ibeis</a> &raquo;</li>
-          <li><a href="../control.html" accesskey="U">ibeis.control</a> &raquo;</li> 
-      </ul>
-    </div>  
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.control._sql_helpers &mdash; ibeis 0.1.0.dev1 documentation</title>
+  
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body">
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="ibeis 0.1.0.dev1 documentation" href="../../../index.html"/>
+        <link rel="up" title="ibeis.control" href="../control.html"/> 
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        <a href="../../../index.html" class="fa fa-home"> ibeis</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+        
+            <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#subpackages">Subpackages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.params">ibeis.params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../ibeis.html">ibeis</a> &raquo;</li>
+      
+          <li><a href="../control.html">ibeis.control</a> &raquo;</li>
+      
+    <li>ibeis.control._sql_helpers</li>
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
             
   <h1>Source code for ibeis.control._sql_helpers</h1><div class="highlight"><pre>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
@@ -67,7 +125,7 @@
 <span class="c"># Helper Functions</span>
 <span class="c"># =======================</span>
 <span class="n">PRINT_SQL</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--print-sql&#39;</span><span class="p">,</span> <span class="s">&#39;--verbose-sql&#39;</span><span class="p">))</span>
-<span class="n">AUTODUMP</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--auto-dump&#39;</span><span class="p">)</span>
+<span class="c">#AUTODUMP = utool.get_argflag(&#39;--auto-dump&#39;)</span>
 <span class="n">NOT_QUIET</span> <span class="o">=</span> <span class="ow">not</span> <span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">QUIET</span> <span class="ow">or</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--quiet-sql&#39;</span><span class="p">))</span>
 
 
@@ -167,7 +225,8 @@
 </div>
 <span class="nd">@profile</span>
 <div class="viewcode-block" id="ensure_correct_version"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control._sql_helpers.ensure_correct_version">[docs]</a><span class="k">def</span> <span class="nf">ensure_correct_version</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">version_expected</span><span class="p">,</span> <span class="n">schema_spec</span><span class="p">,</span>
-                           <span class="n">dobackup</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">autogenerate</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+                           <span class="n">dobackup</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">autogenerate</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                           <span class="n">verbose</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    FIXME: AN SQL HELPER FUNCTION SHOULD BE AGNOSTIC TO CONTROLER OBJECTS</span>
 
@@ -175,7 +234,7 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        ibs (IBEISController):</span>
-<span class="sd">        db (?):</span>
+<span class="sd">        db (SQLController):</span>
 <span class="sd">        version_expected (str): version you want to be at</span>
 <span class="sd">        schema_spec (module): schema module</span>
 <span class="sd">        dobackup (bool):</span>
@@ -195,10 +254,6 @@
 <span class="sd">    Args:</span>
 <span class="sd">        schema_spec (module): module of schema specifications</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="k">def</span> <span class="nf">printQUIET</span><span class="p">(</span><span class="n">msg</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">NOT_QUIET</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
 
     <span class="n">want_base_version</span> <span class="o">=</span> <span class="n">version_expected</span> <span class="o">==</span> <span class="n">const</span><span class="o">.</span><span class="n">BASE_DATABASE_VERSION</span>
     <span class="k">if</span> <span class="n">want_base_version</span><span class="p">:</span>
@@ -232,27 +287,30 @@
                 <span class="c"># Since this is a new database, we do not have to worry about backinng up the</span>
                 <span class="c"># current database.  The subsequent update functions (if needed) will handle</span>
                 <span class="c"># this for us.</span>
-                <span class="n">printQUIET</span><span class="p">(</span><span class="s">&#39;[_SQL] New database and a current schema found&#39;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[_SQL] New database and a current schema found&#39;</span><span class="p">)</span>
                 <span class="n">schema_spec</span><span class="o">.</span><span class="n">UPDATE_CURRENT</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">)</span>
                 <span class="n">db</span><span class="o">.</span><span class="n">set_db_version</span><span class="p">(</span><span class="n">schema_spec</span><span class="o">.</span><span class="n">VERSION_CURRENT</span><span class="p">)</span>
-                <span class="n">printQUIET</span><span class="p">(</span><span class="s">&#39;[_SQL] Database version updated (skipped) to </span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">schema_spec</span><span class="o">.</span><span class="n">VERSION_CURRENT</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[_SQL] Database version updated (skipped) to </span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">schema_spec</span><span class="o">.</span><span class="n">VERSION_CURRENT</span><span class="p">))</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">printQUIET</span><span class="p">(</span><span class="s">&#39;[_SQL] Current database is not compatible, updating incrementally...&#39;</span><span class="p">)</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[_SQL] Current database is not compatible, updating incrementally...&#39;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">printQUIET</span><span class="p">(</span><span class="s">&#39;[_SQL] New database but current version not exported, updating incrementally...&#39;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[_SQL] New database but current version not exported, updating incrementally...&#39;</span><span class="p">)</span>
     <span class="c">#+--------------------------------------</span>
     <span class="c"># INCREMENTAL UPDATE TO EXPECTED VERSION</span>
     <span class="c">#+--------------------------------------</span>
     <span class="c"># Check version again for sanity&#39;s sake, update if exported current is behind expected</span>
     <span class="n">version</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_db_version</span><span class="p">()</span>
-    <span class="n">printQUIET</span><span class="p">(</span><span class="s">&#39;[_SQL.</span><span class="si">%s</span><span class="s">] Database version: </span><span class="si">%r</span><span class="s"> | Expected version: </span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span>
-               <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_caller_name</span><span class="p">(),</span> <span class="n">version</span><span class="p">,</span> <span class="n">version_expected</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[_SQL.</span><span class="si">%s</span><span class="s">] Database version: </span><span class="si">%r</span><span class="s"> | Expected version: </span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span>
+                <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_caller_name</span><span class="p">(),</span> <span class="n">version</span><span class="p">,</span> <span class="n">version_expected</span><span class="p">))</span>
     <span class="k">if</span> <span class="n">version</span> <span class="o">&lt;</span> <span class="n">version_expected</span><span class="p">:</span>
-        <span class="n">printQUIET</span><span class="p">(</span><span class="s">&#39;[_SQL] Database version behind, updating...&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[_SQL] Database version behind, updating...&#39;</span><span class="p">)</span>
         <span class="n">update_schema_version</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">db_versions</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">version_expected</span><span class="p">,</span>
                               <span class="n">dobackup</span><span class="o">=</span><span class="n">dobackup</span><span class="p">)</span>
         <span class="n">db</span><span class="o">.</span><span class="n">set_db_version</span><span class="p">(</span><span class="n">version_expected</span><span class="p">)</span>
-        <span class="n">printQUIET</span><span class="p">(</span><span class="s">&#39;[_SQL] Database version updated (incrementally) to </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[_SQL] Database version updated (incrementally) to </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span>
                    <span class="p">(</span><span class="n">version_expected</span><span class="p">))</span>
     <span class="k">elif</span> <span class="n">version</span> <span class="o">&gt;</span> <span class="n">version_expected</span><span class="p">:</span>
         <span class="n">msg</span> <span class="o">=</span> <span class="p">((</span><span class="s">&#39;[_SQL] ERROR: &#39;</span>
@@ -269,7 +327,11 @@
         <span class="c"># Auto-generate the version skip schema file</span>
         <span class="n">schema_spec_dir</span><span class="p">,</span> <span class="n">schema_spec_filename</span> <span class="o">=</span> <span class="n">split</span><span class="p">(</span><span class="n">schema_spec</span><span class="o">.</span><span class="n">__file__</span><span class="p">)</span>
         <span class="n">schema_spec_filename</span> <span class="o">=</span> <span class="n">splitext</span><span class="p">(</span><span class="n">schema_spec_filename</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">db</span><span class="o">.</span><span class="n">dump_schema_current_autogeneration</span><span class="p">(</span><span class="n">schema_spec_dir</span><span class="p">,</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">_CURRENT.py&#39;</span> <span class="o">%</span> <span class="n">schema_spec_filename</span><span class="p">)</span>
+        <span class="c"># HACK TO GET AUTOGEN COMMAND</span>
+        <span class="c"># FIXME: Make this autogen command a bit more sane</span>
+        <span class="c"># and not completely coupled with ibeis</span>
+        <span class="n">autogen_cmd</span> <span class="o">=</span> <span class="s">&#39;python -m ibeis.control.</span><span class="si">%s</span><span class="s"> --test-test_</span><span class="si">%s</span><span class="s"> --force-incremental-db-update --dump-autogen-schema&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">schema_spec_filename</span><span class="p">,</span> <span class="n">schema_spec_filename</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">dump_schema_current_autogeneration</span><span class="p">(</span><span class="n">schema_spec_dir</span><span class="p">,</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">_CURRENT.py&#39;</span> <span class="o">%</span> <span class="n">schema_spec_filename</span><span class="p">,</span> <span class="n">autogen_cmd</span><span class="p">)</span>
 
 </div>
 <span class="nd">@profile</span>
@@ -506,45 +568,58 @@
 </pre></div>
 
           </div>
-        </div>
-      </div>
-      <div class="sphinxsidebar">
-        <div class="sphinxsidebarwrapper">
-<div id="searchbox" style="display: none">
-  <h3>Quick search</h3>
-    <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
-    </p>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="related">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../../../genindex.html" title="General Index"
-             >index</a></li>
-        <li class="right" >
-          <a href="../../../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li><a href="../../../index.html">ibeis 0.1.0.dev1 documentation</a> &raquo;</li>
-          <li><a href="../../index.html" >Module code</a> &raquo;</li>
-          <li><a href="../../ibeis.html" >ibeis</a> &raquo;</li>
-          <li><a href="../control.html" >ibeis.control</a> &raquo;</li> 
-      </ul>
-    </div>
-    <div class="footer">
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
         &copy; Copyright 2015, Jon Crall.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
-    </div>
-  </body>
+    </p>
+  </div>
+
+  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.1.0.dev1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
 </html>

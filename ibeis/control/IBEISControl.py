@@ -1,10 +1,14 @@
 """
-TODO: Module Licence and docstring
+Note:
+    THERE ARE FUNCTIONS THAT ARE INJECTED INTO THE CONTROLLER
+    THAT ARE NOT DEFINED IN THIS MODULE.
 
-functions in the IBEISController have been split up into several submodules.
+    functions in the IBEISController have been split up into several submodules.
+    look at the modules listed in autogenmodname_list to see the full list of
+    functions that will be injected into an IBEISController object
 
-look at the modules listed in autogenmodname_list to see the full list of
-functions that will be injected into an IBEISController object
+TODO:
+    Module Licence and docstring
 """
 # TODO: rename annotation annotations
 # TODO: make all names consistent
@@ -35,6 +39,7 @@ from ibeis import ibsfuncs
 from ibeis.model.hots import pipeline
 #from ibeis.control import controller_inject
 
+# Pyinstaller hacks
 from ibeis.control import _autogen_featweight_funcs  # NOQA
 from ibeis.control import manual_ibeiscontrol_funcs  # NOQA
 from ibeis.control import manual_meta_funcs  # NOQA
@@ -44,7 +49,9 @@ from ibeis.control import manual_lblimage_funcs  # NOQA
 from ibeis.control import manual_image_funcs  # NOQA
 from ibeis.control import manual_annot_funcs  # NOQA
 from ibeis.control import manual_name_species_funcs  # NOQA
-from ibeis.control import manual_dependant_funcs  # NOQA
+#from ibeis.control import manual_dependant_funcs  # NOQA
+from ibeis.control import manual_chip_funcs  # NOQA
+from ibeis.control import manual_feat_funcs  # NOQA
 
 
 # Shiny new way to inject external functions
@@ -59,7 +66,9 @@ autogenmodname_list = [
     'manual_image_funcs',
     'manual_annot_funcs',
     'manual_name_species_funcs',
-    'manual_dependant_funcs',
+    #'manual_dependant_funcs',
+    'manual_chip_funcs',
+    'manual_feat_funcs',
 ]
 
 
@@ -183,10 +192,11 @@ class IBEISController(object):
         ibs._init_sql()
         ibs._init_config()
         wb_target = params.args.wildbook_target
-        if wb_target is None:
-            print('[ibs.__init__] Default Wildbook target: %s' % (const.WILDBOOK_TARGET, ))
-        else:
-            print('[ibs.__init__] Custom Wildbook target: %s' % (wb_target, ))
+        if ut.VERBOSE and not ut.QUIET:
+            if wb_target is None:
+                print('[ibs.__init__] Default Wildbook target: %s' % (const.WILDBOOK_TARGET, ))
+            else:
+                print('[ibs.__init__] Custom Wildbook target: %s' % (wb_target, ))
 
     def reset_table_cache(ibs):
         ibs.table_cache = accessor_decors.init_tablecache()
@@ -288,7 +298,7 @@ class IBEISController(object):
         ibs.MANUAL_CONFIGID = ibs.add_config(ibs.MANUAL_CONFIG_SUFFIX)
         # duct_tape.fix_compname_configs(ibs)
         # duct_tape.remove_database_slag(ibs)
-        # duct_tape.fix_nulled_viewpoints(ibs)
+        # duct_tape.fix_nulled_yaws(ibs)
         lbltype_names    = const.KEY_DEFAULTS.keys()
         lbltype_defaults = const.KEY_DEFAULTS.values()
         lbltype_ids = ibs.add_lbltype(lbltype_names, lbltype_defaults)
@@ -336,7 +346,7 @@ class IBEISController(object):
         _sql_helpers.ensure_daily_database_backup(ibs.get_ibsdir(), ibs.sqldb_fname, ibs.backupdir)
         # IBEIS SQL State Database
         #ibs.db_version_expected = '1.1.1'
-        ibs.db_version_expected = '1.3.3'
+        ibs.db_version_expected = '1.3.5'
         # TODO: add this functionality to SQLController
         TESTING_NEW_SQL_VERSION = False
         if TESTING_NEW_SQL_VERSION:
@@ -353,7 +363,7 @@ class IBEISController(object):
                 dev_sqldb_fpath = join(ibs.get_ibsdir(), dev_sqldb_fname)
                 ut.copy(sqldb_fpath, dev_sqldb_fpath, overwrite=testing_force_fresh)
                 # Set testing schema version
-                ibs.db_version_expected = '1.3.3'
+                ibs.db_version_expected = '1.3.5'
         ibs.db = sqldbc.SQLDatabaseController(ibs.get_ibsdir(), ibs.sqldb_fname,
                                               text_factory=const.__STR__,
                                               inmemory=False)
@@ -363,7 +373,8 @@ class IBEISController(object):
             ibs.db,
             ibs.db_version_expected,
             DB_SCHEMA,
-            autogenerate=params.args.dump_autogen_schema
+            autogenerate=params.args.dump_autogen_schema,
+            verbose=ut.VERBOSE,
         )
 
     #@ut.indent_func
@@ -382,7 +393,8 @@ class IBEISController(object):
             ibs.dbcache_version_expected,
             DBCACHE_SCHEMA,
             dobackup=False,  # Everything in dbcache can be regenerated.
-            autogenerate=params.args.dump_autogen_schema
+            autogenerate=params.args.dump_autogen_schema,
+            verbose=ut.VERBOSE,
         )
 
     def _close_sqldbcache(ibs):
@@ -525,6 +537,12 @@ class IBEISController(object):
         Returns:
             list_ (list): ibs internal directory """
         return ibs._ibsdb
+
+    def get_chipdir(ibs):
+        return ibs.chipdir
+
+    def get_probchip_dir(ibs):
+        return join(ibs.get_cachedir(), 'prob_chips')
 
     def get_fig_dir(ibs):
         """
@@ -755,14 +773,14 @@ class IBEISController(object):
         # Configuration
         sudo = True
         wb_target = params.args.wildbook_target
-	if wb_target is None:
-		wb_target = const.WILDBOOK_TARGET
-        hostname = '127.0.0.1'
-        submit_url   = 'http://%s:8080/' + str(wb_target) + '/OccurrenceCreateIBEIS?ibeis_encounter_id=%s'
-        complete_url = 'http://%s:8080/' + str(wb_target) + '/occurrence.jsp?number=%s'
-        wildbook_tomcat_path = '/var/lib/tomcat/webapps/%s/' % (wb_target, )
-        # Setup
-	print("Looking for WildBook installation: %r" % ( wildbook_tomcat_path, ))
+        if wb_target is None:
+            wb_target = const.WILDBOOK_TARGET
+            hostname = '127.0.0.1'
+            submit_url   = 'http://%s:8080/' + str(wb_target) + '/OccurrenceCreateIBEIS?ibeis_encounter_id=%s'
+            complete_url = 'http://%s:8080/' + str(wb_target) + '/occurrence.jsp?number=%s'
+            wildbook_tomcat_path = '/var/lib/tomcat/webapps/%s/' % (wb_target, )
+            # Setup
+        print("Looking for WildBook installation: %r" % ( wildbook_tomcat_path, ))
         if exists(wildbook_tomcat_path):
             # With a lock file, modify the configuration with the new settings
             with lockfile.LockFile(join(ibs.get_ibeis_resource_dir(), 'wildbook.lock')):
@@ -822,22 +840,60 @@ class IBEISController(object):
 
     @default_decorator
     def detect_random_forest(ibs, gid_list, species, **kwargs):
-        """ Runs animal detection in each image """
+        """
+        Runs animal detection in each image. Adds annotations to the database as
+        they are found.
+
+        Args:
+            gid_list (list): list of image ids to run detection on
+            species (str): string text of the species to identify
+
+        Returns:
+            aids_list (list): list of lists of annotation ids detected in each image
+
+        CommandLine:
+            python -m ibeis.control.IBEISControl --test-detect_random_forest --show
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.control.IBEISControl import *  # NOQA
+            >>> import ibeis
+            >>> # build test data
+            >>> ibs = ibeis.opendb('testdb1')
+            >>> gid_list = ibs.get_valid_gids()[0:2]
+            >>> species = ibeis.const.Species.ZEB_PLAIN
+            >>> # execute function
+            >>> aids_list = ibs.detect_random_forest(gid_list, species)
+            >>> # Visualize results
+            >>> if ut.show_was_requested():
+            >>>     import plottool as pt
+            >>>     from ibeis.viz import viz_image
+            >>>     for fnum, gid in enumerate(gid_list):
+            >>>         viz_image.show_image(ibs, gid, fnum=fnum)
+            >>>     pt.show_if_requested()
+            >>> # Remove newly detected annotations
+            >>> ibs.delete_annots(ut.flatten(aids_list))
+        """
         # TODO: Return confidence here as well
         print('[ibs] detecting using random forests')
-        from ibeis.model.detect import randomforest  # NOQ
+        from ibeis.model.detect import randomforest  # NOQA
         detect_gen = randomforest.detect_gid_list_with_species(ibs, gid_list, species, **kwargs)
         # ibs.cfg.other_cfg.ensure_attr('detect_add_after', 1)
         # ADD_AFTER_THRESHOLD = ibs.cfg.other_cfg.detect_add_after
         print("TYPE:", type(detect_gen))
+        aids_list = []
         for gid, (gpath, result_list) in zip(gid_list, detect_gen):
+            aids = []
             for result in result_list:
                 # Ideally, species will come from the detector with confidences that actually mean something
                 bbox = (result['xtl'], result['ytl'], result['width'], result['height'])
-                ibs.add_annots([gid], [bbox], notes_list=['rfdetect'],
-                               species_list=[species],
-                               quiet_delete_thumbs=True,
-                               detect_confidence_list=[result['confidence']])
+                (aid,) = ibs.add_annots([gid], [bbox], notes_list=['rfdetect'],
+                                        species_list=[species],
+                                        quiet_delete_thumbs=True,
+                                        detect_confidence_list=[result['confidence']])
+                aids.append(aid)
+            aids_list.append(aids)
+        return aids_list
 
     #
     #
@@ -953,6 +1009,9 @@ class IBEISController(object):
             gid_list_ = gid_list[start:end]
             print('[ibs]     Found Patrol Encounter: %r' % (encounter_info, ))
             print('[ibs]         GIDs: %r' % (gid_list_, ))
+            if len(gid_list_) == 0:
+                print('[ibs]         SKIPPING EMPTY ENCOUNTER')
+                continue
             # Add the GPS data to the iamges
             gps_list  = [ gps ] * len(gid_list_)
             ibs.set_image_gps(gid_list_, gps_list)
@@ -1034,19 +1093,19 @@ class IBEISController(object):
     # --- IDENTIFICATION ---
     #-----------------------
 
-    @default_decorator
-    def get_recognition_database_aids(ibs, eid=None, is_exemplar=True, species=None):
-        """
-        DEPRECATE or refactor
+    #@default_decorator
+    #def get_recognition_database_aids(ibs, eid=None, is_exemplar=True, species=None):
+    #    """
+    #    DEPRECATE or refactor
 
-        Returns:
-            daid_list (list): testing recognition database annotations
-        """
-        if 'daid_list' in ibs.temporary_state:
-            daid_list = ibs.temporary_state['daid_list']
-        else:
-            daid_list = ibs.get_valid_aids(eid=eid, species=species, is_exemplar=is_exemplar)
-        return daid_list
+    #    Returns:
+    #        daid_list (list): testing recognition database annotations
+    #    """
+    #    if 'daid_list' in ibs.temporary_state:
+    #        daid_list = ibs.temporary_state['daid_list']
+    #    else:
+    #        daid_list = ibs.get_valid_aids(eid=eid, species=species, is_exemplar=is_exemplar)
+    #    return daid_list
 
     @default_decorator
     def get_recognition_query_aids(ibs, is_known, species=None):
@@ -1210,6 +1269,7 @@ class IBEISController(object):
 
     @default_decorator
     def has_species_detector(ibs, species_text):
+        """ TODO: extend to use non-constant species """
         return species_text in const.SPECIES_WITH_DETECTORS
 
     @default_decorator

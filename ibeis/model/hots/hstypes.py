@@ -26,6 +26,9 @@ currently a weight of zero is hacked in
 """
 from __future__ import absolute_import, division, print_function
 import numpy as np
+import utool as ut
+ut.noinject('[hstypes]')
+
 
 #INTEGER_TYPE = np.int32
 INDEX_TYPE = np.int32
@@ -33,8 +36,8 @@ INDEX_TYPE = np.int32
 #INTEGER_TYPE = np.int64
 INTEGER_TYPE = np.int32
 
-#FLOAT_TYPE = np.float64
-FLOAT_TYPE = np.float32
+FLOAT_TYPE = np.float64
+#FLOAT_TYPE = np.float32
 
 VEC_DIM = 128
 
@@ -43,6 +46,7 @@ VEC_IINFO = np.iinfo(VEC_TYPE)
 VEC_MAX = VEC_IINFO.max
 VEC_MIN = VEC_IINFO.min
 # Psuedo max values come from SIFT descriptors implementation
+# Each component has a theoretical maximum of 512
 VEC_PSEUDO_MAX = 512
 # unit sphere points can only be twice the maximum descriptor magnitude away
 # from each other. The pseudo max is 512, so 1024 is the upper bound
@@ -50,8 +54,11 @@ VEC_PSEUDO_MAX = 512
 # which means any two vectors with one full component and zeros elsewhere are
 # maximally distant. VEC_PSEUDO_MAX_DISTANCE = np.sqrt(2) * VEC_PSEUDO_MAX
 if VEC_MIN == 0:
-    # Can be on only on one quadrent of unit sphere
-    VEC_PSEUDO_MAX_DISTANCE = VEC_PSEUDO_MAX * np.sqrt(2)
+    # SIFT distances can be on only on one quadrent of unit sphere
+    # hense the np.sqrt(2) coefficient on the component maximum
+    # Otherwise it would be 2.
+    VEC_PSEUDO_MAX_DISTANCE = VEC_PSEUDO_MAX * np.sqrt(2.0)
+    VEC_PSEUDO_MAX_DISTANCE_SQRD = 2.0 * (512.0 ** 2.0)
 elif VEC_MIN < 0:
     # Can be on whole unit sphere
     VEC_PSEUDO_MAX_DISTANCE = VEC_PSEUDO_MAX * 2
@@ -97,9 +104,25 @@ class FiltKeys(object):
     RATIO = 'ratio'
     DIST = 'dist'
     LNBNN = 'lnbnn'
-    DUPVOTE = 'dupvote'
     HOMOGERR = 'homogerr'
 
 # Denote which scores should be  used as weights
 # the others are used as scores
 WEIGHT_FILTERS = [FiltKeys.FG, FiltKeys.DISTINCTIVENESS, FiltKeys.HOMOGERR]
+
+
+# Replace old cmtup_old with ducktype
+# Keep this turned off for now until we actually start using it
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m ibeis.model.hots.hstypes
+        python -m ibeis.model.hots.hstypes --allexamples
+        python -m ibeis.model.hots.hstypes --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

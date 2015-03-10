@@ -7,8 +7,57 @@ from __future__ import absolute_import, division, print_function
 # import utool
 import six
 import numpy as np
-from collections import namedtuple
+from collections import namedtuple, OrderedDict
+import math
 from os.path import join
+import utool as ut
+ut.noinject('[const]')
+
+
+TAU = 2 * math.pi
+
+
+# Mapping of semantic viewpoints to yaw angles
+VIEWTEXT_TO_YAW_RADIANS = OrderedDict([
+    ('right'      , 0.000 * TAU,),
+    ('frontright' , 0.125 * TAU,),
+    ('front'      , 0.250 * TAU,),
+    ('frontleft'  , 0.375 * TAU,),
+    ('left'       , 0.500 * TAU,),
+    ('backleft'   , 0.625 * TAU,),
+    ('back'       , 0.750 * TAU,),
+    ('backright'  , 0.875 * TAU,),
+])
+
+#VIEWTEXT_TO_QT_VIEWTEXT = {
+#    'right'      : 'right',
+#    'frontright' : 'frontright',
+#    'front'      : 'front',
+#    'frontleft'  : 'frontleft',
+#    'left'       : 'left',
+#    'backleft'   : 'backleft',
+#    'back'       : 'back',
+#    'backright'  : 'backright',
+#}
+
+QUAL_EXCELLENT = 'excellent'
+QUAL_GOOD      = 'good'
+QUAL_OK        = 'ok'
+QUAL_POOR      = 'poor'
+QUAL_JUNK      = 'junk'
+QUAL_UNKNOWN   = 'UNKNOWN'
+
+QUALITY_INT_TO_TEXT = OrderedDict([
+    (5,  QUAL_EXCELLENT,),
+    (4,  QUAL_GOOD,),
+    (3,  QUAL_OK,),
+    (2,  QUAL_POOR,),
+    (0,  QUAL_JUNK,),
+    (-1, QUAL_UNKNOWN,),
+])
+
+QUALITY_TEXT_TO_INT = ut.invert_dict(QUALITY_INT_TO_TEXT)
+QUALITY_INT_TO_TEXT[None] = QUALITY_INT_TO_TEXT[-1]
 
 
 class PATH_NAMES(object):
@@ -159,7 +208,9 @@ CHIP_THUMB_SUFFIX  = '_chip_thumb.jpg'
 class Species(object):
     ZEB_PLAIN     = 'zebra_plains'
     ZEB_GREVY     = 'zebra_grevys'
+    # TODO change to giraffe_reticulated
     GIRAFFE       = 'giraffe'
+    GIRAFFE_MASAI = 'giraffe_masai'
     ELEPHANT_SAV  = 'elephant_savanna'
     JAG           = 'jaguar'
     LEOPARD       = 'leopard'
@@ -178,15 +229,20 @@ class Species(object):
     WILDEBEEST    = 'wildebeest'
     WATER_BUFFALO = 'water_buffalo'
     CHEETAH       = 'cheetah'
+    TIGER         = 'tiger'
+    HYENA         = 'hyena'
+    NAUT          = 'nautilus'
     UNKNOWN       = UNKNOWN
 
-
-SpeciesTuple = namedtuple('SpeciesTuple', ('species_text', 'species_code', 'species_nice'))
+# TODO: allow for custom species
+SpeciesTupleProperties = ('species_text', 'species_code', 'species_nice')
+SpeciesTuple = namedtuple('SpeciesTuple', SpeciesTupleProperties)
 
 SPECIES_TUPS = [
     SpeciesTuple(Species.ZEB_PLAIN,          'PZ', 'Zebra (Plains)'),
     SpeciesTuple(Species.ZEB_GREVY,          'GZ', 'Zebra (Grevy\'s)'),
-    SpeciesTuple(Species.GIRAFFE,           'GIR', 'Giraffes'),
+    SpeciesTuple(Species.GIRAFFE,           'GIR', 'Giraffes (Reticulated)'),
+    SpeciesTuple(Species.GIRAFFE_MASAI,    'GIRM', 'Giraffes (Masai)'),
     SpeciesTuple(Species.ELEPHANT_SAV,     'ELEP', 'Elephant (savanna)'),
     SpeciesTuple(Species.POLAR_BEAR,         'PB', 'Polar Bear'),
     SpeciesTuple(Species.WILDDOG,            'WD', 'Wild Dog'),
@@ -195,22 +251,30 @@ SPECIES_TUPS = [
     SpeciesTuple(Species.WILDEBEEST,         'WB', 'Wildebeest'),
     SpeciesTuple(Species.JAG,               'JAG', 'Jaguar'),
     SpeciesTuple(Species.LEOPARD,          'LOEP', 'Leopard'),
+    SpeciesTuple(Species.TIGER,           'TIGER', 'Tiger'),
+    SpeciesTuple(Species.HYENA,           'HYENA', 'Hyena'),
     SpeciesTuple(Species.LION,             'LION', 'Lion'),
     SpeciesTuple(Species.CHEETAH,          'CHTH', 'Cheetah'),
     SpeciesTuple(Species.SEALS_SPOTTED,   'SEAL1', 'Seal (spotted)'),
     SpeciesTuple(Species.SEALS_RINGED,    'SEAL2', 'Seal (Siamaa Ringed)'),
+    SpeciesTuple(Species.NAUT,             'NAUT', 'Nautilus'),
     SpeciesTuple(Species.UNKNOWN,       'UNKNOWN', 'Unknown'),
 ]
 
+# FIXME: infer this
 SPECIES_WITH_DETECTORS = (
     Species.ZEB_GREVY,
     Species.ZEB_PLAIN,
     Species.GIRAFFE,
+    #Species.GIRAFFE_MASAI,
     Species.ELEPHANT_SAV,
 )
 
 SPECIES_CODE_TO_TEXT = {
     tup.species_code: tup.species_text for tup in SPECIES_TUPS
+}
+SPECIES_TEXT_TO_CODE = {
+    tup.species_text: tup.species_code for tup in SPECIES_TUPS
 }
 
 VALID_SPECIES = [tup.species_text for tup in SPECIES_TUPS]
@@ -224,6 +288,15 @@ HARD_NOTE_TAG = '<HARDCASE>'
 WILDBOOK_TARGET = 'prod'
 
 
+def get_species_code(species_text_):
+    " functions should not be in const """
+    species_text = species_text_.lower()
+    if species_text == 'none':
+        species_text = Species.UNKNOWN
+    species_code = SPECIES_TEXT_TO_CODE.get(species_text, species_text)
+    return species_code
+
+
 class ZIPPED_URLS(object):
     PZ_MTEST       = 'https://www.dropbox.com/s/xdae2yvsp57l4t2/PZ_MTEST.zip'
     NAUTS          = 'https://www.dropbox.com/s/8gt3eaiw8rb31rh/NAUT_test.zip'
@@ -234,6 +307,26 @@ if six.PY2:
     __STR__ = unicode  # change to str if needed
 else:
     __STR__ = str
+
+
+def get_working_species_set():
+    """ hack to make only species with detectors show up """
+    # TODO: FUNCTIONS SHOULD NOT BE IN CONSTANTS
+    # TODO: allow for custom user-define species
+    #RESTRICT_TO_ONLY_SPECIES_WITH_DETECTORS = not ut.get_argflag('--allspecies')
+    RESTRICT_TO_ONLY_SPECIES_WITH_DETECTORS = ut.get_argflag('--no-allspecies')
+    if RESTRICT_TO_ONLY_SPECIES_WITH_DETECTORS:
+        working_species_tups = [
+            (species_tup.species_nice, species_tup.species_text)
+            for species_tup in SPECIES_TUPS
+            if species_tup.species_text in SPECIES_WITH_DETECTORS
+        ]
+    else:
+        working_species_tups = [
+            (species_tup.species_nice, species_tup.species_text)
+            for species_tup in SPECIES_TUPS
+        ]
+    return working_species_tups
 
 
 # clean namespace

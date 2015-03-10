@@ -31,21 +31,28 @@ small_best = {
     'score_method':    ['csum'],  # 'bordaw', 'topk', 'topkw'],  # , 'nsum', 'borda', 'topk', 'nunique']
     'prescore_method': ['csum'],  # 'bordaw', 'topk', 'topkw'],  # , 'nsum', 'borda', 'topk', 'nunique']
     'chip_sqrt_area':  [450],
-
-    'fg_weight'       : [1.0],
-    'featweight_on'   : [True],
+    'fg_on'   : [True],
 }
 
 
 nsum = augbase(small_best, {
-    'dupvote_weight':    [1.0],
     'score_method':      ['nsum'],
     'prescore_method':   ['nsum'],
 })
 
+
+rrvsone_best = augbase(nsum, {
+    'rrvsone_on': [True],
+})
+
+rrvsone_grid = augbase(rrvsone_best, {
+    'grid_scale_factor': [.05, .1, .15, .2, .25, .3, .5][::1],
+    'grid_steps': [1, 3, 7],
+    'grid_sigma': [1.2, 1.6, 2.0],
+})
+
 nsum_nosv = augbase(nsum, {
     'sv_on':    [False],
-    'dupvote_weight':    [1.0],
     'score_method':      ['nsum'],
     'prescore_method':   ['nsum'],
 })
@@ -69,7 +76,6 @@ vsone = augbase(small_best, {
     'ratio_thresh':  [.625],
     'prescore_method':  ['csum'],
     'score_method':  ['csum'],
-    'dupvote_weight':  [0],
 })
 
 pzmastertest = augbase(small_best, {
@@ -78,24 +84,15 @@ pzmastertest = augbase(small_best, {
 })
 
 fgweight = augbase(small_best, {
-    'fg_weight': [1.0],  # , 0.0],
-    'featweight_on':  [True]  # , 0.0],
+    'fg_on':  [True]  # , 0.0],
 })
 
-
-dupvote = augbase(small_best, {
-    'dupvote_weight': [1.0],  # , 0.0],
-    'score_method':      ['nsum'],
-    'prescore_method':   ['nsum'],
-    'algorithm': ['linear', 'kdtree']
-})
 
 vary_sver = augbase(small_best, {
     'sv_on'          : [False, True],
     'use_chip_extent' : [False, True],
     'xy_thresh'       : [.1, .01, .001],
-    'fg_weight'       : [1.0],
-    'featweight_on'   : [True],
+    'fg_on'   : [True],
     'algorithm'       : ['linear'],
 })
 
@@ -103,15 +100,12 @@ sver_new = augbase(small_best, {
     'sv_on'           : [True],
     'use_chip_extent' : [True],
     'xy_thresh'       : [.001],
-    'fg_weight'       : [1.0],
-    'featweight_on'   : [True],
+    'fg_on'   : [True],
     #'algorithm'       : ['linear'],
 })
 
 nov6 = augbase(small_best, {
     'K': [4, 5, 6, 7, 8, 9, 10, 20],
-    'dupvote_weight': [1.0, 0.0],
-    'fg_weight': [1.0, 0.0],
     'score_method':   ['csum'],  # 'bordaw', 'topk', 'topkw'],  # , 'nsum', 'borda', 'topk', 'nunique']
 })
 
@@ -152,7 +146,7 @@ featparams_big2 = augbase(
     featparams_big,
     {
         'K': [4, 7, 10, 20],
-        'fg_weight': [1.0],
+        'fg_on': [True],
     })
 # low threshold = more keypoints
 # low initialSigma = more keypoints

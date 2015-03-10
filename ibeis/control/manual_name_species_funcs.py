@@ -114,8 +114,33 @@ def add_names(ibs, name_text_list, name_uuid_list=None, name_note_list=None):
 
 @register_ibs_method
 def sanatize_species_texts(ibs, species_text_list):
-    """ changes unknown species to the unknown value """
-    ibsfuncs.assert_valid_species(ibs, species_text_list, iswarning=True)
+    """ changes unknown species to the unknown value
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        species_text_list (list):
+
+    Returns:
+        list: species_text_list_
+
+    CommandLine:
+        python -m ibeis.control.manual_name_species_funcs --test-sanatize_species_texts
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_name_species_funcs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> species_text_list = ['foo', 'bar', 'zebra_plains']
+        >>> # execute function
+        >>> species_text_list_ = sanatize_species_texts(ibs, species_text_list)
+        >>> # verify results
+        >>> result = str(species_text_list_)
+        >>> print(result)
+        ['____', '____', 'zebra_plains']
+    """
+    ibsfuncs.assert_valid_species_texts(ibs, species_text_list, iswarning=True)
     def _sanatize_species_text(species_text):
         if species_text is None:
             return None
@@ -247,22 +272,30 @@ def delete_species(ibs, species_rowid_list):
 
 @register_ibs_method
 @ider
-def get_invalid_nids(ibs):
+def get_empty_nids(ibs):
     """
+    get name rowids that do not have any annotations (not including UNKONWN)
+
     Returns:
         list: nid_list - all names without any animals (does not include unknown names)
         an nid is not invalid if it has a valid alias
 
     CommandLine:
-        python -m ibeis.control.manual_name_species_funcs --test-get_invalid_nids
+        python -m ibeis.control.manual_name_species_funcs --test-get_empty_nids
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_name_species_funcs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
-        >>> nids_list = get_invalid_nids(ibs)
-        >>> result = str(nids_list)
+        >>> new_nid_list = ibs.make_next_nids(num=2)
+        >>> empty_nids = ibs.get_empty_nids()
+        >>> assert len(empty_nids) == 2, 'get_empty_nids fails1'
+        >>> assert new_nid_list == empty_nids, 'get_empty_nids fails2'
+        >>> ibs.delete_empty_nids()
+        >>> empty_nids2 = ibs.get_empty_nids()
+        >>> assert len(empty_nids2) == 0, 'get_empty_nids fails3'
+        >>> result = str(empty_nids2)
         >>> print(result)
         []
     """
@@ -275,6 +308,15 @@ def get_invalid_nids(ibs):
     hasalias_list = [alias_text is not None for alias_text in ibs.get_name_alias_texts(nid_list)]
     nid_list = list(ut.ifilterfalse_items(nid_list, hasalias_list))
     return nid_list
+
+
+@register_ibs_method
+def delete_empty_nids(ibs):
+    """ Removes names that have no Rois from the database """
+    print('[ibs] deleting empty nids')
+    invalid_nids = ibs.get_empty_nids()
+    print('[ibs] ... %d empty nids' % (len(invalid_nids),))
+    ibs.delete_names(invalid_nids)
 
 
 @register_ibs_method
@@ -332,7 +374,7 @@ def get_name_aids(ibs, nid_list, enable_unknown_fix=True):
             pair_list = ibs.db.connection.execute(opstr).fetchall()
             aids = np.array(ut.get_list_column(pair_list, 0))
             nids = np.array(ut.get_list_column(pair_list, 1))
-            unique_nids, groupx = vt.group_indicies(nids)
+            unique_nids, groupx = vt.group_indices(nids)
             grouped_aids_ = vt.apply_grouping(aids, groupx)
             aids_list5 = [sorted(arr.tolist()) for arr in grouped_aids_]
 
@@ -410,7 +452,7 @@ def get_name_aids(ibs, nid_list, enable_unknown_fix=True):
         pair_list = ibs.db.connection.execute(opstr).fetchall()
         aids = np.array(ut.get_list_column(pair_list, 0))
         nids = np.array(ut.get_list_column(pair_list, 1))
-        unique_nids, groupx = vt.group_indicies(nids)
+        unique_nids, groupx = vt.group_indices(nids)
         grouped_aids_ = vt.apply_grouping(aids, groupx)
         grouped_aids = [arr.tolist() for arr in grouped_aids_]
 
@@ -467,7 +509,7 @@ def get_name_aids(ibs, nid_list, enable_unknown_fix=True):
         pair_list = ibs.db.connection.execute(opstr).fetchall()
         aidscol = np.array(ut.get_list_column(pair_list, 0))
         nidscol = np.array(ut.get_list_column(pair_list, 1))
-        unique_nids, groupx = vt.group_indicies(nidscol)
+        unique_nids, groupx = vt.group_indices(nidscol)
         grouped_aids_ = vt.apply_grouping(aidscol, groupx)
         #aids_list = [sorted(arr.tolist()) for arr in grouped_aids_]
         structured_aids_list = [arr.tolist() for arr in grouped_aids_]
@@ -950,7 +992,7 @@ def set_name_notes(ibs, name_rowid_list, notes_list):
 
 @register_ibs_method
 @setter
-def set_name_texts(ibs, name_rowid_list, name_text_list):
+def set_name_texts(ibs, name_rowid_list, name_text_list, verbose=False):
     """
     Changes the name text. Does not affect the animals of this name.
     Effectively just changes the TEXT UUID
@@ -968,6 +1010,8 @@ def set_name_texts(ibs, name_rowid_list, name_text_list):
         >>> # result = set_name_texts(ibs, nid_list, name_list)
         >>> print(result)
     """
+    if verbose:
+        print('[ibs] setting %d name texts' % (len(name_rowid_list),))
     ibsfuncs.assert_valid_names(name_text_list)
     #sanatize_name_texts(ibs, name_text_list):
     #ibsfuncs.assert_lblannot_rowids_are_type(ibs, nid_list, ibs.lbltype_ids[const.INDIVIDUAL_KEY])

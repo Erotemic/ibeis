@@ -7,11 +7,23 @@ TODO: LAZY IMPORTS?
 # flake8: noqa
 from __future__ import absolute_import, division, print_function
 import utool
+import utool as ut
 import sys
 
 __version__ = '0.1.0.dev1'
 
 utool.noinject(__name__, '[ibeis.__init__]', DEBUG=False)
+
+
+if ut.is_developer():
+    standard_visualization_functions = [
+        'show_image',
+        'show_chip',
+        'show_chipmatch',
+        'show_chipmatches',
+        'show_vocabulary',
+        #'show_vocabulary',
+    ]
 
 
 # If we dont initialize plottool before <something>
@@ -32,9 +44,6 @@ from ibeis.dev import sysres
 from ibeis import control
 from ibeis import ibsfuncs
 from ibeis import dbio
-
-#from ibeis import model
-#from ibeis import viz
 #from ibeis import web
 
 from ibeis.dev import sysres
@@ -51,6 +60,37 @@ def import_subs():
     from ibeis import viz
     from ibeis import web
     from ibeis import gui
+    from ibeis import templates
+
+#import_subs()
+#from ibeis import gui
+#from ibeis import model
+#from ibeis import templates
+#from ibeis import viz
+#from ibeis import web
+
+
+#class _VizProxy(object):
+#    def __init__(self):
+#        pass
+
+#    def getattr(self, key):
+#        import ibeis.viz as viz
+#        return getattr(viz, key)
+
+#    def setattr(self, key, val):
+#        import ibeis.viz as viz
+#        return getattr(viz, key, val)
+
+
+#viz = _VizProxy
+#import apipkg
+#apipkg.initpkg(__name__, {
+#    'viz': {
+#        'clone': "ibeis.viz",
+#    }
+#}
+#)
 
 # Utool generated init makeinit.py
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[ibeis]')

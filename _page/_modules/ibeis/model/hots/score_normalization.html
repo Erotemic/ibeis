@@ -1,53 +1,112 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>ibeis.model.hots.score_normalization &mdash; ibeis 0.1.0.dev1 documentation</title>
-    
-    <link rel="stylesheet" href="../../../../_static/default.css" type="text/css" />
-    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../../../../',
-        VERSION:     '0.1.0.dev1',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
-    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
-    <link rel="top" title="ibeis 0.1.0.dev1 documentation" href="../../../../index.html" />
-    <link rel="up" title="ibeis.model.hots" href="../hots.html" /> 
-  </head>
-  <body>
-    <div class="related">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../../../../genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="../../../../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li><a href="../../../../index.html">ibeis 0.1.0.dev1 documentation</a> &raquo;</li>
-          <li><a href="../../../index.html" >Module code</a> &raquo;</li>
-          <li><a href="../../../ibeis.html" >ibeis</a> &raquo;</li>
-          <li><a href="../../model.html" >ibeis.model</a> &raquo;</li>
-          <li><a href="../hots.html" accesskey="U">ibeis.model.hots</a> &raquo;</li> 
-      </ul>
-    </div>  
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.model.hots.score_normalization &mdash; ibeis 0.1.0.dev1 documentation</title>
+  
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body">
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="ibeis 0.1.0.dev1 documentation" href="../../../../index.html"/>
+        <link rel="up" title="ibeis.model.hots" href="../hots.html"/> 
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        <a href="../../../../index.html" class="fa fa-home"> ibeis</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+        
+            <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ibeis.html">ibeis package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#subpackages">Subpackages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.params">ibeis.params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../../ibeis.html">ibeis</a> &raquo;</li>
+      
+          <li><a href="../../model.html">ibeis.model</a> &raquo;</li>
+      
+          <li><a href="../hots.html">ibeis.model.hots</a> &raquo;</li>
+      
+    <li>ibeis.model.hots.score_normalization</li>
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
             
   <h1>Source code for ibeis.model.hots.score_normalization</h1><div class="highlight"><pre>
 <span class="sd">&quot;&quot;&quot;</span>
@@ -245,46 +304,70 @@
 </div>
 <div class="viewcode-block" id="ScoreNormalizer.add_support"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.score_normalization.ScoreNormalizer.add_support">[docs]</a>    <span class="k">def</span> <span class="nf">add_support</span><span class="p">(</span><span class="n">normalizer</span><span class="p">,</span> <span class="n">tp_scores</span><span class="p">,</span> <span class="n">tn_scores</span><span class="p">,</span> <span class="n">tp_labels</span><span class="p">,</span> <span class="n">tn_labels</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        CommandLine:</span>
+<span class="sd">            python -m ibeis.model.hots.score_normalization --test-add_support --show</span>
+
 <span class="sd">        Example:</span>
 <span class="sd">            &gt;&gt;&gt; # DISABLE_DOCTEST</span>
 <span class="sd">            &gt;&gt;&gt; from ibeis.model.hots.score_normalization import *  # NOQA</span>
 <span class="sd">            &gt;&gt;&gt; # build test data</span>
-<span class="sd">            &gt;&gt;&gt; tp_scores = [100]</span>
-<span class="sd">            &gt;&gt;&gt; tn_scores = [10]</span>
-<span class="sd">            &gt;&gt;&gt; tp_labels = [110]</span>
-<span class="sd">            &gt;&gt;&gt; tn_labels = [10]</span>
-<span class="sd">            &gt;&gt;&gt; # empty normalizer</span>
-<span class="sd">            &gt;&gt;&gt; normalizer = ScoreNormalizer()</span>
+<span class="sd">            &gt;&gt;&gt; normalizer = ScoreNormalizer(&#39;testnorm&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; tp_scores = [100, 100, 70, 60, 60, 60, 100]</span>
+<span class="sd">            &gt;&gt;&gt; tn_scores = [10, 10, 20, 30, 30, 30, 10]</span>
+<span class="sd">            &gt;&gt;&gt; tp_labels = list(map(ut.deterministic_uuid, [110, 110, 111, 112, 112, 112, 110]))</span>
+<span class="sd">            &gt;&gt;&gt; tn_labels = list(map(ut.deterministic_uuid, [10, 10, 11, 12, 12, 12, 10]))</span>
+<span class="sd">            &gt;&gt;&gt; # call test function</span>
 <span class="sd">            &gt;&gt;&gt; normalizer.add_support(tp_scores, tn_scores, tp_labels, tn_labels)</span>
-<span class="sd">            &gt;&gt;&gt; normalizer.retrain()</span>
 <span class="sd">            &gt;&gt;&gt; # verify results</span>
-<span class="sd">            &gt;&gt;&gt; normalizer.visualize()</span>
-<span class="sd">            &gt;&gt;&gt; #--</span>
+<span class="sd">            &gt;&gt;&gt; normalizer.retrain()</span>
+<span class="sd">            &gt;&gt;&gt; if ut.show_was_requested():</span>
+<span class="sd">            &gt;&gt;&gt;      normalizer.visualize()</span>
 <span class="sd">            &gt;&gt;&gt; # build test data</span>
 <span class="sd">            &gt;&gt;&gt; tp_scores = np.random.randint(100, size=100)</span>
 <span class="sd">            &gt;&gt;&gt; tn_scores = np.random.randint(50, size=100)</span>
-<span class="sd">            &gt;&gt;&gt; tp_labels = np.arange(0, 100)</span>
-<span class="sd">            &gt;&gt;&gt; tn_labels = np.arange(100, 200)</span>
+<span class="sd">            &gt;&gt;&gt; tp_labels = list(map(ut.deterministic_uuid, np.arange(1000, 1100)))</span>
+<span class="sd">            &gt;&gt;&gt; tn_labels = list(map(ut.deterministic_uuid, np.arange(2000, 2100)))</span>
 <span class="sd">            &gt;&gt;&gt; normalizer.add_support(tp_scores, tn_scores, tp_labels, tn_labels)</span>
 <span class="sd">            &gt;&gt;&gt; normalizer.retrain()</span>
-<span class="sd">            &gt;&gt;&gt; normalizer.visualize()</span>
+<span class="sd">            &gt;&gt;&gt; if ut.show_was_requested():</span>
+<span class="sd">            &gt;&gt;&gt;     import plottool as pt</span>
+<span class="sd">            &gt;&gt;&gt;     normalizer.visualize()</span>
+<span class="sd">            &gt;&gt;&gt;     pt.show_if_requested()</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c"># Ensure input in list format</span>
-        <span class="c">#(tp_scores, tn_scores, tp_labels, tn_labels) = list(</span>
-        <span class="c">#    map(ut.ensure_iterable,</span>
-        <span class="c">#        (tp_scores, tn_scores, tp_labels, tn_labels)))</span>
-        <span class="c"># Assert that lengths are the same</span>
-        <span class="k">assert</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_allsame</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span>
-            <span class="nb">len</span><span class="p">,</span> <span class="p">(</span><span class="n">tp_scores</span><span class="p">,</span> <span class="n">tn_scores</span><span class="p">,</span> <span class="n">tp_labels</span><span class="p">,</span> <span class="n">tn_labels</span><span class="p">))),</span> <span class="p">(</span><span class="s">&#39;unequal lengths&#39;</span><span class="p">)</span>
+        <span class="c"># Initialize support if empty</span>
         <span class="k">if</span> <span class="n">normalizer</span><span class="o">.</span><span class="n">tp_support</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">normalizer</span><span class="o">.</span><span class="n">tp_support</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
             <span class="n">normalizer</span><span class="o">.</span><span class="n">tn_support</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
             <span class="n">normalizer</span><span class="o">.</span><span class="n">tp_labels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
             <span class="n">normalizer</span><span class="o">.</span><span class="n">tn_label</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
-        <span class="n">normalizer</span><span class="o">.</span><span class="n">tp_support</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">normalizer</span><span class="o">.</span><span class="n">tp_support</span><span class="p">,</span> <span class="n">tp_scores</span><span class="p">)</span>
-        <span class="n">normalizer</span><span class="o">.</span><span class="n">tn_support</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">normalizer</span><span class="o">.</span><span class="n">tn_support</span><span class="p">,</span> <span class="n">tn_scores</span><span class="p">)</span>
-        <span class="n">normalizer</span><span class="o">.</span><span class="n">tp_labels</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">normalizer</span><span class="o">.</span><span class="n">tp_labels</span><span class="p">,</span> <span class="n">tp_labels</span><span class="p">)</span>
-        <span class="n">normalizer</span><span class="o">.</span><span class="n">tn_label</span>   <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">normalizer</span><span class="o">.</span><span class="n">tn_labels</span><span class="p">,</span> <span class="n">tn_labels</span><span class="p">)</span>
+
+        <span class="c"># Ensure that incoming data is unique w.r.t. data that already exists</span>
+        <span class="k">def</span> <span class="nf">filter_seen_data</span><span class="p">(</span><span class="n">seen_labels</span><span class="p">,</span> <span class="n">input_labels</span><span class="p">,</span> <span class="n">input_data</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            seen_labels, input_labels, input_data = normalizer.tp_labels, tp_labels, tp_scores</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="n">unique_labels</span><span class="p">,</span> <span class="n">unique_indiceis</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">input_labels</span><span class="p">,</span>  <span class="n">return_index</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="n">unique_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">input_data</span><span class="p">)</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">unique_indiceis</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">isold_flags</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">in1d</span><span class="p">(</span><span class="n">unique_labels</span><span class="p">,</span> <span class="n">seen_labels</span><span class="p">)</span>
+            <span class="n">isnew_flags</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">isold_flags</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">isold_flags</span><span class="p">)</span>
+            <span class="n">filtered_labels</span> <span class="o">=</span> <span class="n">unique_labels</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">isnew_flags</span><span class="p">)</span>
+            <span class="n">filtered_data</span> <span class="o">=</span> <span class="n">unique_data</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">isnew_flags</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">filtered_labels</span><span class="p">,</span> <span class="n">filtered_data</span>
+        <span class="n">filtered_tp_labels</span><span class="p">,</span> <span class="n">filtered_tp_scores</span> <span class="o">=</span> <span class="n">filter_seen_data</span><span class="p">(</span><span class="n">normalizer</span><span class="o">.</span><span class="n">tp_labels</span><span class="p">,</span> <span class="n">tp_labels</span><span class="p">,</span> <span class="n">tp_scores</span><span class="p">)</span>
+        <span class="n">filtered_tn_labels</span><span class="p">,</span> <span class="n">filtered_tn_scores</span> <span class="o">=</span> <span class="n">filter_seen_data</span><span class="p">(</span><span class="n">normalizer</span><span class="o">.</span><span class="n">tn_labels</span><span class="p">,</span> <span class="n">tn_labels</span><span class="p">,</span> <span class="n">tn_scores</span><span class="p">)</span>
+
+        <span class="c"># Ensure input in list format</span>
+        <span class="k">assert</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_allsame</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span>
+            <span class="nb">len</span><span class="p">,</span> <span class="p">(</span><span class="n">tp_scores</span><span class="p">,</span> <span class="n">tn_scores</span><span class="p">,</span> <span class="n">tp_labels</span><span class="p">,</span> <span class="n">tn_labels</span><span class="p">))),</span> <span class="p">(</span><span class="s">&#39;unequal lengths&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">filtered_tp_scores</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="n">normalizer</span><span class="o">.</span><span class="n">tp_support</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">normalizer</span><span class="o">.</span><span class="n">tp_support</span><span class="p">,</span> <span class="n">filtered_tp_scores</span><span class="p">)</span>
+        <span class="n">normalizer</span><span class="o">.</span><span class="n">tn_support</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">normalizer</span><span class="o">.</span><span class="n">tn_support</span><span class="p">,</span> <span class="n">filtered_tn_scores</span><span class="p">)</span>
+        <span class="n">normalizer</span><span class="o">.</span><span class="n">tp_labels</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">normalizer</span><span class="o">.</span><span class="n">tp_labels</span><span class="p">,</span> <span class="n">filtered_tp_labels</span><span class="p">)</span>
+        <span class="n">normalizer</span><span class="o">.</span><span class="n">tn_label</span>   <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">normalizer</span><span class="o">.</span><span class="n">tn_labels</span><span class="p">,</span> <span class="n">filtered_tn_labels</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="ScoreNormalizer.retrain"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.score_normalization.ScoreNormalizer.retrain">[docs]</a>    <span class="k">def</span> <span class="nf">retrain</span><span class="p">(</span><span class="n">normalizer</span><span class="p">):</span>
         <span class="n">tp_support</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">normalizer</span><span class="o">.</span><span class="n">tp_support</span><span class="p">)</span>
@@ -643,7 +726,7 @@
 
     <span class="n">cfgstr</span> <span class="o">=</span> <span class="n">species_text</span> <span class="o">+</span> <span class="n">query_cfgstr</span>
 
-    <span class="k">if</span> <span class="n">cfgstr</span> <span class="ow">in</span> <span class="n">NORMALIZER_CACHE</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">NORMALIZER_CACHE</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span><span class="n">cfgstr</span><span class="p">):</span>  <span class="c"># NOQA</span>
         <span class="c"># use memory cache</span>
         <span class="n">normalizer</span> <span class="o">=</span> <span class="n">NORMALIZER_CACHE</span><span class="p">[</span><span class="n">cfgstr</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
@@ -711,14 +794,20 @@
 <span class="sd">        &gt;&gt;&gt; qaid_list = daid_list = ibs.get_valid_aids()[1:10]</span>
 <span class="sd">        &gt;&gt;&gt; cfgdict = dict(codename=&#39;vsone_unnorm&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; use_cache = True</span>
-<span class="sd">        &gt;&gt;&gt; qres_list, qreq_ = ibs.query_chips(qaid_list, daid_list, cfgdict, use_cache=use_cache, return_request=True)</span>
+<span class="sd">        &gt;&gt;&gt; qres_list, qreq_ = ibs.query_chips(qaid_list, daid_list, cfgdict, use_cache=True, save_qcache=True, return_request=True)</span>
 <span class="sd">        &gt;&gt;&gt; score_normalizer = cached_ibeis_score_normalizer(ibs, qres_list, qreq_)</span>
 <span class="sd">        &gt;&gt;&gt; result = score_normalizer.get_fname()</span>
 <span class="sd">        &gt;&gt;&gt; result += &#39;\n&#39; + score_normalizer.get_cfgstr()</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
-<span class="sd">        zebra_plains_normalizer_n%w@df%th@i@seel.cPkl</span>
-<span class="sd">        _vsone_NN(single,K1+1,last,cks1024)_FILT(ratio&lt;0.625;1.0,fg;1.0)_SV(0.01;2;1.57minIn=4,nRR=50,nsum,)_AGG(nsum)_FLANN(4_kdtrees)_FEATWEIGHT(ON,uselabel,rf)_FEAT(hesaff+sift_)_CHIP(sz450)</span>
+<span class="sd">        zebra_plains_normalizer_hm%pysdf1vgffms@.cPkl</span>
+<span class="sd">        _vsone_NN(single,K1+1,last,cks704)_NNWeight(ratio_thresh=0.625,fg)_SV(0.01;2.0;1.57minIn=4,nRR=50,nRR=50,nsum,)_AGG(nsum)_FLANN(8_kdtrees)_RRVsOne(False)_FEATWEIGHT(ON,uselabel,rf)_FEAT(hesaff+sift_)_CHIP(sz450)</span>
 
+
+<span class="sd">    zebra_plains_normalizer_x@!cxcgfncxz97mo.cPkl</span>
+<span class="sd">    _vsone_NN(single,K1+1,last,cks704)_FILT(ratio&lt;0.625;1.0,fg;1.0)_SV(0.01;2;1.57minIn=4,nRR=50,nsum,)_AGG(nsum)_FLANN(8_kdtrees)_FEATWEIGHT(ON,uselabel,rf)_FEAT(hesaff+sift_)_CHIP(sz450)</span>
+
+<span class="sd">    zebra_plains_normalizer_n%w@df%th@i@seel.cPkl</span>
+<span class="sd">    _vsone_NN(single,K1+1,last,cks1024)_FILT(ratio&lt;0.625;1.0,fg;1.0)_SV(0.01;2;1.57minIn=4,nRR=50,nsum,)_AGG(nsum)_FLANN(4_kdtrees)_FEATWEIGHT(ON,uselabel,rf)_FEAT(hesaff+sift_)_CHIP(sz450)</span>
 
 <span class="sd">    normalizer_5cv1%3s&amp;.cPkl</span>
 <span class="sd">    PZ_MTEST_DSUUIDS((9)67j%dr%&amp;bl%4oh4+)_QSUUIDS((9)67j%dr%&amp;bl%4oh4+)zebra_plains_vsone_NN(single,K1+1,last,cks1024)_FILT(ratio&lt;0.625;1.0,fg;1.0)_SV(0.01;2;1.57minIn=4,nRR=50,nsum,)_AGG(nsum)_FLANN(4_kdtrees)_FEATWEIGHT(ON,uselabel,rf)_FEAT(hesaff+sift_)_CHIP(sz450)</span>
@@ -742,6 +831,7 @@
         <span class="n">normalizer</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">cachedir</span><span class="p">)</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;returning cached normalizer&#39;</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;cannot load noramlizer so computing on instead&#39;</span><span class="p">)</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">iswarning</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
         <span class="n">qaid_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_qaids</span><span class="p">()</span>
         <span class="n">normalizer</span> <span class="o">=</span> <span class="n">learn_ibeis_score_normalizer</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">qres_list</span><span class="p">,</span>
@@ -773,7 +863,9 @@
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tp_support</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">tn_support</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;len(tp_support) = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">tp_support</span><span class="p">),))</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;len(tn_support) = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">tn_support</span><span class="p">),))</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Warning: not enough data&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Warning: [score_normalization] not enough data&#39;</span><span class="p">)</span>
+        <span class="kn">import</span> <span class="nn">warnings</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s">&#39;Warning: [score_normalization] not enough data&#39;</span><span class="p">)</span>
     <span class="c"># Train normalizer</span>
     <span class="n">learntup</span> <span class="o">=</span> <span class="n">learn_score_normalization</span><span class="p">(</span><span class="n">tp_support</span><span class="p">,</span> <span class="n">tn_support</span><span class="p">,</span>
                                          <span class="n">return_all</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="o">**</span><span class="n">learnkw</span><span class="p">)</span>
@@ -1132,46 +1224,58 @@
 </pre></div>
 
           </div>
-        </div>
-      </div>
-      <div class="sphinxsidebar">
-        <div class="sphinxsidebarwrapper">
-<div id="searchbox" style="display: none">
-  <h3>Quick search</h3>
-    <form class="search" action="../../../../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
-    </p>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="related">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../../../../genindex.html" title="General Index"
-             >index</a></li>
-        <li class="right" >
-          <a href="../../../../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li><a href="../../../../index.html">ibeis 0.1.0.dev1 documentation</a> &raquo;</li>
-          <li><a href="../../../index.html" >Module code</a> &raquo;</li>
-          <li><a href="../../../ibeis.html" >ibeis</a> &raquo;</li>
-          <li><a href="../../model.html" >ibeis.model</a> &raquo;</li>
-          <li><a href="../hots.html" >ibeis.model.hots</a> &raquo;</li> 
-      </ul>
-    </div>
-    <div class="footer">
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
         &copy; Copyright 2015, Jon Crall.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
-    </div>
-  </body>
+    </p>
+  </div>
+
+  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../../',
+            VERSION:'0.1.0.dev1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
 </html>

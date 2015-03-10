@@ -47,11 +47,16 @@ def default_decorator(input_):
 #    def __delitem__(self, index):
 #        del self._cache[index]
 
-
-#API_CACHE = ut.get_argflag('--api-cache')
-API_CACHE = not ut.get_argflag('--no-api-cache')
 DEV_CACHE = ut.get_argflag(('--dev-cache', '--devcache'))
-ASSERT_API_CACHE = not ut.get_argflag(('--noassert-api-cache', '--naac'))
+
+RELEASE_MODE = True
+if RELEASE_MODE:
+    API_CACHE = not ut.get_argflag('--no-api-cache')
+    ASSERT_API_CACHE = ut.get_argflag(('--assert-api-cache', '--naac'))
+else:
+    API_CACHE = ut.get_argflag('--api-cache')
+    ASSERT_API_CACHE = not ut.get_argflag(('--noassert-api-cache', '--naac'))
+
 if ut.VERBOSE:
     if ut.in_main_process():
         if API_CACHE:
@@ -183,10 +188,13 @@ def cache_getter(tblname, colname, cfgkeys=None, force=False, debug=False, nativ
 
         #@profile cannot profile this because it is alrady being profiled by
         def wrp_getter_cacher(ibs, rowid_list, **kwargs):
+            """
+            Wrapper function that caches rowid values in a dictionary
+            """
             # HACK TAKE OUT GETTING DEBUG OUT OF KWARGS
             debug_ = kwargs.pop('debug', False)
             if cfgkeys is not None:
-                kwargs_hash = ut.get_dict_hashid(ut.dict_take_list(kwargs, cfgkeys))
+                kwargs_hash = ut.get_dict_hashid(ut.dict_take_list(kwargs, cfgkeys, None))
             else:
                 kwargs_hash = None
 
@@ -196,7 +204,8 @@ def cache_getter(tblname, colname, cfgkeys=None, force=False, debug=False, nativ
             # Mark rowids with cache misses
             ismiss_list = [val is None for val in vals_list]
             if debug or debug_:
-                debug_cache_hits(ismiss_list, rowid_list)
+                # debug_cache_hits(ismiss_list, rowid_list)
+                print('[cache_getter] "debug_cache_hits" turned off')
             # HACK !!! DEBUG THESE GETTERS BY ASSERTING INFORMATION IN CACHE IS CORRECT
             with_assert = ASSERT_API_CACHE
             if with_assert:
@@ -220,7 +229,9 @@ def cache_getter(tblname, colname, cfgkeys=None, force=False, debug=False, nativ
 
 
 def cache_invalidator(tblname, colnames=None, native_rowids=False, force=False):
-    """ cacher setter decorator """
+    """ cacher setter/deleter decorator
+    FIXME: this is more general than just setters
+    """
     def closure_cache_invalidator(setter_func):
         if not API_CACHE and not force:
             return setter_func
@@ -241,8 +252,8 @@ def cache_invalidator(tblname, colnames=None, native_rowids=False, force=False):
                     # iterate over all getter kwargs values
                     for cache_ in six.itervalues(kwargs_cache_):
                         ut.delete_dict_keys(cache_, rowid_list)
-            # Preform set action
-            setter_func(self, rowid_list, *args, **kwargs)
+            # Preform set/delete action
+            return setter_func(self, rowid_list, *args, **kwargs)
         wrp_cache_invalidator = ut.preserve_sig(wrp_cache_invalidator, setter_func)
         return wrp_cache_invalidator
     return closure_cache_invalidator

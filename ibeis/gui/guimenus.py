@@ -4,7 +4,9 @@ as well as their callbacks in guiback
 """
 from __future__ import absolute_import, division, print_function
 import utool as ut
-from guitool.guitool_components import newMenu, newMenubar, msg_event
+import functools
+from ibeis import constants as const
+import guitool
 ut.noinject(__name__, '[guimenus]', DEBUG=False)
 
 
@@ -21,7 +23,7 @@ class DummyBack(object):
 
 def setup_menus(mainwin, back=None):
     print('[guimenus] creating menus')
-    mainwin.menubar = newMenubar(mainwin)
+    mainwin.menubar = guitool.newMenubar(mainwin)
     if back is None:
         back = DummyBack()
     setup_file_menu(mainwin, back)
@@ -34,7 +36,7 @@ def setup_menus(mainwin, back=None):
 
 def setup_file_menu(mainwin, back):
     """ FILE MENU """
-    mainwin.menuFile = newMenu(mainwin, mainwin.menubar, 'menuFile', 'File')
+    mainwin.menuFile = guitool.newMenu(mainwin, mainwin.menubar, 'menuFile', 'File')
     mainwin.menuFile.newAction(
         name='actionNew_Database',
         text='New Database',
@@ -103,7 +105,7 @@ def setup_file_menu(mainwin, back):
 
 def setup_actions_menu(mainwin, back):
     """ ACTIONS MENU """
-    mainwin.menuActions = newMenu(mainwin, mainwin.menubar, 'menuActions', 'Actions')
+    mainwin.menuActions = guitool.newMenu(mainwin, mainwin.menubar, 'menuActions', 'Actions')
 #    mainwin.menuActions.newAction(
 #        name='actionAdd_ANNOTATION',
 #        text='Add ANNOTATION',
@@ -113,7 +115,7 @@ def setup_actions_menu(mainwin, back):
         name='actionQuery',
         text='Query Single Annotation',
         shortcut='Q',
-        slot_fn=back.query)
+        slot_fn=functools.partial(back.compute_queries, use_visual_selection=True))
     #mainwin.menuActions.addSeparator()
     #mainwin.menuActions.newAction(
     #    name='actionReselect_ANNOTATION',
@@ -168,7 +170,7 @@ def setup_actions_menu(mainwin, back):
 
 def setup_batch_menu(mainwin, back):
     """ BATCH MENU """
-    mainwin.menuBatch = newMenu(mainwin, mainwin.menubar, 'menuBatch', 'Batch')
+    mainwin.menuBatch = guitool.newMenu(mainwin, mainwin.menubar, 'menuBatch', 'Batch')
     mainwin.menuBatch.newAction(
         name='actionCompute_Encounters',
         text='Cluster Encounters',
@@ -193,7 +195,68 @@ def setup_batch_menu(mainwin, back):
     mainwin.menuBatch.newAction(
         name='actionComputeIncremental_Queries',
         text='Compute Incremental Queries',
-        slot_fn=back.incremental_query)
+        slot_fn=back.incremental_query
+    )
+    mainwin.menuBatch.addSeparator()  # ---------
+    mainwin.menuBatch.newAction(
+        name='actionBatchIntraEncounterQueries',
+        text='Compute Batch IntraEncounter Queries',
+        slot_fn=functools.partial(back.compute_queries, query_mode=const.INTRA_ENC_KEY),
+        tooltip=ut.textblock(
+            '''
+            all-encounter-annots VS all-encounter-annots (nonjunk)
+            ''')
+    )
+    mainwin.menuBatch.newAction(
+        name='actionBatchVsExemplarQueries',
+        text='Compute Batch VsExemplar Queries',
+        slot_fn=functools.partial(back.compute_queries, query_mode=const.VS_EXEMPLARS_KEY),
+        tooltip=ut.textblock(
+            '''
+            all-encounter-annots VS all-exemplar-annots (nonjunk)
+            ''')
+    )
+    mainwin.menuBatch.addSeparator()  # ---------
+    mainwin.menuBatch.newAction(
+        name='actionBatchUnknownIntraEncounterQueries',
+        text='Compute Batch Unknown IntraEncounter Queries',
+        slot_fn=functools.partial(back.compute_queries, query_is_known=False, query_mode=const.INTRA_ENC_KEY),
+        tooltip=ut.textblock(
+            '''
+            unnamed-encounter-annots VS all-encounter-annots (nonjunk)
+            ''')
+    )
+    mainwin.menuBatch.newAction(
+        name='actionBatchUnknownVsExemplarQueries',
+        text='Compute Batch Unknown VsExemplar Queries',
+        slot_fn=functools.partial(back.compute_queries, query_is_known=False, query_mode=const.VS_EXEMPLARS_KEY),
+        tooltip=ut.textblock(
+            '''
+            unnamed-encounter-annots VS all-exemplar-annots (nonjunk)
+            ''')
+    )
+    mainwin.menuBatch.addSeparator()  # ---------
+    mainwin.menuBatch.newAction(
+        name='actionSetExemplarsFromQualityAndViewpoint',
+        text='Set Exemplars from Quality and Viewpoint',
+        slot_fn=back.set_exemplars_from_quality_and_viewpoint,
+        tooltip=ut.textblock(
+            '''
+            Uses the quality and viewpoint column to pick the best N exemplars
+            per viewpoint, per name.
+            ''')
+    )
+    mainwin.menuBatch.newAction(
+        name='actionBatchConsecutiveLocationSpeciesRename',
+        text='Consecutive Location+Species Rename',
+        slot_fn=back.batch_rename_consecutive_via_species,
+        tooltip=ut.textblock(
+            '''
+            Renames ALL the names in the database to
+            {other_cfg.location_for_names}_{species_code}_{num}
+            ''')
+    )
+
     mainwin.menuBatch.addSeparator()  # ---------
     mainwin.menuBatch.newAction(
         name='actionShipProcessedEncounters',
@@ -224,13 +287,18 @@ def setup_batch_menu(mainwin, back):
 
 def setup_option_menu(mainwin, back):
     """ OPTIONS MENU """
-    mainwin.menuOptions = newMenu(mainwin, mainwin.menubar, 'menuOptions', 'Options')
+    mainwin.menuOptions = guitool.newMenu(mainwin, mainwin.menubar, 'menuOptions', 'Options')
     mainwin.menuOptions.newAction(
         name='actionLayout_Figures',
         text='Layout Figures',
         tooltip='Organizes windows in a grid',
         shortcut='Ctrl+L',
         slot_fn=back.layout_figures)
+    mainwin.menuOptions.newAction(
+        name='actionToggleQueryMode',
+        text='Toggle Query Mode: ----',
+        tooltip='Changes behavior of Actions->Query',
+        slot_fn=functools.partial(back.set_query_mode, 'toggle'))
     mainwin.menuOptions.addSeparator()
     mainwin.menuOptions.newAction(
         name='actionPreferences',
@@ -242,18 +310,18 @@ def setup_option_menu(mainwin, back):
 
 def setup_help_menu(mainwin, back):
     """ HELP MENU """
-    mainwin.menuHelp = newMenu(mainwin, mainwin.menubar, 'menuHelp', 'Help')
-    about_msg = 'IBEIS = Image Based Ecological Information System'
+    mainwin.menuHelp = guitool.newMenu(mainwin, mainwin.menubar, 'menuHelp', 'Help')
+    about_msg = 'IBEIS = Image Based Ecological Information System\nhttp://ibeis.org/'
     mainwin.menuHelp.newAction(
         name='actionAbout',
         text='About',
         shortcut='',
-        slot_fn=msg_event('About', about_msg))
-    mainwin.menuHelp.newAction(
-        name='actionView_Docs',
-        text='View Documentation',
-        shortcut='',
-        slot_fn=back.view_docs)
+        slot_fn=guitool.msg_event('About', about_msg))
+    #mainwin.menuHelp.newAction(
+    #    name='actionView_Docs',
+    #    text='View Documentation',
+    #    shortcut='',
+    #    slot_fn=back.view_docs)
     # ---
     mainwin.menuHelp.addSeparator()
     # ---
@@ -315,12 +383,20 @@ def setup_help_menu(mainwin, back):
 
 def setup_developer_menu(mainwin, back):
     """ DEV MENU """
-    mainwin.menuDev = newMenu(mainwin, mainwin.menubar, 'menuDev', 'Dev')
+    mainwin.menuDev = guitool.newMenu(mainwin, mainwin.menubar, 'menuDev', 'Dev')
+    mainwin.menuDev.newAction(
+        name='actionExpandNamesTree',
+        text='Expand Names Tree',
+        slot_fn=mainwin.expand_names_tree)
     mainwin.menuDev.newAction(
         name='actionDeveloper_reload',
         text='Developer Reload',
         shortcut='Ctrl+Shift+R',
         slot_fn=back.dev_reload)
+    mainwin.menuDev.newAction(
+        name='actionDevRunTests',
+        text='Run Developer Tests',
+        slot_fn=back.run_tests)
     mainwin.menuDev.newAction(
         name='actionDeveloper_mode',
         text='Developer IPython',

@@ -1,66 +1,105 @@
 from __future__ import absolute_import, division, print_function
 from plottool import interact_annotations
 from plottool import draw_func2 as df2
+import plottool as pt  # NOQA
 #from six.moves import zip
-import utool
-from ibeis.constants import VALID_SPECIES
-print, print_, printDBG, rrr, profile = utool.inject(__name__, '[interact_annot2]')
+import utool as ut
+from ibeis import constants as const
+print, print_, printDBG, rrr, profile = ut.inject(__name__, '[interact_annot2]')
 
 
 #DESTROY_OLD_WINDOW = True
 DESTROY_OLD_WINDOW = False
 
 
+def ishow_image2(ibs, gid, fnum=None, dodraw=True):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        gid (int):
+        dodraw (bool):
+
+    CommandLine:
+        python -m ibeis.viz.interact.interact_annotations2 --test-ishow_image2 --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.viz.interact.interact_annotations2 import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> gid = 2
+        >>> dodraw = True
+        >>> # execute function
+        >>> self = ishow_image2(ibs, gid, dodraw)
+        >>> # verify results
+        >>> result = str(self)
+        >>> print(result)
+        >>> pt.show_if_requested()
+    """
+    self = ANNOTATION_Interaction2(ibs, gid, fnum=fnum, dodraw=dodraw)
+    return self
+
+
 class ANNOTATION_Interaction2(object):
     def __init__(self, ibs, gid, next_callback=None, prev_callback=None,
-                 rows_updated_callback=lambda: None, reset_window=True):
+                 rows_updated_callback=None, reset_window=True, dodraw=True,
+                 fnum=None):
+        """
+        TODO: rename to interact image annotations?
+        """
         self.ibs = ibs
         self.gid = gid
         self.rows_updated_callback = rows_updated_callback
         img = ibs.get_images(self.gid)
         self.aid_list = ibs.get_image_aids(self.gid)
         bbox_list     = ibs.get_annot_bboxes(self.aid_list)
+        #verts_list    = ibs.get_annot_verts(self.aid_list)  # TODO
         theta_list    = ibs.get_annot_thetas(self.aid_list)
         species_list  = ibs.get_annot_species_texts(self.aid_list)
-        valid_species = VALID_SPECIES
+        #valid_species = const.VALID_SPECIES
+        valid_species = [tup[1] for tup in
+                         const.get_working_species_set()]
         self.interact_ANNOTATIONS = interact_annotations.ANNOTATIONInteraction(
             img,
             bbox_list=bbox_list,
             theta_list=theta_list,
             species_list=species_list,
             commit_callback=self.commit_callback,
-            default_species=self.ibs.cfg.detect_cfg.species,
+            # TODO: get default species in a better way
+            default_species=self.ibs.cfg.detect_cfg.species_text,
             next_callback=next_callback,
             prev_callback=prev_callback,
-            fnum=12,
+            fnum=fnum,
             valid_species=valid_species,
             #figure_to_use=None if reset_window else self.interact_ANNOTATIONS.fig,
         )
-        df2.update()
+        if dodraw:
+            df2.update()
 
-    def commit_callback(self, unchanged_indicies, deleted_indicies, changed_indicies, changed_annottups, new_annottups):
+    def commit_callback(self, unchanged_indices, deleted_indices, changed_indices, changed_annottups, new_annottups):
         """
         TODO: Rename to commit_callback
         Callback from interact_annotations to ibs for when data is modified
         """
         print('[interact_annot2] enter commit_callback')
         print('[interact_annot2] nUnchanged=%d, nDelete=%d, nChanged=%d, nNew=%d' %
-              (len(unchanged_indicies), len(deleted_indicies), len(changed_indicies), len(new_annottups)))
+              (len(unchanged_indices), len(deleted_indices), len(changed_indices), len(new_annottups)))
         rows_updated = False
         # Delete annotations
-        if len(deleted_indicies) > 0:
+        if len(deleted_indices) > 0:
             rows_updated = True
-            deleted_aids = [self.aid_list[del_index] for del_index in deleted_indicies]
-            print('[interact_annot2] deleted_indexes: %r' % (deleted_indicies,))
+            deleted_aids = [self.aid_list[del_index] for del_index in deleted_indices]
+            print('[interact_annot2] deleted_indexes: %r' % (deleted_indices,))
             print('[interact_annot2] deleted_aids: %r' % (deleted_aids,))
             self.ibs.delete_annots(deleted_aids)
         # Set/Change annotations
         if len(changed_annottups) > 0:
-            changed_aid  = [self.aid_list[index] for index in changed_indicies]
+            changed_aid   = [self.aid_list[index] for index in changed_indices]
             bbox_list1    = [bbox for (bbox, t, s) in changed_annottups]
             theta_list1   = [t    for (bbox, t, s) in changed_annottups]
             species_list1 = [s    for (bbox, t, s) in changed_annottups]
-            print('[interact_annot2] changed_indexes: %r' % (changed_indicies,))
+            print('[interact_annot2] changed_indexes: %r' % (changed_indices,))
             print('[interact_annot2] changed_aid: %r' % (changed_aid,))
             self.ibs.set_annot_species(changed_aid, species_list1)
             self.ibs.set_annot_thetas(changed_aid, theta_list1, delete_thumbs=False)
@@ -83,7 +122,7 @@ class ANNOTATION_Interaction2(object):
             print('[interact_annot2] new_aids: %r' % (new_aids,))
 
         print('[interact_annot2] about to exit callback')
-        if rows_updated:
+        if rows_updated and self.rows_updated_callback is not None:
             self.rows_updated_callback()
         print('[interact_annot2] exit callback')
 
@@ -124,3 +163,15 @@ class ANNOTATION_Interaction2(object):
 #    gid = gid_list[len(gid_list) - 1]
 #    annotation = ANNOTATION_Interaction2(ibs, gid)
 #    exec(df2.present())
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m ibeis.viz.interact.interact_annotations2
+        python -m ibeis.viz.interact.interact_annotations2 --allexamples
+        python -m ibeis.viz.interact.interact_annotations2 --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

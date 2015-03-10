@@ -10,9 +10,9 @@ dev.py runs experiments and serves as a scratchpad for new code and quick script
 
 
 CommandLine:
-    python dev.py --wshow -t query --db PZ_MTEST --qaid 110 --cfg score_method:nsum prescore_method:nsum dupvote_weight=1.0
-    python dev.py --wshow -t query --db PZ_MTEST --qaid 110 --cfg dupvote_weight=1.0
-    python dev.py --wshow -t query --db PZ_MTEST --qaid 110 --cfg fg_weight=1.0
+    python dev.py --wshow -t query --db PZ_MTEST --qaid 110 --cfg score_method:nsum prescore_method:nsum
+    python dev.py --wshow -t query --db PZ_MTEST --qaid 110
+    python dev.py --wshow -t query --db PZ_MTEST --qaid 110 --cfg fg_on=True
     python dev.py --wshow -t query --db PZ_MTEST --qaid 110 --cfg
 """
 # TODO: ADD COPYRIGHT TAG
@@ -39,7 +39,6 @@ from plottool import draw_func2 as df2
 # IBEIS
 from ibeis.dev import main_helpers
 from ibeis.dev import dbinfo
-from ibeis.viz import interact
 from ibeis.dev import experiment_configs
 from ibeis.dev import experiment_harness
 from ibeis.dev import results_all
@@ -132,15 +131,15 @@ def annotationmatch_scores(ibs, qaid_list, daid_list=None):
     CommandLine:
         ib
         python dev.py -t scores --db PZ_MTEST --allgt -w --show
-        python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg fg_weight=1.0
-        python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg codename='nsum' fg_weight=1.0 featweight_on:True
-        python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg codename='nsum' fg_weight=1.0 featweight_on:True
-        python dev.py -t scores --db GZ_ALL --allgt -w --show --cfg codename='nsum' fg_weight=1.0 featweight_on:True
-        python dev.py -t scores --db PZ_Master0 --allgt -w --show --cfg codename='nsum' fg_weight=1.0 featweight_on:True
+        python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg fg_on:True
+        python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg codename='vsmany' fg_on:True
+        python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg codename='vsmany' fg_on:True
+        python dev.py -t scores --db GZ_ALL --allgt -w --show --cfg codename='vsmany' fg_on:True
+        python dev.py -t scores --db PZ_Master0 --allgt -w --show --cfg codename='vsmany' fg_on:True
         python dev.py -t scores --db GZ_ALL --allgt -w --show
 
-        python dev.py -t scores --db GZ_ALL --allgt -w --show --cfg codename='nsum'
-        python dev.py -t scores --db PZ_Master0 --allgt -w --show --cfg codename='nsum'
+        python dev.py -t scores --db GZ_ALL --allgt -w --show --cfg codename='vsmany'
+        python dev.py -t scores --db PZ_Master0 --allgt -w --show --cfg codename='vsmany'
 
 
     """
@@ -153,7 +152,6 @@ def annotationmatch_scores(ibs, qaid_list, daid_list=None):
     pt.plots.plot_stems(x_data, y_data)
     pt.present()
     pt.show()
-    ut.embed()
     #locals_ = viz_allres_annotation_scores(allres)
     locals_ = locals()
     return locals_
@@ -353,7 +351,7 @@ def vsone_gt(ibs, qaid_list, daid_list=None):
     """
     dev.py --db PZ_MTEST --allgt --cmd
     """
-    cfgdict = dict(featweight_on=True, fg_weight=1.0)
+    cfgdict = dict(fg_on=True)
     allres = results_all.get_allres(ibs, qaid_list, daid_list, cfgdict)
     #orgtype_list = ['top_false', 'top_true']
     org_top_false = allres.get_orgtype('rank0_false')
@@ -395,11 +393,7 @@ def gvcomp(ibs, qaid_list, daid_list):
         allres = results_all.get_allres(ibs, qaid_list)
         for qaid in qaid_list:
             qres = allres.get_qres(qaid)
-            interact.ishow_qres(ibs, qres,
-                                annot_mode=2,
-                                in_image=True,
-                                figtitle='Qaid=%r %s' % (qres.qaid, qres.cfgstr)
-                                )
+            qres.ishow_top(ibs, annot_mode=2, in_image=True, figtitle='Qaid=%r %s' % (qres.qaid, qres.cfgstr))
         return allres
     ibs_GV = ibs
     ibs_RI = ibs.clone_handle(nogravity_hack=True)
@@ -475,6 +469,9 @@ def run_devcmds(ibs, qaid_list, daid_list):
     valid_test_list = []  # build list for printing in case of failure
     valid_test_helpstr_list = []  # for printing
 
+    def mark_test_handled(testname):
+        input_test_list.remove(testname)
+
     def intest(*args, **kwargs):
         helpstr = kwargs.get('help', '')
         valid_test_helpstr_list.append('   -t ' + ', '.join(args) + helpstr)
@@ -484,7 +481,7 @@ def run_devcmds(ibs, qaid_list, daid_list):
             ret2 = testname in params.unknown  # Let unparsed args count towards tests
             if ret or ret2:
                 if ret:
-                    input_test_list.remove(testname)
+                    mark_test_handled(testname)
                 else:
                     ret = ret2
                 print('+===================')
@@ -542,6 +539,11 @@ def run_devcmds(ibs, qaid_list, daid_list):
     for test_cfg_name in experiment_configs.TEST_NAMES:
         if intest(test_cfg_name):
             test_cfg_name_list.append(test_cfg_name)
+    # Hack to allow for very customized harness tests
+    for testname in input_test_list[:]:
+        if testname.startswith('custom:'):
+            test_cfg_name_list.append(testname)
+            mark_test_handled(testname)
     if len(test_cfg_name_list):
         fnum = df2.next_fnum()
         # Run Experiments
@@ -893,7 +895,8 @@ if __name__ == '__main__':
     EXAMPLE_STR = ut.msgblock('dev.py Examples', ut.codeblock(EXAMPLE_TEXT))
 
     print(INTRO_STR)
-    print(EXAMPLE_STR)
+    if ut.get_argflag(('--help', '--verbose')):
+        print(EXAMPLE_STR)
 
     CMD   = '--cmd' in sys.argv
     NOGUI = '--gui' not in sys.argv

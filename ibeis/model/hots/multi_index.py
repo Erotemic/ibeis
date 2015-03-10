@@ -10,6 +10,7 @@ import numpy as np
 import utool as ut
 import vtool as vt
 from ibeis.model.hots import neighbor_index
+from ibeis.model.hots import hstypes
 (print, print_, printDBG, rrr_, profile) = ut.inject(__name__, '[multi_index]', DEBUG=False)
 
 
@@ -36,7 +37,7 @@ def group_daids_for_indexing_by_name(ibs, daid_list, num_indexers=8,
     aidgroup_list, invalid_aids = tup
     largest_groupsize = max(map(len, aidgroup_list))
     num_bins = min(largest_groupsize, num_indexers)
-    if verbose:
+    if verbose or ut.VERYVERBOSE:
         print('[mindex] num_indexers = %d ' % (num_indexers,))
         print('[mindex] largest_groupsize = %d ' % (largest_groupsize,))
         print('[mindex] num_bins = %d ' % (num_bins,))
@@ -180,7 +181,7 @@ def request_ibeis_mindexer(qreq_, index_method='multi', verbose=True):
             nn_indexer_list.append(nnindexer)
     #if len(unknown_aids) > 0:
     #    print('[mindex] building unknown forest')
-    #    unknown_vecs_list = ibs.get_annot_vecs(overflow_aids)
+    #    unknown_vecs_list = ibs.get_annot_vecs(overflow_aids, qreq_=qreq_)
     #    unknown_index = NeighborIndex(overflow_aids, unknown_vecs_list)
     #    extra_indexes.append(unknown_index)
     ##print('[mindex] building normalizer forest')  # TODO
@@ -238,7 +239,7 @@ class MultiNeighborIndex(object):
             >>> import numpy as np
             >>> mxer, qreq_, ibs = testdata_mindexer()
             >>> K = 3
-            >>> qfx2_vec = ibs.get_annot_vecs(1)
+            >>> qfx2_vec = ibs.get_annot_vecs(1, qreq_=qreq_)
             >>> (qfx2_idx_list, qfx2_dist_list) = mxer.multi_knn(qfx2_vec, K)
             >>> shape_list = list(map(np.shape, qfx2_idx_list))
             >>> d1_list = ut.get_list_column(shape_list, 0)
@@ -269,7 +270,7 @@ class MultiNeighborIndex(object):
             >>> import numpy as np
             >>> mxer, qreq_, ibs = testdata_mindexer()
             >>> K = 3
-            >>> qfx2_vec = ibs.get_annot_vecs(1)
+            >>> qfx2_vec = ibs.get_annot_vecs(1, qreq_=qreq_)
             >>> (qfx2_imx, qfx2_dist) = mxer.knn(qfx2_vec, K)
             >>> print(qfx2_imx.shape)
             >>> assert qfx2_imx.shape[1] == 18
@@ -471,8 +472,8 @@ class MultiNeighborIndex(object):
 
     def iter_subindexers(mxer, qfx2_imx):
         """
-        generates subindexers, indicies, and maskss within them
-        that partially correspond to indicies in qfx2_imx that belong
+        generates subindexers, indices, and maskss within them
+        that partially correspond to indices in qfx2_imx that belong
         to that subindexer
 
         Args:
@@ -486,7 +487,7 @@ class MultiNeighborIndex(object):
             >>> from ibeis.model.hots.multi_index import *  # NOQA
             >>> mxer, qreq_, ibs = testdata_mindexer()
             >>> K = 3, 1028
-            >>> qfx2_vec = ibs.get_annot_vecs(1)
+            >>> qfx2_vec = ibs.get_annot_vecs(1, qreq_=qreq_)
             >>> (qfx2_imx, qfx2_dist) = mxer.knn(qfx2_vec, K)
             >>> genlist_ = list(mxer.iter_subindexers(qfx2_imx))
             >>> covered = np.zeros(qfx2_imx.shape)
@@ -538,7 +539,7 @@ class MultiNeighborIndex(object):
             >>> mxer, qreq_, ibs = testdata_mindexer()
             >>> K = 3
             >>> qaid = 1
-            >>> qfx2_vec = ibs.get_annot_vecs(qaid)
+            >>> qfx2_vec = ibs.get_annot_vecs(qaid, qreq_=qreq_)
             >>> (qfx2_imx, qfx2_dist) = mxer.knn(qfx2_vec, K)
             >>> qfx2_aid = mxer.get_nn_aids(qfx2_imx)
             >>> gt_aids = ibs.get_annot_groundtruth(qaid)
@@ -574,7 +575,7 @@ class MultiNeighborIndex(object):
             >>> import numpy as np
             >>> mxer, qreq_, ibs = testdata_mindexer()
             >>> K = 3
-            >>> qfx2_vec = ibs.get_annot_vecs(1)
+            >>> qfx2_vec = ibs.get_annot_vecs(1, qreq_=qreq_)
             >>> (qfx2_imx, qfx2_dist) = mxer.knn(qfx2_vec, K)
             >>> qfx2_fgw = mxer.get_nn_featxs(qfx2_imx)
             >>> result = np.array_str(qfx2_fgw)
@@ -603,14 +604,14 @@ class MultiNeighborIndex(object):
             >>> import numpy as np
             >>> mxer, qreq_, ibs = testdata_mindexer()
             >>> K = 3
-            >>> qfx2_vec = ibs.get_annot_vecs(1)
+            >>> qfx2_vec = ibs.get_annot_vecs(1, qreq_=qreq_)
             >>> (qfx2_imx, qfx2_dist) = mxer.knn(qfx2_vec, K)
             >>> qfx2_fgw = mxer.get_nn_fgws(qfx2_imx)
             >>> result = np.array_str(qfx2_fgw)
             >>> print(result)
         """
         #qfx2_fgw = -np.ones(qfx2_imx.shape, dtype=np.float32)
-        qfx2_fgw = np.empty(qfx2_imx.shape, dtype=np.float32)
+        qfx2_fgw = np.empty(qfx2_imx.shape, dtype=hstypes.FS_DTYPE)
         for nnindexer, idxs, mask in mxer.iter_subindexers(qfx2_imx):
             qfx2_fgw[mask] = nnindexer.get_nn_fgws(idxs)
         return qfx2_fgw
@@ -622,7 +623,7 @@ class MultiNeighborIndex(object):
             >>> from ibeis.model.hots.multi_index import *  # NOQA
             >>> mxer, qreq_, ibs = testdata_mindexer()
             >>> K = 3
-            >>> qfx2_vec = ibs.get_annot_vecs(1)
+            >>> qfx2_vec = ibs.get_annot_vecs(1, qreq_=qreq_)
             >>> (qfx2_dist_, qfx2_idx_,  qfx2_fx_, qfx2_ax_, qfx2_rankx_, qfx2_treex_,) = mxer.knn2(qfx2_vec, K)
         """
         qfx2_idx_list   = []

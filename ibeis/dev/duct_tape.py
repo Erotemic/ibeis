@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function
 import utool
 from six.moves import zip
 from ibeis import constants
-from ibeis import ibsfuncs
+#from ibeis import ibsfuncs
 
 # Inject utool functions
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[duct_tape]', DEBUG=False)
@@ -45,8 +45,8 @@ def fix_compname_configs(ibs):
 
 
 def remove_database_slag(ibs,
-                         delete_invalid_names=False,
-                         delete_invalid_encounters=False,
+                         delete_empty_names=False,
+                         delete_empty_encounters=False,
                          delete_annotations_for_missing_images=False,
                          delete_image_labels_for_missing_types=False,
                          delete_annot_labels_for_missing_types=False,
@@ -56,11 +56,11 @@ def remove_database_slag(ibs,
                          delete_invalid_gl_relations=False,
                          delete_invalid_al_relations=True):
     # ZERO ORDER
-    if delete_invalid_names:
-        ibsfuncs.delete_invalid_nids(ibs)
+    if delete_empty_names:
+        ibs.delete_empty_nids()
 
-    if delete_invalid_encounters:
-        ibsfuncs.delete_invalid_eids(ibs)
+    if delete_empty_encounters:
+        ibs.delete_empty_eids()
 
     # FIRST ORDER
     if delete_annotations_for_missing_images:
@@ -155,10 +155,10 @@ def enforce_unkonwn_name_is_explicit(ibs):
     # implicit
 
 
-def fix_nulled_viewpoints(ibs):
+def fix_nulled_yaws(ibs):
     aid_list = ibs.get_valid_aids()
-    viewpoint_list = ibs.get_annot_viewpoints(aid_list)
-    valid_list = [viewpoint == 0.0 for viewpoint in viewpoint_list]
+    yaw_list = ibs.get_annot_yaws(aid_list)
+    valid_list = [yaw == 0.0 for yaw in yaw_list]
     dirty_aid_list = utool.filter_items(aid_list, valid_list)
-    print("[duct_tape] Nulling %d annotation viewpoints" % len(dirty_aid_list))
-    ibs.set_annot_viewpoint(dirty_aid_list, [None] * len(dirty_aid_list))
+    print("[duct_tape] Nulling %d annotation yaws" % len(dirty_aid_list))
+    ibs.set_annot_yaws(dirty_aid_list, [None] * len(dirty_aid_list))

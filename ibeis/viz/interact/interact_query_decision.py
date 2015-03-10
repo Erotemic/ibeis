@@ -1,7 +1,9 @@
 from __future__ import absolute_import, division, print_function
+import six
 import utool
 import utool as ut
 import ibeis
+from ibeis import constants as const  # NOQA
 from plottool import interact_helpers as ih
 from plottool import draw_func2 as df2
 from ibeis.viz.interact import interact_matches  # NOQA
@@ -27,6 +29,7 @@ def test_QueryVerificationInteraction():
     """
     CommandLine:
         python -m ibeis.viz.interact.interact_query_decision --test-test_QueryVerificationInteraction
+        ./main.py  --eid 2 --inc-query --yes
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -37,7 +40,7 @@ def test_QueryVerificationInteraction():
         >>> # verify results
         >>> print(result)
     """
-    ibs = ibeis.opendb('testdb1')
+    ibs = ibeis.opendb(defaultdb='testdb1')
     valid_aids = ibs.get_valid_aids()
     qaids = valid_aids[0:1]
     daids = valid_aids[1:]
@@ -79,7 +82,8 @@ class QueryVerificationInteraction(AbstractInteraction):
         self.update_callback = update_callback  # if something like qt needs a manual refresh on change
         self.backend_callback = backend_callback
         self.name_decision_callback = name_decision_callback
-        self.checkbox_states = {}
+        self.aid_checkbox_states = {}
+        self.other_checkbox_states = {'none': True, 'junk': False}
         self.qres_callback = kwargs.get('qres_callback', None)
         self.infer_data()
         self.show_page(bring_to_front=True)
@@ -114,6 +118,7 @@ class QueryVerificationInteraction(AbstractInteraction):
         }
         self.fig = df2.figure(**figkw)
         ih.disconnect_callback(self.fig, 'button_press_event')
+        ih.connect_callback(self.fig, 'button_press_event', self.figure_clicked)
         # ih.connect_callback(self.fig, 'button_press_event', self.figure_clicked)
 
     def show_page(self, bring_to_front=False):
@@ -152,31 +157,42 @@ class QueryVerificationInteraction(AbstractInteraction):
     def plot_chip(self, aid, nRows, nCols, px, **kwargs):
         """ Plots an individual chip in a subaxis """
         ibs = self.ibs
+        enable_chip_title_prefix = ut.is_developer()
+        #enable_chip_title_prefix = False
         if aid in self.comp_aids:
             score    = self.qres.get_aid_scores([aid])[0]
             rawscore = self.qres.get_aid_scores([aid], rawscore=True)[0]
             title_suf = kwargs.get('title_suffix', '')
-            if score is None:
-                title_suf += '\n score=____'
-            else:
-                title_suf += '\n score=%0.2f' % score
+            if score != rawscore:
+                if score is None:
+                    title_suf += '\n score=____'
+                else:
+                    title_suf += '\n score=%0.2f' % score
             title_suf += '\n rawscore=%0.2f' % rawscore
         else:
             title_suf = kwargs.get('title_suffix', '')
+            if enable_chip_title_prefix:
+                title_suf = '\n' + title_suf
+
         #nid = ibs.get_annot_name_rowids(aid)
         viz_chip_kw = {
             'fnum': self.fnum,
             'pnum': (nRows, nCols, px),
             'nokpts': True,
-            'show_name': True,
             'show_gname': False,
-            'show_aidstr': False,
             'show_exemplar': False,
             'show_num_gt': False,
             'show_gname': False,
-            'enable_chip_title_prefix': False,
             'title_suffix': title_suf,
             # 'text_color': kwargs.get('color'),
+            ###
+            #'show_name': False,
+            #'show_aidstr': False,
+            'enable_chip_title_prefix': enable_chip_title_prefix,
+            'show_name': True,
+            'show_aidstr': True,
+            'show_yawtext': True,
+            'show_quality_text': True,
         }
 
         viz_chip.show_chip(ibs, aid, **viz_chip_kw)
@@ -192,24 +208,15 @@ class QueryVerificationInteraction(AbstractInteraction):
             callback = partial(self.select, aid)
             self.append_button('Select This Animal', callback=callback, **butkw)
             #Hack to toggle colors
-            if aid in self.checkbox_states:
+            if aid in self.aid_checkbox_states:
                 #If we are selecting it, then make it green, otherwise change it back to grey
-                if self.checkbox_states[aid]:
+                if self.aid_checkbox_states[aid]:
                     df2.draw_border(ax, color=(0, 1, 0), lw=4)
                 else:
                     df2.draw_border(ax, color=(.7, .7, .7), lw=4)
             else:
-                self.checkbox_states[aid] = False
+                self.aid_checkbox_states[aid] = False
             self.append_button('Examine', callback=partial(self.examine, aid), **butkw)
-
-    def select(self, aid, event=None):
-        print(' selected aid %r as best choice' % aid)
-        state = self.checkbox_states[aid]
-        self.checkbox_states[aid] = not state
-
-        self.update_callback()
-        self.backend_callback()
-        self.show_page()
 
     def examine(self, aid, event=None):
         print(' examining aid %r against the query result' % aid)
@@ -232,6 +239,37 @@ class QueryVerificationInteraction(AbstractInteraction):
             viz_matches.show_matches(self.ibs, self.qres, aid, figtitle=figtitle)
             fig.show()
 
+    def select(self, aid, event=None):
+        print(' selected aid %r as best choice' % aid)
+        state = self.aid_checkbox_states[aid]
+        self.aid_checkbox_states[aid] = not state
+        for key in self.other_checkbox_states:
+            self.other_checkbox_states[key] = False
+        self.update_callback()
+        self.backend_callback()
+        self.show_page()
+
+    def select_none(self, event=None):
+        for aid in self.comp_aids:
+            self.aid_checkbox_states[aid] = False
+        self.other_checkbox_states['none'] = True
+        self.other_checkbox_states['junk'] = False
+        self.update_callback()
+        self.backend_callback()
+        self.show_page()
+
+    def select_junk(self, event=None):
+        for aid in self.comp_aids:
+            self.aid_checkbox_states[aid] = False
+        self.other_checkbox_states['none'] = False
+        self.other_checkbox_states['junk'] = True
+        self.update_callback()
+        self.backend_callback()
+        self.show_page()
+
+    def quit(self, event=None):
+        self.close()
+
     def show_hud(self):
         """ Creates heads up display """
         # Button positioners
@@ -242,15 +280,22 @@ class QueryVerificationInteraction(AbstractInteraction):
         select_none_text = 'None of these'
         if self.suggest_aids is not None and len(self.suggest_aids) == 0:
             select_none_text += '\n(SUGGESTED BY IBEIS)'
-
-        tup = self.append_button(select_none_text, callback=partial(self.select_none), rect=hl_slot(0))
-        # ut.embed()
+        none_tup = self.append_button(select_none_text, callback=partial(self.select_none), rect=hl_slot(0))
         #Draw boarder around the None of these button
-        none_button, none_button_axis = tup
-        if any(self.checkbox_states.values()):
-            df2.draw_border(none_button_axis, color=(.7, .7, .7), lw=4, adjust=False)
-        else:
+        none_button_axis = none_tup[1]
+        if self.other_checkbox_states['none']:
             df2.draw_border(none_button_axis, color=(0, 1, 0), lw=4, adjust=False)
+        else:
+            df2.draw_border(none_button_axis, color=(.7, .7, .7), lw=4, adjust=False)
+
+        select_junk_text = 'Junk Query Image'
+        junk_tup = self.append_button(select_junk_text, callback=partial(self.select_junk), rect=hl_slot(1))
+        #Draw boarder around the None of these button
+        junk_button_axis = junk_tup[1]
+        if self.other_checkbox_states['junk']:
+            df2.draw_border(junk_button_axis, color=(0, 1, 0), lw=4, adjust=False)
+        else:
+            df2.draw_border(junk_button_axis, color=(.7, .7, .7), lw=4, adjust=False)
 
         #Add other HUD buttons
         self.append_button('Quit', callback=partial(self.quit), rect=hr_slot(0))
@@ -265,17 +310,6 @@ class QueryVerificationInteraction(AbstractInteraction):
         '''
         figtitle = figtitle_fmt.format(**self.__dict__)  # sexy: using obj dict as fmtkw
         df2.set_figtitle(figtitle)
-
-    def select_none(self, event=None):
-        for aid in self.comp_aids:
-            self.checkbox_states[aid] = False
-
-        self.update_callback()
-        self.backend_callback()
-        self.show_page()
-
-    def quit(self, event=None):
-        self.close()
 
     def confirm(self, event=None):
         """
@@ -302,10 +336,17 @@ class QueryVerificationInteraction(AbstractInteraction):
         print('[interact_query_decision] Confirming selected animals.')
 
         selected_aids = [aid for aid in self.comp_aids
-                         if aid is not None and self.checkbox_states[aid]]
+                         if aid is not None and self.aid_checkbox_states[aid]]
         if len(selected_aids) == 0:
             print('[interact_query_decision] Confirming no match.')
             chosen_aids = []
+            if self.other_checkbox_states['none']:
+                chosen_aids = 'newname'
+            elif self.other_checkbox_states['junk']:
+                chosen_aids = 'junk'
+            else:
+                msg = 'INTERACT_QUERY_DECISION IMPOSSIBLE STATE'
+                raise AssertionError(msg)
         elif len(selected_aids) == 1:
             print('[interact_query_decision] Confirming single match')
             chosen_aids = selected_aids
@@ -341,9 +382,31 @@ class QueryVerificationInteraction(AbstractInteraction):
         self.backend_callback()
         print('[interact_query_decision] Calling decision callback')
         print('[interact_query_decision] self.name_decision_callback = %r' % (self.name_decision_callback,))
-        chosen_names = self.ibs.get_annot_names(chosen_aids)
+        if isinstance(chosen_aids, six.string_types):
+            # hack for string non-match commands
+            chosen_names = chosen_aids
+        else:
+            chosen_names = self.ibs.get_annot_names(chosen_aids)
         self.name_decision_callback(chosen_names)
         print('[interact_query_decision] sent name_decision_callback(chosen_names=%r)' % (chosen_names,))
+
+    def figure_clicked(self, event=None):
+        from ibeis.viz import viz_helpers as vh
+        ax = event.inaxes
+        if ih.clicked_inside_axis(event):
+            viztype = vh.get_ibsdat(ax, 'viztype')
+            if viztype == 'chip':
+                aid = vh.get_ibsdat(ax, 'aid')
+                print('... aid=%r' % aid)
+                if event.button == 3:   # right-click
+                    from ibeis.viz.interact import interact_chip
+                    height = self.fig.canvas.geometry().height()
+                    qpoint = guitool.newQPoint(event.x, height - event.y)
+                    interact_chip.show_annot_context_menu(
+                        self.ibs, aid, self.fig.canvas, qpoint, refresh_func=self.show_page)
+                    #self.show_page()
+                    #ibs.print_annotation_table()
+                print(ut.dict_str(event.__dict__))
 
 
 if __name__ == '__main__':

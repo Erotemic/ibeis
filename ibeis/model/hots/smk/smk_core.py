@@ -163,7 +163,7 @@ def match_kernel_L2(qindex, invindex, qparams, withinfo=True):
     # Unpack
     (daid2_totalscore, common_wxs, scores_list, daids_list)  = retL1
     if withinfo:
-        # Build up chipmatch if requested TODO: Only build for a shortlist
+        # Build up cmtup_old if requested TODO: Only build for a shortlist
         daid2_chipmatch = build_daid2_chipmatch3(qindex, invindex, common_wxs, scores_list, daids_list)
     else:
         daid2_chipmatch = None
@@ -243,8 +243,8 @@ def build_daid2_chipmatch3(qindex, invindex, common_wxs, scores_list,
         assert len(dfxs_list) == len(qfxs_list), 'words to not corresond'
         assert len(daids_list) == len(qfxs_list), 'words to not corresond'
         for scores, qfxs, dfxs, daids in zip(sparse_list, qfxs_list, dfxs_list, daids_list):
-            assert scores.shape == (len(qfxs), len(dfxs)), 'indicies do not correspond'
-            assert len(daids) == len(dfxs), 'data indicies do not corresond'
+            assert scores.shape == (len(qfxs), len(dfxs)), 'indices do not correspond'
+            assert len(daids) == len(dfxs), 'data indices do not corresond'
         print('[smk_core] checked build_chipmatch input ...ok')
 
     # 47ms
@@ -386,7 +386,7 @@ def flatten_correspondences(fm_nestlist, fs_nestlist, daid_nestlist, query_sccw)
 
 @profile
 def group_correspondences(all_matches, all_scores, all_daids, daid2_sccw):
-    daid_keys, groupxs = clustertool.group_indicies(all_daids)
+    daid_keys, groupxs = clustertool.group_indices(all_daids)
     fs_list = clustertool.apply_grouping(all_scores, groupxs)
     fm_list = clustertool.apply_grouping(all_matches, groupxs)
     daid2_fm = {daid: fm for daid, fm in zip(daid_keys, fm_list)}
@@ -404,7 +404,7 @@ def build_daid2_chipmatch2(invindex, common_wxs, wx2_qaids, wx2_qfxs,
     Builds explicit chipmatches that the rest of the pipeline plays nice with
 
     Notation:
-        An explicit chipmatch is a tuple (fm, fs, fk) feature_matches,
+        An explicit cmtup_old is a tuple (fm, fs, fk) feature_matches,
         feature_scores, and feature_ranks.
 
         Let N be the number of matches
@@ -446,7 +446,7 @@ def build_daid2_chipmatch2(invindex, common_wxs, wx2_qaids, wx2_qfxs,
     """
     # FIXME: move groupby to vtool
     if utool.VERBOSE:
-        print('[smk_core] build chipmatch')
+        print('[smk_core] build cmtup_old')
 
     wx2_dfxs  = invindex.wx2_fxs
     daid2_sccw = invindex.daid2_sccw
@@ -513,7 +513,7 @@ def build_daid2_chipmatch2(invindex, common_wxs, wx2_qaids, wx2_qfxs,
     all_fms = all_fms.take(keep_xs, axis=0)
     all_daids_ = all_daids_.take(keep_xs)
 
-    daid_keys, groupxs = clustertool.group_indicies(all_daids_)
+    daid_keys, groupxs = clustertool.group_indices(all_daids_)
     fs_list = clustertool.apply_grouping(all_fss, groupxs)
     fm_list = clustertool.apply_grouping(all_fms, groupxs)
     daid2_fm = {daid: fm for daid, fm in zip(daid_keys, fm_list)}

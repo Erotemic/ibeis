@@ -56,7 +56,7 @@ def _get_all_chip_rowids(ibs):
 
 @register_ibs_method
 @adder
-def add_annot_chips(ibs, aid_list):
+def add_annot_chips(ibs, aid_list, qreq_=None):
     """
     FIXME: This is a dirty dirty function
     Adds chip data to the ANNOTATION. (does not create ANNOTATIONs. first use add_annots
@@ -78,7 +78,7 @@ def add_annot_chips(ibs, aid_list):
             print('[!ibs.add_annot_chips] ' + ut.list_dbgstr('aid_list'))
             raise
         colnames = (ANNOT_ROWID, 'config_rowid', 'chip_uri', 'chip_width', 'chip_height',)
-        get_rowid_from_superkey = functools.partial(ibs.get_annot_chip_rowids, ensure=False)
+        get_rowid_from_superkey = functools.partial(ibs.get_annot_chip_rowids, ensure=False, qreq_=qreq_)
         cid_list = ibs.dbcache.add_cleanly(const.CHIP_TABLE, colnames, params_iter, get_rowid_from_superkey)
 
     return cid_list
@@ -86,17 +86,17 @@ def add_annot_chips(ibs, aid_list):
 
 @register_ibs_method
 @adder
-def add_chip_feats(ibs, cid_list, force=False):
+def add_chip_feats(ibs, cid_list, force=False, qreq_=None):
     """ Computes the features for every chip without them """
     from ibeis.model.preproc import preproc_feat
-    fid_list = ibs.get_chip_fids(cid_list, ensure=False)
+    fid_list = ibs.get_chip_fids(cid_list, ensure=False, qreq_=qreq_)
     dirty_cids = ut.get_dirty_items(cid_list, fid_list)
     if len(dirty_cids) > 0:
         if ut.VERBOSE:
             print('[ibs] adding %d / %d features' % (len(dirty_cids), len(cid_list)))
-        params_iter = preproc_feat.add_feat_params_gen(ibs, dirty_cids)
+        params_iter = preproc_feat.add_feat_params_gen(ibs, dirty_cids, qreq_=qreq_)
         colnames = (CHIP_ROWID, 'config_rowid', FEAT_NUM_FEAT, FEAT_KPTS, FEAT_VECS)
-        get_rowid_from_superkey = functools.partial(ibs.get_chip_fids, ensure=False)
+        get_rowid_from_superkey = functools.partial(ibs.get_chip_fids, ensure=False, qreq_=qreq_)
         fid_list = ibs.dbcache.add_cleanly(const.FEATURE_TABLE, colnames, params_iter, get_rowid_from_superkey)
 
     return fid_list
@@ -113,9 +113,9 @@ def delete_annot_chip_thumbs(ibs, aid_list, quiet=False):
 
 @register_ibs_method
 @deleter
-def delete_annot_chips(ibs, aid_list):
+def delete_annot_chips(ibs, aid_list, qreq_=None):
     """ Clears annotation data but does not remove the annotation """
-    _cid_list = ibs.get_annot_chip_rowids(aid_list, ensure=False)
+    _cid_list = ibs.get_annot_chip_rowids(aid_list, ensure=False, qreq_=qreq_)
     cid_list = ut.filter_Nones(_cid_list)
     ibs.delete_chips(cid_list)
     # HACK FIX: if annot chips are None then the image thumbnail
@@ -129,7 +129,7 @@ def delete_annot_chips(ibs, aid_list):
 @register_ibs_method
 @deleter
 #@cache_invalidator(const.CHIP_TABLE)
-def delete_chips(ibs, cid_list, verbose=ut.VERBOSE):
+def delete_chips(ibs, cid_list, verbose=ut.VERBOSE, qreq_=None):
     """ deletes images from the database that belong to gids"""
     from ibeis.model.preproc import preproc_chip
     if verbose:
@@ -138,7 +138,7 @@ def delete_chips(ibs, cid_list, verbose=ut.VERBOSE):
     #preproc_chip.delete_chips(ibs, cid_list, verbose=verbose)
     preproc_chip.on_delete(ibs, cid_list, verbose=verbose)
     # Delete chip features from sql
-    _fid_list = ibs.get_chip_fids(cid_list, ensure=False)
+    _fid_list = ibs.get_chip_fids(cid_list, ensure=False, qreq_=qreq_)
     fid_list = ut.filter_Nones(_fid_list)
     ibs.delete_features(fid_list)
     # Delete chips from sql
@@ -164,14 +164,19 @@ def get_chip_aids(ibs, cid_list):
 
 @register_ibs_method
 @default_decorator
-def get_chip_config_rowid(ibs):
+def get_chip_config_rowid(ibs, qreq_=None):
     """ # FIXME: Configs are still handled poorly
 
     This method deviates from the rest of the controller methods because it
     always returns a scalar instead of a list. I'm still not sure how to
     make it more ibeisy
     """
-    chip_cfg_suffix = ibs.cfg.chip_cfg.get_cfgstr()
+    if qreq_ is not None:
+        # TODO store config_rowid in qparams
+        # Or find better way to do this in general
+        chip_cfg_suffix = qreq_.qparams.chip_cfgstr
+    else:
+        chip_cfg_suffix = ibs.cfg.chip_cfg.get_cfgstr()
     chip_cfg_rowid = ibs.add_config(chip_cfg_suffix)
     return chip_cfg_rowid
 
@@ -206,8 +211,8 @@ def get_chip_feat_rowids(ibs, cid_list, ensure=True, eager=True, nInput=None, qr
 @accessor_decors.dev_cache_getter(const.CHIP_TABLE, 'feature_rowid')
 def get_chip_fids(ibs, cid_list, ensure=True, eager=True, nInput=None, qreq_=None):
     if ensure:
-        ibs.add_chip_feats(cid_list)
-    feat_config_rowid = ibs.get_feat_config_rowid()
+        ibs.add_chip_feats(cid_list, qreq_=qreq_)
+    feat_config_rowid = ibs.get_feat_config_rowid(qreq_=qreq_)
     colnames = ('feature_rowid',)
     where_clause = CHIP_ROWID + '=? AND config_rowid=?'
     params_iter = ((cid, feat_config_rowid) for cid in cid_list)
@@ -219,9 +224,8 @@ def get_chip_fids(ibs, cid_list, ensure=True, eager=True, nInput=None, qreq_=Non
 
 @register_ibs_method
 @getter_1to1
-def get_chip_paths(ibs, cid_list):
+def get_chip_uris(ibs, cid_list):
     """
-    # FIXME: rename to get_chip_uris
 
     Returns:
         chip_fpath_list (list): a list of chip paths by their aid
@@ -260,7 +264,7 @@ def get_chips(ibs, cid_list, ensure=True):
 
 @register_ibs_method
 @default_decorator
-def get_feat_config_rowid(ibs):
+def get_feat_config_rowid(ibs, qreq_=None):
     """
     Returns the feature configuration id based on the cfgstr
     defined by ibs.cfg.feat_cfg.get_cfgstr()
@@ -269,7 +273,12 @@ def get_feat_config_rowid(ibs):
     used in ibeis.model.preproc.preproc_feats in the param
     generator. (that should probably be moved into the controller)
     """
-    feat_cfg_suffix = ibs.cfg.feat_cfg.get_cfgstr()
+    if qreq_ is not None:
+        # TODO store config_rowid in qparams
+        # Or find better way to do this in general
+        feat_cfg_suffix = qreq_.qparams.feat_cfgstr
+    else:
+        feat_cfg_suffix = ibs.cfg.feat_cfg.get_cfgstr()
     feat_cfg_rowid = ibs.add_config(feat_cfg_suffix)
     return feat_cfg_rowid
 
@@ -313,20 +322,20 @@ def get_num_feats(ibs, fid_list, eager=True, nInput=None):
 
 @register_ibs_method
 @ider
-def get_valid_cids(ibs):
+def get_valid_cids(ibs, qreq_=None):
     """ Valid chip rowids of the current configuration """
     # FIXME: configids need reworking
-    chip_config_rowid = ibs.get_chip_config_rowid()
+    chip_config_rowid = ibs.get_chip_config_rowid(qreq_=qreq_)
     cid_list = ibs.dbcache.get_all_rowids_where(const.FEATURE_TABLE, 'config_rowid=?', (chip_config_rowid,))
     return cid_list
 
 
 @register_ibs_method
 @ider
-def get_valid_fids(ibs):
+def get_valid_fids(ibs, qreq_=None):
     """ Valid feature rowids of the current configuration """
     # FIXME: configids need reworking
-    feat_config_rowid = ibs.get_feat_config_rowid()
+    feat_config_rowid = ibs.get_feat_config_rowid(qreq_=qreq_)
     fid_list = ibs.dbcache.get_all_rowids_where(const.FEATURE_TABLE, 'config_rowid=?', (feat_config_rowid,))
     return fid_list
 
@@ -342,3 +351,90 @@ if __name__ == '__main__':
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
     ut.doctest_funcs()
+
+
+@register_ibs_method
+@adder
+def add_annot_chips(ibs, aid_list, qreq_=None):
+    """ annot.chip.add(aid_list)
+
+    CRITICAL FUNCTION MUST EXIST FOR ALL DEPENDANTS
+    Adds / ensures / computes a dependant property
+
+    Args:
+         aid_list
+
+    Returns:
+        returns chip_rowid_list of added (or already existing chips)
+
+    TemplateInfo:
+        Tadder_pl_dependant
+        parent = annot
+        leaf = chip
+
+    CommandLine:
+        python -m ibeis.control.manual_chip_funcs --test-add_annot_chips
+
+    Example1:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_chip_funcs import *  # NOQA
+        >>> ibs, qreq_ = testdata_ibs()
+        >>> aid_list = ibs._get_all_aids()[::3]
+        >>> chip_rowid_list = ibs.add_annot_chips(aid_list, qreq_=qreq_)
+        >>> assert len(chip_rowid_list) == len(aid_list)
+        >>> ut.assert_all_not_None(chip_rowid_list)
+
+    Example2:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_chip_funcs import *  # NOQA
+        >>> ibs, qreq_ = testdata_ibs()
+        >>> aid_list = ibs._get_all_aids()[0:10]
+        >>> sub_aid_list1 = aid_list[0:6]
+        >>> sub_aid_list2 = aid_list[5:7]
+        >>> sub_aid_list3 = aid_list[0:7]
+        >>> sub_cid_list1 = ibs.get_annot_chip_rowids(sub_aid_list1, qreq_=qreq_, ensure=True)
+        >>> ut.assert_all_not_None(sub_cid_list1)
+        >>> ibs.delete_annot_chips(sub_aid_list2)
+        >>> sub_cid_list3 = ibs.get_annot_chip_rowids(sub_aid_list3, qreq_=qreq_, ensure=False)
+        >>> # Only the last two should be None
+        >>> ut.assert_all_not_None(sub_cid_list3)
+        >>> assert sub_cid_list3[5:7] == [None, None]
+        >>> sub_cid_list3_ensured = ibs.get_annot_chip_rowids(sub_aid_list3, qreq_=qreq_, ensure=True)
+        >>> # Only two params should have been computed here
+        >>> ut.assert_all_not_None(sub_cid_list3_ensured)
+
+    """
+    from ibeis.model.preproc import preproc_chip
+    ut.assert_all_not_None(aid_list, 'aid_list')
+    # Get requested configuration id
+    config_rowid = ibs.get_chip_config_rowid(qreq_=qreq_)
+    # Find leaf rowids that need to be computed
+    initial_chip_rowid_list = get_annot_chip_rowids_(ibs, aid_list, qreq_=qreq_)
+    # Get corresponding "dirty" parent rowids
+    isdirty_list = ut.flag_None_items(initial_chip_rowid_list)
+    dirty_aid_list = ut.filter_items(aid_list, isdirty_list)
+    num_dirty = len(dirty_aid_list)
+    if num_dirty > 0:
+        #if ut.VERBOSE:
+        print('[add_annot_chips] adding %d / %d new chips' % (len(dirty_aid_list), len(aid_list)))
+        # Dependant columns do not need true from_superkey getters.
+        # We can use the Tgetter_pl_dependant_rowids_ instead
+        get_rowid_from_superkey = functools.partial(
+            ibs.get_annot_chip_rowids_, qreq_=qreq_)
+        proptup_gen = preproc_chip.generate_chip_properties(ibs, dirty_aid_list)
+        dirty_params_iter = (
+            (aid, config_rowid, chip_uri, chip_width, chip_height)
+            for aid, (chip_uri, chip_width, chip_height,) in
+            zip(dirty_aid_list, proptup_gen)
+        )
+        dirty_params_iter = list(dirty_params_iter)
+        colnames = ['annot_rowid', 'config_rowid',
+                    'chip_uri', 'chip_width', 'chip_height']
+        #chip_rowid_list = ibs.dbcache.add_cleanly(
+        #    const.CHIP_TABLE, colnames, params_iter, get_rowid_from_superkey)
+        ibs.dbcache._add(const.CHIP_TABLE, colnames, dirty_params_iter)
+        # Now that the dirty params are added get the correct order of rowids
+        chip_rowid_list = get_rowid_from_superkey(aid_list)
+    else:
+        chip_rowid_list = initial_chip_rowid_list
+    return chip_rowid_list

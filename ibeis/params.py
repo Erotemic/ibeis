@@ -37,12 +37,12 @@ def parse_args():
         parser2.add_flag(('--all-gt-cases', '--allgt'), help='chooses all groundtruthed annotations to be queried')
         parser2.add_flag(('--all-hard-cases', '--allhard'))  # all_hard_cases
         parser2.add_flag(('--all-singleton-cases', '--allsingle'))
-        parser2.add_ints(('--qindex', '-qx'), None, help='test only these query indicies. Out of bounds errors are clipped')
-        parser2.add_ints(('--dindex', '-dx'), None, help='test only these database indicies. . Out of bounds errors are clipped')
+        parser2.add_ints(('--qindex', '-qx', '--index'), None, help='test only these query indices. Out of bounds errors are clipped')
+        parser2.add_ints(('--dindex', '-dx'), None, help='test only these database indices. . Out of bounds errors are clipped')
         parser2.add_ints(('--sel-rows', '-r'), help='view row for experiment harness')
         parser2.add_ints(('--sel-cols', '-c'), help='view col for experiment harness')
-        parser2.add_ints('--qaid', default=[], help='investigate match aid')
-        parser2.add_ints('--daid-exclude', default=[], help='exclude daids from matching')
+        parser2.add_ints(('--qaid', '--qaids'), default=[], help='investigate match aid')
+        parser2.add_ints(('--daid-exclude', '--daids-exclude'), default=[], help='exclude daids from matching')
         parser2.add_flag(('--convert'), help='converts / updates schema of database if possible')
         parser2.add_flag(('--force-delete'), help='forces deletion of hsdb before convert')
         parser2.add_flag(('--fulltb'), help='shows a full traceback (default behavior removes decorators from the trace)')
@@ -51,6 +51,7 @@ def parse_args():
         parser2.add_flag(('--quiet'), help='turns down verbosity')
         parser2.add_flag(('--silent'), help='turns off verbosity')
         parser2.add_flag(('--print-inject-order'), help='shows import order of any module registered with utool')
+        parser2.add_flag(('--debug-print'), help='shows where each injected print statement happens')
 
     def behavior_argparse(parser2):
         # Program behavior
@@ -90,6 +91,8 @@ def parse_args():
         parser2.add_flag('--get-workdir', help='gets the default work directory')
         parser2.add_str(('--logdir', '--set-logdir'), None,
                         help='sets the default logging directory')
+        parser2.add_flag('--get-logdir', help='gets the current logging directory')
+        parser2.add_flag(('--view-logdir', '--vld'), help='views the current logging directory')
         parser2.add_flag('--force-incremental-db-update',
                          help='ignores the current database schema and forces an incremental update for new databases')
         parser2.add_flag('--dump-autogen-schema',

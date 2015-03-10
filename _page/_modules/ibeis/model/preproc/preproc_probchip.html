@@ -1,53 +1,112 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>ibeis.model.preproc.preproc_probchip &mdash; ibeis 0.1.0.dev1 documentation</title>
-    
-    <link rel="stylesheet" href="../../../../_static/default.css" type="text/css" />
-    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../../../../',
-        VERSION:     '0.1.0.dev1',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
-    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
-    <link rel="top" title="ibeis 0.1.0.dev1 documentation" href="../../../../index.html" />
-    <link rel="up" title="ibeis.model.preproc" href="../preproc.html" /> 
-  </head>
-  <body>
-    <div class="related">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../../../../genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="../../../../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li><a href="../../../../index.html">ibeis 0.1.0.dev1 documentation</a> &raquo;</li>
-          <li><a href="../../../index.html" >Module code</a> &raquo;</li>
-          <li><a href="../../../ibeis.html" >ibeis</a> &raquo;</li>
-          <li><a href="../../model.html" >ibeis.model</a> &raquo;</li>
-          <li><a href="../preproc.html" accesskey="U">ibeis.model.preproc</a> &raquo;</li> 
-      </ul>
-    </div>  
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.model.preproc.preproc_probchip &mdash; ibeis 0.1.0.dev1 documentation</title>
+  
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body">
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="ibeis 0.1.0.dev1 documentation" href="../../../../index.html"/>
+        <link rel="up" title="ibeis.model.preproc" href="../preproc.html"/> 
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        <a href="../../../../index.html" class="fa fa-home"> ibeis</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+        
+            <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ibeis.html">ibeis package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#subpackages">Subpackages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.params">ibeis.params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../../ibeis.html">ibeis</a> &raquo;</li>
+      
+          <li><a href="../../model.html">ibeis.model</a> &raquo;</li>
+      
+          <li><a href="../preproc.html">ibeis.model.preproc</a> &raquo;</li>
+      
+    <li>ibeis.model.preproc.preproc_probchip</li>
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
             
   <h1>Source code for ibeis.model.preproc.preproc_probchip</h1><div class="highlight"><pre>
 <span class="sd">&quot;&quot;&quot;</span>
@@ -67,6 +126,7 @@
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span>
 <span class="kn">from</span> <span class="nn">ibeis.model.preproc</span> <span class="kn">import</span> <span class="n">preproc_chip</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.detect</span> <span class="kn">import</span> <span class="n">randomforest</span>
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">splitext</span>
 <span class="kn">import</span> <span class="nn">utool</span>  <span class="c"># NOQA</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
@@ -126,7 +186,7 @@
     <span class="n">aid_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="n">species_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">species_list</span><span class="p">)</span>
     <span class="n">species_rowid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_species_rowids_from_text</span><span class="p">(</span><span class="n">species_list</span><span class="p">))</span>
-    <span class="n">unique_species_rowids</span><span class="p">,</span> <span class="n">groupxs</span> <span class="o">=</span> <span class="n">vtool</span><span class="o">.</span><span class="n">group_indicies</span><span class="p">(</span><span class="n">species_rowid</span><span class="p">)</span>
+    <span class="n">unique_species_rowids</span><span class="p">,</span> <span class="n">groupxs</span> <span class="o">=</span> <span class="n">vtool</span><span class="o">.</span><span class="n">group_indices</span><span class="p">(</span><span class="n">species_rowid</span><span class="p">)</span>
     <span class="n">grouped_aids</span>    <span class="o">=</span> <span class="n">vtool</span><span class="o">.</span><span class="n">apply_grouping</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">groupxs</span><span class="p">)</span>
     <span class="n">grouped_species</span> <span class="o">=</span> <span class="n">vtool</span><span class="o">.</span><span class="n">apply_grouping</span><span class="p">(</span><span class="n">species_list</span><span class="p">,</span> <span class="n">groupxs</span><span class="p">)</span>
     <span class="n">unique_species</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">grouped_species</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
@@ -208,39 +268,51 @@
     <span class="n">ibs</span><span class="o">.</span><span class="n">probchipdir</span> <span class="o">=</span> <span class="n">get_probchip_cachedir</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
     <span class="n">cachedir</span> <span class="o">=</span> <span class="n">get_probchip_cachedir</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">cachedir</span><span class="p">)</span>
-    <span class="c">#grouped_aids, unique_species = group_aids_by_featweight_species(ibs, aid_list, qreq_)</span>
-    <span class="c">#annot_uuid_list = ibs.get_annot_visual_uuids(aid_list)</span>
-    <span class="c">#for aids, species in zip(grouped_aids, unique_species):</span>
-    <span class="c">#probchip_fname_iter = (None if auuid is None else probchip_fname_fmt % auuid</span>
-    <span class="c">#                       for auuid in annot_uuid_list)</span>
-    <span class="c">##probchip_fname_iter = (None if auuid is None else probchip_fname_fmt % (aid, auuid) for (aid, auuid) in</span>
-    <span class="c">#                       #zip(aid_list, annot_uuid_list))</span>
-    <span class="c">##probchip_fpath_list = [None if fname is None else join(cachedir, fname)</span>
-    <span class="c">#                       #for fname in probchip_fname_iter]</span>
     <span class="n">probchip_fname_fmt</span> <span class="o">=</span> <span class="n">get_probchip_fname_fmt</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="n">species</span><span class="p">)</span>
-    <span class="n">probchip_fpath_list</span> <span class="o">=</span> <span class="n">preproc_chip</span><span class="o">.</span><span class="n">format_aid_bbox_theta_gid_fnames</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">probchip_fname_fmt</span><span class="p">,</span> <span class="n">cachedir</span><span class="p">)</span>
+    <span class="n">probchip_fpath_list</span> <span class="o">=</span> <span class="n">preproc_chip</span><span class="o">.</span><span class="n">format_aid_bbox_theta_gid_fnames</span><span class="p">(</span>
+        <span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">probchip_fname_fmt</span><span class="p">,</span> <span class="n">cachedir</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">probchip_fpath_list</span>
 
 </div>
-<div class="viewcode-block" id="compute_and_write_probchip"><a class="viewcode-back" href="../../../../ibeis.model.preproc.html#ibeis.model.preproc.preproc_probchip.compute_and_write_probchip">[docs]</a><span class="k">def</span> <span class="nf">compute_and_write_probchip</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="compute_and_write_probchip"><a class="viewcode-back" href="../../../../ibeis.model.preproc.html#ibeis.model.preproc.preproc_probchip.compute_and_write_probchip">[docs]</a><span class="k">def</span> <span class="nf">compute_and_write_probchip</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">lazy</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Computes probability chips using pyrf</span>
 
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.model.preproc.preproc_probchip --test-compute_and_write_probchip:0</span>
+<span class="sd">        python -m ibeis.model.preproc.preproc_probchip --test-compute_and_write_probchip:1</span>
+
 <span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.preproc.preproc_chip import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import ibeis</span>
 <span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; qreq_ = None</span>
-<span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids()</span>
-<span class="sd">        &gt;&gt;&gt; compute_and_write_probchip(ibs, aid_list, qreq_)</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)</span>
+<span class="sd">        &gt;&gt;&gt; probchip_fpath_list_ = compute_and_write_probchip(ibs, aid_list, qreq_)</span>
+<span class="sd">        &gt;&gt;&gt; result = ut.list_str(probchip_fpath_list_)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # SLOW_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.preproc.preproc_chip import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; qreq_ = None</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)</span>
+<span class="sd">        &gt;&gt;&gt; probchip_fpath_list_ = compute_and_write_probchip(ibs, aid_list, qreq_, lazy=False)</span>
+<span class="sd">        &gt;&gt;&gt; result = ut.list_str(probchip_fpath_list_)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
 
 <span class="sd">    Dev::</span>
 <span class="sd">        #ibs.delete_annot_chips(aid_list)</span>
 <span class="sd">        #probchip_fpath_list = get_annot_probchip_fpath_list(ibs, aid_list)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># Get probchip dest information (output path)</span>
-    <span class="kn">from</span> <span class="nn">ibeis.model.detect</span> <span class="kn">import</span> <span class="n">randomforest</span>
     <span class="n">grouped_aids</span><span class="p">,</span> <span class="n">unique_species</span> <span class="o">=</span> <span class="n">group_aids_by_featweight_species</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
-    <span class="n">cachedir</span>   <span class="o">=</span> <span class="n">get_probchip_cachedir</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+    <span class="n">nSpecies</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique_species</span><span class="p">)</span>
+    <span class="n">nTasks</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[preproc_probchip.compute_and_write_probchip] Preparing to compute </span><span class="si">%d</span><span class="s"> probchips of </span><span class="si">%d</span><span class="s"> species&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nTasks</span><span class="p">,</span> <span class="n">nSpecies</span><span class="p">))</span>
+    <span class="n">cachedir</span> <span class="o">=</span> <span class="n">get_probchip_cachedir</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">cachedir</span><span class="p">)</span>
 
     <span class="n">probchip_fpath_list_</span> <span class="o">=</span> <span class="p">[]</span>
@@ -252,16 +324,32 @@
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[preproc_probchip] |--------------------&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">continue</span>
-        <span class="n">probchip_fpath_list</span> <span class="o">=</span> <span class="n">get_annot_probchip_fpath_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="n">species</span><span class="p">)</span>
-        <span class="n">cfpath_list</span>  <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chip_fpaths</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span>
-        <span class="c"># Ensure that all chips are computed</span>
-        <span class="n">preproc_chip</span><span class="o">.</span><span class="n">compute_and_write_chips_lazy</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">)</span>
+        <span class="n">probchip_fpath_list</span> <span class="o">=</span> <span class="n">get_annot_probchip_fpath_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="n">species</span><span class="p">)</span>
+        <span class="n">cfpath_list</span>  <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chip_fpaths</span><span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">lazy</span><span class="p">:</span>
+            <span class="c"># Filter out probchips that are already on disk</span>
+            <span class="c"># pyrf used to do this, now we need to do it</span>
+            <span class="c"># caching should be implicit due to using the visual_annot_uuid in</span>
+            <span class="c"># the filename</span>
+            <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">exists</span>
+            <span class="n">exists_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">exists</span><span class="p">,</span> <span class="n">probchip_fpath_list</span><span class="p">))</span>
+            <span class="n">dirty_cfpath_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filterfalse_items</span><span class="p">(</span><span class="n">cfpath_list</span><span class="p">,</span> <span class="n">exists_list</span><span class="p">)</span>
+            <span class="n">dirty_probchip_fpath_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filterfalse_items</span><span class="p">(</span><span class="n">probchip_fpath_list</span><span class="p">,</span> <span class="n">exists_list</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[preproc_probchip.compute_and_write_probchip] Lazy compute of to compute </span><span class="si">%d</span><span class="s">/</span><span class="si">%d</span><span class="s"> of species=</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dirty_cfpath_list</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">cfpath_list</span><span class="p">),</span> <span class="n">species</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c"># No filtering</span>
+            <span class="n">dirty_cfpath_list</span>  <span class="o">=</span> <span class="n">cfpath_list</span>
+            <span class="n">dirty_probchip_fpath_list</span> <span class="o">=</span> <span class="n">probchip_fpath_list</span>
+
         <span class="n">config</span> <span class="o">=</span> <span class="p">{</span>
             <span class="c"># &#39;scale_list&#39;: [1.0],</span>
-            <span class="s">&#39;output_gpath_list&#39;</span><span class="p">:</span> <span class="n">probchip_fpath_list</span><span class="p">,</span>
+            <span class="s">&#39;output_gpath_list&#39;</span><span class="p">:</span> <span class="n">dirty_probchip_fpath_list</span><span class="p">,</span>
             <span class="s">&#39;mode&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
         <span class="p">}</span>
-        <span class="n">randomforest</span><span class="o">.</span><span class="n">detect_gpath_list_with_species</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cfpath_list</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="o">**</span><span class="n">config</span><span class="p">)</span>
+        <span class="n">probchip_generator</span> <span class="o">=</span> <span class="n">randomforest</span><span class="o">.</span><span class="n">detect_gpath_list_with_species</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">dirty_cfpath_list</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="o">**</span><span class="n">config</span><span class="p">)</span>
+        <span class="c"># Evalutate genrator until completion</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">evaluate_generator</span><span class="p">(</span><span class="n">probchip_generator</span><span class="p">)</span>
         <span class="n">probchip_fpath_list_</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">probchip_fpath_list</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[preproc_probchip] Done computing probability images&#39;</span><span class="p">)</span>
@@ -271,8 +359,6 @@
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
-<span class="sd">        python -c &quot;import utool, ibeis.model.preproc.preproc_probchip; utool.doctest_funcs(ibeis.model.preproc.preproc_probchip, allexamples=True)&quot;</span>
-<span class="sd">        python -c &quot;import utool, ibeis.model.preproc.preproc_probchip; utool.doctest_funcs(ibeis.model.preproc.preproc_probchip)&quot;</span>
 <span class="sd">        python -m ibeis.model.preproc.preproc_probchip</span>
 <span class="sd">        python -m ibeis.model.preproc.preproc_probchip --allexamples</span>
 <span class="sd">        python -m ibeis.model.preproc.preproc_probchip --allexamples --serial --noface --nosrc</span>
@@ -284,46 +370,58 @@
 </pre></div>
 
           </div>
-        </div>
-      </div>
-      <div class="sphinxsidebar">
-        <div class="sphinxsidebarwrapper">
-<div id="searchbox" style="display: none">
-  <h3>Quick search</h3>
-    <form class="search" action="../../../../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
-    </p>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="related">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../../../../genindex.html" title="General Index"
-             >index</a></li>
-        <li class="right" >
-          <a href="../../../../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li><a href="../../../../index.html">ibeis 0.1.0.dev1 documentation</a> &raquo;</li>
-          <li><a href="../../../index.html" >Module code</a> &raquo;</li>
-          <li><a href="../../../ibeis.html" >ibeis</a> &raquo;</li>
-          <li><a href="../../model.html" >ibeis.model</a> &raquo;</li>
-          <li><a href="../preproc.html" >ibeis.model.preproc</a> &raquo;</li> 
-      </ul>
-    </div>
-    <div class="footer">
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
         &copy; Copyright 2015, Jon Crall.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
-    </div>
-  </body>
+    </p>
+  </div>
+
+  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../../',
+            VERSION:'0.1.0.dev1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
 </html>

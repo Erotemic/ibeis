@@ -1,8 +1,18 @@
 """
 
-utprof.py -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:3 --num-init 5000 --stateful-query
-utprof.py -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:0
-python -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:0
+
+CommandLine:
+    >>> # Profile
+    utprof.py -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:3 --num-init 5000 --stateful-query
+    utprof.py -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:0
+
+CommandLine:
+    >>> # Autonomous Test
+    python -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:0
+
+CommandLine:
+    >>> # Interactive Test
+    python -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:0 --ia 0
 
 TODO:
     * spatially constrained matching
@@ -169,19 +179,20 @@ def incremental_test_qt(ibs, num_initial=0):
 
 
 def exec_interactive_incremental_queries(ibs, qaid_list, back=None):
+    assert ut.list_allsame(ibs.get_annot_species_rowids(qaid_list)), 'must be all on same species'
     self = IncQueryHarness()
     self = self.begin_incremental_query(ibs, qaid_list, back=back)
 
 
 class IncQueryHarness(INC_LOOP_BASE):
     """
-    Provides incremental query with a way to work around hitting the recusion
-    limit. FIXME: currently it doesnt do this.
+    Provides incremental and interactive query with a way to work around hitting
+    the recusion limit.
 
     TODO: maybe abstract this into a interuptable loop harness
     """
     next_query_signal = guitool.signal_()
-    name_decision_signal = guitool.signal_(list)
+    name_decision_signal = guitool.signal_(object)
     exemplar_decision_signal = guitool.signal_(bool)
 
     def __init__(self):
@@ -336,7 +347,11 @@ class IncQueryHarness(INC_LOOP_BASE):
             pass
 
     #@guitool.slot_(list)
-    @QtCore.pyqtSlot(list)
+    #@QtCore.pyqtSlot(list)
+    # overloaded signatures
+    #@QtCore.pyqtSlot(str)
+    #@QtCore.pyqtSlot(list)
+    @QtCore.pyqtSlot(object)
     def name_decision_slot(self, chosen_names):
         """
         the name decision signal was emited

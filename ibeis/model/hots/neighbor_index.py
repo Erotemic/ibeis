@@ -20,12 +20,13 @@ import six
 import numpy as np
 import utool as ut
 import pyflann
-import lockfile
+#import lockfile
 from os.path import join
 from os.path import basename, exists  # NOQA
-from six.moves import range  # NOQA
+from six.moves import range, zip, map  # NOQA
 import vtool.nearest_neighbors as nntool
 from ibeis.model.hots import hstypes
+from ibeis.model.hots import _pipeline_helpers as plh  # NOQA
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[neighbor_index]', DEBUG=False)
 
 NOCACHE_FLANN = ut.get_argflag('--nocache-flann')
@@ -39,7 +40,7 @@ CURRENT_THREAD = None
 UUID_MAP = ut.ddict(dict)
 
 
-class ContextUUIDMap(object):
+class UUIDMapHyrbridCache(object):
     """
     Class that lets multiple ways of writing to the uuid_map
     be swapped in and out interchangably
@@ -47,36 +48,42 @@ class ContextUUIDMap(object):
     TODO: the global read / write should periodically sync itself to disk and it
     should be loaded from disk initially
     """
-    def __init__(self, uuid_map_fpath, min_reindex_thresh):
-        self.uuid_map_fpath = uuid_map_fpath
-        self.init(uuid_map_fpath, min_reindex_thresh)
+    def __init__(self):
+        self.uuid_maps = ut.ddict(dict)
+        #self.uuid_map_fpath = uuid_map_fpath
+        #self.init(uuid_map_fpath, min_reindex_thresh)
 
     def init(self, *args, **kwargs):
         self.args = args
         self.kwargs = kwargs
         #self.read_func  = self.read_uuid_map_cpkl
         #self.write_func = self.write_uuid_map_cpkl
-        self.read_func  = self.read_uuid_map_global
-        self.write_func = self.write_uuid_map_global
+        self.read_func  = self.read_uuid_map_dict
+        self.write_func = self.write_uuid_map_dict
 
-    def __call__(self):
-        return  self.read_func(*self.args, **self.kwargs)
+    #def __call__(self):
+    #    return  self.read_func(*self.args, **self.kwargs)
 
-    def __enter__(self):
-        return self
+    def dump(self, cachedir):
+        # TODO: DUMP AND LOAD THIS HYBRID CACHE TO DISK
+        #write_uuid_map_cpkl
+        fname = 'uuid_maps_hybrid_cache.cPkl'
+        cpkl_fpath = join(cachedir, fname)
+        ut.lock_and_save_cPkl(cpkl_fpath, self.uuid_maps)
 
-    def __exit__(self, exc_type, exc_value, exc_trace):
-        pass
+    def load(self, cachedir):
+        fname = 'uuid_maps_hybrid_cache.cPkl'
+        cpkl_fpath = join(cachedir, fname)
+        self.uuid_maps = ut.lock_and_load_cPkl(cpkl_fpath)
 
-    def __setitem__(self, daids_hashid, visual_uuid_list):
-        uuid_map_fpath = self.uuid_map_fpath
-        self.write_func(uuid_map_fpath, visual_uuid_list, daids_hashid)
+    #def __setitem__(self, daids_hashid, visual_uuid_list):
+    #    uuid_map_fpath = self.uuid_map_fpath
+    #    self.write_func(uuid_map_fpath, visual_uuid_list, daids_hashid)
 
     @profile
-    def read_uuid_map_global(self, uuid_map_fpath, min_reindex_thresh):
-        """ uses global variable instead of disk """
-        global UUID_MAP
-        uuid_map = UUID_MAP[uuid_map_fpath]
+    def read_uuid_map_dict(self, uuid_map_fpath, min_reindex_thresh):
+        """ uses in memory dictionary instead of disk """
+        uuid_map = self.uuid_maps[uuid_map_fpath]
         candidate_uuids = {
             key: val for key, val in six.iteritems(uuid_map)
             if len(val) >= min_reindex_thresh
@@ -84,60 +91,62 @@ class ContextUUIDMap(object):
         return candidate_uuids
 
     @profile
-    def write_uuid_map_global(self, uuid_map_fpath, visual_uuid_list, daids_hashid):
-        """ uses global variable instead of disk """
-        global UUID_MAP
+    def write_uuid_map_dict(self, uuid_map_fpath, visual_uuid_list, daids_hashid):
+        """ uses in memory dictionary instead of disk """
         #with ut.EmbedOnException():
-        uuid_map = UUID_MAP[uuid_map_fpath]
+        uuid_map = self.uuid_maps[uuid_map_fpath]
         uuid_map[daids_hashid] = visual_uuid_list
 
-    @profile
-    def read_uuid_map_shelf(self, uuid_map_fpath, min_reindex_thresh):
-        #with ut.EmbedOnException():
-        with lockfile.LockFile(uuid_map_fpath + '.lock'):
-            with ut.shelf_open(uuid_map_fpath) as uuid_map:
-                candidate_uuids = {
-                    key: val for key, val in six.iteritems(uuid_map)
-                    if len(val) >= min_reindex_thresh
-                }
-        return candidate_uuids
+    #@profile
+    #def read_uuid_map_shelf(self, uuid_map_fpath, min_reindex_thresh):
+    #    #with ut.EmbedOnException():
+    #    with lockfile.LockFile(uuid_map_fpath + '.lock'):
+    #        with ut.shelf_open(uuid_map_fpath) as uuid_map:
+    #            candidate_uuids = {
+    #                key: val for key, val in six.iteritems(uuid_map)
+    #                if len(val) >= min_reindex_thresh
+    #            }
+    #    return candidate_uuids
 
-    @profile
-    def write_uuid_map_shelf(self, uuid_map_fpath, visual_uuid_list, daids_hashid):
-        print('Writing %d visual uuids to uuid map' % (len(visual_uuid_list)))
-        with lockfile.LockFile(uuid_map_fpath + '.lock'):
-            with ut.shelf_open(uuid_map_fpath) as uuid_map:
-                uuid_map[daids_hashid] = visual_uuid_list
+    #@profile
+    #def write_uuid_map_shelf(self, uuid_map_fpath, visual_uuid_list, daids_hashid):
+    #    print('Writing %d visual uuids to uuid map' % (len(visual_uuid_list)))
+    #    with lockfile.LockFile(uuid_map_fpath + '.lock'):
+    #        with ut.shelf_open(uuid_map_fpath) as uuid_map:
+    #            uuid_map[daids_hashid] = visual_uuid_list
 
-    @profile
-    def read_uuid_map_cpkl(self, uuid_map_fpath, min_reindex_thresh):
-        with lockfile.LockFile(uuid_map_fpath + '.lock'):
-            #with ut.shelf_open(uuid_map_fpath) as uuid_map:
-            try:
-                uuid_map = ut.load_cPkl(uuid_map_fpath)
-                candidate_uuids = {
-                    key: val for key, val in six.iteritems(uuid_map)
-                    if len(val) >= min_reindex_thresh
-                }
-            except IOError:
-                return {}
-        return candidate_uuids
+    #@profile
+    #def read_uuid_map_cpkl(self, uuid_map_fpath, min_reindex_thresh):
+    #    with lockfile.LockFile(uuid_map_fpath + '.lock'):
+    #        #with ut.shelf_open(uuid_map_fpath) as uuid_map:
+    #        try:
+    #            uuid_map = ut.load_cPkl(uuid_map_fpath)
+    #            candidate_uuids = {
+    #                key: val for key, val in six.iteritems(uuid_map)
+    #                if len(val) >= min_reindex_thresh
+    #            }
+    #        except IOError:
+    #            return {}
+    #    return candidate_uuids
 
-    @profile
-    def write_uuid_map_cpkl(self, uuid_map_fpath, visual_uuid_list, daids_hashid):
-        """
-        let the multi-indexer know about any big caches we've made multi-indexer.
-        Also lets nnindexer know about other prebuilt indexers so it can attempt to
-        just add points to them as to avoid a rebuild.
-        """
-        print('Writing %d visual uuids to uuid map' % (len(visual_uuid_list)))
-        with lockfile.LockFile(uuid_map_fpath + '.lock'):
-            try:
-                uuid_map = ut.load_cPkl(uuid_map_fpath)
-            except IOError:
-                uuid_map = {}
-            uuid_map[daids_hashid] = visual_uuid_list
-            ut.save_cPkl(uuid_map_fpath, uuid_map)
+    #@profile
+    #def write_uuid_map_cpkl(self, uuid_map_fpath, visual_uuid_list, daids_hashid):
+    #    """
+    #    let the multi-indexer know about any big caches we've made multi-indexer.
+    #    Also lets nnindexer know about other prebuilt indexers so it can attempt to
+    #    just add points to them as to avoid a rebuild.
+    #    """
+    #    print('Writing %d visual uuids to uuid map' % (len(visual_uuid_list)))
+    #    with lockfile.LockFile(uuid_map_fpath + '.lock'):
+    #        try:
+    #            uuid_map = ut.load_cPkl(uuid_map_fpath)
+    #        except IOError:
+    #            uuid_map = {}
+    #        uuid_map[daids_hashid] = visual_uuid_list
+    #        ut.save_cPkl(uuid_map_fpath, uuid_map)
+
+
+UUID_MAP_CACHE = UUIDMapHyrbridCache()
 
 
 @profile
@@ -147,14 +156,17 @@ def write_uuid_map(uuid_map_fpath, visual_uuid_list, daids_hashid):
     Also lets nnindexer know about other prebuilt indexers so it can attempt to
     just add points to them as to avoid a rebuild.
     """
-    with ContextUUIDMap(uuid_map_fpath, None) as uuid_map:
-        uuid_map[daids_hashid] = visual_uuid_list
+    #UUID_MAP_CACHE[daids_hashid] = visual_uuid_list
+    UUID_MAP_CACHE.write_uuid_map_dict(uuid_map_fpath, visual_uuid_list, daids_hashid)
+    #with ContextUUIDMap(uuid_map_fpath, None) as uuid_map:
+    #    uuid_map[daids_hashid] = visual_uuid_list
 
 
 @profile
 def read_uuid_map(uuid_map_fpath, min_reindex_thresh):
-    with ContextUUIDMap(uuid_map_fpath, min_reindex_thresh) as uuid_map:
-        candidate_uuids = uuid_map()
+
+    #with ContextUUIDMap(uuid_map_fpath, min_reindex_thresh) as uuid_map:
+    candidate_uuids = UUID_MAP_CACHE.read_uuid_map_dict(uuid_map_fpath, min_reindex_thresh)
     return candidate_uuids
 
 
@@ -165,10 +177,7 @@ def get_nnindexer_uuid_map_fpath(qreq_):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.neighbor_index import *  # NOQA
         >>> # build test data
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(db='testdb1')
-        >>> daid_list = ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)
-        >>> qreq_ = ibs.new_query_request(daid_list, daid_list)
+        >>> ibs, qreq_ = plh.get_pipeline_testdata(defaultdb='testdb1', preload=False)
         >>> uuid_map_fpath = get_nnindexer_uuid_map_fpath(qreq_)
         >>> result = str(ut.path_ndir_split(uuid_map_fpath, 3))
         >>> print(result)
@@ -203,10 +212,7 @@ def clear_uuid_cache(qreq_):
         >>> from ibeis.model.hots.neighbor_index import *  # NOQA
         >>> import ibeis
         >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> daids = ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)
-        >>> qaids = ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)
-        >>> qreq_ = ibs.new_query_request(qaids, daids)
+        >>> ibs, qreq_ = plh.get_pipeline_testdata(defaultdb='testdb1', preload=False)
         >>> # execute function
         >>> fgws_list = clear_uuid_cache(qreq_)
         >>> # verify results
@@ -230,11 +236,7 @@ def print_uuid_cache(qreq_):
         >>> from ibeis.model.hots.neighbor_index import *  # NOQA
         >>> import ibeis
         >>> # build test data
-        >>> dbname = 'PZ_Master0'  # 'testdb1'
-        >>> ibs = ibeis.opendb(dbname)
-        >>> daids = ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)
-        >>> qaids = ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)
-        >>> qreq_ = ibs.new_query_request(qaids, daids)
+        >>> ibs, qreq_ = plh.get_pipeline_testdata(defaultdb='PZ_Master0', preload=False)
         >>> # execute function
         >>> print_uuid_cache(qreq_)
         >>> # verify results
@@ -356,7 +358,7 @@ def request_augmented_ibeis_nnindexer(qreq_, daid_list, verbose=True,
             print('Removing key from memcache')
             NEIGHBOR_CACHE[base_nnindexer.cfgstr] = None
             del NEIGHBOR_CACHE[base_nnindexer.cfgstr]
-        new_vecs_list = qreq_.ibs.get_annot_vecs(new_aid_list)
+        new_vecs_list = qreq_.ibs.get_annot_vecs(new_aid_list, qreq_=qreq_)
         new_fgws_list = get_fgweights_hack(qreq_, new_aid_list)
         base_nnindexer.add_support(new_aid_list, new_vecs_list, new_fgws_list, verbose=True)
         # FIXME: pointer issues
@@ -416,16 +418,16 @@ def request_memcached_ibeis_nnindexer(qreq_, daid_list, use_memcache=True, verbo
     nnindex_cfgstr = build_nnindex_cfgstr(qreq_, daid_list)
     # neighbor memory cache
     if use_memcache and NEIGHBOR_CACHE.has_key(nnindex_cfgstr):  # NOQA (has_key is for a lru cache)
-        if veryverbose:
+        if veryverbose or ut.VERYVERBOSE:
             print('... nnindex memcache hit: cfgstr=%s' % (nnindex_cfgstr,))
         nnindexer = NEIGHBOR_CACHE[nnindex_cfgstr]
     else:
-        if veryverbose:
+        if veryverbose or ut.VERYVERBOSE:
             print('... nnindex memcache miss: cfgstr=%s' % (nnindex_cfgstr,))
         # Write to inverse uuid
         nnindexer = request_diskcached_ibeis_nnindexer(qreq_, daid_list, nnindex_cfgstr, verbose)
         # Write to memcache
-        if ut.VERBOSE:
+        if ut.VERBOSE or ut.VERYVERBOSE:
             print('[disk] Wrote to memcache=%r' % (nnindex_cfgstr,))
         NEIGHBOR_CACHE[nnindex_cfgstr] = nnindexer
     return nnindexer
@@ -473,7 +475,7 @@ def request_diskcached_ibeis_nnindexer(qreq_, daid_list, nnindex_cfgstr=None, ve
     flann_params['checks'] = qreq_.qparams.checks
     # Get annot descriptors to index
     aid_list = daid_list
-    vecs_list = qreq_.ibs.get_annot_vecs(aid_list)
+    vecs_list = qreq_.ibs.get_annot_vecs(aid_list, qreq_=qreq_)
     fgws_list = get_fgweights_hack(qreq_, aid_list)
     try:
         nnindexer = new_neighbor_index(
@@ -498,10 +500,6 @@ def group_daids_by_cached_nnindexer(qreq_, aid_list, min_reindex_thresh,
     r"""
     FIXME: This function is slow due to ibs.get_annot_aids_from_visual_uuid
     282.253 seconds for 600 queries
-
-    Args:
-        ibs       (IBEISController):
-        daid_list (list):
 
     CommandLine:
         python -m ibeis.model.hots.neighbor_index --test-group_daids_by_cached_nnindexer
@@ -608,7 +606,7 @@ def get_fgweights_hack(qreq_, daid_list):
     in config settings
     """
     # <HACK:featweight>
-    if qreq_.qparams.fg_weight != 0:
+    if qreq_.qparams.fg_on:
         fgws_list = qreq_.ibs.get_annot_fgweights(
             daid_list, qreq_=qreq_, ensure=True)
     else:
@@ -651,7 +649,7 @@ def new_neighbor_index(aid_list, vecs_list, fgws_list, flann_params, cachedir,
         >>> flann_params = qreq_.qparams.flann_params
         >>> # Get annot descriptors to index
         >>> aid_list = daid_list
-        >>> vecs_list = qreq_.ibs.get_annot_vecs(aid_list)
+        >>> vecs_list = qreq_.ibs.get_annot_vecs(aid_list, qreq_=qreq_)
         >>> fgws_list = get_fgweights_hack(qreq_, aid_list)
         >>> # execute function
         >>> nnindexer = new_neighbor_index(aid_list, vecs_list, fgws_list, flann_params, cachedir, cfgstr, verbose=True)
@@ -668,7 +666,7 @@ def new_neighbor_index(aid_list, vecs_list, fgws_list, flann_params, cachedir,
 @profile
 def prepare_index_data(aid_list, vecs_list, fgws_list, verbose=True):
     """
-    flattens vecs_list and builds a reverse index from the flattened indicies
+    flattens vecs_list and builds a reverse index from the flattened indices
     (idx) to the original aids and fxs
     """
     # Check input
@@ -751,9 +749,9 @@ class NeighborIndex(object):
             >>> from ibeis.model.hots.neighbor_index import *  # NOQA
             >>> nnindexer, qreq_, ibs = test_nnindexer()
             >>> new_aid_list = [2, 3, 4]
-            >>> qfx2_vec = ibs.get_annot_vecs(1)
-            >>> new_vecs_list = ibs.get_annot_vecs(new_aid_list)
-            >>> new_fgws_list = ibs.get_annot_fgweights(new_aid_list)
+            >>> qfx2_vec = ibs.get_annot_vecs(1, qreq_=qreq_)
+            >>> new_vecs_list = ibs.get_annot_vecs(new_aid_list, qreq_=qreq_)
+            >>> new_fgws_list = ibs.get_annot_fgweights(new_aid_list, qreq_=qreq_)
             >>> K = 2
             >>> (qfx2_idx1, qfx2_dist1) = nnindexer.knn(qfx2_vec, K)
             >>> nnindexer.add_support(new_aid_list, new_vecs_list, new_fgws_list)
@@ -767,7 +765,7 @@ class NeighborIndex(object):
         new_idx2_vec, new_idx2_ax, new_idx2_fx = \
                 invert_index(new_vecs_list, new_ax_list)
         nNewVecs = len(new_idx2_vec)
-        if verbose:
+        if verbose or ut.VERYVERBOSE:
             print('[nnindex] Adding %d vecs from %d annots to nnindex with %d vecs and %d annots' %
                   (nNewVecs, nNewAnnots, nVecs, nAnnots))
         new_idx2_fgw = np.hstack(new_fgws_list)
@@ -830,8 +828,8 @@ class NeighborIndex(object):
         """ indexes all vectors with FLANN. """
         num_vecs = nnindexer.num_indexed
         notify_num = 1E6
-        if verbose or (not ut.QUIET and num_vecs > notify_num):
-            print('...building kdtree over %d points (this may take a sec).' % num_vecs)
+        if ut.VERYVERBOSE or verbose or (not ut.QUIET and num_vecs > notify_num):
+            print('[nnindex] ...building kdtree over %d points (this may take a sec).' % num_vecs)
         idx2_vec = nnindexer.idx2_vec
         flann_params = nnindexer.flann_params
         nnindexer.flann.build_index(idx2_vec, **flann_params)
@@ -840,8 +838,8 @@ class NeighborIndex(object):
 
     def save(nnindexer, cachedir, verbose=True):
         flann_fpath = nnindexer.get_fpath(cachedir)
-        if verbose:
-            print('flann.save_index(%r)' % ut.path_ndir_split(flann_fpath, n=5))
+        if ut.VERYVERBOSE or verbose:
+            print('[nnindex] flann.save_index(%r)' % ut.path_ndir_split(flann_fpath, n=5))
         nnindexer.flann.save_index(flann_fpath)
 
     def load(nnindexer, cachedir, verbose=True):
@@ -855,7 +853,7 @@ class NeighborIndex(object):
             except Exception as ex:
                 ut.printex(ex, '... cannot load nnindex flann', iswarning=True)
         return load_success
-        if ut.VERBOSE:
+        if ut.VERYVERBOSE or ut.VERBOSE:
             print('[nnindex] load_success = %r' % (load_success,))
         #flann = nntool.flann_cache(idx2_vec, verbose=verbose, **flannkw)
 
@@ -900,7 +898,7 @@ class NeighborIndex(object):
     #@profile
     def knn(nnindexer, qfx2_vec, K):
         """
-        Returns the indicies and squared distance to the nearest K neighbors.
+        Returns the indices and squared distance to the nearest K neighbors.
         The distance is noramlized between zero and one using
         VEC_PSEUDO_MAX_DISTANCE = (np.sqrt(2) * VEC_PSEUDO_MAX)
 
@@ -921,7 +919,7 @@ class NeighborIndex(object):
             >>> # ENABLE_DOCTEST
             >>> from ibeis.model.hots.neighbor_index import *  # NOQA
             >>> nnindexer, qreq_, ibs = test_nnindexer()
-            >>> qfx2_vec = ibs.get_annot_vecs(1)
+            >>> qfx2_vec = ibs.get_annot_vecs(1, qreq_=qreq_)
             >>> K = 2
             >>> (qfx2_idx, qfx2_dist) = nnindexer.knn(qfx2_vec, K)
             >>> result = str(qfx2_idx.shape) + ' ' + str(qfx2_dist.shape)
@@ -983,7 +981,7 @@ class NeighborIndex(object):
         return nnindexer.idx2_vec.take(qfx2_nnidx, axis=0)
 
     def get_nn_axs(nnindexer, qfx2_nnidx):
-        """ gets matching internal annotation indicies """
+        """ gets matching internal annotation indices """
         return nnindexer.idx2_ax.take(qfx2_nnidx)
 
     @profile
@@ -998,12 +996,10 @@ class NeighborIndex(object):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.model.hots import pipeline
             >>> cfgdict = dict()
-            >>> dbname = 'testdb1'
-            >>> ibs, qreq_ = pipeline.get_pipeline_testdata(dbname=dbname, cfgdict=cfgdict)
+            >>> ibs, qreq_ = plh.get_pipeline_testdata(defaultdb='testdb1', cfgdict=cfgdict, preload=True)
             >>> nnindexer = qreq_.indexer
-            >>> qfx2_vec = qreq_.ibs.get_annot_vecs(qreq_.get_internal_qaids()[0])
+            >>> qfx2_vec = qreq_.ibs.get_annot_vecs(qreq_.get_internal_qaids()[0], qreq_=qreq_)
             >>> num_neighbors = 4
             >>> (qfx2_nnidx, qfx2_dist) = nnindexer.knn(qfx2_vec, num_neighbors)
             >>> qfx2_aid = nnindexer.get_nn_aids(qfx2_nnidx)
@@ -1063,13 +1059,13 @@ def invert_index(vecs_list, ax_list, verbose=ut.NOT_QUIET):
     if ut.VERYVERBOSE:
         print('[nnindex] stacking descriptors from %d annotations' % len(ax_list))
     try:
-        idx2_vec, idx2_ax, idx2_fx = nntool.invertable_stack(vecs_list, ax_list)
+        idx2_vec, idx2_ax, idx2_fx = nntool.invertible_stack(vecs_list, ax_list)
         assert idx2_vec.shape[0] == idx2_ax.shape[0]
         assert idx2_vec.shape[0] == idx2_fx.shape[0]
     except MemoryError as ex:
         ut.printex(ex, 'cannot build inverted index', '[!memerror]')
         raise
-    if verbose:
+    if ut.VERYVERBOSE or verbose:
         print('[nnindex] stacked nVecs={nVecs} from nAnnots={nAnnots}'.format(
             nVecs=len(idx2_vec), nAnnots=len(ax_list)))
     return idx2_vec, idx2_ax, idx2_fx
@@ -1096,11 +1092,8 @@ def test_nnindexer(dbname='testdb1', with_indexer=True):
 # ------------
 # NEW
 
-class BuildBackgroundNNIndexer(object):
-    def __init__(self):
-        pass
 
-
+@profile
 def check_background_process():
     """
     checks to see if the process has finished and then
@@ -1126,6 +1119,7 @@ def can_request_background_nnindexer():
     return CURRENT_THREAD is None or not CURRENT_THREAD.is_alive()
 
 
+@profile
 def request_background_nnindexer(qreq_, daid_list):
     """ FIXME: Duplicate code
 

@@ -2,6 +2,9 @@
 This module was never really finished. It is used in some cases
 to display the results from a query in a qt window. It needs
 some work if its to be re-integrated.
+
+TODO:
+    Refresh name table on inspect gui close
 """
 from __future__ import absolute_import, division, print_function
 from functools import partial
@@ -9,27 +12,58 @@ from guitool import qtype, APIItemWidget, APIItemModel, FilterProxyModel, Change
 from guitool.__PYQT__ import QtGui, QtCore
 from ibeis import ibsfuncs
 from ibeis.dev import results_organizer
-from ibeis.viz import interact
+#from ibeis.viz import interact
 from ibeis.viz import viz_helpers as vh
 from plottool import fig_presenter
-from plottool import interact_helpers as ih
+#from plottool import interact_helpers as ih
 from six.moves import range
 import guitool
 import numpy as np
 import six
 import utool
 import utool as ut
+from ibeis.gui import guiexcept
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[inspect_gui]')
 
 
 USE_FILTER_PROXY = False
 
 
+class CustomFilterModel(FilterProxyModel):
+    def __init__(model, headers=None, parent=None, *args):
+        FilterProxyModel.__init__(model, parent=parent, *args)
+        model.ibswin = parent
+        model.eid = -1  # negative one is an invalid eid
+        model.original_ider = None
+        model.sourcemodel = APIItemModel(parent=parent)
+        model.setSourceModel(model.sourcemodel)
+        print('[ibs_model] just set the sourcemodel')
+
+    def _update_headers(model, **headers):
+        def _null_ider(**kwargs):
+            return []
+        model.original_iders = headers.get('iders', [_null_ider])
+        if len(model.original_iders) > 0:
+            model.new_iders = model.original_iders[:]
+            model.new_iders[0] = model._ider
+        headers['iders'] = model.new_iders
+        model.sourcemodel._update_headers(**headers)
+
+    def _ider(model):
+        """ Overrides the API model ider to give only selected encounter ids """
+        return model.original_iders[0]()
+
+    def _change_enc(model, eid):
+        model.eid = eid
+        with ChangeLayoutContext([model]):
+            FilterProxyModel._update_rows(model)
+
+
 class QueryResultsWidget(APIItemWidget):
     """ Window for gui inspection """
 
     def __init__(qres_wgt, ibs, qaid2_qres, parent=None, callback=None,
-                 name_scoring=False, singlematch_api=False, **kwargs):
+                 name_scoring=False, **kwargs):
         if ut.VERBOSE:
             print('[qres_wgt] Init QueryResultsWidget')
         # Uncomment below to turn on FilterProxyModel
@@ -39,7 +73,6 @@ class QueryResultsWidget(APIItemWidget):
         else:
             APIItemWidget.__init__(qres_wgt, parent=parent)
         qres_wgt.button_list = None
-        qres_wgt.singlematch_api = singlematch_api
         qres_wgt.show_new = True
         qres_wgt.show_join = True
         qres_wgt.show_split = True
@@ -108,10 +141,7 @@ class QueryResultsWidget(APIItemWidget):
         print('[qres_wgt] Change QueryResultsWidget data')
         qres_wgt.ibs = ibs
         qres_wgt.qaid2_qres = qaid2_qres
-        if qres_wgt.singlematch_api:
-            qres_wgt.qres_api = make_singlematch_api(ibs, qaid2_qres, name_scoring=name_scoring, **kwargs)
-        else:
-            qres_wgt.qres_api = make_qres_api(ibs, qaid2_qres, name_scoring=name_scoring, **kwargs)
+        qres_wgt.qres_api = make_qres_api(ibs, qaid2_qres, name_scoring=name_scoring, **kwargs)
         qres_wgt.update_checkboxes()
         headers = qres_wgt.qres_api.make_headers()
         # super call
@@ -125,15 +155,15 @@ class QueryResultsWidget(APIItemWidget):
 
     @guitool.slot_(QtCore.QModelIndex)
     def _on_click(iqrw, qtindex):
-        print('[qres_wgt] _on_click: ')
-        print('[qres_wgt] _on_click: ' + str(qtype.qindexinfo(qtindex)))
+        #print('[qres_wgt] _on_click: ')
+        #print('[qres_wgt] _on_click: ' + str(qtype.qindexinfo(qtindex)))
         col = qtindex.column()
         model = qtindex.model()
         colname = model.get_header_name(col)
         if colname == 'status':
-            qres_callback = partial(show_match_at, iqrw, qtindex)
-            review_match_at(iqrw, qtindex, quickmerge=False, qres_callback=qres_callback)
-        pass
+            #qres_callback = partial(show_match_at, iqrw, qtindex)
+            #review_match_at(iqrw, qtindex, qres_callback=qres_callback)
+            review_match_at(iqrw, qtindex)
 
     @guitool.slot_(QtCore.QModelIndex)
     def _on_doubleclick(iqrw, qtindex):
@@ -150,9 +180,9 @@ class QueryResultsWidget(APIItemWidget):
     def _on_pressed(iqrw, qtindex):
         print('[qres_wgt] _on_pressed: ')
         def _check_for_double_click(iqrw, qtindex):
-            threshold = 0.50  # seconds
+            threshold = 0.20  # seconds
             distance = utool.toc(iqrw.tt)
-            print('Pressed %r' % (distance,))
+            #print('Pressed %r' % (distance,))
             col = qtindex.column()
             model = qtindex.model()
             colname = model.get_header_name(col)
@@ -176,9 +206,195 @@ class QueryResultsWidget(APIItemWidget):
     def on_contextMenuRequested(iqrw, qtindex, qpos):
         printDBG('[newgui] contextmenu')
         guitool.popup_menu(iqrw, qpos, [
-            ('view match annotations', lambda: show_match_at(iqrw, qtindex)),
-            ('review match', lambda: review_match_at(iqrw, qtindex)),
+            ('Show feature matches', lambda: show_match_at(iqrw, qtindex)),
+            ('Inspect Match Candidates', lambda: review_match_at(iqrw, qtindex)),
+            ('Mark as &True Match.', lambda: mark_pair_as_positive_match(iqrw, qtindex)),
+            ('Mark as &False Match.', lambda: mark_pair_as_negative_match(iqrw, qtindex)),
         ])
+
+
+def mark_pair_as_positive_match(qres_wgt, qtindex):
+    model = qtindex.model()
+    qaid  = model.get_header_data('qaid', qtindex)
+    daid  = model.get_header_data('aid', qtindex)
+    ibs = qres_wgt.ibs
+    try:
+        status = mark_annot_pair_as_positive_match(ibs, qaid, daid)
+        print('status = %r' % (status,))
+    except guiexcept.NeedsUserInput:
+        review_match_at(qres_wgt, qtindex)
+    except guiexcept.UserCancel:
+        print('user canceled positive match')
+
+
+def mark_pair_as_negative_match(qres_wgt, qtindex):
+    model = qtindex.model()
+    qaid  = model.get_header_data('qaid', qtindex)
+    daid  = model.get_header_data('aid', qtindex)
+    ibs = qres_wgt.ibs
+    try:
+        status = mark_annot_pair_as_negative_match(ibs, qaid, daid)
+        print('status = %r' % (status,))
+    except guiexcept.NeedsUserInput:
+        review_match_at(qres_wgt, qtindex)
+    except guiexcept.UserCancel:
+        print('user canceled negative match')
+
+
+def mark_annot_pair_as_positive_match(ibs, aid1, aid2, dryrun=False):
+    """
+    TODO: ELEVATE THIS FUNCTION
+    Change into make_task_mark_annot_pair_as_positive_match and it returns what
+    needs to be done.
+
+    Need to test several cases:
+        uknown, unknown
+        knownA, knownA
+        knownB, knownA
+        unknown, knownA
+        knownA, unknown
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aid1 (int):  query annotation id
+        aid2 (int):  matching annotation id
+
+    CommandLine:
+        python -m ibeis.gui.inspect_gui --test-mark_annot_pair_as_positive_match
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.gui.inspect_gui import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid1, aid2 = ibs.get_valid_aids()[0:2]
+        >>> dryrun = True
+        >>> status = mark_annot_pair_as_positive_match(ibs, aid1, aid2, dryrun)
+        >>> # verify results
+        >>> print(status)
+    """
+    def _set_annot_name_rowids(aid_list, nid_list):
+        if not ut.QUIET:
+            print('... _set_annot_name_rowids(aids=%r, nids=%r)' % (aid_list, nid_list))
+            print('... names = %r' % (ibs.get_name_texts(nid_list)))
+        assert len(aid_list) == len(nid_list), 'list must correspond'
+        if not dryrun:
+            ibs.set_annot_name_rowids(aid_list, nid_list)
+        # Return the new annots in this name
+        _aids_list = ibs.get_name_aids(nid_list)
+        _combo_aids_list = [_aids + [aid] for _aids, aid, in zip(_aids_list, aid_list)]
+        status = _combo_aids_list
+        return status
+    print('[marking_match] aid1 = %r, aid2 = %r' % (aid1, aid2))
+
+    nid1, nid2 = ibs.get_annot_name_rowids([aid1, aid2])
+    if nid1 == nid2:
+        print('...images already matched')
+        status = None
+    else:
+        isunknown1, isunknown2 = ibs.is_aid_unknown([aid1, aid2])
+        if isunknown1 and isunknown2:
+            print('...match unknown1 to unknown2 into 1 new name')
+            next_nids = ibs.make_next_nids(num=1)
+            status =  _set_annot_name_rowids([aid1, aid2], next_nids * 2)
+        elif not isunknown1 and not isunknown2:
+            print('...merge known1 into known2')
+            MERGE_NEEDS_INTERACTION  = False
+            MERGE_NEEDS_VERIFICATION = True
+            aid1_and_groundtruth = ibs.get_annot_groundtruth(aid1, noself=False)
+            if MERGE_NEEDS_INTERACTION:
+                raise guiexcept.NeedsUserInput('confirm merge')
+            elif MERGE_NEEDS_VERIFICATION:
+                aid2_and_groundtruth = ibs.get_annot_groundtruth(aid2, noself=False)
+                name1, name2 = ibs.get_annot_names([aid1, aid2])
+                msgfmt = ut.codeblock('''
+                   Confirm merge of animal {name1} and {name2}
+                   {name1} has {num_gt1} annotations
+                   {name2} has {num_gt2} annotations
+                   ''')
+                msg = msgfmt.format(name1=name1, name2=name2,
+                                    num_gt1=len(aid1_and_groundtruth),
+                                    num_gt2=len(aid2_and_groundtruth),)
+                if not guitool.are_you_sure(parent=None, msg=msg, default='Yes'):
+                    raise guiexcept.UserCancel('canceled merge')
+            status =  _set_annot_name_rowids(aid1_and_groundtruth, [nid2] * len(aid1_and_groundtruth))
+        elif isunknown2 and not isunknown1:
+            print('...match unknown2 into known1')
+            status =  _set_annot_name_rowids([aid2], [nid1])
+        elif isunknown1 and not isunknown2:
+            print('...match unknown1 into known2')
+            status =  _set_annot_name_rowids([aid1], [nid2])
+        else:
+            raise AssertionError('impossible state')
+    return status
+
+
+def mark_annot_pair_as_negative_match(ibs, aid1, aid2, dryrun=False):
+    """
+    TODO: ELEVATE THIS FUNCTION
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aid1 (int):  annotation id
+        aid2 (int):  annotation id
+        dryrun (bool):
+
+    Returns:
+        ?:
+
+    CommandLine:
+        python -m ibeis.gui.inspect_gui --test-mark_annot_pair_as_negative_match
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.gui.inspect_gui import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid1, aid2 = ibs.get_valid_aids()[0:2]
+        >>> dryrun = True
+        >>> # execute function
+        >>> result = mark_annot_pair_as_negative_match(ibs, aid1, aid2, dryrun)
+        >>> # verify results
+        >>> print(result)
+    """
+    def _set_annot_name_rowids(aid_list, nid_list):
+        print('... _set_annot_name_rowids(%r, %r)' % (aid_list, nid_list))
+        if not dryrun:
+            ibs.set_annot_name_rowids(aid_list, nid_list)
+    nid1, nid2 = ibs.get_annot_name_rowids([aid1, aid2])
+    if nid1 == nid2:
+        print('images are marked as having the same name... we must tread carefully')
+        aid1_groundtruth = ibs.get_annot_groundtruth(aid1, noself=True)
+        if len(aid1_groundtruth) == 1 and aid1_groundtruth == [aid2]:
+            # this is the only safe case for same name split
+            # Change so the names are not the same
+            next_nids = ibs.make_next_nids(num=1)
+            status =  _set_annot_name_rowids([aid1], next_nids)
+        else:
+            status = 'error'
+            print('There are %d annots in this name. Need more sophisticated split' % (len(aid1_groundtruth)))
+            raise guiexcept.NeedsUserInput('non-trivial split')
+    else:
+        isunknown1, isunknown2 = ibs.is_aid_unknown([aid1, aid2])
+        if isunknown1 and isunknown2:
+            print('...nonmatch unknown1 and unknown2 into 2 new names')
+            next_nids = ibs.make_next_nids(num=2)
+            status =  _set_annot_name_rowids([aid1, aid2], next_nids)
+        elif not isunknown1 and not isunknown2:
+            print('...nonmatch known1 and known2... nothing to do (yet)')
+            status = None
+        elif isunknown2 and not isunknown1:
+            print('...nonmatch unknown2 -> newname and known1')
+            next_nids = ibs.make_next_nids(num=1)
+            status =  _set_annot_name_rowids([aid2], next_nids)
+        elif isunknown1 and not isunknown2:
+            print('...nonmatch unknown1 -> newname and known2')
+            next_nids = ibs.make_next_nids(num=1)
+            status =  _set_annot_name_rowids([aid1], next_nids)
+        else:
+            raise AssertionError('impossible state')
+    return status
 
 
 def show_match_at(qres_wgt, qtindex):
@@ -186,11 +402,13 @@ def show_match_at(qres_wgt, qtindex):
     model = qtindex.model()
     aid  = model.get_header_data('aid', qtindex)
     qaid = model.get_header_data('qaid', qtindex)
-    fig = interact.ishow_matches(qres_wgt.ibs, qres_wgt.qaid2_qres[qaid], aid, mode=1)
+    #fig = interact.ishow_matches(qres_wgt.ibs, qres_wgt.qaid2_qres[qaid], aid, mode=1)
+    match_interaction = qres_wgt.qaid2_qres[qaid].ishow_matches(qres_wgt.ibs, aid, mode=1)
+    fig = match_interaction.fig
     fig_presenter.bring_to_front(fig)
 
 
-def review_match_at(qres_wgt, qtindex, quickmerge=False, **kwargs):
+def review_match_at(qres_wgt, qtindex, **kwargs):
     print('review')
     ibs = qres_wgt.ibs
     model = qtindex.model()
@@ -201,65 +419,24 @@ def review_match_at(qres_wgt, qtindex, quickmerge=False, **kwargs):
     #update_callback = model._update
     update_callback = None  # hack (checking if necessary)
     backend_callback = qres_wgt.callback
-    if quickmerge:
-        is_unknown = ibs.is_aid_unknown((aid1, aid2))
-        if all(is_unknown):
-            ibs.set_annot_names_to_next_name((aid1, aid2))
-            update_callback()
-            backend_callback()
-            return
-        elif is_unknown[0]:
-            ibs.set_annot_name_rowids(aid1, ibs.get_annot_name_rowids(aid2))
-            update_callback()
-            backend_callback()
-            return
-        elif is_unknown[1]:
-            ibs.set_annot_name_rowids(aid2, ibs.get_annot_name_rowids(aid1))
-            update_callback()
-            backend_callback()
-            return
+    #qres_callback = partial(show_match_at, qres_wgt, qtindex)
+    qres = qres_wgt.qaid2_qres[aid1]
     review_match(ibs, aid1, aid2, update_callback=update_callback,
-                 backend_callback=backend_callback, **kwargs)
+                 backend_callback=backend_callback,
+                 qres=qres,
+                 #qres_callback=qres_callback,
+                 **kwargs)
 
 
 def review_match(ibs, aid1, aid2, update_callback=None, backend_callback=None, **kwargs):
     print('Review match: ' + ibsfuncs.vsstr(aid1, aid2))
-    from ibeis.viz.interact.interact_name import MatchVerificationInteraction
+    from ibeis.viz.interact import interact_name
     #ibsfuncs.assert_valid_aids(ibs, [aid1, aid2])
-    mvinteract = MatchVerificationInteraction(ibs, aid1, aid2, fnum=64,
-                                              update_callback=update_callback,
-                                              backend_callback=backend_callback, **kwargs)
-    ih.register_interaction(mvinteract)
-
-
-class CustomFilterModel(FilterProxyModel):
-    def __init__(model, headers=None, parent=None, *args):
-        FilterProxyModel.__init__(model, parent=parent, *args)
-        model.ibswin = parent
-        model.eid = -1  # negative one is an invalid eid
-        model.original_ider = None
-        model.sourcemodel = APIItemModel(parent=parent)
-        model.setSourceModel(model.sourcemodel)
-        print('[ibs_model] just set the sourcemodel')
-
-    def _update_headers(model, **headers):
-        def _null_ider(**kwargs):
-            return []
-        model.original_iders = headers.get('iders', [_null_ider])
-        if len(model.original_iders) > 0:
-            model.new_iders = model.original_iders[:]
-            model.new_iders[0] = model._ider
-        headers['iders'] = model.new_iders
-        model.sourcemodel._update_headers(**headers)
-
-    def _ider(model):
-        """ Overrides the API model ider to give only selected encounter ids """
-        return model.original_iders[0]()
-
-    def _change_enc(model, eid):
-        model.eid = eid
-        with ChangeLayoutContext([model]):
-            FilterProxyModel._update_rows(model)
+    mvinteract = interact_name.MatchVerificationInteraction(
+        ibs, aid1, aid2, fnum=64, update_callback=update_callback,
+        backend_callback=backend_callback, **kwargs)
+    return mvinteract
+    #ih.register_interaction(mvinteract)
 
 
 class CustomAPI(object):
@@ -340,14 +517,6 @@ class CustomAPI(object):
         """
         returns the row based on the columns iders.
         This is the identity for the default ider
-
-        Args:
-            column (int):
-            row    (int):
-
-        Returns:
-             function that applies
-
         """
         ider_ = self.col_ider_list[column]
         if ider_ is None:
@@ -359,13 +528,6 @@ class CustomAPI(object):
         """
         getters always receive primary rowids, rectify if col_ider is
         specified (row might be a row_pair)
-
-        Args:
-            column (int): column index
-            row    (int): row index (or tuple of rows)
-
-        Returns:
-            data
         """
         index = self._infer_index(column, row)
         column_getter = self.col_getter_list[column]
@@ -450,8 +612,7 @@ def get_status_bgrole(ibs, aid_pair):
     aid1, aid2 = aid_pair
     truth = ibs.get_match_truth(aid1, aid2)
     #print('get status bgrole: %r truth=%r' % (aid_pair, truth))
-    truth_color = vh.get_truth_color(truth, base255=True,
-                                        lighten_amount=0.35)
+    truth_color = vh.get_truth_color(truth, base255=True, lighten_amount=0.35)
     return truth_color
 
 
@@ -481,22 +642,10 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False):
     ibs.cfg.other_cfg.ranks_lt = 2
     ranks_lt = ranks_lt if ranks_lt is not None else ibs.cfg.other_cfg.ranks_lt
     candidate_matches = results_organizer.get_automatch_candidates(
-        qaid2_qres, ranks_lt=ranks_lt, name_scoring=name_scoring, ibs=ibs)
+        qaid2_qres, ranks_lt=ranks_lt, name_scoring=name_scoring, ibs=ibs, directed=False)
     # Get extra info
     (qaids, aids, scores, ranks) = candidate_matches
-    # assert all([isinstance(qaid, np.int32) for qaid in qaids]), "ERROR not all qaids are ints: %r" % (qaids)
-    # assert all([isinstance(aid, np.int32)  for aid  in aids]), "ERROR not all aids are ints: %r" % (aids)
-    #qnames = ibs.get_annot_names(qaids)
-    #names = ibs.get_annot_names(aids)
-    #truths = np.array((ibs.get_annot_lblannot_rowids_oftype(qaids) - ibs.get_annot_lblannot_rowids_oftype(aids)) == 0)
-    #buttons = [get_review_match_buttontup(aid1, aid2) for (aid1, aid2) in zip(qaids, aids)]
 
-    #def get_review_match_buttontup(aid1, aid2):
-    #    """ A buttontup is a string and a callback """
-    #    return get_button  # ('Merge', partial(review_match, aid1, aid2))
-
-    def get_rowid_button(rowid):
-        return get_buttontup
     #opts = np.zeros(len(qaids))
     # Define column information
 
@@ -514,10 +663,17 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False):
         'name',
         'rank',
     ]
+    #if ut.is_developer():
+    #    pass
+    #    col_name_list.insert(2, 'd_nGt')
+    #    col_name_list.insert(2, 'q_nGt')
+    #    #col_name_list.insert(2, 'q_nGt')
 
     col_types_dict = dict([
         ('qaid',       int),
         ('aid',        int),
+        #('d_nGt',      int),
+        #('q_nGt',      int),
         ('review',     'BUTTON'),
         ('status',     str),
         ('querythumb', 'PIXMAP'),
@@ -533,7 +689,9 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False):
     col_getters_dict = dict([
         ('qaid',       np.array(qaids)),
         ('aid',        np.array(aids)),
-        ('review',     get_rowid_button),
+        #('d_nGt',      ibs.get_annot_num_groundtruth),
+        #('q_nGt',      ibs.get_annot_num_groundtruth),
+        ('review',     lambda rowid: get_buttontup),
         ('status',     partial(get_status, ibs)),
         ('querythumb', ibs.get_annot_chip_thumbtup),
         ('resthumb',   ibs.get_annot_chip_thumbtup),
@@ -545,11 +703,18 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False):
         #('opt',       opts),
     ])
 
+    #get_status_bgrole_func = partial(get_status_bgrole, ibs)
     col_bgrole_dict = {
-        'status': partial(get_status_bgrole, ibs),
+        'status' : partial(get_status_bgrole, ibs),
+        #'aid'    : get_status_bgrole_func,
+        #'qaid'   : get_status_bgrole_func,
     }
+    # TODO: remove ider dict.
+    # it is massively unuseful
     col_ider_dict = {
         'status'     : ('qaid', 'aid'),
+        #'d_nGt'      : ('aid'),
+        #'q_nGt'      : ('qaid'),
         'querythumb' : ('qaid'),
         'resthumb'   : ('aid'),
         'qname'      : ('qaid'),
@@ -569,123 +734,6 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False):
     return qres_api
 
 
-def make_singlematch_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False):
-    """
-    Builds columns which are displayable in a ColumnListTableWidget
-    """
-    if ut.VERBOSE:
-        print('[inspect] make_qres_api')
-    ibs.cfg.other_cfg.ranks_lt = 2
-    ranks_lt = ranks_lt if ranks_lt is not None else ibs.cfg.other_cfg.ranks_lt
-    # Get extra info
-    assert len(qaid2_qres) == 1
-    qaid = list(qaid2_qres.keys())[0]
-    qres = qaid2_qres[qaid]
-    (aids, scores) = qres.get_aids_and_scores(name_scoring=name_scoring, ibs=ibs)
-    #ranks = scores.argsort()
-    qaid = qres.get_qaid()
-
-    def get_rowid_button(rowid):
-        def get_button(ibs, qtindex):
-            model = qtindex.model()
-            aid2 = model.get_header_data('aid', qtindex)
-            truth = ibs.get_match_truth(qaid, aid2)
-            truth_color = vh.get_truth_color(truth, base255=True,
-                                                lighten_amount=0.35)
-            truth_text = ibs.get_match_text(qaid, aid2)
-            callback = partial(review_match, ibs, qaid, aid2)
-            #print('get_button, aid1=%r, aid2=%r, row=%r, truth=%r' % (aid1, aid2, row, truth))
-            buttontup = (truth_text, callback, truth_color)
-            return buttontup
-
-    col_name_list = [
-        'aid',
-        'score',
-        #'status',
-        'resthumb',
-    ]
-
-    col_types_dict = dict([
-        ('aid',        int),
-        ('score',      float),
-        #('status',     str),
-        ('resthumb',   'PIXMAP'),
-    ])
-
-    col_getters_dict = dict([
-        ('aid',        np.array(aids)),
-        ('score',      np.array(scores)),
-        ('resthumb',   ibs.get_annot_chip_thumbtup),
-        #('status',     partial(get_status, ibs)),
-        #('querythumb', ibs.get_annot_chip_thumbtup),
-        #('truth',     truths),
-        #('opt',       opts),
-    ])
-
-    col_bgrole_dict = {
-        #'status': partial(get_status_bgrole, ibs),
-    }
-    col_ider_dict = {
-        #'status'     : ('qaid', 'aid'),
-        'resthumb'   : ('aid'),
-        #'name'       : ('aid'),
-    }
-    col_setter_dict = {
-    }
-    editable_colnames =  []
-    sortby = 'score'
-    # Insert info into dict
-    get_thumb_size = lambda: ibs.cfg.other_cfg.thumb_size
-    qres_api = CustomAPI(col_name_list, col_types_dict, col_getters_dict,
-                         col_bgrole_dict, col_ider_dict, col_setter_dict,
-                         editable_colnames, sortby, get_thumb_size)
-    return qres_api
-
-
-def test_singleres_api(ibs, qaid_list, daid_list):
-    """
-
-    Args:
-        ibs       (IBEISController):
-        qaid_list (list): query annotation id list
-        daid_list (list): database annotation id list
-
-    Returns:
-        dict: locals_
-
-    CommandLine:
-        python -m ibeis.gui.inspect_gui --test-test_singleres_api --cmd
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.gui.inspect_gui import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('PZ_MTEST')
-        >>> qaid_list = ibs.get_valid_aids()[0:1]
-        >>> daid_list = ibs.get_valid_aids()
-        >>> main_locals = test_singleres_api(ibs, qaid_list, daid_list)
-        >>> main_execstr = ibeis.main_loop(main_locals)
-        >>> print(main_execstr)
-        >>> exec(main_execstr)
-    """
-    from ibeis.viz.interact import interact_qres2  # NOQA
-    from ibeis.gui import inspect_gui
-    from ibeis.dev import results_all
-    allres = results_all.get_allres(ibs, qaid_list[0:1])
-    guitool.ensure_qapp()
-    tblname = 'qres'
-    qaid2_qres = allres.qaid2_qres
-    ranks_lt = 5
-    qres_wgt = inspect_gui.QueryResultsWidget(ibs, qaid2_qres,
-                                              ranks_lt=ranks_lt,
-                                              name_scoring=True,
-                                              singlematch_api=True)
-    qres_wgt.show()
-    qres_wgt.raise_()
-    locals_ =  locals()
-    return locals_
-
-
 def test_inspect_matches(ibs, qaid_list, daid_list):
     """
 
@@ -698,17 +746,20 @@ def test_inspect_matches(ibs, qaid_list, daid_list):
         dict: locals_
 
     CommandLine:
-        python -m ibeis.gui.inspect_gui --test-test_inspect_matches --cmd
+        python -m ibeis.gui.inspect_gui --test-test_inspect_matches --show
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.gui.inspect_gui import *  # NOQA
         >>> import ibeis
+        >>> import guitool
         >>> ibs = ibeis.opendb('PZ_MTEST')
-        >>> qaid_list = ibs.get_valid_aids()[0:1]
-        >>> daid_list = ibs.get_valid_aids()
+        >>> qaid_list = ibs.get_valid_aids()[0:5]
+        >>> daid_list = ibs.get_valid_aids()[0:20]
         >>> main_locals = test_inspect_matches(ibs, qaid_list, daid_list)
         >>> main_execstr = ibeis.main_loop(main_locals)
+        >>> if ut.show_was_requested():
+        >>>     guitool.qtapp_loop()
         >>> print(main_execstr)
         >>> exec(main_execstr)
     """
@@ -739,11 +790,26 @@ def test_inspect_matches(ibs, qaid_list, daid_list):
     return locals_
 
 
+def launch_review_matches_interface(ibs, qres_list, dodraw=False):
+    """ TODO: move to a more general function """
+    from ibeis.gui import inspect_gui
+    import guitool
+    guitool.ensure_qapp()
+    #backend_callback = back.front.update_tables
+    backend_callback = None
+    qaid2_qres = {qres.qaid: qres for qres in qres_list}
+    qres_wgt = inspect_gui.QueryResultsWidget(ibs, qaid2_qres, callback=backend_callback)
+    if dodraw:
+        qres_wgt.show()
+        qres_wgt.raise_()
+    return qres_wgt
+
+
 if __name__ == '__main__':
     """
     CommandLine:
-        python -c "import utool, ibeis.gui.inspect_gui; utool.doctest_funcs(ibeis.gui.inspect_gui, allexamples=True)"
-        python -c "import utool, ibeis.gui.inspect_gui; utool.doctest_funcs(ibeis.gui.inspect_gui)"
+        python -m ibeis.gui.inspect_gui --test-test_inspect_matches --show
+
         python -m ibeis.gui.inspect_gui
         python -m ibeis.gui.inspect_gui --allexamples
         python -m ibeis.gui.inspect_gui --allexamples --noface --nosrc

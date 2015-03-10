@@ -189,6 +189,7 @@ class QueryResult(__OBJECT_BASE__):
         qres.aid2_fsv = None  # feat_scorevec_list
         qres.aid2_fk = None   # feat_rank_list
         qres.aid2_score = None  # annotation score
+        qres.aid2_H = None  # annotation score
         qres.aid2_prob = None   # annotation normalized score
         qres.filtkey_list = None   # list of filter keys for each dimension in fsv
         qres.metadata = None  # messy (meta information of query)
@@ -247,6 +248,8 @@ class QueryResult(__OBJECT_BASE__):
             #print('[qr] qres.load() fpath=%r' % (split(fpath)[1],))
             with open(fpath, 'rb') as file_:
                 loaded_dict = cPickle.load(file_)
+                if 'aid2_H' not in loaded_dict:
+                    raise hsexcept.HotsCacheMissError('old qres error')
                 qres.__dict__.update(loaded_dict)
             #if not isinstance(qres.metadata, dict):
             #    print('[qr] loading old result format')
@@ -284,6 +287,7 @@ class QueryResult(__OBJECT_BASE__):
             msg = '... qres cache miss: %r' % (split(fpath)[1],)
             if verbose:
                 print(msg)
+            raise
         except Exception as ex:
             utool.printex(ex, 'unknown exception while loading query result')
             raise
@@ -367,7 +371,7 @@ class QueryResult(__OBJECT_BASE__):
         aid_list, score_list = qres.get_aids_and_chip_scores()
         if np.all(np.isnan(score_list)):
             score_list = qres.get_aid_scores(aid_list, rawscore=True)
-        nscoretup = name_scoring.get_one_score_per_name(ibs, aid_list, score_list)
+        nscoretup = name_scoring.group_scores_by_name(ibs, aid_list, score_list)
         # (sorted_nids, sorted_nscore, sorted_aids, sorted_scores) = nscoretup
         return nscoretup
 
@@ -476,7 +480,10 @@ class QueryResult(__OBJECT_BASE__):
             return mx
 
     def get_worse_possible_rank(qres):
-        """ a good non None value to use for None ranks """
+        """
+        DEPRICATE
+
+        a good non None value to use for None ranks """
         #worse_possible_rank = max(len(qres.get_daids()) + 2, 9001)
         worse_possible_rank = len(qres.get_daids()) + 1
         return worse_possible_rank
@@ -541,21 +548,21 @@ class QueryResult(__OBJECT_BASE__):
         else:
             return gt_ranks
 
-    def get_best_gt_rank(qres, ibs=None, gt_aids=None):
-        """ Returns the best rank over all the groundtruth """
-        gt_ranks, gt_aids = qres.get_gt_ranks(ibs=ibs, gt_aids=gt_aids, return_gtaids=True)
-        aidrank_tups = list(zip(gt_aids, gt_ranks))
+    def get_best_aid_rank(qres, aids):
+        """ Returns the best rank over all the input aids """
+        ranks, aids = qres.get_aid_ranks(aids)
+        aidrank_tups = list(zip(aids, ranks))
         # Get only the aids that placed in the shortlist
-        #valid_gtaids = np.array([ aid for aid, rank in aidrank_tups if rank is not None])
-        valid_ranks  = np.array([rank for aid, rank in aidrank_tups if rank is not None])
+        valid_ranks  = np.array([rank for aid, rank in aidrank_tups
+                                 if rank is not None])
         # Sort so lowest score is first
         best_rankx = valid_ranks.argsort()
         #best_gtaids  = best_gtaids[best_rankx]
-        best_gtranks = valid_ranks[best_rankx]
-        if len(best_gtranks) == 0:
+        best_ranks = valid_ranks[best_rankx]
+        if len(best_ranks) == 0:
             best_rank = -1
         else:
-            best_rank = best_gtranks[0]
+            best_rank = best_ranks[0]
         return best_rank
 
     # ----------------------------------------
@@ -600,6 +607,9 @@ class QueryResult(__OBJECT_BASE__):
         #print(utool.make_csv_table(tbldata2, column_lbls))
         #utool.embed()
         return tbldata
+
+    def print_inspect_str(qreq_, *args, **kwargs):
+        print(qreq_.get_inspect_str(*args, **kwargs))
 
     def get_inspect_str(qres, ibs=None, name_scoring=False):
         qres.assert_self()
@@ -697,44 +707,114 @@ class QueryResult(__OBJECT_BASE__):
     # ----------------------------------------
 
     #TODO?: @utool.augment_signature(viz_qres.show_qres_top)
-    def show_top(qres, ibs, *args, **kwargs):
+    def show_top(qres, ibs, qreq_=None, *args, **kwargs):
         print('[qres] show_top')
         from ibeis.viz import viz_qres
-        fig = viz_qres.show_qres_top(ibs, qres, *args, **kwargs)
+        fig = viz_qres.show_qres_top(ibs, qres, *args, qreq_=qreq_, **kwargs)
         if kwargs.get('update', False):
             fig.show()
         return fig
 
-    def show_analysis(qres, ibs, *args, **kwargs):
+    def show_analysis(qres, ibs, qreq_=None, *args, **kwargs):
         print('[qres] show_analysis')
         from ibeis.viz import viz_qres
-        return viz_qres.show_qres_analysis(ibs, qres, *args, **kwargs)
+        return viz_qres.show_qres_analysis(ibs, qres, *args, qreq_=qreq_, **kwargs)
 
-    def ishow_top(qres, ibs, *args, **kwargs):
+    def ishow_analysis(qres, ibs, qreq_=None, *args, **kwargs):
+        print('[qres] show_analysis')
+        from ibeis.viz.interact import interact_qres
+        return interact_qres.ishow_analysis(ibs, qres, *args, qreq_=qreq_, **kwargs)
+
+    def ishow_top(qres, ibs, qreq_=None, *args, **kwargs):
         print('[qres] ishow_top')
         from ibeis.viz.interact import interact_qres
         # use make_title=True instead
         #if 'figtitle' not in kwargs:
         #    kwargs['figtitle'] = qres.make_smaller_title()
-        fig = interact_qres.ishow_qres(ibs, qres, *args, **kwargs)
+        fig = interact_qres.ishow_qres(ibs, qres, *args, qreq_=qreq_, **kwargs)
         if kwargs.get('update', False):
             fig.show()
         return fig
 
-    def show_matches(qres, ibs, aid, *args, **kwargs):
+    def show_matches(qres, ibs, aid, qreq_=None, *args, **kwargs):
         from ibeis.viz import viz_matches
-        return viz_matches.show_matches(ibs, qres, aid, *args, **kwargs)
+        return viz_matches.show_matches(ibs, qres, aid, *args, qreq_=qreq_, **kwargs)
 
-    def ishow_matches(qres, ibs, aid, *args, **kwargs):
+    def dump_top_match(qres, ibs, qreq_=None, *args, **kwargs):
+        """
+        CommandLine:
+            python -m ibeis.model.hots.hots_query_result --test-dump_top_match --show
+            python -m ibeis.model.hots.hots_query_result --test-dump_top_match --show --quality
+
+            python -m ibeis.model.hots.hots_query_result --test-dump_top_match --show --dpi=160 --no-fmatches
+            python -m ibeis.model.hots.hots_query_result --test-dump_top_match --show --dpi=120 --no-fmatches --saveax
+            python -m ibeis.model.hots.hots_query_result --test-dump_top_match --show --dpi=120 --saveax
+
+        Kwargs;
+            saveax (bool): if True only save the axes not the entire figure
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.model.hots.hots_query_result import *  # NOQA
+            >>> import plottool as pt
+            >>> import ibeis
+            >>> # build test data
+            >>> ibs = ibeis.opendb('testdb1')
+            >>> kwargs = {}
+            >>> kwargs['dpi'] = ut.get_argval('--dpi', int, None)
+            >>> kwargs['figsize'] = ut.get_argval('--figsize', list, None)
+            >>> kwargs['fpath'] = ut.get_argval('--fpath', str, None)
+            >>> kwargs['draw_fmatches'] = not ut.get_argflag('--no-fmatches')
+            >>> kwargs['vert'] = ut.get_argflag('--vert')
+            >>> kwargs['draw_border'] = ut.get_argflag('--draw_border')
+            >>> kwargs['saveax'] = ut.get_argflag('--saveax')
+            >>> kwargs['in_image'] = ut.get_argflag('--in-image')
+            >>> kwargs['draw_lbl'] = ut.get_argflag('--no-draw-lbl')
+            >>> qres = ibs.query_chips(ibs.get_valid_aids()[0:1])[0]
+            >>> img_fpath = qres.dump_top_match(ibs, **kwargs)
+            >>> if ut.show_was_requested():
+            >>>     # show the image dumped to disk
+            >>>     ut.startfile(img_fpath, quote=True)
+            >>> #pt.show_if_requested()
+        """
+        import plottool as pt
+        # Pop save kwargs from kwargs
+        save_keys = ['dpi', 'figsize', 'saveax', 'fpath', 'fpath_strict']
+        save_vals = ut.dict_take_pop(kwargs, save_keys, None)
+        savekw = dict(zip(save_keys, save_vals))
+        fpath = savekw.pop('fpath')
+        if fpath is None and 'fpath_strict' not in savekw:
+            savekw['usetitle'] = True
+        # Make new figure
+        fnum = pt.next_fnum()
+        fig = pt.figure(fnum=fnum, doclf=True, docla=True)
+        aid = qres.get_top_aids(ibs)[0]
+        # Draw Matches
+        ax, xywh1, xywh2 = qres.show_matches(ibs, aid, colorbar_=False, qreq_=qreq_, **kwargs)
+        pt.set_figtitle(qres.make_smaller_title())
+        # Adjust
+        #pt.adjust_subplots(0, 0, 1, 1, 0, 0)
+        # Save Figure
+        # Setting fig=fig might make the dpi and figsize code not work
+        img_fpath = pt.save_figure(fpath=fpath, fig=fig, **savekw)
+        #if False:
+        #    ut.startfile(img_fpath)
+        return img_fpath
+        #pt.figure(fnum=pt.next_fnum())
+        #pt.imshow(img_fpath)
+
+    def ishow_matches(qres, ibs, aid, qreq_=None, *args, **kwargs):
         from ibeis.viz.interact import interact_matches  # NOQA
-        match_interaction = interact_matches.MatchInteraction(ibs, qres, aid, *args, **kwargs)
+        #if aid == 'top':
+        #    aid = qres.get_top_aids(ibs)
+        match_interaction = interact_matches.MatchInteraction(ibs, qres, aid, qreq_=qreq_, *args, **kwargs)
         # Keep the interaction alive at least while the qres is alive
         qres._live_interactions.append(match_interaction)
         return match_interaction
         #fig = interact_matches.ishow_matches(ibs, qres, aid, *args, **kwargs)
         #return fig
 
-    def qt_inspect_gui(qres, ibs, ranks_lt=6, name_scoring=False):
+    def qt_inspect_gui(qres, ibs, ranks_lt=6, qreq_=None, name_scoring=False):
         print('[qres] qt_inspect_gui')
         from ibeis.gui import inspect_gui
         import guitool
@@ -743,18 +823,19 @@ class QueryResult(__OBJECT_BASE__):
         print('[inspect_matches] make_qres_widget')
         qres_wgt = inspect_gui.QueryResultsWidget(ibs, qaid2_qres,
                                                   ranks_lt=ranks_lt,
-                                                  name_scoring=name_scoring)
+                                                  name_scoring=name_scoring,
+                                                  qreq_=qreq_)
         print('[inspect_matches] show')
         qres_wgt.show()
         print('[inspect_matches] raise')
         qres_wgt.raise_()
         return qres_wgt
 
-    def show(qres, ibs, type_, *args, **kwargs):
+    def show(qres, ibs, type_, qreq_=None, *args, **kwargs):
         if type_ == 'top':
-            return qres.show_top(ibs, *args, **kwargs)
+            return qres.show_top(ibs, *args, qreq_=qreq_, **kwargs)
         elif type_ == 'analysis':
-            return qres.show_analysis(ibs, *args, **kwargs)
+            return qres.show_analysis(ibs, *args, qreq_=qreq_, **kwargs)
         else:
             raise AssertionError('Uknown type=%r' % type_)
 

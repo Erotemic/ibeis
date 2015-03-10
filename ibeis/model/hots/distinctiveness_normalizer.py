@@ -12,6 +12,7 @@ import utool
 import vtool as vt
 import utool as ut
 import numpy as np
+from six.moves import map
 #import vtool as vt
 import six  # NOQA
 from ibeis import constants as const
@@ -19,6 +20,14 @@ import pyflann
 from ibeis import sysres
 from ibeis.model.hots import hstypes
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[distinctnorm]', DEBUG=False)
+
+
+DCVS_DEFAULT = ut.ParamInfoList('distinctivness', [
+    ut.ParamInfo('dcvs_power', 1.0, 'p',    varyvals=[.5, 1.0, 1.5, 2.0]),
+    ut.ParamInfo('dcvs_min_clip', .2, 'mn', varyvals=[.2, .02, .03][0:1]),
+    ut.ParamInfo('dcvs_max_clip', .5, 'mx', varyvals=[.05, .3, .4, .45, .5, 1.0][1:4]),
+    ut.ParamInfo('dcvs_K', 5, 'dcvsK',      varyvals=[5, 7, 15][0:1]),
+])
 
 
 DISTINCTIVENESS_NORMALIZER_CACHE = {}
@@ -30,7 +39,7 @@ BASELINE_DISTINCTIVNESS_URLS = {
 PUBLISH_DIR = ut.unixpath('~/Dropbox/IBEIS')
 
 
-def testdata_distinctiveness(species=None):
+def testdata_distinctiveness():
     """
     Example:
         >>> # ENABLE_DOCTEST
@@ -39,11 +48,17 @@ def testdata_distinctiveness(species=None):
     """
     import ibeis
     # build test data
-    ibs = ibeis.opendb('testdb1')
+    db = ut.get_argval('--db', str, 'testdb1')
+    species = ut.get_argval('--species', str, None)
+    aid = ut.get_argval('--aid', int, None)
+    ibs = ibeis.opendb(db)
+    if aid is not None:
+        species = ibs.get_annot_species_texts(aid)
     if species is None:
-        species = ibeis.const.Species.ZEB_PLAIN
+        if db == 'testdb1':
+            species = ibeis.const.Species.ZEB_PLAIN
     daids = ibs.get_valid_aids(species=species)
-    qaids = daids
+    qaids = [aid] if aid is not None else daids
     qreq_ = ibs.new_query_request(qaids, daids)
     dstcnvs_normer = request_ibeis_distinctiveness_normalizer(qreq_)
     return dstcnvs_normer, qreq_
@@ -222,55 +237,130 @@ class DistinctivnessNormalizer(ut.Cachable):
             dstcnvs_normer.rebuild(cachedir)
             dstcnvs_normer.save_flann(cachedir)
 
-    def get_distinctiveness(dstcnvs_normer, qfx2_vec, **kwargs):
+    def get_distinctiveness(dstcnvs_normer, qfx2_vec, dcvs_K=2, dcvs_power=1.0, dcvs_max_clip=1.0, dcvs_min_clip=0.0):
         r"""
         Args:
             qfx2_vec (ndarray):  mapping from query feature index to vec
 
         CommandLine:
-            python -m ibeis.model.hots.distinctiveness_normalizer --test-get_distinctiveness
+            python -m ibeis.model.hots.distinctiveness_normalizer --test-get_distinctiveness --show
+            python -m ibeis.model.hots.distinctiveness_normalizer --test-get_distinctiveness --db GZ_ALL --show
+            python -m ibeis.model.hots.distinctiveness_normalizer --test-get_distinctiveness --show --dcvs_power .25
+            python -m ibeis.model.hots.distinctiveness_normalizer --test-get_distinctiveness --show --dcvs_power .5
+            python -m ibeis.model.hots.distinctiveness_normalizer --test-get_distinctiveness --show --dcvs_power .1
+            python -m ibeis.model.hots.distinctiveness_normalizer --test-get_distinctiveness --show --dcvs_K 1&
+            python -m ibeis.model.hots.distinctiveness_normalizer --test-get_distinctiveness --show --dcvs_K 2&
+            python -m ibeis.model.hots.distinctiveness_normalizer --test-get_distinctiveness --show --dcvs_K 3&
 
         Example:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.model.hots.distinctiveness_normalizer import *  # NOQA
             >>> dstcnvs_normer, qreq_ = testdata_distinctiveness()
             >>> qaid = qreq_.get_external_qaids()[0]
-            >>> qfx2_vec = qreq_.ibs.get_annot_vecs(qaid)
-            >>> qfx2_dstncvs = dstcnvs_normer.get_distinctiveness(qfx2_vec)
+            >>> qfx2_vec = qreq_.ibs.get_annot_vecs(qaid, qreq_=qreq_)
+            >>> default_dict = {'dcvs_power': .25, 'dcvs_K': 5, 'dcvs_max_clip': .5}
+            >>> kwargs = ut.argparse_dict(default_dict)
+            >>> qfx2_dstncvs = dstcnvs_normer.get_distinctiveness(qfx2_vec, **kwargs)
             >>> ut.assert_eq(len(qfx2_dstncvs.shape), 1)
             >>> assert np.all(qfx2_dstncvs) <= 1
             >>> assert np.all(qfx2_dstncvs) >= 0
+            >>> if ut.show_was_requested():
+            >>>     # Show distinctivness on an animal and a corresponding graph
+            >>>     import plottool as pt
+            >>>     chip = qreq_.ibs.get_annot_chips(qaid)
+            >>>     qfx2_kpts = qreq_.ibs.get_annot_kpts(qaid, qreq_=qreq_)
+            >>>     show_chip_distinctiveness_plot(chip, qfx2_kpts, qfx2_dstncvs)
+            >>>     #pt.figure(2)
+            >>>     #pt.show_all_colormaps()
+            >>>     pt.show_if_requested()
+
+        Ignore:
+            %s/\(^ *\)\(.*\)/\1>>> \2/c
+
         """
-        K = kwargs.get('K', 5)
-        assert K > 0 and K < len(dstcnvs_normer.vecs)
+        assert dcvs_K > 0 and dcvs_K < len(dstcnvs_normer.vecs), 'dcvs_K=%r' % (dcvs_K,)
         if len(qfx2_vec) == 0:
-            (qfx2_idx, qfx2_dist) = dstcnvs_normer.empty_neighbors(0, K)
+            #(qfx2_idx, qfx2_dist_sqrd) = dstcnvs_normer.empty_neighbors(0, dcvs_K)
+            qfx2_idx  = np.empty((0, dcvs_K), dtype=np.int32)
+            qfx2_dist = np.empty((0, dcvs_K), dtype=np.float64)
         else:
             # perform nearest neighbors
-            (qfx2_idx, qfx2_dist) = dstcnvs_normer.flann.nn_index(
-                qfx2_vec, K, checks=dstcnvs_normer.checks, cores=dstcnvs_normer.cores)
+            (qfx2_idx, qfx2_dist_sqrd) = dstcnvs_normer.flann.nn_index(
+                qfx2_vec, dcvs_K, checks=dstcnvs_normer.checks, cores=dstcnvs_normer.cores)
             # Ensure that distance returned are between 0 and 1
             #qfx2_dist = qfx2_dist / (dstcnvs_normer.max_distance ** 2)
-            qfx2_dist = np.divide(qfx2_dist, dstcnvs_normer.max_distance_sqrd)
+            qfx2_dist = np.sqrt(qfx2_dist_sqrd.astype(np.float64)) / hstypes.VEC_PSEUDO_MAX_DISTANCE
+            #qfx2_dist32 = np.sqrt(np.divide(qfx2_dist_sqrd, dstcnvs_normer.max_distance_sqrd))
+            #qfx2_dist =
             #qfx2_dist = np.sqrt(qfx2_dist) / dstcnvs_normer.max_distance
-        norm_sqared_dist = qfx2_dist.T[-1].T
-        qfx2_dstncvs = compute_distinctiveness_from_dist(norm_sqared_dist, **kwargs)
+        if dcvs_K == 1:
+            qfx2_dist = qfx2_dist[:, None]
+        norm_dist = qfx2_dist.T[dcvs_K - 1].T
+        qfx2_dstncvs = compute_distinctiveness_from_dist(norm_dist, dcvs_power, dcvs_max_clip, dcvs_min_clip)
         return qfx2_dstncvs
 
 
-def compute_distinctiveness_from_dist(norm_sqared_dist, **kwargs):
+def compute_distinctiveness_from_dist(norm_dist, dcvs_power, dcvs_max_clip, dcvs_min_clip):
     """
-    Compute distinctiveness from distance to K+1 nearest neighbor
+    Compute distinctiveness from distance to dcvs_K+1 nearest neighbor
+
+    Ignore:
+        norm_dist = np.random.rand(1000)
+
+        import numexpr
+
+        %timeit np.divide(norm_dist, dcvs_max_clip)
+        %timeit numexpr.evaluate('norm_dist / dcvs_max_clip', local_dict=dict(norm_dist=norm_dist, dcvs_max_clip=dcvs_max_clip))
+        wd_cliped = np.divide(norm_dist, dcvs_max_clip)
+
+        %timeit numexpr.evaluate('wd_cliped > 1.0', local_dict=locals())
+        %timeit np.greater(wd_cliped, 1.0)
+
+        %timeit np.power(wd_cliped, dcvs_power)
+        %timeit numexpr.evaluate('wd_cliped ** dcvs_power', local_dict=locals())
+
+        %timeit
     """
-    # TODO: paramaterize
     # expondent to augment distinctiveness scores.
-    p = kwargs.get('p', 1.0)
     # clip the distinctiveness at this fraction
-    clip_fraction = kwargs.get('clip_fraction', .2)
-    wd_cliped = np.divide(norm_sqared_dist, clip_fraction)
-    wd_cliped[np.greater(wd_cliped, 1.0)] = 1.0
-    dstncvs = np.power(wd_cliped, p)
+    clip_range = dcvs_max_clip - dcvs_min_clip
+    # apply distinctivness normalization
+    _tmp = np.clip(norm_dist, dcvs_min_clip, dcvs_max_clip)
+    np.subtract(_tmp, dcvs_min_clip, out=_tmp)
+    np.divide(_tmp, clip_range, out=_tmp)
+    np.power(_tmp, dcvs_power, out=_tmp)
+    dstncvs = _tmp
     return dstncvs
+
+
+def show_chip_distinctiveness_plot(chip, kpts, dstncvs, fnum=1, pnum=None):
+    import plottool as pt
+    pt.figure(fnum, pnum=pnum)
+    ax = pt.gca()
+    divider = pt.ensure_divider(ax)
+    #ax1 = divider.append_axes("left", size="50%", pad=0)
+    ax1 = ax
+    ax2 = divider.append_axes("bottom", size="100%", pad=0.05)
+    #f, (ax1, ax2) = pt.plt.subplots(1, 2, sharex=True)
+    cmapstr = 'rainbow'  # 'hot'
+    color_list = pt.df2.plt.get_cmap(cmapstr)(ut.norm_zero_one(dstncvs))
+    sortx = dstncvs.argsort()
+    #pt.df2.plt.plot(qfx2_dstncvs[sortx], c=color_list[sortx])
+    pt.plt.sca(ax1)
+    pt.colorline(np.arange(len(sortx)), dstncvs[sortx], cmap=pt.plt.get_cmap(cmapstr))
+    pt.gca().set_xlim(0, len(sortx))
+    pt.dark_background()
+    pt.plt.sca(ax2)
+    pt.imshow(chip, darken=.2)
+    # MATPLOTLIB BUG CANNOT SHOW DIFFERENT ALPHA FOR POINTS AND KEYPOINTS AT ONCE
+    #pt.draw_kpts2(kpts, pts_color=color_list, ell_color=color_list, ell_alpha=.1, ell=True, pts=True)
+    #pt.draw_kpts2(kpts, color_list=color_list, pts_alpha=1.0, pts_size=1.5,
+    #              ell=True, ell_alpha=.1, pts=False)
+    ell = ut.get_argflag('--ell')
+    pt.draw_kpts2(kpts, color_list=color_list, pts_alpha=1.0, pts_size=1.5,
+                  ell=ell, ell_alpha=.3, pts=not ell)
+    pt.plt.sca(ax)
+    #pt.figure(fnum, pnum=pnum)
 
 
 def download_baseline_distinctiveness_normalizer(cachedir, species):
@@ -305,23 +395,35 @@ def request_ibeis_distinctiveness_normalizer(qreq_, verbose=True):
     unique_species = qreq_.get_unique_species()
     assert len(unique_species) == 1
     species = unique_species[0]
+    global_distinctdir = qreq_.ibs.get_global_distinctiveness_modeldir()
+    cachedir = global_distinctdir
+    dstcnvs_normer = request_species_distinctiveness_normalizer(species, cachedir, verbose=False)
+    return dstcnvs_normer
+
+
+def request_species_distinctiveness_normalizer(species, cachedir=None, verbose=False):
+    """
+    helper function to get distinctivness model independent of IBEIS.
+    """
     if species in DISTINCTIVENESS_NORMALIZER_CACHE:
         dstcnvs_normer = DISTINCTIVENESS_NORMALIZER_CACHE[species]
     else:
-        global_distinctdir = qreq_.ibs.get_global_distinctiveness_modeldir()
-        cachedir = global_distinctdir
+        if cachedir is None:
+            cachedir = sysres.get_global_distinctiveness_modeldir(ensure=True)
         dstcnvs_normer = DistinctivnessNormalizer(species, cachedir=cachedir)
         if not dstcnvs_normer.exists(cachedir):
             # download normalizer if it doesn't exist
             download_baseline_distinctiveness_normalizer(cachedir, species)
         dstcnvs_normer.load(cachedir)
+        print(ut.get_object_size_str(dstcnvs_normer, 'dstcnvs_normer = '))
+        print('Loaded distinctivness normalizer')
         #dstcnvs_normer.ensure_flann(cachedir)
         assert dstcnvs_normer.exists(cachedir, need_flann=True), 'normalizer should have been downloaded, but it doesnt exist'
         DISTINCTIVENESS_NORMALIZER_CACHE[species] = dstcnvs_normer
     return dstcnvs_normer
 
 
-def clear_distinctivness_cache():
+def clear_distinctivness_cache(j):
     global_distinctdir = sysres.get_global_distinctiveness_modeldir()
     ut.remove_files_in_dir(global_distinctdir)
 
@@ -373,6 +475,80 @@ def view_publish_dir():
     ut.vd(PUBLISH_DIR)
 
 
+def test_single_annot_distinctiveness_params(ibs, aid):
+    r"""
+
+    CommandLine:
+        python -m ibeis.model.hots.distinctiveness_normalizer --test-test_single_annot_distinctiveness_params --show
+        python -m ibeis.model.hots.distinctiveness_normalizer --test-test_single_annot_distinctiveness_params --show --db GZ_ALL
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.model.hots.distinctiveness_normalizer import *  # NOQA
+        >>> import plottool as pt
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb(ut.get_argval('--db', type_=str, default='PZ_MTEST'))
+        >>> aid = ut.get_argval('--aid', type_=int, default=1)
+        >>> # execute function
+        >>> test_single_annot_distinctiveness_params(ibs, aid)
+        >>> pt.show_if_requested()
+    """
+    ####
+    # TODO: Also paramatarize the downweighting based on the keypoint size
+    ####
+    # HACK IN ABILITY TO SET CONFIG
+    from ibeis.dev.main_commands import postload_commands
+    from ibeis.model import Config
+    postload_commands(ibs, None)
+
+    import plottool as pt
+
+    #cfglbl_list = cfgdict_list
+    #ut.all_dict_combinations_lbls(varied_dict)
+
+    # Get info to find distinctivness of
+    species_text = ibs.get_annot_species(aid)
+    # FIXME; qreq_ params for config rowid
+    vecs = ibs.get_annot_vecs(aid)
+    kpts = ibs.get_annot_kpts(aid)
+    chip = ibs.get_annot_chips(aid)
+
+    # Paramater space to search
+    # TODO: use slicing to control the params being varied
+    # Use GridSearch class to modify paramaters as you go.
+
+    varied_dict = Config.DCVS_DEFAULT.get_varydict()
+
+    print('Varied Dict: ')
+    print(ut.dict_str(varied_dict))
+
+    cfgdict_list, cfglbl_list = ut.make_constrained_cfg_and_lbl_list(varied_dict)
+
+    # Get groundtruthish distinctivness map
+    # for objective function
+    # Load distinctivness normalizer
+    with ut.Timer('Loading Distinctivness Normalizer for %s' % (species_text)):
+        dstcvnss_normer = request_species_distinctiveness_normalizer(species_text)
+
+    # Get distinctivness over all params
+    dstncvs_list = [dstcvnss_normer.get_distinctiveness(vecs, **cfgdict)
+                    for cfgdict in ut.ProgressIter(cfgdict_list, lbl='get dstcvns')]
+
+    #fgweights = ibs.get_annot_fgweights([aid])[0]
+    #dstncvs_list = [x * fgweights for x in dstncvs_list]
+    fnum = 1
+
+    import functools
+    show_func = functools.partial(show_chip_distinctiveness_plot, chip, kpts)
+
+    ut.interact_gridsearch_result_images(
+        show_func, cfgdict_list, cfglbl_list, dstncvs_list,
+        score_list=None, fnum=fnum, figtitle='dstncvs gridsearch')
+
+    pt.present()
+
+
 def dev_train_distinctiveness(species=None):
     r"""
     Args:
@@ -381,9 +557,12 @@ def dev_train_distinctiveness(species=None):
 
     CommandLine:
         python -m ibeis.model.hots.distinctiveness_normalizer --test-dev_train_distinctiveness
+
         alias dev_train_distinctiveness='python -m ibeis.model.hots.distinctiveness_normalizer --test-dev_train_distinctiveness'
+        # Publishing (uses cached normalizers if available)
         dev_train_distinctiveness --species GZ --publish
         dev_train_distinctiveness --species PZ --publish
+        dev_train_distinctiveness --species PZ --retrain
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -405,6 +584,8 @@ def dev_train_distinctiveness(species=None):
     cachedir = global_distinctdir
     dstcnvs_normer = DistinctivnessNormalizer(species, cachedir=cachedir)
     try:
+        if ut.get_argflag('--retrain'):
+            raise IOError('force cache miss')
         with ut.Timer('loading distinctiveness'):
             dstcnvs_normer.load(cachedir)
         # Cache hit
@@ -416,19 +597,27 @@ def dev_train_distinctiveness(species=None):
             # Add one example from each name
             # TODO: add one exemplar per viewpoint for each name
             #max_vecs = 1E6
+            #max_annots = 975
             max_annots = 975
+            #ibs.fix_and_clean_database()
             nid_list = ibs.get_valid_nids()
             aids_list = ibs.get_name_aids(nid_list)
-            num_annots_list = map(len, aids_list)
+            # remove junk
+            aids_list = ibs.unflat_map(ibs.filter_junk_annotations, aids_list)
+            # remove empty
+            aids_list = [aids for aids in aids_list if len(aids) > 0]
+            num_annots_list = list(map(len, aids_list))
             aids_list = ut.sortedby(aids_list, num_annots_list, reverse=True)
+            # take only one annot per name
             aid_list = ut.get_list_column(aids_list, 0)
             # Keep only a certain number of annots for distinctiveness mapping
             aid_list_ = ut.listclip(aid_list, max_annots)
             print('total num named annots = %r' % (sum(num_annots_list)))
             print('training distinctiveness using %d/%d singleton annots' % (len(aid_list_), len(aid_list)))
             # vec
+            # FIXME: qreq_ params for config rowid
             vecs_list = ibs.get_annot_vecs(aid_list_)
-            num_vecs = sum(map(len, vecs_list))
+            num_vecs = sum(list(map(len, vecs_list)))
             print('num_vecs = %r' % (num_vecs,))
             vecs = np.vstack(vecs_list)
             print('vecs size = %r' % (ut.get_object_size_str(vecs),))

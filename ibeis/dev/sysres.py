@@ -9,6 +9,7 @@ import os
 from os.path import exists, join, realpath
 import utool
 import utool as ut
+from six.moves import input
 from utool import util_cache, util_list
 from ibeis import constants as const
 from ibeis import params
@@ -72,20 +73,32 @@ def get_workdir(allow_gui=True):
     return None
 
 
-def set_workdir(work_dir=None, allow_gui=True):
+ALLOW_GUI = ut.WIN32 or os.environ.get('DISPLAY', None) is not None
+
+
+def set_workdir(work_dir=None, allow_gui=ALLOW_GUI):
     """ Sets the workdirectory for this computer """
-    if work_dir is None and allow_gui:
-        work_dir = guiselect_workdir()
+    if work_dir is None:
+        if allow_gui:
+            work_dir = guiselect_workdir()
+        else:
+            work_dir = input('specify a workdir: ')
     if work_dir is None or not exists(work_dir):
         raise AssertionError('invalid workdir=%r' % work_dir)
     _ibeis_cache_write(WORKDIR_CACHEID, work_dir)
 
 
 def set_logdir(log_dir):
-    utool.ensuredir(log_dir)
+    from os.path import realpath, expanduser
+    log_dir = realpath(expanduser(log_dir))
+    utool.ensuredir(log_dir, verbose=True)
     utool.stop_logging()
     _ibeis_cache_write(LOGDIR_CACHEID, log_dir)
     utool.start_logging(appname=__APPNAME__)
+
+
+def get_logdir():
+    return _ibeis_cache_read(LOGDIR_CACHEID, default=ut.get_logging_dir(appname='ibeis'))
 
 
 def get_rawdir():

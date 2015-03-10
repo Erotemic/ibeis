@@ -14,7 +14,8 @@ from itertools import chain
 from os.path import join, dirname, split, basename, splitext
 from plottool import draw_func2 as df2
 from plottool import plot_helpers as ph
-from six.moves import map, range
+from six.moves import map, range, input  # NOQA
+import vtool as vt
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[expt_report]')
 
 
@@ -33,22 +34,22 @@ DUMP_PROBCHIP = True
 DUMP_REGCHIP = True
 
 
-def get_diffmat_str(rank_mat, qaids, nCfg):
+def get_diffmat_str(rank_mat, qaids, nConfig):
     # Find rows which scored differently over the various configs
     row2_aid = np.array(qaids)
     diff_rows = np.where([not np.all(row == row[0]) for row in rank_mat])[0]
     diff_aids = row2_aid[diff_rows]
     diff_rank = rank_mat[diff_rows]
     diff_mat = np.vstack((diff_aids, diff_rank.T)).T
-    col_lbls = list(chain(['qaid'], map(lambda x: 'cfg%d_rank' % x, range(nCfg))))
-    col_types  = list(chain([int], [int] * nCfg))
+    col_lbls = list(chain(['qaid'], map(lambda x: 'cfg%d_rank' % x, range(nConfig))))
+    col_types  = list(chain([int], [int] * nConfig))
     header = 'diffmat'
     diff_matstr = utool.numpy_to_csv(diff_mat, col_lbls, header, col_types)
     return diff_matstr
 
 
-def print_results(ibs, qaids, daids, cfg_list, bestranks_list, cfgx2_aveprecs,
-                  testnameid, sel_rows, sel_cols, cfgx2_lbl):
+def print_results(ibs, qaids, daids, cfg_list, cfgx2_cfgresinfo,
+                  testnameid, sel_rows, sel_cols, cfgx2_lbl, cfgx2_qreq_):
     """
     Prints results from an experiment harness run.
     Rows store different qaids (query annotation ids)
@@ -57,41 +58,76 @@ def print_results(ibs, qaids, daids, cfg_list, bestranks_list, cfgx2_aveprecs,
     CommandLine:
         python dev.py -t best --db seals2 --allgt --vz
 
+        python dev.py --db PZ_MTEST --allgt -t custom --print-confusion-stats
+
+        python dev.py --db PZ_MTEST --allgt --noqcache --index 0:10:2 -t custom:rrvsone_on=True --print-scorediff-mat-stats
+        python dev.py --db PZ_MTEST --allgt --noqcache --index 0:10:2 -t custom:rrvsone_on=True --print-scorediff-mat-stats
+        python dev.py --db PZ_MTEST --allgt --noqcache --index 0:10:2 -t custom:rrvsone_on=True --print-confusion-stats --print-scorediff-mat-stats
+
+        python dev.py --db PZ_MTEST --allgt --noqcache --index 0:10:2 -t custom:rrvsone_on=True --print-confusion-stats
+        python dev.py --db PZ_MTEST --allgt --noqcache --qaid4 -t custom:rrvsone_on=True --print-confusion-stats
+
     """
 
-    print(' --- PRINT RESULTS ---')
-    #X_LIST = [1, 5]  # Num of ranks less than to score
-    X_LIST = [1]  # Num of ranks less than to score
+    # cfgx2_cfgresinfo is a list of dicts of lists
+    # Parse result info out of the lists
+    cfgx2_bestranks      = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_bestranks')
+    cfgx2_nextbestranks  = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_next_bestranks')
+    cfgx2_gt_rawscores   = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_gt_raw_score')
+    cfgx2_gf_rawscores   = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_gf_raw_score')
+    cfgx2_aveprecs       = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_avepercision')
 
-    nCfg = len(cfg_list)
+    cfgx2_scorediffs     = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_scorediff')
+    cfgx2_scorefactor    = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_scorefactor')
+    cfgx2_scorelogfactor = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_scorelogfactor')
+    cfgx2_scoreexpdiff   = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_scoreexpdiff')
+    cfgx2_gt_raw_score   = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_gt_raw_score')
+
+    column_lbls = [ut.remove_chars(ut.remove_vowels(lbl), [' ', ','])
+                   for lbl in cfgx2_lbl]
+
+    scorediffs_mat     = np.array(ut.replace_nones(cfgx2_scorediffs, np.nan))
+    scorefactor_mat    = np.array(ut.replace_nones(cfgx2_scorefactor, np.nan))
+    scorelogfactor_mat = np.array(ut.replace_nones(cfgx2_scorelogfactor, np.nan))
+    scoreexpdiff_mat   = np.array(ut.replace_nones(cfgx2_scoreexpdiff, np.nan))
+
+    print(' --- PRINT RESULTS ---')
+    X_LIST = [1]  # Num of ranks less than to score
+    #X_LIST = [1, 5]  # Num of ranks less than to score
+
+    nConfig = len(cfg_list)
     nQuery = len(qaids)
     #--------------------
     # Print Best Results
-    rank_mat = np.hstack(bestranks_list)  # concatenate each query rank across configs
+    rank_mat = np.vstack(cfgx2_bestranks).T  # concatenate each query rank across configs
+    #rank_mat = np.vstack(cfgx2_bestranks).T  # concatenate each query rank across configs
+    gt_raw_score_mat = np.vstack(cfgx2_gt_raw_score).T
 
     # Set invalid ranks to the worse possible rank
     worst_possible_rank = max(9001, len(daids) + len(qaids) + 1)
     rank_mat[rank_mat == -1] =  worst_possible_rank
 
+    # A positive scorediff indicates the groundtruth was better than the
+    # groundfalse scores
+    istrue_list  = [scorediff > 0 for scorediff in scorediffs_mat]
+    isfalse_list = [~istrue for istrue in istrue_list]
+
     # Label the rank matrix:
-    _colxs = np.arange(nCfg)
+    _colxs = np.arange(nConfig)
     lbld_mat = utool.debug_vstack([_colxs, rank_mat])
 
     _rowxs = np.arange(nQuery + 1).reshape(nQuery + 1, 1) - 1
     lbld_mat = np.hstack([_rowxs, lbld_mat])
     #------------
     # Build row lbls
-    qx2_lbl = []
-    for qx in range(nQuery):
-        qaid = qaids[qx]
-        lbl = 'qx=%d) q%s ' % (qx, ibsfuncs.aidstr(qaid, ibs=ibs, notes=True))
-        qx2_lbl.append(lbl)
-    qx2_lbl = np.array(qx2_lbl)
+    qx2_lbl = np.array([
+        'qx=%d) q%s ' % (qx, ibsfuncs.aidstr(qaids[qx], ibs=ibs, notes=True))
+        for qx in range(nQuery)])
     #------------
     # Build col lbls (this info is passed in)
     #if cfgx2_lbl is None:
     #    cfgx2_lbl = []
-    #    for cfgx in range(nCfg):
+    #    for cfgx in range(nConfig):
     #        test_cfgstr  = cfg_list[cfgx].get_cfgstr()
     #        cfg_lbl = 'cfgx=(%3d) %s' % (cfgx, test_cfgstr)
     #        cfgx2_lbl.append(cfg_lbl)
@@ -209,6 +245,7 @@ def print_results(ibs, qaids, daids, cfg_list, bestranks_list, cfgx2_aveprecs,
         print('Names: %r' % (name_set,))
         print('--- /Print Hardcase ---')
     print_hardcase()
+    #default=not ut.get_argflag('--allhard'))
 
     @utool.argv_flag_dec_true
     def echo_hardcase():
@@ -221,11 +258,11 @@ def print_results(ibs, qaids, daids, cfg_list, bestranks_list, cfgx2_aveprecs,
         hardaids_str = ' '.join(map(str, ['    ', '--set-aids-as-hard'] + new_qaids))
         print(hardaids_str)
         print('--- /Echo Hardcase ---')
-    echo_hardcase()
+    echo_hardcase(default=not ut.get_argflag('--allhard'))
 
     #------------
 
-    @utool.argv_flag_dec_true
+    @utool.argv_flag_dec
     def print_colmap():
         print('==================')
         print('[harn] mAP per Config: %s (sorted by mAP)' % testnameid)
@@ -241,21 +278,17 @@ def print_results(ibs, qaids, daids, cfg_list, bestranks_list, cfgx2_aveprecs,
     #------------
     # Build Colscore
     # Build a dictionary mapping X (as in #ranks < X) to a list of cfg scores
-    nLessX_dict = {int(X): np.zeros(nCfg) for X in X_LIST}
-    for cfgx in range(nCfg):
-        ranks = rank_mat[:, cfgx]
-        for X in X_LIST:
-            #nLessX_ = sum(np.bitwise_and(ranks < X, ranks >= 0))
-            # Ranks less than 0 are invalid
-            nLessX_ = sum(np.logical_and(ranks < X, ranks >= 0))
-            nLessX_dict[int(X)][cfgx] = nLessX_
+    nLessX_dict = {int(X): np.zeros(nConfig) for X in X_LIST}
+    for X in X_LIST:
+        lessX_ = np.logical_and(np.less(rank_mat, X), np.greater_equal(rank_mat, 0))
+        nLessX_dict[int(X)] = lessX_.sum(axis=0)
 
     @utool.argv_flag_dec_true
     def print_colscore():
         print('==================')
         print('[harn] Scores per Config: %s' % testnameid)
         print('==================')
-        #for cfgx in range(nCfg):
+        #for cfgx in range(nConfig):
         #    print('[score] %s' % (cfgx2_lbl[cfgx]))
         #    for X in X_LIST:
         #        nLessX_ = nLessX_dict[int(X)][cfgx]
@@ -331,7 +364,7 @@ def print_results(ibs, qaids, daids, cfg_list, bestranks_list, cfgx2_aveprecs,
             #indent('\n'.join(cfgstr_list), '    ')
             print(best_rankscore)
             print(best_rankcfg)
-        print('[cfg*]  %d cfg(s) are the best of %d total cfgs' % (len(intersected), nCfg))
+        print('[cfg*]  %d cfg(s) are the best of %d total cfgs' % (len(intersected), nConfig))
         print(eh.format_cfgstr_list(intersected))
 
         print('--- /Best Configurations ---')
@@ -340,30 +373,211 @@ def print_results(ibs, qaids, daids, cfg_list, bestranks_list, cfgx2_aveprecs,
     #------------
 
     @utool.argv_flag_dec
-    def print_rankmat():
+    def print_gtscore():
+        # Prints best ranks
+        print('-------------')
+        print('gtscore_mat: %s' % testnameid)
+        print(' nRows=%r, nCols=%r' % lbld_mat.shape)
+        header = (' labled rank matrix: rows=queries, cols=cfgs:')
+        #print('\n'.join(qx2_lbl))
+        print('\n'.join(cfgx2_lbl))
+        #column_list = [row.tolist() for row in lbld_mat[1:].T[1:]]
+        column_list = gt_raw_score_mat.T
+        print(ut.make_csv_table(column_list, row_lbls=qaids,
+                                column_lbls=column_lbls, header=header,
+                                transpose=False,
+                                use_lbl_width=len(cfgx2_lbl) < 5))
+        print('[harn]-------------')
+    print_gtscore()
+
+    #------------
+
+    @utool.argv_flag_dec
+    def print_best_rankmat():
+        # Prints best ranks
         print('-------------')
         print('RankMat: %s' % testnameid)
         print(' nRows=%r, nCols=%r' % lbld_mat.shape)
         header = (' labled rank matrix: rows=queries, cols=cfgs:')
         #print('\n'.join(qx2_lbl))
         print('\n'.join(cfgx2_lbl))
-        column_list = [row.tolist() for row in lbld_mat[1:].T[1:]]
-        column_lbls = [ut.remove_vowels(lbl).replace(' ', '').replace(',', '') for lbl in cfgx2_lbl]
-        column_lbls = map(str, range(nCfg))
+        #column_list = [row.tolist() for row in lbld_mat[1:].T[1:]]
+        column_list = rank_mat.T
         print(ut.make_csv_table(column_list, row_lbls=qaids,
                                 column_lbls=column_lbls, header=header,
-                                transpose=False))
+                                transpose=False,
+                                use_lbl_width=len(cfgx2_lbl) < 5))
         #np.set_printoptions(threshold=5000, linewidth=5000, precision=5)
         #with utool.NpPrintOpts(threshold=5000, linewidth=5000, precision=5):
         #print(lbld_mat)
         print('[harn]-------------')
-    print_rankmat()
+    print_best_rankmat()
+
+    #------------
+
+    @utool.argv_flag_dec
+    def print_next_rankmat():
+        # Prints nextbest ranks
+        print('-------------')
+        print('NextRankMat: %s' % testnameid)
+        header = (' top false rank matrix: rows=queries, cols=cfgs:')
+        #print('\n'.join(qx2_lbl))
+        print('\n'.join(cfgx2_lbl))
+        #column_list = [row.tolist() for row in lbld_mat[1:].T[1:]]
+        column_list = cfgx2_nextbestranks
+        print(ut.make_csv_table(column_list, row_lbls=qaids,
+                                column_lbls=column_lbls, header=header,
+                                transpose=False,
+                                use_lbl_width=len(cfgx2_lbl) < 5))
+        #np.set_printoptions(threshold=5000, linewidth=5000, precision=5)
+        #with utool.NpPrintOpts(threshold=5000, linewidth=5000, precision=5):
+        #print(lbld_mat)
+        print('[harn]-------------')
+    print_next_rankmat()
+
+    #------------
+
+    @utool.argv_flag_dec
+    def print_scorediff_mat():
+        # Prints nextbest ranks
+        print('-------------')
+        print('ScoreDiffMat: %s' % testnameid)
+        header = (' score difference between top true and top false: rows=queries, cols=cfgs:')
+        #print('\n'.join(qx2_lbl))
+        print('\n'.join(cfgx2_lbl))
+        #column_list = [row.tolist() for row in lbld_mat[1:].T[1:]]
+        column_list = cfgx2_scorediffs
+        column_type = [float] * len(column_list)
+        print(ut.make_csv_table(column_list, row_lbls=qaids,
+                                column_lbls=column_lbls,
+                                column_type=column_type,
+                                header=header,
+                                transpose=False,
+                                use_lbl_width=len(cfgx2_lbl) < 5))
+        #np.set_printoptions(threshold=5000, linewidth=5000, precision=5)
+        #with utool.NpPrintOpts(threshold=5000, linewidth=5000, precision=5):
+        #print(lbld_mat)
+        print('[harn]-------------')
+    print_scorediff_mat(alias_flags=['--sdm'])
+
+    #------------
+    def jagged_stats_info(arr_, lbl, col_lbls):
+        arr = ut.recursive_replace(arr_, np.inf, np.nan)
+        # Treat infinite as nan
+        stat_dict = ut.get_jagged_stats(arr, use_nan=True, use_sum=True)
+        sel_stat_dict, sel_indices = ut.find_interesting_stats(stat_dict, col_lbls)
+        sel_col_lbls = ut.list_take(col_lbls, sel_indices)
+        statstr_kw   = dict(precision=3, newlines=True, lbl=lbl, align=True)
+        stat_str     = ut.get_stats_str(stat_dict=stat_dict, **statstr_kw)
+        sel_stat_str = ut.get_stats_str(stat_dict=sel_stat_dict, **statstr_kw)
+        sel_stat_str = 'sel_col_lbls = %s' % (ut.list_str(sel_col_lbls),) + '\n' + sel_stat_str
+        return stat_str, sel_stat_str
+
+    @utool.argv_flag_dec
+    def print_scorediff_mat_stats():
+        # Prints nextbest ranks
+        print('-------------')
+        print('ScoreDiffMatStats: %s' % testnameid)
+        print('column_lbls = %r' % (column_lbls,))
+        #print('stats = %s' % (ut.get_stats_str(scorediffs_mat.T, precision=3, newlines=True, use_nan=True),))
+        #print('sum = %r' % (np.sum(scorediffs_mat, axis=1),))
+
+        #pos_scorediff_mat = vt.zipcompress(scorediffs_mat, istrue_list)
+        #neg_scorediff_mat = vt.zipcompress(scorediffs_mat, isfalse_list)
+
+        #score_comparison_mats = [scorediffs_mat, scorefactor_mat, scorelogfactor_mat, scoreexpdiff_mat]
+        #score_comparison_mats = [scorediffs_mat]
+        score_comparison_mats = [scorediffs_mat, scorefactor_mat]
+        # Get the variable names from the stack!
+        score_comparison_lbls = list(map(ut.get_varname_from_stack, score_comparison_mats))
+
+        full_statstr_list = []
+        sel_statstr_list  = []
+
+        # For each type of score difference get true and false subsets
+        for score_comp_mat, lbl in zip(score_comparison_mats, score_comparison_lbls):
+            #lbl = ut.get_varname_from_stack(score_comp_mat)
+            pos_score_comp_mat = vt.zipcompress(score_comp_mat, istrue_list)
+            neg_score_comp_mat = vt.zipcompress(score_comp_mat, isfalse_list)
+            # Get statistics on each type of score difference
+            full_statstr, sel_statstr         = jagged_stats_info(    score_comp_mat,          lbl, cfgx2_lbl)
+            full_pos_statstr, sel_pos_statstr = jagged_stats_info(pos_score_comp_mat, 'pos_' + lbl, cfgx2_lbl)
+            full_neg_statstr, sel_neg_statstr = jagged_stats_info(neg_score_comp_mat, 'neg_' + lbl, cfgx2_lbl)
+            # Append lists
+            full_statstr_list.extend([full_statstr, full_pos_statstr, full_neg_statstr])
+            sel_statstr_list.extend([sel_statstr, sel_pos_statstr, sel_neg_statstr])
+
+        #scorediff_str, scorediff_selstr = jagged_stats_info(scorediffs_mat, 'scorediffs_mat', cfgx2_lbl)
+        #pos_scorediff_str, pos_scorediff_selstr = jagged_stats_info(pos_scorediff_mat, 'pos_scorediff_mat', cfgx2_lbl)
+        #neg_scorediff_str, neg_scorediff_selstr = jagged_stats_info(neg_scorediff_mat, 'neg_scorediff_mat', cfgx2_lbl)
+
+        scorefactor_mat
+        scorelogfactor_mat
+        scoreexpdiff_mat
+        PRINT_FULL_STATS = False
+        if PRINT_FULL_STATS:
+            for statstr in full_statstr_list:
+                print(statstr)
+
+        for statstr in sel_statstr_list:
+            print(statstr)
+
+        #print(scorediff_str)
+        #print(neg_scorediff_str)
+        #print(pos_scorediff_str)
+
+        #print(scorediff_selstr)
+        #print(pos_scorediff_selstr)
+        #print(neg_scorediff_selstr)
+        print('[harn]-------------')
+    print_scorediff_mat_stats(alias_flags=['--sdms'])
+
+    @utool.argv_flag_dec
+    def print_confusion_stats():
+        """
+        CommandLine:
+            python dev.py --allgt --print-scorediff-mat-stats --print-confusion-stats -t rrvsone_grid
+        """
+        # Prints nextbest ranks
+        print('-------------')
+        print('ScoreDiffMatStats: %s' % testnameid)
+        print('column_lbls = %r' % (column_lbls,))
+
+        #cfgx2_gt_rawscores  = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_gt_raw_score')
+        #cfgx2_gf_rawscores  = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_gf_raw_score')
+
+        gt_rawscores_mat = ut.replace_nones(cfgx2_gt_rawscores, np.nan)
+        gf_rawscores_mat = ut.replace_nones(cfgx2_gf_rawscores, np.nan)
+
+        tp_rawscores = vt.zipcompress(gt_rawscores_mat, istrue_list)
+        fp_rawscores = vt.zipcompress(gt_rawscores_mat, isfalse_list)
+        tn_rawscores = vt.zipcompress(gf_rawscores_mat, istrue_list)
+        fn_rawscores = vt.zipcompress(gf_rawscores_mat, isfalse_list)
+
+        tp_rawscores_str, tp_rawscore_statstr = jagged_stats_info(tp_rawscores, 'tp_rawscores', cfgx2_lbl)
+        fp_rawscores_str, fp_rawscore_statstr = jagged_stats_info(fp_rawscores, 'fp_rawscores', cfgx2_lbl)
+        tn_rawscores_str, tn_rawscore_statstr = jagged_stats_info(tn_rawscores, 'tn_rawscores', cfgx2_lbl)
+        fn_rawscores_str, fn_rawscore_statstr = jagged_stats_info(fn_rawscores, 'fn_rawscores', cfgx2_lbl)
+
+        #print(tp_rawscores_str)
+        #print(fp_rawscores_str)
+        #print(tn_rawscores_str)
+        #print(fn_rawscores_str)
+
+        print(tp_rawscore_statstr)
+        print(fp_rawscore_statstr)
+        print(tn_rawscore_statstr)
+        print(fn_rawscore_statstr)
+
+        print('[harn]-------------')
+    print_confusion_stats(alias_flags=['--cs'])
 
     @utool.argv_flag_dec
     def print_diffmat():
+        # score differences over configs
         print('-------------')
         print('Diffmat: %s' % testnameid)
-        diff_matstr = get_diffmat_str(rank_mat, qaids, nCfg)
+        diff_matstr = get_diffmat_str(rank_mat, qaids, nConfig)
         print(diff_matstr)
         print('[harn]-------------')
     print_diffmat()
@@ -383,10 +597,10 @@ def print_results(ibs, qaids, daids, cfg_list, bestranks_list, cfgx2_aveprecs,
     print('To enable all printouts add --print-all to the commandline')
 
     # Draw result figures
-    draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new_hard_qx_list)
+    draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, cfgx2_qreq_, new_hard_qx_list)
 
 
-def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new_hard_qx_list):
+def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, cfgx2_qreq_, new_hard_qx_list):
     """
     Draws results from an experiment harness run.
     Rows store different qaids (query annotation ids)
@@ -460,19 +674,27 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
         del cp_dst_list[:]
         del cp_src_list[:]
 
-    def load_qres(ibs, qaid, daids, query_cfg):
+    def load_qres(ibs, qaid, daids, query_cfg, qreq_):
         # Load / Execute the query w/ correct config
         # this is ok because query config is reset after
         # exerpiment_printres resturns
-        ibs.set_query_cfg(query_cfg)
+
+        # is this need anymore?
+        #ibs.set_query_cfg(query_cfg)
+
         # Force program to use cache here
+        #qres = ibs._query_chips4([qaid], daids,
+        #                         use_cache=True,
+        #                         use_bigcache=False)[qaid]
+        qreq_.set_external_qaids([qaid])
         qres = ibs._query_chips4([qaid], daids,
                                  use_cache=True,
-                                 use_bigcache=False)[qaid]
+                                 use_bigcache=False,
+                                 qreq_=qreq_)[qaid]
         return qres
 
     #DELETE              = False
-    USE_FIGCACHE = ut.get_argflag('--use-figcache')
+    #USE_FIGCACHE = ut.get_argflag('--use-figcache')
     DUMP_QANNOT         = DUMP_EXTRA
     DUMP_QANNOT_DUMP_GT = DUMP_EXTRA
     DUMP_TOP_CONTEXT    = DUMP_EXTRA
@@ -491,7 +713,7 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
 
     # Save DEFAULT=True
 
-    def _show_chip(aid, prefix, rank=None, in_image=False, seen=set([]), **dumpkw):
+    def _show_chip(aid, prefix, rank=None, in_image=False, seen=set([]), qreq_=None, **dumpkw):
         print('[PRINT_RESULTS] show_chip(aid=%r) prefix=%r' % (aid, prefix))
         from ibeis import viz
         # only dump a chip that hasn't been dumped yet
@@ -501,13 +723,13 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
         fulldir = join(figdir, dumpkw['subdir'])
         if DUMP_PROBCHIP:
             # just copy it
-            probchip_fpath = ibs.get_annot_probchip_fpaths([aid])[0]
+            probchip_fpath = ibs.get_annot_probchip_fpaths([aid], qreq_=qreq_)[0]
             ut.copy(probchip_fpath, fulldir, overwrite=False)
         if DUMP_REGCHIP:
-            chip_fpath = ibs.get_annot_chip_fpaths([aid])[0]
+            chip_fpath = ibs.get_annot_chip_fpaths([aid], qreq_=qreq_)[0]
             ut.copy(chip_fpath, fulldir, overwrite=False)
 
-        viz.show_chip(ibs, aid, in_image=in_image)
+        viz.show_chip(ibs, aid, in_image=in_image, qreq_=qreq_)
         if rank is not None:
             prefix += 'rank%d_' % rank
         df2.set_figtitle(prefix + ibs.annotstr(aid))
@@ -524,6 +746,7 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
     for rciter_chunk in ut.ichunks(enumerate(rciter), chunksize):
         # First load a chunk of query results
         qres_list = []
+        qreq_list = []
         # <FOR RCITER>
         for count, rctup in rciter_chunk:
             if (count in skip_list) or (SKIP_TO and count < SKIP_TO):
@@ -534,15 +757,21 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
                 (r, c) = rctup
                 qaid      = qaids[r]
                 query_cfg = cfg_list[c]
-                qres = load_qres(ibs, qaid, daids, query_cfg)
+                qreq_     = cfgx2_qreq_[c]
+                qres = load_qres(ibs, qaid, daids, query_cfg, qreq_)
                 qres_list.append(qres)
+                qreq_list.append(qreq_)
         # Iterate over chunks a second time, but
         # with loaded query results
-        for item, qres in zip(rciter_chunk, qres_list):
+        for item, qres, qreq_ in zip(rciter_chunk, qres_list, qreq_list):
             count, rctup = item
             if (count in skip_list) or (SKIP_TO and count < SKIP_TO):
                 continue
             (r, c) = rctup
+            if SHOW:
+                fnum = c
+            else:
+                fnum = 1
             # Get row and column index
             qaid      = qaids[r]
             query_cfg = cfg_list[c]
@@ -552,7 +781,6 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
             --- VIEW %d / %d --- (r=%r, c=%r)
             ----------------------------------
             ''')  % (count + 1, total, r, c))
-            #qres = load_qres(ibs, qaid, daids, query_cfg)
             qres_cfg = qres.get_fname(ext='')
             subdir = qres_cfg
             # Draw Result
@@ -579,38 +807,61 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
             # Show Figure
             # try to shorten query labels a bit
             query_lbl = query_lbl.replace(' ', '').replace('\'', '')
-            qres.show(ibs, 'analysis', figtitle=query_lbl, **show_kwargs)
+            #qres.show(ibs, 'analysis', figtitle=query_lbl, fnum=fnum, **show_kwargs)
+            """
+            CommandLine:
+                python dev.py -t custom:rrvsone_on=True,constrained_coeff=0 custom --qaid 12 --db PZ_MTEST --show --va
+                python dev.py -t custom:rrvsone_on=True,constrained_coeff=.3 custom --qaid 12 --db PZ_MTEST --show --va --noqcache
+                python dev.py -t custom:rrvsone_on=True custom --qaid 4 --db PZ_MTEST --show --va --noqcache
+
+                python dev.py -t custom:rrvsone_on=True,grid_scale_factor=1 custom --qaid 12 --db PZ_MTEST --show --va --noqcache
+                python dev.py -t custom:rrvsone_on=True,grid_scale_factor=1,grid_steps=1 custom --qaid 12 --db PZ_MTEST --show --va --noqcache
+
+            """
+            print('showing')
+            if SHOW:
+                qres.ishow_analysis(ibs, figtitle=query_lbl, fnum=fnum, annot_mode=1, qreq_=qreq_, **show_kwargs)
+                #qres.show_analysis(ibs, figtitle=query_lbl, fnum=fnum, annot_mode=1, **show_kwargs)
+            else:
+                qres.show_analysis(ibs, figtitle=query_lbl, fnum=fnum, annot_mode=1, qreq_=qreq_, **show_kwargs)
+            print('done showing')
 
             # Adjust subplots
-            df2.adjust_subplots_safe()
+            #df2.adjust_subplots_safe()
 
             if SHOW:
                 print('[DRAW_RESULT] df2.present()')
-                #exec(df2.present(), globals(), locals())
-                execstr = df2.present()
-                print(execstr)
-                six.exec_(execstr, globals(), locals())
-
-            fpath_orig = ph.dump_figure(figdir, **dumpkw)
+                # Draw only once we finish drawing all configs (columns) for
+                # this row (query)
+                if c == len(sel_cols) - 1:
+                    #execstr = df2.present()  # NOQA
+                    ans = input('press to continue...')
+                    if ans == 'cmd':
+                        ut.embed()
+                    #six.exec_(execstr, globals(), locals())
+                    #exec(df2.present(), globals(), locals())
+                #print(execstr)
+            # Saving will close the figure
+            fpath_orig = ph.dump_figure(figdir, reset=not SHOW, **dumpkw)
             append_copy_task(fpath_orig)
 
             print('[harn] drawing extra plots')
 
             if DUMP_QANNOT:
-                _show_chip(qres.qaid, 'QUERY_', **dumpkw)
-                _show_chip(qres.qaid, 'QUERY_CXT_', in_image=True, **dumpkw)
+                _show_chip(qres.qaid, 'QUERY_', qreq_=qreq_, **dumpkw)
+                _show_chip(qres.qaid, 'QUERY_CXT_', in_image=True, qreq_=qreq_, **dumpkw)
 
             if DUMP_QANNOT_DUMP_GT:
                 gtaids = ibs.get_annot_groundtruth(qres.qaid)
                 for aid in gtaids:
                     rank = qres.get_aid_ranks(aid)
-                    _show_chip(aid, 'GT_CXT_', rank=rank, in_image=True, **dumpkw)
+                    _show_chip(aid, 'GT_CXT_', rank=rank, in_image=True, qreq_=qreq_, **dumpkw)
 
             if DUMP_TOP_CONTEXT:
                 topids = qres.get_top_aids(num=3)
                 for aid in topids:
                     rank = qres.get_aid_ranks(aid)
-                    _show_chip(aid, 'TOP_CXT_', rank=rank, in_image=True, **dumpkw)
+                    _show_chip(aid, 'TOP_CXT_', rank=rank, in_image=True, qreq_=qreq_, **dumpkw)
         flush_copy_tasks()
     # </FOR RCITER>
 

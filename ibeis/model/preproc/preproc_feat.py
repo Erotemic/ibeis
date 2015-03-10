@@ -43,31 +43,36 @@ def gen_feat_openmp(cid_list, cfpath_list, hesaff_params):
         yield cid, nFeat, kpts, desc
 
 
-def add_feat_params_gen(ibs, cid_list, qreq_=None, nInput=None):
-    """
-    still used in manual code
-    DEPRICATE IN FAVOR OF AUTOGEN
-    """
-    if nInput is None:
-        nInput = len(cid_list)
-    # Get config from IBEIS controller
-    feat_cfg          = ibs.cfg.feat_cfg
-    hesaff_params     = feat_cfg.get_hesaff_params()
-    feat_config_rowid = ibs.get_feat_config_rowid()
-    cfpath_list       = ibs.get_chip_paths(cid_list)
-    if ut.VERBOSE:
-        print('[preproc_feat] cfgstr = %s' % feat_cfg.get_cfgstr())
-    if USE_OPENMP:
-        # Use Avi's openmp parallelization
-        featgen_mp = gen_feat_openmp(cid_list, cfpath_list, hesaff_params)
-        return  ((cid, feat_config_rowid, nFeat, kpts, vecs,)
-                 for (cid, nFeat, kpts, vecs) in featgen_mp)
-    else:
-        # Multiprocessing parallelization
-        featgen = generate_feats(cfpath_list, hesaff_params=hesaff_params,
-                                 cid_list=cid_list, nInput=nInput)
-        return ((cid, feat_config_rowid, nKpts, kpts, vecs)
-                for cid, nKpts, kpts, vecs in featgen)
+#def add_feat_params_gen(ibs, cid_list, qreq_=None, nInput=None):
+#    """
+#    still used in manual code
+#    DEPRICATE IN FAVOR OF AUTOGEN
+#    """
+#    if nInput is None:
+#        nInput = len(cid_list)
+#    if qreq_ is not None:
+#        # Get config from qreq_ object
+#        hesaff_params   = qreq_.qparams.hesaff_params
+#        feat_cfgstr     = qreq_.qparams.feat_cfgstr
+#    else:
+#        # Get config from IBEIS controller
+#        hesaff_params   = ibs.cfg.feat_cfg.get_hesaff_params()
+#        feat_cfgstr     = ibs.cfg.feat_cfg.get_cfgstr()
+#    feat_config_rowid = ibs.get_feat_config_rowid()
+#    cfpath_list       = ibs.get_chip_uris(cid_list)
+#    if ut.VERBOSE:
+#        print('[preproc_feat] cfgstr = %s' % feat_cfgstr)
+#    if USE_OPENMP:
+#        # Use Avi's openmp parallelization
+#        featgen_mp = gen_feat_openmp(cid_list, cfpath_list, hesaff_params)
+#        return  ((cid, feat_config_rowid, nFeat, kpts, vecs,)
+#                 for (cid, nFeat, kpts, vecs) in featgen_mp)
+#    else:
+#        # Multiprocessing parallelization
+#        featgen = generate_feats(cfpath_list, hesaff_params=hesaff_params,
+#                                 cid_list=cid_list, nInput=nInput)
+#        return ((cid, feat_config_rowid, nKpts, kpts, vecs)
+#                for cid, nKpts, kpts, vecs in featgen)
 
 
 def generate_feat_properties(ibs, cid_list, qreq_=None, nInput=None):
@@ -103,11 +108,22 @@ def generate_feat_properties(ibs, cid_list, qreq_=None, nInput=None):
     if nInput is None:
         nInput = len(cid_list)
     # Get config from IBEIS controller
-    feat_cfg          = ibs.cfg.feat_cfg
-    hesaff_params     = feat_cfg.get_hesaff_params()
-    cfpath_list       = ibs.get_chip_paths(cid_list)
+    # TODO: qreq_
+    if qreq_ is not None:
+        # Get config from qreq_ object
+        #print('id(qreq_) = ' + str(id(qreq_)))
+        hesaff_params   = qreq_.qparams.hesaff_params
+        feat_cfgstr     = qreq_.qparams.feat_cfgstr
+        hesaff_params   = qreq_.qparams.hesaff_params
+    else:
+        # Get config from IBEIS controller
+        hesaff_params   = ibs.cfg.feat_cfg.get_hesaff_params()
+        feat_cfgstr     = ibs.cfg.feat_cfg.get_cfgstr()
+        hesaff_params   = ibs.cfg.feat_cfg.get_hesaff_params()
+    cfpath_list       = ibs.get_chip_uris(cid_list)
     if ut.VERBOSE:
-        print('[preproc_feat] cfgstr = %s' % feat_cfg.get_cfgstr())
+        print('[preproc_feat] cfgstr = %s' % feat_cfgstr)
+        #print('hesaff_params = ' + ut.dict_str(hesaff_params))
     if USE_OPENMP:
         # Use Avi's openmp parallelization
         featgen_mp = gen_feat_openmp(cid_list, cfpath_list, hesaff_params)
@@ -116,7 +132,7 @@ def generate_feat_properties(ibs, cid_list, qreq_=None, nInput=None):
     else:
         # Multiprocessing parallelization
         featgen = generate_feats(cfpath_list, hesaff_params=hesaff_params,
-                                 cid_list=cid_list, nInput=nInput)
+                                 cid_list=cid_list, nInput=nInput, ordered=True)
         for cid, nFeat, kpts, vecs in featgen:
             yield (nFeat, kpts, vecs,)
     pass
@@ -161,8 +177,10 @@ def generate_feats(cfpath_list, hesaff_params={}, cid_list=None, nInput=None, **
     return featgen
 
 
-def on_delete(ibs, gid_list, qreq_=None):
-    print('Warning: Not Implemented')
+def on_delete(ibs, fid_list):
+    # remove dependants of these rowids
+    # No external data to remove
+    return 0
 
 
 if __name__ == '__main__':

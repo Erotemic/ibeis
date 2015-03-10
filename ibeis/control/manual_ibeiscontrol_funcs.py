@@ -1,6 +1,8 @@
 from __future__ import absolute_import, division, print_function
 import six  # NOQA
 import utool as ut  # NOQA
+import numpy as np
+import vtool as vt
 from ibeis.control.controller_inject import make_ibs_register_decorator
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[manual_newfuncs]')
 
@@ -101,6 +103,7 @@ def get_vocab_words(ibs, taids=None, qreq_=None):
             taids = cfg.vocab_taids
 
     vocab_cfgstr = get_vocab_cfgstr(ibs, taids=taids, qreq_=qreq_)
+    raise NotImplementedError('no temp state!')
 
     if vocab_cfgstr not in ibs.temporary_state:
         nWords = cfg.nWords
@@ -124,10 +127,101 @@ def get_vocab_words(ibs, taids=None, qreq_=None):
         words = ibs.temporary_state[vocab_cfgstr]
     return words
 
-
 #@register_ibs_method
 #def get_vocab_assignments(ibs, qreq_=None):
 #    pass
+
+
+from ibeis import constants as const
+from ibeis.control import accessor_decors
+from ibeis.model.hots import distinctiveness_normalizer as dcvs_normer
+
+
+#@ut.time_func
+@register_ibs_method
+def get_annot_kpts_distinctiveness(ibs, aid_list, qreq_=None, **kwargs):
+    """
+    very hacky, but cute way to cache keypoint distinctivness
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aid_list (list):
+        dstncvs_normer (None):
+
+    Returns:
+        list: dstncvs_list
+
+    CommandLine:
+        python -m ibeis.control.manual_ibeiscontrol_funcs --test-get_annot_kpts_distinctiveness
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_ibeiscontrol_funcs import *  # NOQA
+        >>> from ibeis.model.hots import distinctiveness_normalizer
+        >>> import ibeis
+        >>> import numpy as np
+        >>> qreq_ = None
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids(species=const.Species.ZEB_PLAIN)
+        >>> # execute function
+        >>> aid_list1 = aid_list[::2]
+        >>> aid_list2 = aid_list[1::3]
+        >>> dstncvs_list1 = get_annot_kpts_distinctiveness(ibs, aid_list1)
+        >>> dstncvs_list2 = get_annot_kpts_distinctiveness(ibs, aid_list2)
+        >>> dstncvs_list = get_annot_kpts_distinctiveness(ibs, aid_list)
+        >>> print(ut.depth_profile(dstncvs_list1))
+        >>> stats_dict = ut.dict_stack([ut.get_stats(dstncvs) for dstncvs in dstncvs_list])
+        >>> print(ut.dict_str(stats_dict))
+        >>> assert np.all(np.array(stats_dict['min']) >= 0), 'distinctiveness was out of bounds'
+        >>> assert np.all(np.array(stats_dict['max']) <= 1), 'distinctiveness was out of bounds'
+    """
+    # per-species disinctivness wrapper around ibeis cached function
+    # get feature rowids
+    aid_list = np.array(aid_list)
+    fid_list = np.array(ibs.get_annot_feat_rowids(aid_list, ensure=True, eager=True, nInput=None, qreq_=qreq_))
+    species_rowid_list = np.array(ibs.get_annot_species_rowids(aid_list))
+    # Compute distinctivness separately for each species
+    unique_sids, groupxs = vt.group_indices(species_rowid_list)
+    fids_groups          = vt.apply_grouping(fid_list, groupxs)
+    species_text_list    = ibs.get_species_texts(unique_sids)
+    # Map distinctivness computation
+    normer_list = [dcvs_normer.request_species_distinctiveness_normalizer(species)
+                   for species in species_text_list]
+    # Reduce to get results
+    dstncvs_groups = [
+        get_feat_kpts_distinctiveness(ibs, fids, dstncvs_normer=dstncvs_normer, species_rowid=sid, **kwargs)
+        for dstncvs_normer, fids, sid in zip(normer_list, fids_groups, unique_sids)
+    ]
+    dstncvs_list = vt.invert_apply_grouping(dstncvs_groups, groupxs)
+    return dstncvs_list
+
+
+dcvs_cfgkeys = dcvs_normer.DCVS_DEFAULT.get_varnames() + ['species_rowid']
+dcvs_colname = dcvs_normer.DCVS_DEFAULT.name
+
+
+@accessor_decors.cache_getter(const.FEATURE_TABLE, dcvs_colname, cfgkeys=dcvs_cfgkeys, debug=None)
+def get_feat_kpts_distinctiveness(ibs, fid_list, dstncvs_normer=None, species_rowid=None, **kwargs):
+    #print('[ibs] get_feat_kpts_distinctiveness fid_list=%r' % (fid_list,))
+    vecs_list = ibs.get_feat_vecs(fid_list, eager=True, nInput=None)
+    dstncvs_list = [None if vecs is None else dstncvs_normer.get_distinctiveness(vecs, **kwargs) for vecs in vecs_list]
+    return dstncvs_list
+
+
+@register_ibs_method
+def show_annot(ibs, aid, *args, **kwargs):
+    """ viz helper see ibeis.viz.viz_chip.show_chip """
+    from ibeis.viz import viz_chip
+    return viz_chip.show_chip(ibs, aid, *args, **kwargs)
+
+
+@register_ibs_method
+def show_annot_image(ibs, aid, *args, **kwargs):
+    """ viz helper see ibeis.viz.viz_chip.show_chip """
+    from ibeis.viz import viz_image
+    gid = ibs.get_annot_gids(aid)
+    return viz_image.show_image(ibs, gid, *args, **kwargs)
 
 
 if __name__ == '__main__':

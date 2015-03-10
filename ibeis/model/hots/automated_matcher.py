@@ -13,18 +13,18 @@ CommandLine:
 from __future__ import absolute_import, division, print_function
 import six
 import utool as ut
+from ibeis import constants as const
 from ibeis.model.hots import automated_oracle as ao
 from ibeis.model.hots import automated_helpers as ah
+from ibeis.model.hots import automated_params
 from ibeis.model.hots import special_query
 from ibeis.model.hots import neighbor_index
-from ibeis.model.hots import system_suggestor
+from ibeis.model.hots import automatch_suggestor
 from ibeis.model.hots import user_dialogs
 from collections import namedtuple
 ut.noinject(__name__, '[inc]')
 #profile = ut.profile
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[inc]')
-
-USE_STATEFULNESS = not ut.get_argflag('--nostateful-query')
 
 Metatup = namedtuple('Metatup', ('ibs_gt', 'aid1_to_aid2'))
 
@@ -45,16 +45,13 @@ def testdata_automatch(dbname=None):
 def test_generate_incremental_queries(ibs_gt, ibs, aid_list1, aid1_to_aid2,
                                       num_initial=0, incinfo=None):
     """
+    TODO: move this somewhere else
+    Testing function
+
     Adds and queries new annotations one at a time with oracle guidance
-
-    ibs1 is ibs_gt
-    ibs2 is ibs
-
+    ibs1 is ibs_gt, ibs2 is ibs
     """
     print('begin test interactive iter')
-
-    #ut.embed()
-
     # Transfer some amount of initial data
     print('Transfer %d initial test annotations' % (num_initial,))
     if num_initial > 0:
@@ -66,7 +63,6 @@ def test_generate_incremental_queries(ibs_gt, ibs, aid_list1, aid1_to_aid2,
         ibs.set_annot_names(aid_sublist2, name_list)
         ibs.set_annot_exemplar_flags(aid_sublist2, [True] * len(aid_sublist2))
         aid_list1 = aid_list1[num_initial:]
-
     # Print info
     WITHINFO = ut.get_argflag('--withinfo')
     if WITHINFO:
@@ -79,15 +75,12 @@ def test_generate_incremental_queries(ibs_gt, ibs, aid_list1, aid1_to_aid2,
         print('\nibs_gt info')
         #print(ibs_gt.get_dbinfo_str())
         print('L________')
-
-    #ut.embed()
-
-    # Setup metadata tuple
+    # Setup metadata tuple (in the presence of groundtruth, keeps records of
+    # accuracy and give information to the oracle decision maker)
     metatup = Metatup(ibs_gt, aid1_to_aid2)
     assert incinfo is not None
     incinfo['metatup'] = metatup
     incinfo['interactive'] = False
-
     # Begin incremental iteration
     chunksize = 1
     aids_chunk1_iter = ut.progress_chunks(aid_list1, chunksize, lbl='TEST QUERY')
@@ -106,10 +99,10 @@ def test_generate_incremental_queries(ibs_gt, ibs, aid_list1, aid1_to_aid2,
             qaid_chunk = ut.dict_take_list(aid1_to_aid2, aids_chunk1)
             #---
             for item in generate_subquery_steps(ibs, qaid_chunk, incinfo=incinfo):
-                (ibs, qres, qreq_, incinfo) = item
+                yield item
+                #(ibs, qres, qreq_, incinfo) = item
                 # Yeild results for qt interface to call down into user or
                 # oracle code and make a decision
-                yield item
     print('ending interactive iter')
     ah.check_results(ibs_gt, ibs, aid1_to_aid2, aid_list1, incinfo)
 
@@ -145,8 +138,69 @@ def generate_incremental_queries(ibs, qaid_list, incinfo=None):
         for item in generate_subquery_steps(ibs, qaid_chunk, incinfo=incinfo):
             yield item
 
+# ---- INIT ----
+
+
+def initialize_persistant_query_request(ibs, qaid_chunk):
+    # FIXME: allow for multiple species or make a nicer way of ensuring that
+    # there is only one species here
+    species_text_set = set(ibs.get_annot_species_texts(qaid_chunk))
+    assert len(species_text_set) == 1, 'query chunk has more than one species'
+    species_text = list(species_text_set)[0]
+    # controller based exemplars
+    daid_list = ibs.get_valid_aids(is_exemplar=True, species=species_text, is_known=True, nojunk=True)
+    num_names = len(set(ibs.get_annot_nids(daid_list)))
+    # TODO: choose vsmany K every time
+    # need to be able to update qreq_.qparams
+    vsmany_K = automated_params.choose_vsmany_K(num_names, qaid_chunk, daid_list)
+    vsmany_cfgdict = dict(
+        K=vsmany_K,
+        Knorm=3,
+        index_method='multi',
+        pipeline_root='vsmany',
+        #return_expanded_nns=False,
+        #return_expanded_nns=True,
+    )
+    # Create New qreq
+    qreq_vsmany_ = ibs.new_query_request(qaid_chunk, daid_list, cfgdict=vsmany_cfgdict)
+    return qreq_vsmany_
+
+
+def load_or_make_qreq(ibs, qreq_vsmany_, qaid_chunk):
+    if qreq_vsmany_ is None:
+        qreq_vsmany_ = initialize_persistant_query_request(ibs, qaid_chunk)
+    else:
+        # set new query aids
+        qreq_vsmany_.set_internal_qaids(qaid_chunk)
+        # state based exemplars
+        # daid_list = qreq_vsmany_.get_external_daids()
+        # Force indexer reloading if background process is completed we might
+        # get a shiny new indexer.
+        force = neighbor_index.check_background_process()
+        qreq_vsmany_.load_indexer(force=force)
+    return qreq_vsmany_
 
 # ---- QUERY ----
+
+
+def execute_query_batch(ibs, qaid_chunk, qreq_vsmany_, incinfo):
+    """
+    TODO: remove special query
+    """
+    from ibeis.model.hots import match_chips4 as mc4
+    USE_SPECIAL_QUERY = False
+    if USE_SPECIAL_QUERY:
+        qaid2_qres, qreq_, qreq_vsmany_ = special_query.query_vsone_verified(
+            ibs, qaid_chunk, qreq_vsmany_.get_external_daids(), qreq_vsmany__=qreq_vsmany_, incinfo=incinfo)
+    else:
+        qreq_ = qreq_vsmany_
+        qaid2_qres = mc4.submit_query_request_nocache(ibs,  qreq_=qreq_)
+    if incinfo.get('qreq_vsmany_', None) is None:
+        incinfo['qreq_vsmany_'] = qreq_vsmany_
+    else:
+        assert incinfo.get('qreq_vsmany_') is qreq_vsmany_, 'bad statefulness'
+    return qaid2_qres, qreq_
+
 
 @profile
 def generate_subquery_steps(ibs, qaid_chunk, incinfo=None):
@@ -170,36 +224,31 @@ def generate_subquery_steps(ibs, qaid_chunk, incinfo=None):
     """
     # Use either state-based exemplars or controller based exemplars
     qreq_vsmany_ = incinfo.get('qreq_vsmany_', None)
-    if qreq_vsmany_ is not None:
-        # state based exemplars
-        qreq_vsmany_.set_internal_qaids(qaid_chunk)
-        daid_list = qreq_vsmany_.get_external_daids()
-        # Force indexer reloading if background process is completed we might
-        # get a shiny new indexer.
-        force = neighbor_index.check_background_process()
-        qreq_vsmany_.load_indexer(force=force)
-    else:
-        # FIXME: allow for multiple species or make a nicer way of ensuring that
-        # there is only one species here
-        species_text_set = set(ibs.get_annot_species_texts(qaid_chunk))
-        assert len(species_text_set) == 1, 'query chunk has more than one species'
-        species_text = list(species_text_set)[0]
-        # controller based exemplars
-        daid_list = ibs.get_valid_aids(is_exemplar=True, species=species_text)
     # Execute actual queries
-    qaid2_qres, qreq_, qreq_vsmany_ = special_query.query_vsone_verified(
-        ibs, qaid_chunk, daid_list, qreq_vsmany__=qreq_vsmany_, incinfo=incinfo)
-    if USE_STATEFULNESS and qreq_vsmany_ is not None:
-        if incinfo.get('qreq_vsmany_', None) is None:
-            incinfo['qreq_vsmany_'] = qreq_vsmany_
-        else:
-            assert incinfo.get('qreq_vsmany_') is qreq_vsmany_, 'bad statefulness'
+    qreq_vsmany_ = load_or_make_qreq(ibs, qreq_vsmany_, qaid_chunk)
+    qaid2_qres, qreq_ = execute_query_batch(ibs, qaid_chunk, qreq_vsmany_, incinfo)
+
     #try_decision_callback = incinfo.get('try_decision_callback', None)
     for qaid, qres in six.iteritems(qaid2_qres):
-        item = [ibs, qres, qreq_, incinfo]
-        yield item
+        yield [ibs, qres, qreq_, incinfo]
 
 # ---- DECISION ---
+
+
+def get_name_suggestion(ibs, qaid, choicetup, incinfo):
+    # ---------------------------------------------
+    # Get oracle suggestion if we have the metadata
+    # override the system suggestion
+    metatup = incinfo.get('metatup', None)
+    if incinfo.get('use_oracle', False) and metatup is not None:
+        oracle_name_suggest_tup = ao.get_oracle_name_suggestion(
+            ibs, qaid, choicetup, metatup)
+        name_suggest_tup = oracle_name_suggest_tup
+    else:
+        # Get system suggested name
+        system_name_suggest_tup = automatch_suggestor.get_system_name_suggestion(ibs, choicetup)
+        name_suggest_tup = system_name_suggest_tup
+    return name_suggest_tup
 
 
 @profile
@@ -229,41 +278,23 @@ def run_until_name_decision_signal(ibs, qres, qreq_, incinfo=None):
         qres.ishow_top(ibs, sidebyside=False, show_query=True)
     """
     print('--- Identifying Query Animal ---')
-    #name_confidence_thresh = incinfo.get('name_confidence_thresh', ut.get_sys_maxfloat())
-    name_confidence_thresh = incinfo.get('name_confidence_thresh', 1.0)
-    interactive = incinfo.get('interactive', False)
-    metatup = incinfo.get('metatup', None)
-    #print('id_stack_depth = %r' % ut.get_current_stack_depth())
     qaid = qres.get_qaid()
-    choicetup = system_suggestor.get_qres_name_choices(ibs, qres)
-    # ---------------------------------------------
-    # Get oracle suggestion if we have the metadata
-    # override the system suggestion
-    if incinfo['use_oracle'] and metatup is not None:
-        oracle_name_suggest_tup = ao.get_oracle_name_suggestion(
-            ibs, qaid, choicetup, metatup)
-        name_suggest_tup = oracle_name_suggest_tup
-    else:
-        # Get system suggested name
-        system_name_suggest_tup = system_suggestor.get_system_name_suggestion(ibs, choicetup)
-        name_suggest_tup = system_name_suggest_tup
-    # ---------------------------------------------
+    choicetup = automatch_suggestor.get_qres_name_choices(ibs, qres)
+    name_suggest_tup = get_name_suggestion(ibs, qaid, choicetup, incinfo)
     # Have the system ask the user if it is not confident in its decision
     autoname_msg, chosen_names, name_confidence = name_suggest_tup
     print('autoname_msg=')
     print(autoname_msg)
     print('... checking confidence=%r in name decision.' % (name_confidence,))
-    if name_confidence < name_confidence_thresh:
+    if name_confidence < incinfo.get('name_confidence_thresh', 1.0):
         print('... confidence is too low. need user input')
-        if interactive:
+        if incinfo.get('interactive', False):
             print('... asking user for input')
             if qreq_.normalizer is not None:
-                pass
                 VIZ_SCORE_NORM = False
+                #VIZ_SCORE_NORM = ut.is_developer()
                 if VIZ_SCORE_NORM:
                     qreq_.normalizer.visualize(fnum=511, verbose=False)
-            #sh Tinc.sh --test-test_inc_query:0 --ia 0
-            #ut.embed()
             user_dialogs.wait_for_user_name_decision(ibs, qres, qreq_, choicetup,
                                                      name_suggest_tup,
                                                      incinfo=incinfo)
@@ -291,27 +322,35 @@ def exec_name_decision_and_continue(chosen_names, ibs, qres, qreq_,
     print('--- Updating Exemplars ---')
     qaid = qres.get_qaid()
     #assert ibs.is_aid_unknown(qaid), 'animal is already known'
-    if chosen_names is None or len(chosen_names) == 0:
+    try_update_normalizer = False
+    was_junk = False
+    if chosen_names is None or len(chosen_names) == 0 or chosen_names == 'newname':
         newname = ibs.make_next_name()
-        print('identifiying qaid=%r as a new animal. newname=%r' % (qaid, newname))
+        print('identifying qaid=%r as a new animal. newname=%r' % (qaid, newname))
         ibs.set_annot_names((qaid,), (newname,))
+    elif  chosen_names == 'junk':
+        print('setting query qaid=%r as a junk annotations')
+        ibs.set_annot_qualities((qaid,), (const.QUALITY_TEXT_TO_INT['junk'],))
+        was_junk = True
     elif len(chosen_names) == 1:
-        print('identifiying qaid=%r as name=%r' % (qaid, chosen_names,))
+        print('identifying qaid=%r as name=%r' % (qaid, chosen_names,))
         ibs.set_annot_names((qaid,), chosen_names)
+        try_update_normalizer = True
     elif len(chosen_names) > 1:
         merge_name = chosen_names[0]
         other_names = chosen_names[1:]
-        print('identifiying qaid=%r as name=%r and merging with %r ' %
+        print('identifying qaid=%r as name=%r and merging with %r ' %
                 (qaid, merge_name, other_names))
         ibs.merge_names(merge_name, other_names)
         ibs.set_annot_names((qaid,), (merge_name,))
+    # STATE MAINTENANCE
     # TODO make sure update normalizer works
-    if qreq_.normalizer is not None:
+    if qreq_.normalizer is not None and try_update_normalizer:
         update_normalizer(ibs, qres, qreq_, chosen_names)
     # Do update callback so the name updates in the main GUI
     interactive = incinfo.get('interactive', False)
     update_callback = incinfo.get('update_callback', None)
-    if interactive and update_callback is not None:
+    if interactive and not was_junk and update_callback is not None:
         # Update callback repopulates the names tree
         update_callback()
     run_until_exemplar_decision_signal(ibs, qres, qreq_, incinfo=incinfo)
@@ -327,7 +366,7 @@ def run_until_exemplar_decision_signal(ibs, qres, qreq_, incinfo=None):
     """
     qaid = qres.get_qaid()
     exemplar_confidence_thresh = ut.get_sys_maxfloat()
-    exmplr_suggestion = system_suggestor.get_system_exemplar_suggestion(ibs, qaid)
+    exmplr_suggestion = automatch_suggestor.get_system_exemplar_suggestion(ibs, qaid)
     (autoexemplar_msg, exemplar_decision, exemplar_condience) = exmplr_suggestion
     print('autoexemplar_msg=')
     print(autoexemplar_msg)
@@ -408,7 +447,7 @@ def update_normalizer(ibs, qres, qreq_, chosen_names):
         python -m ibeis.model.hots.automated_matcher --test-update_normalizer
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.automated_matcher import *  # NOQA
         >>> ibs, qaid_chunk = testdata_automatch()
         >>> exemplar_aids = ibs.get_valid_aids(is_exemplar=True)
@@ -416,19 +455,20 @@ def update_normalizer(ibs, qres, qreq_, chosen_names):
         >>> gen = generate_subquery_steps(ibs, qaid_chunk, incinfo)
         >>> item = six.next(gen)
         >>> ibs, qres, qreq_, incinfo = item
+        >>> qreq_.load_score_normalizer()
         >>> # verify results
         >>> chosen_names = ['easy']
         >>> update_normalizer(ibs, qres, qreq_, chosen_names)
-        >>> # verify results
-        >>> result = str((tp_rawscore, tn_rawscore))
-        >>> print(result)
     """
     # Fixme: duplicate call to get_qres_name_choices
+    if qreq_.normalizer is None:
+        print('[update_normalizer] NOT UPDATING. qreq_ has not loaded a score normalizer')
+        return
     if len(chosen_names) != 1:
-        print('NOT UPDATING normalization. only updates using simple matches')
+        print('[update_normalizer] NOT UPDATING. only updates using simple matches')
         return
     qaid = qres.get_qaid()
-    choicetup = system_suggestor.get_qres_name_choices(ibs, qres)
+    choicetup = automatch_suggestor.get_qres_name_choices(ibs, qres)
     (sorted_nids, sorted_nscore, sorted_rawscore, sorted_aids, sorted_ascores) = choicetup
     # Get new True Negative support data for score normalization
     name = chosen_names[0]
@@ -448,9 +488,10 @@ def update_normalizer(ibs, qres, qreq_, chosen_names):
     if canupdate:
         # TODO: UPDATE SCORE NORMALIZER HERE
         print('UPDATING! NORMALIZER')
+        tp_labels = [ut.deterministic_uuid((qaid, nid))]
+        tn_labels = [ut.deterministic_uuid((qaid, nid))]
         print('new normalization example: tp_rawscore={}, tn_rawscore={}'.format(tp_rawscore, tn_rawscore))
-        tp_labels = [(qaid, nid)]
-        tn_labels = [(qaid, nid)]
+        print('new normalization example: tp_labels={}, tn_labels={}'.format(tp_labels, tn_labels))
         tp_scores = [tp_rawscore]
         tn_scores = [tn_rawscore]
         qreq_.normalizer.add_support(tp_scores, tn_scores, tp_labels, tn_labels)

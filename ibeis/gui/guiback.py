@@ -25,6 +25,7 @@ from ibeis.viz import interact
 from ibeis import constants as const
 from ibeis.control import IBEISControl
 from ibeis.gui import clock_offset_gui
+from ibeis.gui import guiexcept
 # Utool
 #import utool
 import utool as ut
@@ -42,6 +43,9 @@ def backreport(func):
     def backreport_wrapper(back, *args, **kwargs):
         try:
             result = func(back, *args, **kwargs)
+        except guiexcept.UserCancel as ex:
+            print('handling user cancel')
+            return None
         except Exception as ex:
             error_msg = "Error caught while performing function. \n %r" % ex
             guitool.msgbox(title="Error Catch!", msg=error_msg)
@@ -113,7 +117,8 @@ class MainWindowBackend(QtCore.QObject):
     def __init__(back, ibs=None):
         """ Creates GUIBackend object """
         QtCore.QObject.__init__(back)
-        print('[back] MainWindowBackend.__init__()')
+        if ut.VERBOSE:
+            print('[back] MainWindowBackend.__init__(ibs=%r)' % (ibs,))
         back.ibs = None
         back.cfg = None
         back.edit_prefs_wgt = None
@@ -123,7 +128,10 @@ class MainWindowBackend(QtCore.QObject):
         back.sel_gids = []
         back.sel_qres = []
         back.active_enc = 0
-        back.query_mode = const.VS_EXEMPLARS_KEY
+        if ut.is_developer():
+            back.query_mode = const.INTRA_ENC_KEY
+        else:
+            back.query_mode = const.VS_EXEMPLARS_KEY
         back.encounter_query_results = ut.ddict(dict)
 
         # Create GUIFrontend object
@@ -134,10 +142,25 @@ class MainWindowBackend(QtCore.QObject):
         fig_presenter.register_qt4_win(back.mainwin)
         # register self with the ibeis controller
         back.register_self()
+        back.set_query_mode(back.query_mode)
         #back.incQuerySignal.connect(back.incremental_query_slot)
 
     #def __del__(back):
     #    back.cleanup()
+
+    def set_query_mode(back, new_mode):
+        if new_mode == 'toggle':
+            if back.query_mode == const.VS_EXEMPLARS_KEY:
+                back.query_mode = const.INTRA_ENC_KEY
+            else:
+                back.query_mode = const.VS_EXEMPLARS_KEY
+        else:
+            back.query_mode = new_mode
+        try:
+            back.mainwin.actionToggleQueryMode.setText('Toggle Query Mode currently: %s' % back.query_mode)
+        except Exception as ex:
+            ut.printex(ex)
+        #back.front.menuActions.
 
     def cleanup(back):
         if back.ibs is not None:
@@ -182,27 +205,12 @@ class MainWindowBackend(QtCore.QObject):
             interact.ishow_image(back.ibs, gid, sel_aids=[aid])
 
     def show_name(back, nid, sel_aids=[], **kwargs):
-        #nid = back.ibs.get_name_rowids_from_text(name)
         kwargs.update({
             'sel_aids': sel_aids,
             'select_aid_callback': back.select_aid,
         })
+        #nid = back.ibs.get_name_rowids_from_text(name)
         interact.ishow_name(back.ibs, nid, **kwargs)
-        pass
-
-    def show_qres(back, qres, **kwargs):
-        kwargs['annot_mode'] = kwargs.get('annot_mode', 2)
-        kwargs['top_aids'] = kwargs.get('top_aids', 6)
-        interact.ishow_qres(back.ibs, qres, **kwargs)
-        # HACK
-        from ibeis.gui import inspect_gui
-        qaid2_qres = {qres.qaid: qres}
-        backend_callback = back.front.update_tables
-        back.qres_wgt1 = inspect_gui.QueryResultsWidget(back.ibs, qaid2_qres,
-                                                        callback=backend_callback,
-                                                        ranks_lt=kwargs['top_aids'],)
-        back.qres_wgt1.show()
-        back.qres_wgt1.raise_()
         pass
 
     def show_hough_image(back, gid, **kwargs):
@@ -214,7 +222,7 @@ class MainWindowBackend(QtCore.QObject):
         back.run_detection_on_images(gid_list, refresh=refresh, **kwargs)
 
     def run_detection_on_images(back, gid_list, refresh=True, **kwargs):
-        species = back.ibs.cfg.detect_cfg.species
+        species = back.ibs.cfg.detect_cfg.species_text
         back.ibs.detect_random_forest(gid_list, species)
         if refresh:
             back.front.update_tables([gh.IMAGE_TABLE])
@@ -222,6 +230,56 @@ class MainWindowBackend(QtCore.QObject):
     def show_probability_chip(back, cid, **kwargs):
         viz.show_probability_chip(back.ibs, cid, **kwargs)
         viz.draw()
+
+    @blocking_slot()
+    def review_queries(back, qaid2_qres=None, **kwargs):
+        eid = back.get_selected_eid()
+        if eid not in back.encounter_query_results:
+            raise guiexcept.InvalidRequest('Queries have not been computed yet')
+        if qaid2_qres is None:
+            qaid2_qres = back.encounter_query_results[eid]
+        # review_kw = {
+        #     'on_change_callback': back.front.update_tables,
+        #     'nPerPage': 6,
+        # }
+        ibs = back.ibs
+        # Matplotlib QueryResults interaction
+        #from ibeis.viz.interact import interact_qres2
+        #back.query_review = interact_qres2.Interact_QueryResult(ibs, qaid2_qres, **review_kw)
+        #back.query_review.show()
+        # Qt QueryResults Interaction
+        from ibeis.gui import inspect_gui
+        backend_callback = back.front.update_tables
+        ranks_lt = ibs.cfg.other_cfg.ranks_lt
+        back.qres_wgt = inspect_gui.QueryResultsWidget(ibs, qaid2_qres, callback=backend_callback, ranks_lt=ranks_lt)
+        back.qres_wgt.show()
+        back.qres_wgt.raise_()
+
+    #def show_qres(back, qres, **kwargs):
+    #    top_aids = kwargs.get('top_aids', 6)
+    #    # SHOW MATPLOTLIB RESULTS (NO DECISION INTERACTIONS)
+    #    if ut.get_argflag(('--show-mplres',)):
+    #        kwargs['annot_mode'] = kwargs.get('annot_mode', 2)
+    #        kwargs['top_aids'] = top_aids
+    #        kwargs['sidebyside'] = True
+    #        kwargs['show_query'] = False
+    #        #kwargs['sidebyside'] = False
+    #        #kwargs['show_query'] = True
+    #        kwargs['in_image'] = False
+    #        qres.ishow_top(back.ibs, **kwargs)
+
+    #    #interact.ishow_matches(back.ibs, qres, **kwargs)
+    #    # HACK SHOW QT RESULTS
+    #    if not ut.get_argflag(('--noshow-qtres',)):
+    #        from ibeis.gui import inspect_gui
+    #        qaid2_qres = {qres.qaid: qres}
+    #        backend_callback = back.front.update_tables
+    #        back.qres_wgt1 = inspect_gui.QueryResultsWidget(back.ibs, qaid2_qres,
+    #                                                        callback=backend_callback,
+    #                                                        ranks_lt=top_aids,)
+    #        back.qres_wgt1.show()
+    #        back.qres_wgt1.raise_()
+    #    pass
 
     #----------------------
     # State Management Functions (ewww... state)
@@ -238,7 +296,10 @@ class MainWindowBackend(QtCore.QObject):
 
     #@ut.indent_func
     def connect_ibeis_control(back, ibs):
-        print('[back] connect_ibeis()')
+        if ut.VERBOSE:
+            print('[back] connect_ibeis(ibs=%r)' % (ibs,))
+        if ibs is None:
+            return None
         back.ibs = ibs
         # register self with the ibeis controller
         back.register_self()
@@ -265,7 +326,7 @@ class MainWindowBackend(QtCore.QObject):
             if len(back.sel_aids) == 0:
                 gid = back.ibs.get_annot_gids(back.sel_aids)[0]
                 return gid
-            raise AssertionError('There are no selected images')
+            raise guiexcept.InvalidRequest('There are no selected images')
         gid = back.sel_gids[0]
         return gid
 
@@ -273,7 +334,7 @@ class MainWindowBackend(QtCore.QObject):
     def get_selected_aid(back):
         """ selected annotation id """
         if len(back.sel_aids) == 0:
-            raise AssertionError('There are no selected ANNOTATIONs')
+            raise guiexcept.InvalidRequest('There are no selected ANNOTATIONs')
         aid = back.sel_aids[0]
         return aid
 
@@ -281,7 +342,7 @@ class MainWindowBackend(QtCore.QObject):
     def get_selected_eid(back):
         """ selected encounter id """
         if len(back.sel_eids) == 0:
-            raise AssertionError('There are no selected Encounters')
+            raise guiexcept.InvalidRequest('There are no selected Encounters')
         eid = back.sel_eids[0]
         return eid
 
@@ -310,24 +371,25 @@ class MainWindowBackend(QtCore.QObject):
                 sel_enctexts = []
             else:
                 sel_enctexts = map(str, sel_enctexts)
-            back.ibswgt.set_status_text(0, 'Selected Encounter: %r' % (sel_enctexts,))
+            back.ibswgt.set_status_text(gh.ENCOUNTER_TABLE, repr(sel_enctexts,))
         if sel_gids is not None:
             back.sel_gids = sel_gids
-            back.ibswgt.set_status_text(1, 'Selected Image: %r' % (sel_gids,))
+            back.ibswgt.set_status_text(gh.IMAGE_TABLE, repr(sel_gids,))
         if sel_aids is not None:
             back.sel_aids = sel_aids
-            back.ibswgt.set_status_text(2, 'Selected ANNOTATION: %r' % (sel_aids,))
+            back.ibswgt.set_status_text(gh.ANNOTATION_TABLE, repr(sel_aids,))
         if sel_nids is not None:
             back.sel_nids = sel_nids
-            back.ibswgt.set_status_text(3, 'Selected Name: %r' % (sel_nids,))
+            back.ibswgt.set_status_text(gh.NAMES_TREE, repr(sel_nids,))
         if sel_qres is not None:
+            raise NotImplementedError('no select qres implemented')
             back.sel_sel_qres = sel_qres
 
     #@backblock
     def select_eid(back, eid=None, **kwargs):
         """ Table Click -> Result Table """
         eid = cast_from_qt(eid)
-        if True:
+        if False:
             prefix = ut.get_caller_name(range(1, 8))
         else:
             prefix = ''
@@ -550,7 +612,7 @@ class MainWindowBackend(QtCore.QObject):
             gid_list = back.ibs.get_valid_gids()
         else:
             gid_list = back.ibs.get_valid_gids(eid=eid)
-        species = back.ibs.cfg.detect_cfg.species
+        species = back.ibs.cfg.detect_cfg.species_text
         if species == 'none':
             species = None
         print("[train_rf_with_encounter] Training Random Forest trees with enc=%r and species=%r" % (eid, species, ))
@@ -634,36 +696,39 @@ class MainWindowBackend(QtCore.QObject):
         ibs = back.ibs
         eid = back.get_selected_eid()
         aid_list = back.ibs.get_valid_aids(eid=eid)
-        species_list = [ibs.cfg.detect_cfg.species] * len(aid_list)
+        species_list = [ibs.cfg.detect_cfg.species_text] * len(aid_list)
         ibs.set_annot_species(aid_list, species_list)
         if refresh:
             back.front.update_tables([gh.ANNOTATION_TABLE])
 
     @blocking_slot()
-    def change_detection_species(back, index, value):
-        print('[back] change_detection_species(%r, %r)' % (index, value))
+    def change_detection_species(back, index, species_text):
+        """ callback for combo box """
+        print('[back] change_detection_species(%r, %r)' % (index, species_text))
         ibs = back.ibs
-        species = value
         # Load full blown configs for each species
         if back.edit_prefs_wgt:
             back.edit_prefs_wgt.close()
-        if species == 'none':
+        if species_text == 'none':
             cfgname = 'cfg'
         else:
-            cfgname = species
+            cfgname = species_text
         ibs._load_named_config(cfgname)
-        #ibs.cfg.save()
-        #ibs.cfg.detect_cfg.species = value
+        ibs.cfg.detect_cfg.species_text = species_text
+        ibs.cfg.save()
 
     def get_selected_species(back):
-        return back.ibs.cfg.detect_cfg.species
+        species_text = back.ibs.cfg.detect_cfg.species_text
+        if species_text == 'none':
+            species_text = None
+        return species_text
 
     @blocking_slot()
     def change_query_mode(back, index, value):
         print('[back] change_query_mode(%r, %r)' % (index, value))
         back.query_mode = value
         #ibs = back.ibs
-        #ibs.cfg.detect_cfg.species = value
+        #ibs.cfg.detect_cfg.species_text = value
         #ibs.cfg.save()
 
     @blocking_slot()
@@ -672,7 +737,7 @@ class MainWindowBackend(QtCore.QObject):
         eid = back._eidfromkw(kwargs)
         ibs = back.ibs
         gid_list = ibsfuncs.get_empty_gids(ibs, eid=eid)
-        species = ibs.cfg.detect_cfg.species
+        species = ibs.cfg.detect_cfg.species_text
         # Construct message
         msg_fmtstr_list = ['You are about to run detection...']
         fmtdict = dict()
@@ -714,25 +779,65 @@ class MainWindowBackend(QtCore.QObject):
         if refresh:
             back.front.update_tables()
 
-    def get_selected_daids(back, eid=None, query_mode=None):
+    def get_selected_qaids(back, eid=None, nojunk=True, is_known=None):
         species = back.get_selected_species()
-        if query_mode is None:
-            # Run vs-exemplars by default
-            query_mode = const.VS_EXEMPLARS_KEY
+        valid_kw = dict(
+            eid=eid,
+            nojunk=nojunk,
+            is_known=is_known,
+            species=species,
+        )
+        qaid_list = back.ibs.get_valid_aids(**valid_kw)
+        return qaid_list
 
-        if query_mode == const.VS_EXEMPLARS_KEY:
-            print('[back] query_exemplars(species=%r) ' % (species))
-            daid_list = back.ibs.get_recognition_database_aids(is_exemplar=True, species=species)
-        elif query_mode == const.INTRA_ENC_KEY:
-            print('[back] query_encounter (eid=%r, species=%r)' % (eid, species))
-            daid_list = back.ibs.get_recognition_database_aids(eid=eid, species=species)
-        else:
-            msg = ('Unknown query mode: %r' % (query_mode))
-            print(msg)
-            raise AssertionError(msg)
+    def get_selected_daids(back, eid=None, query_mode=None):
+        query_mode = back.query_mode if query_mode is None else query_mode
+        query_mode_valid_kw_dict = {
+            const.VS_EXEMPLARS_KEY: {
+                'is_exemplar': True,
+            },
+            const.INTRA_ENC_KEY: {
+                'eid': eid,
+            },
+        }
+        valid_kw = {
+            'species': back.get_selected_species(),
+            'nojunk':  True,
+        }
+        mode_str = {
+            const.VS_EXEMPLARS_KEY: 'vs_exemplar',
+            const.INTRA_ENC_KEY: 'intra_encounter',
+        }[query_mode]
+        valid_kw.update(query_mode_valid_kw_dict[query_mode])
+        print('[back] get_selected_daids: ' + mode_str)
+        print('[back] ... valid_kw = ' + ut.dict_str(valid_kw))
+        daid_list = back.ibs.get_valid_aids(**valid_kw)
         return daid_list
 
-    def confirm_query_dialog(back, daid_list=None, qaid_list=None):
+    def make_confirm_query_msg(back, daid_list, qaid_list):
+        r"""
+        Args:
+            daid_list (list):
+            qaid_list (list):
+
+        CommandLine:
+            python -m ibeis.gui.guiback --test-confirm_query_dialog
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.gui.guiback import *  # NOQA
+            >>> import ibeis
+            >>> # build test data
+            >>> main_locals = ibeis.main(defaultdb='testdb1')
+            >>> ibs, back = ut.dict_take(main_locals, ['ibs', 'back'])
+            >>> daid_list = [1, 2, 3, 4, 5]
+            >>> qaid_list = [4, 5, 6, 7, 8, 9]
+            >>> # execute function
+            >>> result = back.make_confirm_query_msg(daid_list, qaid_list)
+            >>> # verify results
+            >>> print(result)
+        """
+        ibs = back.ibs
         species_dict = dict(zip(const.VALID_SPECIES, const.SPECIES_NICE))
 
         def pluralize(wordtext, list_):
@@ -742,77 +847,91 @@ class MainWindowBackend(QtCore.QObject):
             def boldspecies(species):
                 species_bold_nice = '\'%s\'' % (species_dict.get(species, species).upper(),)
                 return species_bold_nice
-            species_list = list(set(back.ibs.get_annot_species_texts(aid_list)))
+            species_list = list(set(ibs.get_annot_species_texts(aid_list)))
             species_nice_list = list(map(boldspecies, species_list))
             species_phrase = ut.cond_phrase(species_nice_list, 'and')
             return species_phrase
 
         # Build confirmation message
-        msg_fmtstr_list = ['You are about to run identification...']
         fmtdict = dict()
+        msg_fmtstr_list = ['You are about to run identification...']
         # Append database information to query confirmation
         if daid_list is not None:
             msg_fmtstr_list += ['    Database annotations: {num_daids}']
-            msg_fmtstr_list += ['    Database species:         {d_species_phrase}']  # Add more spaces
-            # msg_fmtstr_list += ['* # database annotations={num_daids}.']
-            # msg_fmtstr_list += ['* database species={d_species_phrase}.']
+            msg_fmtstr_list += ['    Database species:         {d_species_phrase}']
             fmtdict['d_annotation_s']  = pluralize('annotation', daid_list)
             fmtdict['num_daids'] = len(daid_list)
             fmtdict['d_species_phrase'] = get_unique_species_phrase(daid_list)
         # Append query information to query confirmation
         if qaid_list is not None:
             msg_fmtstr_list += ['    Query annotations: {num_qaids}']
-            msg_fmtstr_list += ['    Query species:         {q_species_phrase}']  # Add more spaces
-            # msg_fmtstr_list += ['* # query annotations={num_qaids}.']
-            # msg_fmtstr_list += ['* query species={q_species_phrase}.']
+            msg_fmtstr_list += ['    Query species:         {q_species_phrase}']
             fmtdict['q_annotation_s']  = pluralize('annotation', qaid_list)
             fmtdict['num_qaids'] = len(qaid_list)
             fmtdict['q_species_phrase'] = get_unique_species_phrase(qaid_list)
+
+        if qaid_list is not None and daid_list is not None:
+            overlap_aids = ut.list_intersection(daid_list, qaid_list)
+            num_overlap = len(overlap_aids)
+            msg_fmtstr_list += ['    Num Overlap: {num_overlap}']
+            fmtdict['num_overlap'] = num_overlap
+
         # Finish building confirmation message
         msg_fmtstr_list += ['']
         msg_fmtstr_list += ['Press \'Yes\' to continue']
         msg_fmtstr = '\n'.join(msg_fmtstr_list)
         msg_str = msg_fmtstr.format(**fmtdict)
-        if not back.are_you_sure(use_msg=msg_str, title='Begin Identification'):
-            raise StopIteration
+        return msg_str
+
+    def confirm_query_dialog(back, daid_list=None, qaid_list=None):
+        msg_str = back.make_confirm_query_msg(daid_list, qaid_list)
+        confirm_kw = dict(use_msg=msg_str, title='Begin Identification?', default='Yes')
+        if not back.are_you_sure(**confirm_kw):
+            raise guiexcept.UserCancel
+
+    #@blocking_slot()
+    #def query(back, aid=None, refresh=True, query_mode=None, **kwargs):
+    #    """ Action -> Query
+
+    #    queries a single annotation vs the exemplars or intra encounter
+    #    """
+    #    if aid is None:
+    #        aid = back.get_selected_aid()
+    #    eid = back._eidfromkw(kwargs)
+    #    print('------')
+    #    print('\n\n[back] query: eid=%r, mode=%r' % (eid, back.query_mode))
+    #    if query_mode is None:
+    #        query_mode = back.query_mode
+    #    # Get the query annotation ids to search
+    #    qaid_list = [aid]
+    #    daid_list = back.get_selected_daids(eid=eid, query_mode=query_mode)
+    #    back.confirm_query_dialog(daid_list, qaid_list)
+    #    # Get the database annotation ids to be searched
+    #    # Execute Query
+    #    if len(daid_list) == 0:
+    #        raise guiexcept.InvalidRequest('No exemplars set for this species')
+    #    qaid2_qres = back.ibs._query_chips4(qaid_list, daid_list)
+    #    if query_mode == const.INTRA_ENC_KEY:
+    #        # HACK IN ENCOUNTER INFO
+    #        for qres in six.itervalues(qaid2_qres):
+    #            qres.eid = eid
+    #    qres = qaid2_qres[aid]
+    #    #back._set_selection(sel_qres=[qres])
+    #    if refresh:
+    #        #back.populate_tables(qres=True, default=False)
+    #        back.review_queries(qaid2_qres, eid=eid)
 
     @blocking_slot()
-    def query(back, aid=None, refresh=True, query_mode=None, **kwargs):
-        """ Action -> Query
-
-        queries a single annotation vs the exemplars or intra encounter
+    def compute_queries(back, refresh=True, query_mode=None, query_is_known=None, qaid_list=None, use_visual_selection=False, **kwargs):
         """
-        if aid is None:
-            aid = back.get_selected_aid()
-        eid = back._eidfromkw(kwargs)
-        print('------')
-        print('\n\n[back] query: eid=%r, mode=%r' % (eid, back.query_mode))
-        if query_mode is None:
-            query_mode = back.query_mode
-        # Get the query annotation ids to search
-        qaid_list = [aid]
-        daid_list = back.get_selected_daids(eid=eid, query_mode=query_mode)
-        back.confirm_query_dialog(daid_list, qaid_list)
-        # Get the database annotation ids to be searched
-        # Execute Query
-        if len(daid_list) == 0:
-            raise AssertionError('No exemplars set for this species')
-        qaid2_qres = back.ibs._query_chips4(qaid_list, daid_list)
-        if back.query_mode == const.INTRA_ENC_KEY:
-            # HACK IN ENCOUNTER INFO
-            for qres in six.itervalues(qaid2_qres):
-                qres.eid = eid
-        qres = qaid2_qres[aid]
-        back._set_selection(sel_qres=[qres])
-        if refresh:
-            #back.populate_tables(qres=True, default=False)
-            back.show_qres(qres)
+        Batch -> Compute OldStyle Queries
+        and Actions -> Query
 
-    @blocking_slot()
-    def compute_queries(back, refresh=True, query_mode=None, **kwargs):
-        """ Batch -> Precompute Queries
+        Computes query results for all annotations in an encounter.
+        Results are either vs-exemplar or intra-encounter
 
-        queries all annotations vs the exemplars or intra encounter
+        CommandLine:
+            ./main.py --query 1 -y
         """
         eid = back._eidfromkw(kwargs)
         print('------')
@@ -820,22 +939,29 @@ class MainWindowBackend(QtCore.QObject):
         if eid is None:
             print('[back] invalid eid')
             return
-        back.compute_feats(refresh=False, **kwargs)
-        # Get the query annotation ids to search
-        qaid_list = back.ibs.get_valid_aids(eid=eid)
-        # Get the database annotation ids to be searched
+        #back.compute_feats(refresh=False, **kwargs)
+        # Get the query annotation ids to search and
+        # the database annotation ids to be searched
+        if qaid_list is None:
+            if use_visual_selection:
+                # old style Actions->Query execution
+                qaid_list = [back.get_selected_aid()]
+                #qaid_list = back.get_selected_qaids(eid=eid, is_known=query_is_known)
+            else:
+                # if not visual selection, then qaids are selected by encounter
+                qaid_list = back.get_selected_qaids(eid=eid, is_known=query_is_known)
         daid_list = back.get_selected_daids(eid=eid, query_mode=query_mode)
+        if len(qaid_list) == 0:
+            raise guiexcept.InvalidRequest('No unknown query exemplars')
         back.confirm_query_dialog(daid_list, qaid_list)
-        # Execute Query
         qaid2_qres = back.ibs._query_chips4(qaid_list, daid_list)
-        if back.query_mode == const.INTRA_ENC_KEY:
-            # HACK IN ENCOUNTER INFO
+        # HACK IN ENCOUNTER INFO
+        if query_mode == const.INTRA_ENC_KEY:
             for qres in six.itervalues(qaid2_qres):
                 qres.eid = eid
-        # Show review query dialog
         back.encounter_query_results[eid].update(qaid2_qres)
         print('[back] About to finish compute_queries: eid=%r' % (eid,))
-        back.review_queries(eid=eid)
+        back.review_queries(qaid2_qres=qaid2_qres, eid=eid)
         if refresh:
             back.front.update_tables()
         print('[back] FINISHED compute_queries: eid=%r' % (eid,))
@@ -848,9 +974,6 @@ class MainWindowBackend(QtCore.QObject):
 
         Runs each query against the current database and allows for user
         interaction to add exemplars one at a time.
-
-        Returns:
-            ?: result
 
         CommandLine:
             python -m ibeis.gui.guiback --test-incremental_query
@@ -878,12 +1001,11 @@ class MainWindowBackend(QtCore.QObject):
         if eid is None:
             print('[back] invalid eid')
             return
-        species = back.get_selected_species()
         # daid list is computed inside the incremental query so there is
         # no need to specify it here
-        qaid_list = back.ibs.get_valid_aids(eid=eid, is_known=False, species=species)
+        qaid_list = back.get_selected_qaids(eid=eid, is_known=False)
         if any(back.ibs.get_annot_exemplar_flags(qaid_list)):
-            raise AssertionError('Database is not clean. There are unknown animals with exemplar_flag=True')
+            raise AssertionError('Database is not clean. There are unknown animals with exemplar_flag=True. Run Help->Fix/Clean Database')
         if len(qaid_list) == 0:
             msg = ut.codeblock(
                 '''
@@ -892,44 +1014,14 @@ class MainWindowBackend(QtCore.QObject):
                 * Has the encounter been completed?
                 * Is the species correctly set?
                 * Do you need to run detection?
-                ''') % (species,)
+                ''') % (set(back.ibs.get_annot_species(qaid_list)),)
             back.user_info(msg=msg, title='Warning')
             return
 
-        try:
-            back.confirm_query_dialog(qaid_list=qaid_list)
-            #TODO fix names tree thingie
-            back.front.set_table_tab(NAMES_TREE)
-            iautomatch.exec_interactive_incremental_queries(back.ibs, qaid_list, back=back)
-        except StopIteration:
-            pass
-
-    #@blocking_slot()
-    #def compute_queries_vs_exemplar(back, **kwargs):
-    #    """ Batch -> Precompute Queries"""
-    #    back.compute_queries(vs_exemplar=True, **kwargs)
-
-    @blocking_slot()
-    def review_queries(back, **kwargs):
-        eid = back.get_selected_eid()
-        if eid not in back.encounter_query_results:
-            raise AssertionError('Queries have not been computed yet')
-        qaid2_qres = back.encounter_query_results[eid]
-        # review_kw = {
-        #     'on_change_callback': back.front.update_tables,
-        #     'nPerPage': 6,
-        # }
-        ibs = back.ibs
-        # Matplotlib QueryResults interaction
-        #from ibeis.viz.interact import interact_qres2
-        #back.query_review = interact_qres2.Interact_QueryResult(ibs, qaid2_qres, **review_kw)
-        #back.query_review.show()
-        # Qt QueryResults Interaction
-        from ibeis.gui import inspect_gui
-        backend_callback = back.front.update_tables
-        back.qres_wgt = inspect_gui.QueryResultsWidget(ibs, qaid2_qres, callback=backend_callback)
-        back.qres_wgt.show()
-        back.qres_wgt.raise_()
+        back.confirm_query_dialog(qaid_list=qaid_list)
+        #TODO fix names tree thingie
+        back.front.set_table_tab(NAMES_TREE)
+        iautomatch.exec_interactive_incremental_queries(back.ibs, qaid_list, back=back)
 
     @blocking_slot()
     def review_detections(back, **kwargs):
@@ -1146,14 +1238,16 @@ class MainWindowBackend(QtCore.QObject):
             if new_dbname is None or len(new_dbname) == 0:
                 print('Abort new database. new_dbname=%r' % new_dbname)
                 return
+            new_dbdir_options = ['Choose Directory', 'My Work Dir'],
             reply = back.user_option(
                 msg='Where should I put the new database?',
                 title='Import Images',
-                options=['Choose Directory', 'My Work Dir'],
+                options=new_dbdir_options,
+                default=new_dbdir_options[1],
                 use_cache=False)
             if reply == 'Choose Directory':
                 print('[back] new_database(): SELECT A DIRECTORY')
-                putdir = guitool.select_directory('Select new database directory')
+                putdir = guitool.select_directory('Select new database directory', other_sidebar_dpaths=[back.get_work_directory()])
             elif reply == 'My Work Dir':
                 putdir = back.get_work_directory()
             else:
@@ -1173,7 +1267,8 @@ class MainWindowBackend(QtCore.QObject):
         """ File -> Open Database"""
         if dbdir is None:
             print('[back] new_database(): SELECT A DIRECTORY')
-            dbdir = guitool.select_directory('Select new database directory')
+            #director
+            dbdir = guitool.select_directory('Select new database directory', other_sidebar_dpaths=[back.get_work_directory()])
             if dbdir is None:
                 return
         print('[back] open_database(dbdir=%r)' % dbdir)
@@ -1260,7 +1355,6 @@ class MainWindowBackend(QtCore.QObject):
     def import_images_from_file_with_smart(back, gpath_list=None, refresh=True, as_annots=False):
         """ File -> Import Images From File with smart"""
         print('[back] import_images_from_file_with_smart')
-        # gpath_list = ['/Datasets/PZ_Master/_ibsdb/images/0ad1b79c-23fc-574d-0d29-42a3a7f07ee1.jpg', '/Datasets/PZ_Master/_ibsdb/images/0ad6ceab-2c8c-a146-5c79-44988f370228.jpg', '/Datasets/PZ_Master/_ibsdb/images/0ad629d9-761c-adbc-4bc3-d58f6685b563.jpg', '/Datasets/PZ_Master/_ibsdb/images/0ad7618d-fb02-4dc1-e3f7-96b65bbf8b2c.jpg']
         gid_list = back.import_images_from_file(gpath_list=gpath_list, refresh=refresh,
                                                 as_annots=as_annots, clock_offset=False)
         back._add_images_with_smart_patrol(gid_list, refresh=refresh)
@@ -1335,14 +1429,17 @@ class MainWindowBackend(QtCore.QObject):
     def user_option(back, **kwargs):
         return guitool.user_option(parent=back.front, **kwargs)
 
-    def are_you_sure(back, use_msg=None, title='Confirmation'):
+    def are_you_sure(back, use_msg=None, title='Confirmation', default=None):
         """ Prompt user for conformation before changing something """
         msg = 'Are you sure?' if use_msg is None else use_msg
         print('[back] Asking User if sure')
         print('[back] title = %s' % (title,))
         print('[back] msg =\n%s' % (msg,))
+        if ut.get_argflag('-y') or ut.get_argflag('--yes'):
+            # DONT ASK WHEN SPECIFIED
+            return True
         ans = back.user_option(msg=msg, title=title, options=['No', 'Yes'],
-                               use_cache=False)
+                               use_cache=False, default=default)
         return ans == 'Yes'
 
     def get_work_directory(back):
@@ -1367,3 +1464,16 @@ class MainWindowBackend(QtCore.QObject):
 
     def display_special_encounters_error(back):
         back.user_info(msg="Contains special encounters")
+
+    @slot_()
+    def set_exemplars_from_quality_and_viewpoint(back):
+        back.ibs.set_exemplars_from_quality_and_viewpoint()
+
+    @slot_()
+    def batch_rename_consecutive_via_species(back):
+        back.ibs.batch_rename_consecutive_via_species()
+
+    @slot_()
+    def run_tests(back):
+        from ibeis.tests import run_tests
+        run_tests.run_tests()

@@ -1,12 +1,12 @@
 """
-DoctestCMD:
-    python -c "import doctest, ibeis; print(doctest.testmod(ibeis.model.hots.match_chips4))"
+Runs functions in pipeline to get query reuslts and does some caching.
 """
 from __future__ import absolute_import, division, print_function
 import utool as ut
 import six
 #from ibeis.model.hots import query_request
 from ibeis.model.hots import pipeline
+from ibeis.model.hots import _pipeline_helpers as plh  # NOQA
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[mc4]')
 
 
@@ -50,19 +50,28 @@ def empty_query(ibs, qaids):
         >>> result = str((qaid2_qres, qreq_))
         >>> print(result)
         >>> qres = qaid2_qres[qaids[0]]
-        >>> if ut.get_argflag('--show'):
-        ...    qres.ishow_top(ibs, update=True, make_figtitle=True, show_query=True, sidebyside=False)
-        ...    from matplotlib import pyplot as plt
-        ...    plt.show()
         >>> ut.assert_eq(len(qres.get_top_aids()), 0)
+        >>> ut.quit_if_noshow()
+        >>> qres.ishow_top(ibs, update=True, make_figtitle=True, show_query=True, sidebyside=False)
+        >>> from matplotlib import pyplot as plt
+        >>> plt.show()
     """
     daids = []
     qreq_ = ibs.new_query_request(qaids, daids)
     qres_list = qreq_.make_empty_query_results()
-    for qres in qres_list:
-        qres.aid2_score = {}
     qaid2_qres = dict(zip(qaids, qres_list))
     return qaid2_qres, qreq_
+
+
+def submit_query_request_nocache(ibs, qreq_, verbose=pipeline.VERB_PIPELINE):
+    assert len(qreq_.get_external_qaids()) > 0, ' no current query aids'
+    if len(qreq_.get_external_daids()) == 0:
+        print('[mc4] WARNING no daids... returning empty query')
+        qaid2_qres, qreq_ = empty_query(ibs, qreq_.get_external_qaids())
+        return qaid2_qres
+    save_qcache = False
+    qaid2_qres = execute_query2(ibs, qreq_, verbose, save_qcache)
+    return qaid2_qres
 
 
 #@profile
@@ -99,7 +108,7 @@ def submit_query_request(ibs, qaid_list, daid_list, use_cache=None,
         >>> daid_list = [1, 2, 3, 4, 5]
         >>> use_bigcache = True
         >>> use_cache = True
-        >>> ibs = ibeis.opendb(db='testdb1')  #doctest: +ELLIPSIS
+        >>> ibs = ibeis.opendb(db='testdb1')
         >>> qaid2_qres = submit_query_request(ibs, qaid_list, daid_list, use_cache, use_bigcache)
         >>> qaid2_qres, qreq_ = submit_query_request(ibs, qaid_list, daid_list, False, False, True)
     """
@@ -124,6 +133,7 @@ def submit_query_request(ibs, qaid_list, daid_list, use_cache=None,
                      len(qaid_list) > MIN_BIGCACHE_BUNDLE)
     if (use_bigcache_ or save_qcache) and len(qaid_list) > MIN_BIGCACHE_BUNDLE:
         bc_dpath = ibs.bigcachedir
+        # TODO: SYSTEM : semantic should only be used if name scoring is on
         qhashid = ibs.get_annot_hashid_semantic_uuid(qaid_list, prefix='Q')
         dhashid = ibs.get_annot_hashid_semantic_uuid(daid_list, prefix='D')
         bc_fname = ''.join((ibs.get_dbname(), '_QRESMAP', qhashid, dhashid))
@@ -132,13 +142,14 @@ def submit_query_request(ibs, qaid_list, daid_list, use_cache=None,
             # Try and load directly from a big cache
             try:
                 qaid2_qres = ut.load_cache(bc_dpath, bc_fname, bc_cfgstr)
+            except IOError:
+                print('... qaid2_qres bigcache miss')
+            else:
                 print('... qaid2_qres bigcache hit')
                 if return_request:
                     return qaid2_qres, qreq_
                 else:
                     return qaid2_qres
-            except IOError:
-                print('... qaid2_qres bigcache miss')
     # ------------
     # Execute query request
     qaid2_qres = execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose=verbose)
@@ -151,7 +162,7 @@ def submit_query_request(ibs, qaid_list, daid_list, use_cache=None,
         return qaid2_qres
 
 
-#@profile
+@profile
 def execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose=True):
     """
     Args:
@@ -168,29 +179,25 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose=True):
     Example:
         >>> # SLOW_DOCTEST
         >>> from ibeis.model.hots.match_chips4 import *  # NOQA
-        >>> import utool as ut
-        >>> from ibeis.model.hots import pipeline
         >>> cfgdict1 = dict(codename='vsmany', sv_on=True)
-        >>> ibs, qreq_ = pipeline.get_pipeline_testdata(cfgdict=cfgdict1, qaid_list=[1, 2, 3, 4])
-        >>> use_cache = False
-        >>> save_qcache = False
-        >>> qaid2_qres_hit = execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache)
+        >>> ibs, qreq_ = plh.get_pipeline_testdata(cfgdict=cfgdict1, qaid_list=[1, 2, 3, 4])
+        >>> use_cache, save_qcache, verbose = False, False, True
+        >>> qaid2_qres_hit = execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose)
         >>> print(qaid2_qres_hit)
 
     Example2:
         >>> # SLOW_DOCTEST
         >>> from ibeis.model.hots.match_chips4 import *  # NOQA
-        >>> import utool as ut
-        >>> from ibeis.model.hots import pipeline
         >>> cfgdict1 = dict(codename='vsone', sv_on=True)
-        >>> ibs, qreq_ = pipeline.get_pipeline_testdata(cfgdict=cfgdict1, qaid_list=[1, 2, 3, 4])
-        >>> use_cache = False
-        >>> save_qcache = False
-        >>> qaid2_qres_hit = execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache)
+        >>> ibs, qreq_ = plh.get_pipeline_testdata(cfgdict=cfgdict1, qaid_list=[1, 2, 3, 4])
+        >>> use_cache, save_qcache, verbose = False, False, True
+        >>> qaid2_qres_hit = execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose)
         >>> print(qaid2_qres_hit)
     """
     #print('[q1] execute_query_and_save_L1()')
     if use_cache:
+        if ut.VERBOSE:
+            print('[mc4] cache-query is on')
         if ut.DEBUG2:
             # sanity check
             qreq_.assert_self(ibs)
@@ -198,6 +205,9 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose=True):
         qaid2_qres_hit = pipeline.try_load_resdict(qreq_, verbose=verbose)
         if len(qaid2_qres_hit) == len(qreq_.get_external_qaids()):
             return qaid2_qres_hit
+        else:
+            if len(qaid2_qres_hit) > 0 and not ut.QUIET:
+                print('... partial qres cache hit %d/%d' % (len(qaid2_qres_hit), len(qreq_.get_external_qaids())))
         cachehit_qaids = list(six.iterkeys(qaid2_qres_hit))
         # mask queries that have already been executed
         qreq_.set_external_qaid_mask(cachehit_qaids)
@@ -205,13 +215,7 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose=True):
         if ut.VERBOSE:
             print('[mc4] cache-query is off')
         qaid2_qres_hit = {}
-    # Execute and save cachemiss queries
-    if qreq_.qparams.vsone:
-        # break vsone queries into multiple queries - one for each external qaid
-        qaid2_qres = execute_vsone_query(ibs, qreq_, verbose, save_qcache)
-    else:
-        qaid2_qres = execute_nonvsone_query(ibs, qreq_, verbose, save_qcache)
-    # Cache save only misses
+    qaid2_qres = execute_query2(ibs, qreq_, verbose, save_qcache)
     if ut.DEBUG2:
         # sanity check
         qreq_.assert_self(ibs)
@@ -222,14 +226,81 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose=True):
     return qaid2_qres
 
 
+def execute_query2(ibs, qreq_, verbose, save_qcache):
+    qreq_.lazy_preload(verbose=verbose)
+    all_qaids = qreq_.get_external_qaids()
+    qaid2_qres = {}
+    # vsone must have a chunksize of 1
+    chunksize = 1 if qreq_.qparams.vsone else 64
+    # Iterate over vsone queries in chunks. This ensures that we dont lose
+    # too much time if a qreq_ crashes after the 2000th nn index.
+    nTotalChunks    = ut.get_nTotalChunks(len(all_qaids), chunksize)
+    qaid_chunk_iter = ut.ichunks(all_qaids, chunksize)
+    _qreq_iter = (qreq_.shallowcopy(qaids=qaids) for qaids in qaid_chunk_iter)
+    qreq_iter = ut.ProgressIter(_qreq_iter, nTotal=nTotalChunks, freq=1,
+                                lbl='[mc4] query chunk: ', backspace=False)
+    for __qreq in qreq_iter:
+        if ut.VERBOSE:
+            print('Generating vsmany chunk')
+        __qaid2_qres = pipeline.request_ibeis_query_L0(ibs, __qreq, verbose=verbose)
+        if save_qcache:
+            pipeline.save_resdict(qreq_, __qaid2_qres, verbose=verbose)
+        else:
+            if ut.VERBOSE:
+                print('[mc4] not saving vsmany chunk')
+        qaid2_qres.update(__qaid2_qres)
+    return qaid2_qres
+
+
+# DEPRICATE CODE UNDERNEATH
+# DONE: TODO split both vsone and vsmany queries into chunks
+
+
+def execute_query(ibs, qreq_, verbose, save_qcache):
+    # Execute and save cachemiss queries
+    if qreq_.qparams.vsone:
+        # break vsone queries into multiple queries - one for each external qaid
+        qaid2_qres = execute_vsone_query(ibs, qreq_, verbose, save_qcache)
+    else:
+        qaid2_qres = execute_nonvsone_query(ibs, qreq_, verbose, save_qcache)
+    return qaid2_qres
+
+
+@profile
 def execute_nonvsone_query(ibs, qreq_, verbose, save_qcache):
     # execute non-vsone queries
-    qaid2_qres = pipeline.request_ibeis_query_L0(ibs, qreq_, verbose=verbose)
-    if save_qcache:
-        pipeline.save_resdict(qreq_, qaid2_qres, verbose=verbose)
+    all_qaids = qreq_.get_external_qaids()
+
+    chunksize = 64
+    if len(all_qaids) <= chunksize:
+        # If less than the chunksize peform old non-chuncked queries
+        # We will get to the point where chunking will cost no overhead
+        # and be robust. At that point this code will be depricated.
+        qaid2_qres = pipeline.request_ibeis_query_L0(ibs, qreq_, verbose=verbose)
+        if save_qcache:
+            pipeline.save_resdict(qreq_, qaid2_qres, verbose=verbose)
+        else:
+            if ut.VERBOSE:
+                print('[mc4] not saving vsmany chunk')
     else:
-        if ut.VERBOSE:
-            print('[mc4] not saving vsmany chunk')
+        qaid2_qres = {}
+        # Iterate over vsone queries in chunks. This ensures that we dont lose
+        # too much time if a qreq_ crashes after the 2000th nn index.
+        nTotalChunks    = ut.get_nTotalChunks(len(all_qaids), chunksize)
+        qaid_chunk_iter = ut.ichunks(all_qaids, chunksize)
+        _qreq_iter = (qreq_.shallowcopy(qaids=qaids) for qaids in qaid_chunk_iter)
+        qreq_iter = ut.ProgressIter(_qreq_iter, nTotal=nTotalChunks, freq=1,
+                                    lbl='vsmany query chunk: ', backspace=False)
+        for __qreq in qreq_iter:
+            if ut.VERBOSE:
+                print('Generating vsmany chunk')
+            __qaid2_qres = pipeline.request_ibeis_query_L0(ibs, __qreq, verbose=verbose)
+            if save_qcache:
+                pipeline.save_resdict(qreq_, __qaid2_qres, verbose=verbose)
+            else:
+                if ut.VERBOSE:
+                    print('[mc4] not saving vsmany chunk')
+            qaid2_qres.update(__qaid2_qres)
     return qaid2_qres
 
 
@@ -239,9 +310,9 @@ def execute_vsone_query(ibs, qreq_, verbose, save_qcache):
     chunksize = 4
     qres_gen = generate_vsone_qreqs(ibs, qreq_, qaid_list, chunksize,
                                     verbose=verbose)
-    qres_iter = ut.progiter(qres_gen, nTotal=len(qaid_list), freq=1,
-                            backspace=False, lbl='vsone query: ',
-                            use_rate=True)
+    qres_iter = ut.ProgressIter(qres_gen, nTotal=len(qaid_list), freq=1,
+                                backspace=False, lbl='vsone query: ',
+                                use_rate=True)
     qres_chunk_iter = ut.ichunks(qres_iter, chunksize)
 
     for qres_chunk in qres_chunk_iter:
@@ -276,7 +347,8 @@ def generate_vsone_qreqs(ibs, qreq_, qaid_list, chunksize, verbose=True):
         for __qreq, qaid in qreq_chunk:
             if ut.VERBOSE:
                 print('Generating vsone for qaid=%d' % (qaid,))
-            qres = pipeline.request_ibeis_query_L0(ibs, __qreq, verbose=verbose)[qaid]
+            __qaid2_qres = pipeline.request_ibeis_query_L0(ibs, __qreq, verbose=verbose)
+            qres = __qaid2_qres[qaid]
             yield (qaid, qres)
 
 
