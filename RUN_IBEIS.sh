@@ -11,6 +11,6 @@ if [ "$SYSNAME" = "MINGW32_NT" ]; then
 else
     export PY=python2.7
 fi
-
-cd ~jonathan/code/ibeis
+export FLAGS="--dbdir /data/ibeis/lewa_grevys"
+cd /opt/ibeis/ibeis
 $PY main.py $FLAGS
