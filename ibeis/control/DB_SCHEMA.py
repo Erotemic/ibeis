@@ -6,6 +6,9 @@ and each function would use its own constant variables that are suffixed
 with the last version number that they existed in
 
 TODO: Add a table for original_image_path
+
+CommandLine:
+    python -m ibeis.control.DB_SCHEMA --test-test_db_schema
 """
 from __future__ import absolute_import, division, print_function
 from ibeis import constants as const
@@ -848,6 +851,7 @@ def update_1_3_4(db, ibs=None):
 def update_1_3_5(db, ibs=None):
     """ expand datasets to use new quality measures """
     if ibs is not None:
+        # Adds a few different degrees of quality
         aid_list = ibs.get_valid_aids()
         qual_list = ibs.get_annot_qualities(aid_list)
         assert len(qual_list) == 0 or max(qual_list) < 3, 'there were no qualities higher than 3 at this point'
@@ -857,8 +861,78 @@ def update_1_3_5(db, ibs=None):
         }
         new_qual_list = [old_to_new.get(qual, qual) for qual in qual_list]
         ibs.set_annot_qualities(aid_list, new_qual_list)
-    # Adds a few different degrees of quality
-    pass
+
+
+def update_1_3_6(db, ibs=None):
+    # Add table for explicit annotation-vs-annotation match information
+
+    db.add_table(const.PARTY_TABLE, (
+        ('party_rowid',               'INTEGER PRIMARY KEY'),
+        ('party_tag',                 'TEXT NOT NULL'),
+    ),
+        superkey_colnames_list=[('party_tag',)],
+        docstr='''
+        Serves as a group for contributors
+        ''',
+    )
+
+    # instead of adding a specific many to many mapping relate images to both parties
+    # and contributors
+    db.modify_table(const.IMAGE_TABLE, [
+        (None, 'party_rowid',  'INTEGER', None),
+    ],
+        shortname='image',
+        extern_tables=[const.PARTY_TABLE, const.CONTRIBUTOR_TABLE],
+        # TODO: add in many to 1 attribute mapping
+    )
+
+    #db.add_table(const.PARTY_CONTRIB_RELATION_TABLE, (
+    #    ('party_contrib_relation_rowid',               'INTEGER PRIMARY KEY'),
+    #    ('party_rowid',                                'INTEGER NOT NULL'),
+    #    ('contributor_rowid',                          'INTEGER NOT NULL'),
+    #),
+    #    superkey_colnames_list=[('party_rowid', 'contributor_rowid')],
+    #    relates=(const.PARTY_TABLE, const.CONTRIBUTOR_TABLE),
+    #    docstr='''
+    #    Relates parties and contributors
+    #    ''',
+    #)
+    db.add_table(const.ANNOTMATCH_TABLE, (
+        ('annotmatch_rowid',          'INTEGER PRIMARY KEY'),
+        ('annot_rowid1',              'INTEGER NOT NULL'),
+        ('annot_rowid2',              'INTEGER NOT NULL'),
+        ('annotmatch_truth',          'INTEGER DEFAULT 2'),
+        ('annotmatch_confidence',     'REAL DEFAULT 0'),
+    ),
+        superkey_colnames_list=[('annot_rowid1', 'annot_rowid2',)],
+        relates=(const.ANNOTATION_TABLE, const.ANNOTATION_TABLE),
+        #shortname='annotmatch',
+        docstr='''
+        Sparsely stores explicit matching / not matching information. This
+        serves as marking weather or not an annotation pair has been reviewed.
+        ''',
+    )
+
+    # add metadata props
+    db.modify_table(
+        const.EG_RELATION_TABLE,
+        shortname='egr',
+        relates=(const.IMAGE_TABLE, const.ENCOUNTER_TABLE))
+
+    db.modify_table(
+        const.AL_RELATION_TABLE,
+        shortname='alr',
+        relates=(const.ANNOTATION_TABLE, const.LBLANNOT_TABLE))
+
+    db.modify_table(
+        const.GL_RELATION_TABLE,
+        shortname='glr',
+        relates=(const.IMAGE_TABLE, const.LBLIMAGE_TABLE))
+
+    db.modify_table(
+        const.ANNOTATION_TABLE,
+        shortname='annot',
+    )
 
 # ========================
 # Valid Versions & Mapping
@@ -884,6 +958,7 @@ VALID_VERSIONS = utool.odict([
     ('1.3.3',    (None,                 update_1_3_3,       None                )),
     ('1.3.4',    (None,                 update_1_3_4,       post_1_3_4          )),
     ('1.3.5',    (None,                 update_1_3_5,       None          )),
+    ('1.3.6',    (None,                 update_1_3_6,       None          )),
 ])
 
 

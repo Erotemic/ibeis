@@ -319,7 +319,7 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
 
     def evaluate_nsum_score(cm, qreq_):
         cm.evaluate_dnids(qreq_.ibs)
-        nsum_nid_list, nsum_score_list = name_scoring.compute_nsum_score(cm)
+        nsum_nid_list, nsum_score_list = name_scoring.compute_nsum_score(cm, qreq_=qreq_)
         assert np.all(cm.unique_nids == nsum_nid_list), 'name score not in alignment'
         cm.nsum_score_list = nsum_score_list
 
@@ -570,14 +570,14 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
             if qreq_.qparams.pipeline_root == 'vsone':
                 assert len(external_qaids) == 1, 'only one external qaid for vsone'
                 if strict or qreq_.indexer is not None:
-                    nExternalQVecs = qreq_.ibs.get_annot_vecs(external_qaids[0], qreq_=qreq_).shape[0]
+                    nExternalQVecs = qreq_.ibs.get_annot_vecs(external_qaids[0], config2_=qreq_.get_external_query_config2()).shape[0]
                     assert qreq_.indexer.idx2_vec.shape[0] == nExternalQVecs, (
                         'did not index query descriptors properly')
                 if verbose:
                     print('[cm] vsone daids are ok are ok')
 
-            nFeats1 = qreq_.ibs.get_annot_num_feats(cm.qaid, qreq_=qreq_)
-            nFeats2_list = np.array(qreq_.ibs.get_annot_num_feats(cm.daid_list, qreq_=qreq_))
+            nFeats1 = qreq_.ibs.get_annot_num_feats(cm.qaid, config2_=qreq_.get_external_query_config2())
+            nFeats2_list = np.array(qreq_.ibs.get_annot_num_feats(cm.daid_list, config2_=qreq_.get_external_data_config2()))
             try:
                 assert ut.list_issubset(cm.daid_list, external_daids), 'cmtup_old must be subset of daids'
             except AssertionError as ex:
@@ -625,7 +625,7 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         fsv  = None if cm.fsv_list is None else cm.fsv_list[idx]
         fs   = None if fsv is None else fsv.prod(axis=1)
         showkw = dict(fm=fm, fs=fs, H1=H1, fnum=fnum, pnum=pnum, **kwargs)
-        viz_matches.show_matches2(qreq_.ibs, cm.qaid, daid, **showkw)
+        viz_matches.show_matches2(qreq_.ibs, cm.qaid, daid, qreq_=qreq_, **showkw)
 
     def show_ranked_matches(cm, qreq_, clip_top=6, *args, **kwargs):
         idx_list  = ut.listclip(cm.argsort(), clip_top)
@@ -635,7 +635,7 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         idx_list = ut.dict_take(cm.daid2_idx, daids)
         cm.show_index_matches(qreq_, idx_list, *args, **kwargs)
 
-    def show_index_matches(cm, qreq_, idx_list, fnum=None, figtitle=None):
+    def show_index_matches(cm, qreq_, idx_list, fnum=None, figtitle=None, **kwargs):
         import plottool as pt
         if fnum is None:
             fnum = pt.next_fnum()
@@ -644,7 +644,7 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         for idx in idx_list:
             daid  = cm.daid_list[idx]
             pnum = next_pnum()
-            cm.show_single(qreq_, daid, fnum=fnum, pnum=pnum)
+            cm.show_single(qreq_, daid, fnum=fnum, pnum=pnum, **kwargs)
             score = vt.trytake(cm.score_list, idx)
             annot_score = vt.trytake(cm.annot_score_list, idx)
             score_str = ('score = %.3f' % (score,)

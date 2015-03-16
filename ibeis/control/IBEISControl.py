@@ -41,6 +41,8 @@ from ibeis.model.hots import pipeline
 
 # Pyinstaller hacks
 from ibeis.control import _autogen_featweight_funcs  # NOQA
+from ibeis.control import _autogen_party_funcs  # NOQA
+from ibeis.control import _autogen_annotmatch_funcs  # NOQA
 from ibeis.control import manual_ibeiscontrol_funcs  # NOQA
 from ibeis.control import manual_meta_funcs  # NOQA
 from ibeis.control import manual_lbltype_funcs  # NOQA
@@ -57,6 +59,8 @@ from ibeis.control import manual_feat_funcs  # NOQA
 # Shiny new way to inject external functions
 autogenmodname_list = [
     '_autogen_featweight_funcs',
+    '_autogen_party_funcs',
+    '_autogen_annotmatch_funcs',
     #'_autogen_annot_funcs',
     'manual_ibeiscontrol_funcs',
     'manual_meta_funcs',
@@ -346,27 +350,36 @@ class IBEISController(object):
         _sql_helpers.ensure_daily_database_backup(ibs.get_ibsdir(), ibs.sqldb_fname, ibs.backupdir)
         # IBEIS SQL State Database
         #ibs.db_version_expected = '1.1.1'
-        ibs.db_version_expected = '1.3.5'
+        ibs.db_version_expected = '1.3.6'
         # TODO: add this functionality to SQLController
-        TESTING_NEW_SQL_VERSION = False
-        if TESTING_NEW_SQL_VERSION:
-            devdb_list = ['PZ_MTEST', 'testdb1', 'testdb0', 'emptydatabase']
-            testing_newschmea = ut.is_developer() and ibs.get_dbname() in devdb_list
-            #testing_newschmea = False
-            #ut.is_developer() and ibs.get_dbname() in ['PZ_MTEST', 'testdb1']
-            if testing_newschmea:
-                # Set to true until the schema module is good then continue tests with this set to false
-                testing_force_fresh = True or ut.get_argflag('--force-fresh')
-                # Work on a fresh schema copy when developing
-                dev_sqldb_fname = ut.augpath(ibs.sqldb_fname, '_develop_schema')
-                sqldb_fpath = join(ibs.get_ibsdir(), ibs.sqldb_fname)
-                dev_sqldb_fpath = join(ibs.get_ibsdir(), dev_sqldb_fname)
-                ut.copy(sqldb_fpath, dev_sqldb_fpath, overwrite=testing_force_fresh)
-                # Set testing schema version
-                ibs.db_version_expected = '1.3.5'
+        ibs.db_version_expected = sqldbc.dev_test_new_schema_version(
+            ibs.get_dbname(), ibs.get_ibsdir(),
+            ibs.sqldb_fname, ibs.db_version_expected, '1.3.6')
+        #TESTING_NEW_SQL_VERSION = True
+        #if TESTING_NEW_SQL_VERSION:
+        #    print('[ibs] ATTEMPTING TO TEST NEW SQLDB VERSION')
+        #    devdb_list = ['PZ_MTEST', 'testdb1', 'testdb0', 'emptydatabase']
+        #    testing_newschmea = ut.is_developer() and ibs.get_dbname() in devdb_list
+        #    #testing_newschmea = False
+        #    #ut.is_developer() and ibs.get_dbname() in ['PZ_MTEST', 'testdb1']
+        #    if testing_newschmea:
+        #        # Set to true until the schema module is good then continue tests with this set to false
+        #        testing_force_fresh = True or ut.get_argflag('--force-fresh')
+        #        # Work on a fresh schema copy when developing
+        #        dev_sqldb_fname = ut.augpath(ibs.sqldb_fname, '_develop_schema')
+        #        sqldb_fpath = join(ibs.get_ibsdir(), ibs.sqldb_fname)
+        #        dev_sqldb_fpath = join(ibs.get_ibsdir(), dev_sqldb_fname)
+        #        ut.copy(sqldb_fpath, dev_sqldb_fpath, overwrite=testing_force_fresh)
+        #        # Set testing schema version
+        #        ibs.db_version_expected = '1.3.6'
+        #        print('[ibs] TESTING NEW SQLDB VERSION: %r' % (ibs.db_version_expected,))
+        #        #print('[ibs] ... pass --force-fresh to reload any changes')
+        #    else:
+        #        print('[ibs] NOT TESTING')
+
         ibs.db = sqldbc.SQLDatabaseController(ibs.get_ibsdir(), ibs.sqldb_fname,
                                               text_factory=const.__STR__,
-                                              inmemory=False)
+                                              inmemory=False, )
         # Ensure correct schema versions
         _sql_helpers.ensure_correct_version(
             ibs,
@@ -384,9 +397,15 @@ class IBEISController(object):
         from ibeis.control import SQLDatabaseControl as sqldbc
         from ibeis.control import DBCACHE_SCHEMA
         # IBEIS SQL Features & Chips database
-        ibs.dbcache_version_expected = '1.0.3'
+        ibs.dbcache_version_expected = '1.0.4'
+        # Test a new schema if developer
+        ibs.dbcache_version_expected = sqldbc.dev_test_new_schema_version(
+            ibs.get_dbname(), ibs.get_cachedir(),
+            ibs.sqldbcache_fname, ibs.dbcache_version_expected, '1.0.4')
+        # Create cache sql database
         ibs.dbcache = sqldbc.SQLDatabaseController(
-            ibs.get_cachedir(), ibs.sqldbcache_fname, text_factory=const.__STR__)
+            ibs.get_cachedir(), ibs.sqldbcache_fname,
+            text_factory=const.__STR__)
         _sql_helpers.ensure_correct_version(
             ibs,
             ibs.dbcache,

@@ -63,6 +63,8 @@ TABLE_COLNAMES = {
         #'reviewed',  # detection reviewed flag is not fullyused
         'datetime',
         'gps',
+        'party_tag',
+        'contributor_tag',
         #'gdconf',
         'imgnotes',
     ],
@@ -238,6 +240,8 @@ COL_DEF = dict([
     ('encounter_shipped_flag',         (bool,      'Commited')),
     ('encounter_start_datetime',     (str,      'Start Time')),
     ('encounter_end_datetime',       (str,      'End Time')),
+    ('party_tag', (str, 'Party')),
+    ('contributor_tag', (str, 'Contributor')),
 ])
 
 #----
@@ -261,10 +265,10 @@ expand_special_colnames(constants.ROSEMARY_ANNOT_METADATA)
 
 
 def get_redirects(ibs):
-    '''
+    """
         Allows one to specify a column in a particular table to redirect the view
         to a different view (like a link in HTML to a different page)
-    '''
+    """
     redirects = {}
     # Annotation redirects
     # redirects[ANNOTATION_TABLE] = {
@@ -300,6 +304,11 @@ def make_ibeis_headers_dict(ibs):
         'thumb'      : ibs.get_image_thumbtup,
         'gps'        : partial_imap_1to1(ut.tupstr, ibs.get_image_gps),
     }
+    for colname in TABLE_COLNAMES[IMAGE_TABLE]:
+        if colname not in getters[IMAGE_TABLE]:
+            getters[IMAGE_TABLE][colname] = getattr(ibs, 'get_image_' + colname)
+            print(getters[IMAGE_TABLE][colname])
+
     setters[IMAGE_TABLE] = {
         'reviewed'      : ibs.set_image_reviewed,
         'imgnotes'      : ibs.set_image_notes,

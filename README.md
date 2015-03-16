@@ -890,7 +890,17 @@ dev.py -t custom:affine_invariance=True,rotation_invariance=True custom:affine_i
 dev.py -t custom:affine_invariance=True,rotation_invariance=True custom:affine_invariance=False,rotation_invariance=True custom:affine_invariance=True,rotation_invariance=False custom:affine_invariance=False,rotation_invariance=False --db GZ_ALL --allgt
 
 
-python dev.py -t custom:affine_invariance=True,rotation_invariance=True custom:affine_invariance=False,rotation_invariance=True custom:affine_invariance=True,rotation_invariance=False custom:affine_invariance=False,rotation_invariance=False --db PZ_Master0 --allgt
+python dev.py -t custom:affine_invariance=True,rotation_invariance=True custom:affine_invariance=False,rotation_invariance=True custom:affine_invariance=True,rotation_invariance=False custom:affine_invariance=False,rotation_invariance=False --db PZ_Master0 --allgt --index 0:10 --va --show
+
+
+# Test hack orientation
+python dev.py -t custom:augment_queryside_hack=True --db PZ_MTEST --allgt --index 0:1 --noqcache --verbose
+python dev.py -t custom:augment_queryside_hack=True --db PZ_MTEST --allgt --index 0:1 --noqcache --verbose --va --show
+
+python dev.py -t custom custom:augment_queryside_hack=True --db PZ_MTEST --allgt 
+--noqcache --verbose --va --show
+
+--va --show
 ```
 
 #---------------

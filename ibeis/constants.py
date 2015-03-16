@@ -68,6 +68,7 @@ class PATH_NAMES(object):
     cache      = '_ibeis_cache'
     backups    = '_ibeis_backups'
     chips      = 'chips'
+    figures    = 'figures'
     flann      = 'flann'
     images     = 'images'
     trees      = 'trees'
@@ -85,6 +86,7 @@ class REL_PATHS(object):
     """ all paths are relative to ibs.dbdir """
     _ibsdb   = PATH_NAMES._ibsdb
     trashdir = PATH_NAMES.trashdir
+    figures  = join(_ibsdb, PATH_NAMES.figures)
     cache    = join(_ibsdb, PATH_NAMES.cache)
     backups  = join(_ibsdb, PATH_NAMES.backups)
     chips    = join(_ibsdb, PATH_NAMES.chips)
@@ -169,9 +171,13 @@ METADATA_TABLE       = 'metadata'
 NAME_TABLE_v121      = 'name'
 NAME_TABLE_v130      = 'names'
 NAME_TABLE           = NAME_TABLE_v130
+ANNOTMATCH_TABLE     = 'annotmatch'
 SPECIES_TABLE        = 'species'
 RESIDUAL_TABLE       = 'residuals'
 VERSIONS_TABLE       = 'versions'
+#
+PARTY_CONTRIB_RELATION_TABLE = 'party_contrib_relation'
+PARTY_TABLE                  = 'party'
 #################################################################
 
 
@@ -328,6 +334,17 @@ def get_working_species_set():
         ]
     return working_species_tups
 
+
+TRUTH_UNKNOWN = 2
+TRUTH_MATCH = 1
+TRUTH_NOT_MATCH = 0
+
+
+TRUTH_INT_TO_TEXT = {
+    TRUTH_UNKNOWN   : 'Not Matched',  # 'Unknown',
+    TRUTH_NOT_MATCH : 'Not Matched',
+    TRUTH_MATCH     : 'Matched',
+}
 
 # clean namespace
 #del utool

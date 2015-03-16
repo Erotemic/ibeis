@@ -607,11 +607,14 @@ class QueryConfig(ConfigBase):
         # Start of pipeline
         query_cfg._valid_pipeline_roots = ['vsmany', 'vsone', 'smk']
         query_cfg.pipeline_root = 'vsmany'
+        # <Hack Paramaters>
         query_cfg.with_metadata = False
+        query_cfg.augment_queryside_hack = False
         query_cfg.return_expanded_nns = False  # for hacky distinctivness
         query_cfg.use_external_distinctiveness = False  # for distinctivness model
         query_cfg.codename = 'None'
         query_cfg.species_code = '____'  # TODO: make use of this
+        # </Hack Paramaters>
         #if ut.is_developer():
         #    query_cfg.pipeline_root = 'smk'
         # Depends on feature config
@@ -649,6 +652,10 @@ class QueryConfig(ConfigBase):
             raise AssertionError('bad pipeline root: ' + str(query_cfg.pipeline_root))
         if kwargs.get('use_featweight', True):
             cfgstr_list += query_cfg._featweight_cfg.get_cfgstr_list(**kwargs)
+
+        if query_cfg.augment_queryside_hack:
+            # HACK
+            cfgstr_list += ['_HACK(augment_queryside)']
         return cfgstr_list
 
     def update_query_cfg(query_cfg, **cfgdict):
@@ -895,6 +902,7 @@ class FeatureConfig(ConfigBase):
 
     def get_cfgstr_list(feat_cfg, **kwargs):
         if kwargs.get('use_feat', True):
+            import pyhesaff
             feat_cfgstrs = ['_FEAT(']
             feat_cfgstrs += [feat_cfg.feat_type]
             #feat_cfgstrs += [',%r_%r' % (feat_cfg.scale_min, feat_cfg.scale_max)]
@@ -907,7 +915,6 @@ class FeatureConfig(ConfigBase):
                 'maxIterations': 'nIter',
             }
             ignore = []
-            import pyhesaff
             ignore_if_default = set(pyhesaff.get_hesaff_default_params().keys())
             def _gen():
                 for param in feat_cfg._iterparams():
@@ -989,7 +996,7 @@ class DetectionConfig(ConfigBase):
         detect_cfg.detector    = 'rf'
         # detect_cfg.scale_list  = '1.3, 1.2, 1.1, 1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1'
         # detect_cfg.scale_list  = '1.15, 1.0, 0.85, 0.7, 0.55, 0.4, 0.25, 0.10'
-        detect_cfg.scale_list  = '1.0, 0.80, 0.65, 0.50, 0.40, 0.30, 0.20, 0.10'
+        detect_cfg.scale_list  = '1.25, 1.0, 0.80, 0.65, 0.50, 0.40, 0.30, 0.20, 0.10'
         detect_cfg.trees_path  = ''
         detect_cfg.detectimg_sqrt_area = 800
         detect_cfg.update(**kwargs)
@@ -1113,8 +1120,42 @@ def update_query_config(cfg, **kwargs):
 
 
 def load_named_config(cfgname, dpath, use_config_cache=False):
-    """ hack 12-30-2014 """
+    """ hack 12-30-2014
+
+    Args:
+        cfgname (str):
+        dpath (str):
+        use_config_cache (bool):
+
+    Returns:
+        Config: cfg
+
+    CommandLine:
+        python -m ibeis.model.Config --test-load_named_config
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.model.Config import *  # NOQA
+        >>> from ibeis.model.Config import _default_config  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('PZ_Master0')
+        >>> #ibs.cfg.save()
+        >>> # build test data
+        >>> cfgname = 'zebra_plains'
+        >>> dpath = ibs.get_dbdir()
+        >>> use_config_cache = True
+        >>> # execute function
+        >>> cfg = load_named_config(cfgname, dpath, use_config_cache)
+        >>> #
+        >>> keys1 = ut.get_list_column(cfg.parse_items(), 0)
+        >>> keys2 = ut.get_list_column(ibs.cfg.parse_items(), 0)
+        >>> symdiff = set(keys1) ^ set(keys2)
+        >>> # verify results
+        >>> result = str(cfg)
+        >>> print(result)
+    """
     if cfgname is None:
+        # TODO: find last cfgname
         cfgname = 'cfg'
     fpath = join(dpath, cfgname) + '.cPkl'
     if not ut.QUIET:
@@ -1125,7 +1166,20 @@ def load_named_config(cfgname, dpath, use_config_cache=False):
         # Use pref cache
         if not use_config_cache:
             raise Exception('force config cache miss')
+        # Get current "schema"
+        #tmp = _default_config(cfg, cfgname, new=True)
+        #current_itemset = tmp.parse_items()
+        #current_keyset = list(ut.get_list_column(current_itemset, 0))
+        # load saved preferences
         cfg.load()
+        # Check if loaded schema has changed
+        #loaded_keyset = list(ut.get_list_column(cfg.parse_items(), 0))
+        #missing_keys = set(current_keyset) - set(loaded_keyset)
+        #if len(missing_keys) != 0:
+        #    missing_vals = ut.dict_take(dict(current_itemset), missing_keys)
+        #    update_items = list(zip(missing_keys, missing_vals))
+        #    # TODO: Finishme update the out of data preferences
+        #    pass
         if ut.NOT_QUIET:
             print('[Config] successfully loaded config cfgname=%r' % (cfgname,))
     except Exception:

@@ -292,7 +292,7 @@ def organize_results(ibs, qaid2_qres):
 
 
 def get_automatch_candidates(qaid2_qres, ranks_lt=5, directed=True,
-                             name_scoring=False, ibs=None):
+                             name_scoring=False, ibs=None, filter_reviewed=False):
     """
     Returns a list of matches that should be inspected
     This function is more lightweight than orgres or allres.
@@ -363,6 +363,13 @@ def get_automatch_candidates(qaid2_qres, ranks_lt=5, directed=True,
     score_arr = score_arr[sortx]
     rank_arr  = rank_arr[sortx]
 
+    if filter_reviewed:
+        is_reviewed = np.array(ibs.get_annot_pair_is_reviewed(qaid_arr.tolist(), aid_arr.tolist()))
+        qaid_arr = qaid_arr.compress(is_reviewed)
+        aid_arr = aid_arr.compress(is_reviewed)
+        qaid_arr = score_arr.compress(is_reviewed)
+        rank_arr = rank_arr.compress(is_reviewed)
+
     # Remove directed edges
     if not directed:
         #nodes = np.unique(directed_edges.flatten())
@@ -370,7 +377,7 @@ def get_automatch_candidates(qaid2_qres, ranks_lt=5, directed=True,
         import vtool as vt
         idx1, idx2 = vt.intersect2d_indices(directed_edges, directed_edges[:, ::-1])
 
-        def cmopute_edge_ids(edges):
+        def compute_edge_ids(edges):
             # construct a unique id for every edge
             ncols = edges.shape[1]
             # get the number of decimal places to shift
@@ -384,7 +391,7 @@ def get_automatch_candidates(qaid2_qres, ranks_lt=5, directed=True,
             # standardize edge order
             edges_dupl = directed_edges.copy()
             edges_dupl[flipped, 0:2] = edges_dupl[flipped, 0:2][:, ::-1]
-            edgeid_list = cmopute_edge_ids(edges_dupl)
+            edgeid_list = compute_edge_ids(edges_dupl)
             unique_edgeids, groupxs = vt.group_indices(edgeid_list)
             # if there is more than one edge in a group take the one with the highest score
             score_groups = vt.apply_grouping(score_arr, groupxs)

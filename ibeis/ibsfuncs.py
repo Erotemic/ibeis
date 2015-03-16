@@ -961,11 +961,7 @@ def is_nid_unknown(ibs, nid_list):
 @__injectable
 def get_match_text(ibs, aid1, aid2):
     truth = ibs.get_match_truth(aid1, aid2)
-    text = {
-        2: 'NEW Match ',
-        0: 'JOIN Match ',
-        1: 'SPLIT Match ',
-    }.get(truth, None)
+    text = const.TRUTH_INT_TO_TEXT.get(truth, None)
     return text
 
 
@@ -2141,17 +2137,20 @@ def get_upsize_data(ibs, qaid_list, daid_list=None, num_samp=5, clamp_gt=1,
 
 @__injectable
 def get_annot_rowid_sample(ibs, per_name=1, min_ngt=1, seed=0, aid_list=None,
-                           stagger_names=False):
+                           stagger_names=False, distinguish_unknowns=False):
     r"""
+    Gets a sampling of annotations
+
     Args:
-        ibs (IBEISController):  ibeis controller object
-        per_name (int):
-        min_ngt (int):
-        seed (int):
-        aid_list (list):
+        per_name (int): number of annotations per name
+        min_ngt (int): any name with less than this number of annotation is filtered out
+        seed (int): random seed
+        aid_list (list): base aid_list to start with. If None
+        get_valid_aids(nojunk=True) is used stagger_names (bool): if True
+        staggers the order of the returned sample
 
     Returns:
-        ?: sample_aids
+        list: sample_aids
 
     CommandLine:
         python -m ibeis.ibsfuncs --test-get_annot_rowid_sample
@@ -2161,29 +2160,28 @@ def get_annot_rowid_sample(ibs, per_name=1, min_ngt=1, seed=0, aid_list=None,
         >>> from ibeis.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> per_name = 100
-        >>> min_ngt = 1
+        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> per_name = 3
+        >>> min_ngt = 2
         >>> seed = 0
         >>> # execute function
-        >>> sample_aids = ibs.get_annot_rowid_sample(per_name, min_ngt, seed)
-        >>> # verify results
-        >>> # FIXME
-        >>> #result = str(sample_aids)
-        >>> #print(result)
+        >>> sample_aid_list = ibs.get_annot_rowid_sample(per_name, min_ngt, seed)
+        >>> result = ut.hashstr_arr(sample_aid_list)
+        arr((66)crj9l5jde@@hdmlp)
     """
     #qaids = ibs.get_easy_annot_rowids()
     if aid_list is None:
-        aid_list = np.array(ibs.get_valid_aids())
-    grouped_aids_, unique_nids = ibs.group_annots_by_name(aid_list, distinguish_unknowns=False)
+        aid_list = np.array(ibs.get_valid_aids(nojunk=True))
+    grouped_aids_, unique_nids = ibs.group_annots_by_name(aid_list, distinguish_unknowns=distinguish_unknowns)
     grouped_aids = list(filter(lambda x: len(x) > min_ngt, grouped_aids_))
+    sample_aids_list = ut.sample_lists(grouped_aids, num=per_name, seed=seed)
     if stagger_names:
         from six.moves import zip_longest
-        sample_aids = ut.filter_Nones(ut.iflatten(zip_longest(*ut.sample_lists(grouped_aids, num=per_name, seed=seed))))
+        sample_aid_list = ut.filter_Nones(ut.iflatten(zip_longest(*sample_aids_list)))
     else:
-        sample_aids = ut.flatten(ut.sample_lists(grouped_aids, num=per_name, seed=seed))
+        sample_aid_list = ut.flatten(sample_aids_list)
 
-    return sample_aids
+    return sample_aid_list
 
 
 @__injectable
@@ -3140,6 +3138,43 @@ def detect_join_cases(ibs):
     qres_wgt.show()
     qres_wgt.raise_()
     #return qres_list
+
+
+@__injectable
+def mark_annot_pair_as_reviewed(ibs, aid1, aid2):
+    """ denote that this match was reviewed and keep whatever status it is given """
+    isunknown1, isunknown2 = ibs.is_aid_unknown([aid1, aid2])
+    if isunknown1 or isunknown2:
+        truth = const.TRUTH_UNKNOWN
+    else:
+        nid1, nid2 = ibs.get_annot_name_rowids((aid1, aid2))
+        truth = const.TRUTH_UNKNOWN if (nid1 == nid2) else const.TRUTH_NOT_MATCH
+    ibs.add_or_update_annotmatch(aid1, aid2, truth, [1.0])
+
+
+@__injectable
+def add_or_update_annotmatch(ibs, aid1, aid2, truth, confidence):
+    annotmatch_rowid = ibs.get_annotmatch_rowid_from_superkey([aid1], [aid2])[0]
+    # TODO: sql add or update?
+    if annotmatch_rowid is not None:
+        ibs.set_annotmatch_truth([annotmatch_rowid], [1])
+        ibs.set_annotmatch_confidence([annotmatch_rowid], [1.0])
+    else:
+        ibs.add_annotmatch([aid1], [aid2], [truth], [1.0])
+
+
+@__injectable
+def get_annot_pair_truth(ibs, aid1_list, aid2_list):
+    annotmatch_rowid_list = ibs.get_annotmatch_rowid_from_superkey(aid1_list, aid2_list)
+    annotmatch_truth_list  = ibs.get_annotmatch_truth(annotmatch_rowid_list)
+    return annotmatch_truth_list
+
+
+@__injectable
+def get_annot_pair_is_reviewed(ibs, aid1_list, aid2_list):
+    annotmatch_truth_list = ibs.get_annot_pair_truth(aid1_list, aid2_list)
+    annotmatch_reviewed_list = [truth is not None for truth in annotmatch_truth_list]
+    return annotmatch_reviewed_list
 
 
 if __name__ == '__main__':

@@ -51,6 +51,8 @@ ENCOUNTER_SMART_XML_FNAME   = 'encounter_smart_xml_fname'
 IMAGE_TIME_POSIX      = 'image_time_posix'
 IMAGE_LOCATION_CODE   = 'image_location_code'
 IMAGE_TIMEDELTA_POSIX = 'image_timedelta_posix'
+PARTY_ROWID           = 'party_rowid'
+CONTRIBUTOR_ROWID     = 'contributor_rowid'
 
 
 @register_ibs_method
@@ -654,12 +656,36 @@ def get_image_uuids(ibs, gid_list):
 
 @register_ibs_method
 @getter_1to1
-def get_image_contributor_rowid(ibs, gid_list):
-    """
+def get_image_contributor_rowid(ibs, image_rowid_list, eager=True, nInput=None):
+    """ contributor_rowid_list <- image.contributor_rowid[image_rowid_list]
+
+    gets data from the "native" column "contributor_rowid" in the "image" table
+
+    Args:
+        image_rowid_list (list):
+
     Returns:
-        list_ (list): a list of image contributor rowids by gid """
-    contrib_rowid_list = ibs.db.get(const.IMAGE_TABLE, ('contributor_rowid',), gid_list)
-    return contrib_rowid_list
+        list: contributor_rowid_list - list of image contributor rowids by gid
+
+    TemplateInfo:
+        Tgetter_table_column
+        col = contributor_rowid
+        tbl = image
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_image_funcs import *  # NOQA
+        >>> ibs, qreq_ = testdata_ibs()
+        >>> image_rowid_list = ibs._get_all_image_rowids()
+        >>> eager = True
+        >>> contributor_rowid_list = ibs.get_image_contributor_rowid(image_rowid_list, eager=eager)
+        >>> assert len(image_rowid_list) == len(contributor_rowid_list)
+    """
+    id_iter = image_rowid_list
+    colnames = (CONTRIBUTOR_ROWID,)
+    contributor_rowid_list = ibs.db.get(
+        const.IMAGE_TABLE, colnames, id_iter, id_colname='rowid', eager=eager, nInput=nInput)
+    return contributor_rowid_list
 
 
 @register_ibs_method
@@ -1946,6 +1972,8 @@ def set_encounter_smart_xml_fnames(ibs, encounter_rowid_list, encounter_smart_xm
 def get_image_timedelta_posix(ibs, image_rowid_list, eager=True):
     """ image_timedelta_posix_list <- image.image_timedelta_posix[image_rowid_list]
 
+    # TODO: INTEGRATE THIS FUNCTION. CURRENTLY OFFSETS ARE ENCODIED DIRECTLY IN UNIXTIME
+
     gets data from the "native" column "image_timedelta_posix" in the "image" table
 
     Args:
@@ -2075,6 +2103,126 @@ def delete_empty_eids(ibs):
     is_invalid = [nGids == 0 for nGids in nGids_list]
     invalid_eids = ut.filter_items(eid_list, is_invalid)
     ibs.delete_encounters(invalid_eids)
+
+
+@register_ibs_method
+@getter_1to1
+def get_image_party_rowids(ibs, image_rowid_list, eager=True, nInput=None):
+    """ party_rowid_list <- image.party_rowid[image_rowid_list]
+
+    gets data from the "native" column "party_rowid" in the "image" table
+
+    Args:
+        image_rowid_list (list):
+
+    Returns:
+        list: party_rowid_list
+
+    TemplateInfo:
+        Tgetter_table_column
+        col = party_rowid
+        tbl = image
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_image_funcs import *  # NOQA
+        >>> ibs, qreq_ = testdata_ibs()
+        >>> image_rowid_list = ibs._get_all_image_rowids()
+        >>> eager = True
+        >>> party_rowid_list = ibs.get_image_party_rowids(image_rowid_list, eager=eager)
+        >>> assert len(image_rowid_list) == len(party_rowid_list)
+    """
+    id_iter = image_rowid_list
+    colnames = (PARTY_ROWID,)
+    party_rowid_list = ibs.db.get(
+        const.IMAGE_TABLE, colnames, id_iter, id_colname='rowid', eager=eager, nInput=nInput)
+    return party_rowid_list
+
+
+@register_ibs_method
+@getter_1to1
+def get_image_party_tag(ibs, image_rowid_list, eager=True, nInput=None):
+    """ party_tag_list <- image.party_tag[image_rowid_list]
+
+    Args:
+        image_rowid_list (list):
+
+    Returns:
+        list: party_tag_list
+
+    TemplateInfo:
+        Tgetter_extern
+        tbl = image
+        externtbl = party
+        externcol = party_tag
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_image_funcs import *  # NOQA
+        >>> ibs, qreq_ = testdata_ibs()
+        >>> image_rowid_list = ibs._get_all_image_rowids()
+        >>> eager = True
+        >>> party_tag_list = ibs.get_image_party_tag(image_rowid_list, eager=eager)
+        >>> assert len(image_rowid_list) == len(party_tag_list)
+    """
+    party_rowid_list = ibs.get_image_party_rowids(
+        image_rowid_list, eager=eager, nInput=nInput)
+    party_tag_list = ibs.get_party_tag(
+        party_rowid_list, eager=eager, nInput=nInput)
+    return party_tag_list
+
+
+@register_ibs_method
+@setter
+def set_image_party_rowids(ibs, image_rowid_list, party_rowid_list, duplicate_behavior='error'):
+    """ party_rowid_list -> image.party_rowid[image_rowid_list]
+
+    Args:
+        image_rowid_list
+        party_rowid_list
+
+    TemplateInfo:
+        Tsetter_native_column
+        tbl = image
+        col = party_rowid
+    """
+    id_iter = image_rowid_list
+    colnames = (PARTY_ROWID,)
+    ibs.db.set(const.IMAGE_TABLE, colnames, party_rowid_list,
+               id_iter, duplicate_behavior=duplicate_behavior)
+
+
+@register_ibs_method
+@getter_1to1
+def get_image_contributor_tag(ibs, image_rowid_list, eager=True, nInput=None):
+    """ contributor_tag_list <- image.contributor_tag[image_rowid_list]
+
+    Args:
+        image_rowid_list (list):
+
+    Returns:
+        list: contributor_tag_list
+
+    TemplateInfo:
+        Tgetter_extern
+        tbl = image
+        externtbl = contributor
+        externcol = contributor_tag
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_image_funcs import *  # NOQA
+        >>> ibs, qreq_ = testdata_ibs()
+        >>> image_rowid_list = ibs._get_all_image_rowids()
+        >>> eager = True
+        >>> contributor_tag_list = ibs.get_image_contributor_tag(image_rowid_list, eager=eager)
+        >>> assert len(image_rowid_list) == len(contributor_tag_list)
+    """
+    contributor_rowid_list = ibs.get_image_contributor_rowid(
+        image_rowid_list, eager=eager, nInput=nInput)
+    contributor_tag_list = ibs.get_contributor_tag(
+        contributor_rowid_list, eager=eager, nInput=nInput)
+    return contributor_tag_list
 
 
 def testdata_ibs():

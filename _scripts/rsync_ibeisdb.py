@@ -56,9 +56,11 @@ def sync_ibeisdb(remote_uri, dbname, mode='pull'):
     exclude_dirs = [
         ut.ensure_unixslash(ibeis.const.REL_PATHS.chips),
         ut.ensure_unixslash(ibeis.const.REL_PATHS.cache),
+        ut.ensure_unixslash(ibeis.const.REL_PATHS.backups),
+        ut.ensure_unixslash(ibeis.const.REL_PATHS.figures),
         #'_ibsdb/_ibeis_cache',
         #'_ibsdb/chips',
-        './images',
+        './images',  # the hotspotter images dir
     ]
     local_uri = ut.ensure_unixslash(ibeis.sysres.get_workdir())
     if ut.WIN32:
@@ -94,11 +96,12 @@ if __name__ == '__main__':
     default_user = ut.get_user_name()
     default_db = 'MUGU_Master'
     if len(sys.argv) < 2:
-        print('Usage: rsync_ibeisdb.py [push, pull] --db <dbname=%s> --user <username=%s>' % (default_db, default_user,))
+        print('Usage: rsync_ibeisdb.py [push, pull] --db <db=%s> --user <user=%s>' % (default_db, default_user,))
         sys.exit(1)
     user = ut.get_argval('--user', type_=str, default=default_user)
     dbname = ut.get_argval(('--db', '--dbname'), type_=str, default=default_db)
     mode = sys.argv[1]
-    assert mode not in ['push', 'pull'], 'mode must be push or pull'
+
+    assert mode in ['push', 'pull'], 'mode=%r must be push or pull' % (mode,)
     remote_uri = user + '@hyrule.cs.rpi.edu:/raid/work'
     sync_ibeisdb(remote_uri, dbname, mode)

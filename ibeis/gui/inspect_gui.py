@@ -17,16 +17,19 @@ from ibeis.viz import viz_helpers as vh
 from plottool import fig_presenter
 #from plottool import interact_helpers as ih
 from six.moves import range
-import functools
+#import functools
 import guitool
 import numpy as np
 import six
 import utool
+#from ibeis import constants as const
 import utool as ut
 from ibeis.gui import guiexcept
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[inspect_gui]')
 
 
+MATCHED_STATUS_TEXT  = 'Matched'
+REVIEWED_STATUS_TEXT = 'Reviewed'
 USE_FILTER_PROXY = False
 
 
@@ -161,7 +164,8 @@ class QueryResultsWidget(APIItemWidget):
         col = qtindex.column()
         model = qtindex.model()
         colname = model.get_header_name(col)
-        if colname == 'status':
+
+        if colname == MATCHED_STATUS_TEXT:
             #qres_callback = partial(show_match_at, iqrw, qtindex)
             #review_match_at(iqrw, qtindex, qres_callback=qres_callback)
             review_match_at(iqrw, qtindex)
@@ -173,7 +177,7 @@ class QueryResultsWidget(APIItemWidget):
         col = qtindex.column()
         model = qtindex.model()
         colname = model.get_header_name(col)
-        if colname != 'status':
+        if colname != MATCHED_STATUS_TEXT:
             return show_match_at(iqrw, qtindex)
         pass
 
@@ -188,7 +192,7 @@ class QueryResultsWidget(APIItemWidget):
             model = qtindex.model()
             colname = model.get_header_name(col)
             if distance <= threshold:
-                if colname == 'status':
+                if colname == MATCHED_STATUS_TEXT:
                     iqrw.view.clicked.emit(qtindex)
                     iqrw._on_click(qtindex)
                 else:
@@ -209,9 +213,21 @@ class QueryResultsWidget(APIItemWidget):
         guitool.popup_menu(iqrw, qpos, [
             ('Show feature matches', lambda: show_match_at(iqrw, qtindex)),
             ('Inspect Match Candidates', lambda: review_match_at(iqrw, qtindex)),
+            ('Mark as &Reviewed', lambda: mark_pair_as_reviewed(iqrw, qtindex)),
             ('Mark as &True Match.', lambda: mark_pair_as_positive_match(iqrw, qtindex)),
             ('Mark as &False Match.', lambda: mark_pair_as_negative_match(iqrw, qtindex)),
         ])
+
+
+def mark_pair_as_reviewed(qres_wgt, qtindex):
+    """
+    Sets the reviewed flag to whatever the current truth status is
+    """
+    model = qtindex.model()
+    qaid  = model.get_header_data('qaid', qtindex)
+    daid  = model.get_header_data('aid', qtindex)
+    ibs = qres_wgt.ibs
+    ibs.mark_annot_pair_as_reviewed(qaid, daid)
 
 
 def mark_pair_as_positive_match(qres_wgt, qtindex):
@@ -281,6 +297,8 @@ def mark_annot_pair_as_positive_match(ibs, aid1, aid2, dryrun=False):
         assert len(aid_list) == len(nid_list), 'list must correspond'
         if not dryrun:
             ibs.set_annot_name_rowids(aid_list, nid_list)
+            ibs.mark_annot_pair_as_reviewed(aid1, aid2)
+            #ibs.add_or_update_annotmatch(aid1, aid2, const.TRUTH_MATCH, [1.0])
         # Return the new annots in this name
         _aids_list = ibs.get_name_aids(nid_list)
         _combo_aids_list = [_aids + [aid] for _aids, aid, in zip(_aids_list, aid_list)]
@@ -363,6 +381,8 @@ def mark_annot_pair_as_negative_match(ibs, aid1, aid2, dryrun=False):
         print('... _set_annot_name_rowids(%r, %r)' % (aid_list, nid_list))
         if not dryrun:
             ibs.set_annot_name_rowids(aid_list, nid_list)
+            ibs.mark_annot_pair_as_reviewed(aid1, aid2)
+            #ibs.add_or_update_annotmatch(aid1, aid2, const.TRUTH_NOT_MATCH, [1.0])
     nid1, nid2 = ibs.get_annot_name_rowids([aid1, aid2])
     if nid1 == nid2:
         print('images are marked as having the same name... we must tread carefully')
@@ -592,7 +612,7 @@ class CustomAPI(object):
         return [partial(self.set, column) for column in range(self.nCols)]
 
 
-def get_status(ibs, aid_pair):
+def get_match_status(ibs, aid_pair):
     """ Data role for status column
     FIXME: no other function in this project takes a tuple of scalars as an
     argument. Everything else is written in the context of lists, This function
@@ -608,12 +628,45 @@ def get_status(ibs, aid_pair):
     return text
 
 
-def get_status_bgrole(ibs, aid_pair):
+def get_reviewed_status(ibs, aid_pair):
+    """ Data role for status column
+    FIXME: no other function in this project takes a tuple of scalars as an
+    argument. Everything else is written in the context of lists, This function
+    should follow the same paradigm, but CustomAPI will have to change.
+    """
+    aid1, aid2 = aid_pair
+    assert not utool.isiterable(aid1), 'aid1=%r, aid2=%r' % (aid1, aid2)
+    assert not utool.isiterable(aid2), 'aid1=%r, aid2=%r' % (aid1, aid2)
+    #text  = ibsfuncs.vsstr(aid1, aid2)
+    annotmach_reviewed = ibs.get_annot_pair_is_reviewed([aid1], [aid2])[0]
+    return 'Yes' if annotmach_reviewed else 'No'
+    #text = ibs.get_match_text(aid1, aid2)
+    #if text is None:
+    #    raise AssertionError('impossible state inspect_gui')
+    #return 'No'
+
+
+def get_match_status_bgrole(ibs, aid_pair):
     """ Background role for status column """
     aid1, aid2 = aid_pair
     truth = ibs.get_match_truth(aid1, aid2)
     #print('get status bgrole: %r truth=%r' % (aid_pair, truth))
     truth_color = vh.get_truth_color(truth, base255=True, lighten_amount=0.35)
+    return truth_color
+
+
+def get_reviewed_status_bgrole(ibs, aid_pair):
+    """ Background role for status column """
+    aid1, aid2 = aid_pair
+    truth = ibs.get_match_truth(aid1, aid2)
+    annotmach_reviewed = ibs.get_annot_pair_is_reviewed([aid1], [aid2])[0]
+    #truth = ibs.get_annot_pair_truth([aid1], [aid2])[0]
+    #print('get status bgrole: %r truth=%r' % (aid_pair, truth))
+    lighten_amount = .35 if annotmach_reviewed else .9
+    truth_color = vh.get_truth_color(truth, base255=True, lighten_amount=lighten_amount)
+    #truth = ibs.get_match_truth(aid1, aid2)
+    #print('get status bgrole: %r truth=%r' % (aid_pair, truth))
+    #truth_color = vh.get_truth_color(truth, base255=True, lighten_amount=0.35)
     return truth_color
 
 
@@ -685,7 +738,7 @@ def test_inspect_matches(ibs, qaid_list, daid_list):
     #self = interact_qres2.Interact_QueryResult(ibs, qaid2_qres, ranks_lt=ranks_lt)
     print('</inspect_matches>')
     # simulate double click
-    qres_wgt._on_click(qres_wgt.model.index(2, 2))
+    #qres_wgt._on_click(qres_wgt.model.index(2, 2))
     #qres_wgt._on_doubleclick(qres_wgt.model.index(2, 0))
     locals_ =  locals()
     return locals_
@@ -727,7 +780,7 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False):
     (qaids, aids, scores, ranks) = candidate_matches
 
     # Preprocess Thumbs
-    USE_MATCH_THUMBS = False
+    USE_MATCH_THUMBS = True
     if USE_MATCH_THUMBS:
         match_thumb_dir = ut.unixjoin(ibs.get_cachedir(), 'match_thumbs')
         ut.ensuredir(match_thumb_dir)
@@ -769,11 +822,15 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False):
     # TODO: MAKE A PAIR IDER AND JUST USE EXISTING API_ITEM_MODEL FUNCTIONALITY
     # TO GET THOSE PAIRWISE INDEXES
 
+    RES_THUMB_TEXT = 'ResThumb'
+    MATCH_THUMB_TEXT = 'MatchThumb'
+
     col_name_list = [
         'score',
-        'status',
+        REVIEWED_STATUS_TEXT,
+        MATCHED_STATUS_TEXT,
         'querythumb',
-        'resthumb',
+        RES_THUMB_TEXT,
         'qname',
         'name',
         'rank',
@@ -792,9 +849,10 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False):
         #('d_nGt',      int),
         #('q_nGt',      int),
         ('review',     'BUTTON'),
-        ('status',     str),
+        (MATCHED_STATUS_TEXT, str),
+        (REVIEWED_STATUS_TEXT, str),
         ('querythumb', 'PIXMAP'),
-        ('resthumb',   'PIXMAP'),
+        (RES_THUMB_TEXT,   'PIXMAP'),
         ('qname',      str),
         ('name',       str),
         ('score',      float),
@@ -809,9 +867,10 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False):
         #('d_nGt',      ibs.get_annot_num_groundtruth),
         #('q_nGt',      ibs.get_annot_num_groundtruth),
         ('review',     lambda rowid: get_buttontup),
-        ('status',     partial(get_status, ibs)),
+        (MATCHED_STATUS_TEXT,  partial(get_match_status, ibs)),
+        (REVIEWED_STATUS_TEXT,  partial(get_reviewed_status, ibs)),
         ('querythumb', ibs.get_annot_chip_thumbtup),
-        ('resthumb',   ibs.get_annot_chip_thumbtup),
+        (RES_THUMB_TEXT,   ibs.get_annot_chip_thumbtup),
         ('qname',      ibs.get_annot_names),
         ('name',       ibs.get_annot_names),
         ('score',      np.array(scores)),
@@ -821,24 +880,26 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False):
     ])
 
     if USE_MATCH_THUMBS:
-        col_name_list.insert(4, 'matchthumb')
-        col_types_dict['matchthumb'] = 'PIXMAP'
-        col_getters_dict['matchthumb'] = get_match_thumbtup
+        col_name_list.insert(col_name_list.index(RES_THUMB_TEXT) + 1, MATCH_THUMB_TEXT)
+        col_types_dict[MATCH_THUMB_TEXT] = 'PIXMAP'
+        col_getters_dict[MATCH_THUMB_TEXT] = get_match_thumbtup
 
-    #get_status_bgrole_func = partial(get_status_bgrole, ibs)
+    #get_status_bgrole_func = partial(get_match_status_bgrole, ibs)
     col_bgrole_dict = {
-        'status' : partial(get_status_bgrole, ibs),
+        MATCHED_STATUS_TEXT : partial(get_match_status_bgrole, ibs),
+        REVIEWED_STATUS_TEXT: partial(get_reviewed_status_bgrole, ibs),
         #'aid'    : get_status_bgrole_func,
         #'qaid'   : get_status_bgrole_func,
     }
     # TODO: remove ider dict.
     # it is massively unuseful
     col_ider_dict = {
-        'status'     : ('qaid', 'aid'),
+        MATCHED_STATUS_TEXT     : ('qaid', 'aid'),
+        REVIEWED_STATUS_TEXT    : ('qaid', 'aid'),
         #'d_nGt'      : ('aid'),
         #'q_nGt'      : ('qaid'),
         'querythumb' : ('qaid'),
-        'resthumb'   : ('aid'),
+        'ResThumb'   : ('aid'),
         'qname'      : ('qaid'),
         'name'       : ('aid'),
     }
