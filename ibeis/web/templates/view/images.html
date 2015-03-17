@@ -1,0 +1,128 @@
+{% extends "layout.html" %}
+{% block content_custom_css %}
+<style>
+  .total-label
+  {
+    font-size: 100px;
+    margin: 0;
+    text-align: center;
+    color: #4d63bc;
+  }
+
+  th.no-items
+  {
+    text-align: center;
+    padding: 25px 0px !important;
+    font-size: 20px;
+    font-weight: 200;
+    font-style: italic;
+  }
+
+  img.ajax-image-load
+  {
+    height: 100px;
+    width: auto;
+  }
+
+</style>
+{% endblock %}
+{% block content %}
+
+  <div class="row marketing">
+    <div class="col-lg-12">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>GID</th>
+            <th>Thumbnail</th>
+            <th>Image Name</th>
+            <th>Date / Time</th>
+            <th>GPS</th>
+            <th>Party</th>
+            <th>Contributor</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if num_images == 0 %}
+            <tr>
+              <th class="no-items" colspan="8">Sorry, no images to display</th>
+            </tr>
+          {% else %}
+            {% for (gid, name, datetime, gps, party, contributor, notes) in image_list %}
+            <tr>
+              <th scope="row"><a href="{{ url_for('turk', filename='detection') }}?gid={{ gid }}">{{ gid }}</a></th>
+              <td><img class="ajax-image-load ajax-image-unloaded" src="" gid="{{ gid }}" /></td>
+              <td>{{ name }}</td>
+              <td>{{ datetime }}</td>
+              <td>{{ gps }}</td>
+              <td>{{ party }}</td>
+              <td>{{ contributor }}</td>
+              <td>{{ notes }}</td>
+            </tr>
+            {% endfor %}
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+{% endblock %}
+{% block content_custom_javascript %}
+<script type="text/javascript">
+  var loading = [];
+  var requests = [];
+  var buffer = 5;
+
+  function lazy_load_images()
+  {
+    while(requests.length > buffer)
+    {
+      requests[0].abort();
+      removeIndexFromArray(0, requests);
+      removeIndexFromArray(0, loading);
+    }
+
+    $(".ajax-image-load").filter(":onScreen").filter(".ajax-image-unloaded").each(function(){
+      load_image_src(this);
+    });
+  }
+
+  function load_image_src(element)
+  {
+    var gid = $(element).attr('gid');
+    if(!contains(loading, gid) && requests.length <= buffer)
+    {
+      request = $.ajax( "/ajax/image/src/" + gid )
+      .done(function( response ) {
+        // Load SRC into Image
+        $(element).attr('src', response);
+        // Remove image class
+        $(element).removeClass('ajax-image-unloaded');
+        // Remove value from the arrays
+        var index = findValueIndexFromArray(gid, loading);
+        removeIndexFromArray(index, requests);
+        removeIndexFromArray(index, loading);
+        // Logging
+        console.log(gid);
+        console.log(loading);
+        console.log(requests);
+      });
+      loading.push(gid);
+      requests.push(request);
+    }
+  }
+
+  $(document).ready(function(){
+      $(window).scroll(function(){
+        lazy_load_images();
+      });
+
+      setInterval(function() {        
+        lazy_load_images();
+      }, 1000) ;
+
+      lazy_load_images();
+  });
+</script>  
+{% endblock %}

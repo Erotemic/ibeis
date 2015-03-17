@@ -274,10 +274,11 @@ def build_impossible_daids_list(qreq_, verbose=VERB_PIPELINE):
         # Faster way
         internal_data_gids  = qreq_.ibs.get_annot_gids(internal_daids)
         internal_query_gids = qreq_.ibs.get_annot_gids(internal_qaids)
-        contact_aids_list = [
-            internal_daids.compress(internal_data_gids == gid)
-            for gid in internal_query_gids
-        ]
+        with ut.embed_on_exception_context:
+            contact_aids_list = [
+                internal_daids.compress(internal_data_gids == gid)
+                for gid in internal_query_gids
+            ]
         _impossible_daid_lists.append(contact_aids_list)
         EXTEND_TO_OTHER_CONTACT_GT = False
         # Also cannot match any aids with a name of an annotation in this image
@@ -616,6 +617,7 @@ def get_sparse_matchinfo_nonagg(qreq_, qfx2_idx, qfx2_valid0, qfx2_score_list, q
 
     CommandLine:
         python -m ibeis.model.hots.pipeline --test-get_sparse_matchinfo_nonagg
+        utprof.py -m ibeis.model.hots.pipeline --test-get_sparse_matchinfo_nonagg
 
     Example0:
         >>> # ENABLE_DOCTEST
@@ -663,8 +665,10 @@ def get_sparse_matchinfo_nonagg(qreq_, qfx2_idx, qfx2_valid0, qfx2_score_list, q
     # annot_rowids, feature indexes, and all scores
     valid_daid  = qfx2_daid.take(flat_validx, axis=None)
     valid_dfx   = qfx2_dfx.take(flat_validx, axis=None)
-    valid_scorevec = np.vstack([qfx2_score.take(flat_validx)
-                                for qfx2_score in qfx2_score_list]).T
+    #valid_scorevec = np.vstack([qfx2_score.take(flat_validx)
+    #                            for qfx2_score in qfx2_score_list]).T
+    valid_scorevec = np.hstack([qfx2_score.take(flat_validx)[:, None]
+                                for qfx2_score in qfx2_score_list])
     # The q/d's are all internal here, thus in vsone they swap
     valid_match_tup = (valid_daid, valid_qfx, valid_dfx, valid_scorevec, valid_rank)
     return valid_match_tup
@@ -945,6 +949,7 @@ def chipmatch_to_resdict(qreq_, cm_list, verbose=VERB_PIPELINE):
         utprof.py -m ibeis.model.hots.pipeline --test-chipmatch_to_resdict
         python -m ibeis.model.hots.pipeline --test-chipmatch_to_resdict
         python -m ibeis.model.hots.pipeline --test-chipmatch_to_resdict:1
+        utprof.py -m ibeis.model.hots.pipeline --test-chipmatch_to_resdict --GZ_ALL --allgt
 
     Example:
         >>> # ENABLE_DOCTEST
