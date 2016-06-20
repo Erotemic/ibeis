@@ -423,7 +423,8 @@ class Labeler_Model(JPCNN_Auto_Model):
             num_units=768,
             nonlinearity=_lasagne.nonlinearities.linear,
             # nonlinearity=_lasagne.nonlinearities.rectify,
-            W=_lasagne.init.Orthogonal('relu'),
+            #W=_lasagne.init.Orthogonal('relu'),
+	    W=_lasagne.init.Constant(0.),
         )
 
         l_batchnorm12 = _lasagne.layers.BatchNormLayer(
@@ -451,7 +452,8 @@ class Labeler_Model(JPCNN_Auto_Model):
             num_units=768,
             nonlinearity=_lasagne.nonlinearities.linear,
             # nonlinearity=_lasagne.nonlinearities.rectify,
-            W=_lasagne.init.Orthogonal('relu'),
+            #W=_lasagne.init.Orthogonal('relu'),
+	    W=_lasagne.init.Constant(0.),
         )
 
         l_batchnorm13 = _lasagne.layers.BatchNormLayer(
@@ -478,7 +480,8 @@ class Labeler_Model(JPCNN_Auto_Model):
             l_dropout2,
             num_units=out_classes,
             nonlinearity=_lasagne.nonlinearities.softmax,
-            W=_lasagne.init.Orthogonal(1.0),
+            #W=_lasagne.init.Orthogonal(1.0),
+	    W=_lasagne.init.Constant(0.),
         )
 
         return l_out
