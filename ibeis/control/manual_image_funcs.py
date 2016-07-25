@@ -1796,12 +1796,16 @@ def delete_images(ibs, gid_list, trash_images=True):
     gpath_list = ibs.get_image_paths(gid_list)
     gname_list = ibs.get_image_gnames(gid_list)
     ext_list   = ibs.get_image_exts(gid_list)
+    print(gpath_list)
+    print(gname_list)
+    print(ext_list)
     if trash_images:
         trash_dir  = ibs.get_trashdir()
         ut.ensuredir(trash_dir)
         gpath_list2 = [join(trash_dir, gname + ext) for (gname, ext) in
                        zip(gname_list, ext_list)]
         ut.copy_list(gpath_list, gpath_list2, ioerr_ok=True, oserror_ok=True, lbl='Trashing Images')
+        print(gpath_list2)
     else:
         for gpath in gpath_list:
             ut.delete(gpath)
@@ -1810,6 +1814,8 @@ def delete_images(ibs, gid_list, trash_images=True):
 
     # Delete annotations first
     aid_list = ut.flatten(ibs.get_image_aids(gid_list))
+    print("aid_list")
+    print(aid_list)
     ibs.delete_annots(aid_list)
     # delete thumbs in case an annot doesnt delete them
     # TODO: pass flag to not delete them in delete_annots
