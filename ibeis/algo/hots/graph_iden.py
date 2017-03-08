@@ -82,6 +82,7 @@ class _AnnotInfrGroundtruth(object):
         return is_same
 
     def match_state_df(infr, index):
+        """ Returns groundtruth state based on ibeis controller """
         import pandas as pd
         aid_pairs = np.asarray(index.tolist())
         is_same = infr.is_same(aid_pairs)
@@ -1052,16 +1053,11 @@ class _AnnotInfrFeedback(object):
                 'notcomp': infr._compute_p_same(0.0, 1.0),
             }
             p_same = p_same_lookup[state]
-
-            # p_same = infr._compute_p_same(review_dict['p_match'],
-            #                               review_dict['p_notcomp'])
             num_reviews = infr.get_edge_attrs('num_reviews', [edge],
                                               default=0).get(edge, 0)
             infr._set_feedback_edges([edge], [state], [p_same], [tags],
                                      [user_confidence], [num_reviews + 1])
             # TODO: change num_reviews to num_consistent_reviews
-            # infr.set_edge_attrs('num_reviews', {edge: num_reviews + 1})
-            # infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, {edge: p_same})
             if state != 'notcomp':
                 ut.nx_delete_edge_attr(infr.graph, 'inferred_state', [edge])
 
@@ -1077,16 +1073,18 @@ class _AnnotInfrFeedback(object):
         # Change names of nodes
         infr.relabel_using_reviews(graph=subgraph, rectify=rectify)
 
-        # Include other components where there are transative consequences
+        # Include other components where there are external consequences
+        # This is only the case if two annotations are merged or a single
+        # annotation is split.
         nomatch_ccs = infr.get_nomatch_ccs(relevant_nodes)
         extended_nodes = ut.flatten(nomatch_ccs)
         extended_nodes.extend(relevant_nodes)
         extended_subgraph = infr.graph.subgraph(extended_nodes)
 
         # This re-infers all attributes of the influenced sub-graph only
-        import utool
-        with utool.embed_on_exception_context:
-            infr.apply_review_inference(graph=extended_subgraph)
+        # import utool
+        # with utool.embed_on_exception_context:
+        infr.apply_review_inference(graph=extended_subgraph)
 
     def _del_feedback_edges(infr, edges=None):
         """ Delete all edges properties related to feedback """
@@ -1139,7 +1137,6 @@ class _AnnotInfrFeedback(object):
             >>> print(result)
             <AnnotInference(nAids=6, nEdges=2)>
         """
-        # TODO: try and speed this up
         if infr.verbose >= 1:
             print('[infr] apply_feedback_edges')
         if safe:
@@ -1211,11 +1208,48 @@ class _AnnotInfrFeedback(object):
         """ uses most recently use strategy """
         return vals[-1]
 
+    def reset(infr, state='empty'):
+        """
+        Removes all edges from graph and resets name labels.
+        """
+        if state == 'empty':
+            # Remove all edges, and component names
+            infr.graph.remove_edges_from(list(infr.graph.edges()))
+            infr.remove_feedback()
+            infr.remove_name_labels()
+        elif state == 'orig':
+            raise NotImplementedError('unused')
+            infr.graph.remove_edges_from(list(infr.graph.edges()))
+            infr.remove_feedback()
+            infr.reset_name_labels()
+        else:
+            raise ValueError('Unknown state=%r' % (state,))
+
+    def reset_name_labels(infr):
+        """ Resets all annotation node name labels to their initial values """
+        if infr.verbose >= 1:
+            print('[infr] reset_name_labels')
+        orig_names = infr.get_node_attrs('orig_name_label')
+        infr.set_node_attrs('name_label', orig_names)
+
+    def remove_name_labels(infr):
+        """ Sets all annotation node name labels to be unknown """
+        if infr.verbose >= 1:
+            print('[infr] remove_name_labels()')
+        # make distinct names for all nodes
+        distinct_names = {
+            node: -aid for node, aid in infr.get_node_attrs('aid').items()
+        }
+        infr.set_node_attrs('name_label', distinct_names)
+
 
 @six.add_metaclass(ut.ReloadingMetaclass)
 class _AnnotInfrMatching(object):
     def exec_matching(infr, prog_hook=None, cfgdict=None):
-        """ Loads chip matches into the inference structure """
+        """
+        Loads chip matches into the inference structure
+        Uses graph name labeling and ignores ibeis labeling
+        """
         if infr.verbose >= 1:
             print('[infr] exec_matching')
         #from ibeis.algo.hots import graph_iden
@@ -1470,6 +1504,9 @@ class _AnnotInfrMatching(object):
 
     @profile
     def apply_match_edges(infr, review_cfg={}):
+        """
+        Adds results from one-vs-many rankings as edges in the graph
+        """
         if infr.cm_list is None:
             print('[infr] apply_match_edges - matching has not been run!')
             return
@@ -1727,11 +1764,11 @@ class _AnnotInfrPriority(object):
             raise StopIteration('no more to review!')
             # raise StopIteration('no more to review!') from None
         else:
-            aid1, aid2 = e_(*edge)
-            return (aid1, aid2)
+            assert edge[0] < edge[1]
+            return edge, (priority * -1)
 
     def generate_reviews(infr, randomness=0, rng=None, pos_redundancy=None,
-                         neg_redundancy=None):
+                         neg_redundancy=None, data=False):
         """
         Dynamic generator that yeilds high priority reviews
         """
@@ -1739,9 +1776,14 @@ class _AnnotInfrPriority(object):
         infr.queue_params['neg_redundancy'] = neg_redundancy
         infr._init_priority_queue(randomness, rng)
 
-        for index in it.count():
-            edge, priority = infr.pop()
-            yield edge
+        if data:
+            while True:
+                edge, priority = infr.pop()
+                yield edge, priority
+        else:
+            while True:
+                edge, priority = infr.pop()
+                yield edge
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
@@ -2123,31 +2165,6 @@ class _AnnotInfrUpdates(object):
         maybe_error_edges_ = ut.lstarmap(e_, maybe_error_edges)
         return maybe_error_edges_
 
-    @profile
-    def get_nomatch_ccs(infr, cc):
-        """
-        Search every neighbor in this cc for a nomatch connection. Then add the
-        cc belonging to that connected node.
-        In the case of an inconsistent cc, nodes within the cc will not be
-        returned.
-        """
-        visited = set(cc)
-        # visited_nodes = set([])
-        nomatch_ccs = []
-        for n1 in cc:
-            for n2 in infr.graph.neighbors(n1):
-                if n2 not in visited:
-                    # data = infr.graph.get_edge_data(n1, n2)
-                    # _state = data.get('reviewed_state', 'unreviewed')
-                    _state = infr.graph.edge[n1][n2].get('reviewed_state',
-                                                         'unreviewed')
-                    if _state == 'nomatch':
-                        cc2 = infr.get_annot_cc(n2)
-                        # visited_nodes=visited_nodes)
-                        nomatch_ccs.append(cc2)
-                        visited.update(cc2)
-        return nomatch_ccs
-
     def _update_priority_queue(infr, graph, positive, negative,
                                reviewed_positives, reviewed_negatives,
                                node_to_label, nid_to_cc, suggested_fix_edges,
@@ -2217,6 +2234,31 @@ class _AnnotInfrUpdates(object):
         queue.update(zip(needs_priority, -infr._get_priorites(needs_priority)))
 
     @profile
+    def get_nomatch_ccs(infr, cc):
+        """
+        Search every neighbor in this cc for a nomatch connection. Then add the
+        cc belonging to that connected node.
+        In the case of an inconsistent cc, nodes within the cc will not be
+        returned.
+        """
+        visited = set(cc)
+        # visited_nodes = set([])
+        nomatch_ccs = []
+        for n1 in cc:
+            for n2 in infr.graph.neighbors(n1):
+                if n2 not in visited:
+                    # data = infr.graph.get_edge_data(n1, n2)
+                    # _state = data.get('reviewed_state', 'unreviewed')
+                    _state = infr.graph.edge[n1][n2].get('reviewed_state',
+                                                         'unreviewed')
+                    if _state == 'nomatch':
+                        cc2 = infr.get_annot_cc(n2)
+                        # visited_nodes=visited_nodes)
+                        nomatch_ccs.append(cc2)
+                        visited.update(cc2)
+        return nomatch_ccs
+
+    @profile
     def get_annot_cc(infr, source, visited_nodes=None):
         """
         Get the name_label cc connected to `source`
@@ -2232,9 +2274,10 @@ class _AnnotInfrUpdates(object):
 
             Refactor to a union-split-find data structure
                 https://courses.csail.mit.edu/6.851/spring14/lectures/L20.html
-                http://cs.stackexchange.com/questions/33595/what-is-the-most-efficient-algorithm-and-data-structure-for-maintaining-connecte
+                http://cs.stackexchange.com/questions/33595/maintaining-connect
                 http://cs.stackexchange.com/questions/32077/
-                https://networkx.github.io/documentation/development/_modules/networkx/utils/union_find.html
+                https://networkx.github.io/documentation/development/_modules/
+                    networkx/utils/union_find.html
         """
         # Speed hack for BFS conditional
         G = infr.graph
