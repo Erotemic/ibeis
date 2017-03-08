@@ -41,12 +41,16 @@ def encounter_stuff(ibs, aids):
 def end_to_end():
     import ibeis
     from ibeis.init import main_helpers
-    ibs = ibeis.opendb('GZ_Master1')
-
-    expt_aids = ibs.filter_annots_general(require_timestamp=True, require_gps=True,
-                                          is_known=True)
-
-    main_helpers.monkeypatch_encounters(ibs, expt_aids, minutes=30)
+    ibs = ibeis.opendb('PZ_MTEST')
+    # ibs = ibeis.opendb('GZ_Master1')
+    # Specialized database params
+    enc_kw = dict(minutes=30, cache=True)
+    filt_kw = dict(require_timestamp=True, require_gps=True, is_known=True)
+    if ibs.dbname == 'PZ_MTEST':
+        enc_kw = dict(days=50, cache=True)
+        filt_kw = dict(require_timestamp=True, is_known=True)
+    expt_aids = ibs.filter_annots_general(**filt_kw)
+    main_helpers.monkeypatch_encounters(ibs, expt_aids, **enc_kw)
 
     annots = ibs.annots(expt_aids)
     names = list(annots.group_items(annots.nids).values())
@@ -156,9 +160,8 @@ def end_to_end():
     # priority_edges = match_probs.index[match_probs.values.argsort()[::-1]]
 
     # for edge in ut.ProgIter(priority_edges):
-    # for edge in infr.generate_reviews():
-    while True:
-        edge, priority = infr.queue.pop()
+    for edge in infr.generate_reviews():
+        # edge, priority = infr.queue.pop()
         print('priority = %r' % (priority,))
         if priority >= -1:
             print('edge = %r' % (edge,))
