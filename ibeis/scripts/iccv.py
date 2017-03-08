@@ -136,11 +136,20 @@ def end_to_end():
     # Get groundtruth state based on ibeis controller
     primary_truth = infr.match_state_df(X.index)
 
-    match_probs = task_probs[primary_task]['match']
-
     # Set priority on the graph
-    infr.PRIORITY_METRIC = 'priority'
-    infr.set_edge_attrs(infr.PRIORITY_METRIC, match_probs.to_dict())
+    if True:
+        # Ranking only algorithm
+        infr.queue_params['pos_redundancy'] = 0
+        infr.queue_params['neg_redundancy'] = 0
+        infr.apply_match_scores()
+        infr.PRIORITY_METRIC = 'normscore'
+        autoreview_enabled = False
+    else:
+        infr.queue_params['pos_redundancy'] = 0
+        infr.queue_params['neg_redundancy'] = 0
+        infr.PRIORITY_METRIC = 'priority'
+        match_probs = task_probs[primary_task]['match']
+        infr.set_edge_attrs(infr.PRIORITY_METRIC, match_probs.to_dict())
     infr._init_priority_queue()
 
     def check_autodecide(edge, priority):
@@ -173,11 +182,14 @@ def end_to_end():
 
     # for edge, priority in infr.generate_reviews(data=True):
     while True:
-        edge, priority = infr.pop()
+        try:
+            edge, priority = infr.pop()
+        except StopIteration:
+            break
         aid1, aid2 = edge
         flag, decision, tags = check_autodecide(edge, priority)
         print('edge=%r, priority=%r, flag=%r' % (edge, priority, flag))
-        if flag:
+        if autoreview_enabled and flag:
             print('auto-decision = %r' % (decision,))
             infr.add_feedback(aid1, aid2, decision, tags, apply=True,
                               user_id='auto_clf',
@@ -188,6 +200,7 @@ def end_to_end():
             infr.add_feedback(aid1, aid2, decision, tags, apply=True,
                               user_id='oracle',
                               user_confidence='absolutely_sure')
+
         infr.show(show_candidate_edges=True)
 
     # TODO: use phi to check termination

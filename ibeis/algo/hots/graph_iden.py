@@ -1672,8 +1672,6 @@ class _AnnotInfrMatching(object):
         ut.nx_delete_edge_attr(infr.graph, 'score')
         ut.nx_delete_edge_attr(infr.graph, 'rank')
         ut.nx_delete_edge_attr(infr.graph, 'normscore')
-        ut.nx_delete_edge_attr(infr.graph, 'match_probs')
-        ut.nx_delete_edge_attr(infr.graph, 'entropy')
 
         edges = list(edge_to_data.keys())
         edge_scores = list(ut.take_column(edge_to_data.values(), 'score'))
@@ -1687,23 +1685,11 @@ class _AnnotInfrMatching(object):
         infr.set_edge_attrs('score', ut.dzip(edges, edge_scores))
         infr.set_edge_attrs('rank', ut.dzip(edges, edge_ranks))
 
-        nanflags = np.isnan(normscores)
-        p_match = normscores
-        p_nomatch = 1 - normscores
-        p_notcomp = nanflags * 1 / 3
-        p_nomatch[nanflags] = 1 / 3
-        p_match[nanflags] = 1 / 3
-
         # Hack away zero probabilites
-        probs = np.vstack([p_nomatch, p_match, p_notcomp]).T + 1e-9
-        probs = vt.normalize(probs, axis=1, ord=1, out=probs)
-        entropy = -(np.log2(probs) * probs).sum(axis=1)
-
-        match_probs = [ut.dzip(['nomatch', 'match', 'notcomp'], p)
-                       for p in probs]
+        # probs = np.vstack([p_nomatch, p_match, p_notcomp]).T + 1e-9
+        # probs = vt.normalize(probs, axis=1, ord=1, out=probs)
+        # entropy = -(np.log2(probs) * probs).sum(axis=1)
         infr.set_edge_attrs('normscore', dict(zip(edges, normscores)))
-        infr.set_edge_attrs('match_probs', dict(zip(edges, match_probs)))
-        infr.set_edge_attrs('entropy', dict(zip(edges, entropy)))
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
@@ -2201,6 +2187,7 @@ class _AnnotInfrUpdates(object):
         queue = infr.queue
         pos_redundancy = infr.queue_params['pos_redundancy']
         neg_redundancy = infr.queue_params['neg_redundancy']
+        return
 
         if pos_redundancy is not None:
             for pcc in nid_to_cc.values():
@@ -2716,8 +2703,8 @@ class AnnotInference(ut.NiceRepr,
         infr.nid_counter = None
         infr.queue = None
         infr.queue_params = {
-            'pos_redundancy': None,
-            'neg_redundancy': None,
+            'pos_redundancy': 1,
+            'neg_redundancy': 1,
         }
         infr.add_aids(aids, nids)
         if autoinit:
