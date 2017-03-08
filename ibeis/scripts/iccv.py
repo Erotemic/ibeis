@@ -96,6 +96,30 @@ def end_to_end():
     if False:
         test_aids = ut.flatten(names[1::2][::2])
 
+    class RefreshCriteria(object):
+        # TODO: becomes part of feedback on annot infr
+        def __init__(self):
+            self.window = 50
+            self.manual_decisions = []
+            self.num_pos = 0
+            self.frac_thresh = 1 / self.window
+            self.pos_thresh = 2
+
+        def add(self, decision, user_id):
+            code = 1 if decision == 'match' else 0
+            if user_id == 'oracle':
+                self.manual_decisions.append(code)
+            if code:
+                self.num_pos += 1
+
+        @property
+        def pos_frac(self):
+            return np.mean(self.manual_decisions[-self.window:])
+
+        def check(self):
+            return (self.positive_frac < self.frac_thresh and
+                    self.num_pos > self.pos_thresh)
+
     import pandas as pd
     import plottool as pt  # NOQA
     # Create a new AnnotInference instance to go end-to-end
@@ -105,7 +129,7 @@ def end_to_end():
     infr.verbose = 1
     infr.verbose = 0
 
-    oracle_accuracy = .5
+    oracle_accuracy = 1.0
 
     task_thresh = {
         'photobomb_state': pd.Series({
@@ -127,7 +151,7 @@ def end_to_end():
     })
     infr.apply_match_edges(review_cfg={'ranks_top': 5})
 
-    infr.show(show_candidate_edges=True)
+    # infr.show(show_candidate_edges=True)
 
     # Construct pairwise features on edges in infr
     X = pblm.make_deploy_features(infr, data_key)
@@ -139,18 +163,17 @@ def end_to_end():
     # Set priority on the graph
     if True:
         # Ranking only algorithm
-        infr.queue_params['pos_redundancy'] = 0
-        infr.queue_params['neg_redundancy'] = 0
+        infr.queue_params['pos_redundancy'] = np.inf
+        infr.queue_params['neg_redundancy'] = np.inf
         infr.apply_match_scores()
         infr.PRIORITY_METRIC = 'normscore'
         autoreview_enabled = False
     else:
-        infr.queue_params['pos_redundancy'] = 0
-        infr.queue_params['neg_redundancy'] = 0
+        infr.queue_params['pos_redundancy'] = 1
+        infr.queue_params['neg_redundancy'] = 1
         infr.PRIORITY_METRIC = 'priority'
         match_probs = task_probs[primary_task]['match']
         infr.set_edge_attrs(infr.PRIORITY_METRIC, match_probs.to_dict())
-    infr._init_priority_queue()
 
     def check_autodecide(edge, priority):
         if priority > 1:
@@ -175,31 +198,50 @@ def end_to_end():
         truth = primary_truth.loc[edge].idxmax()
         error = oracle_accuracy < rng.random()
         if error:
-            observed = rng.choice(list(set(primary_truth.keys()) - {truth}))
+            observed = rng.choice(list(set(primary_truth.keys())))
         else:
             observed = truth
-        return observed, error
+        if oracle_accuracy == 1:
+            user_confidence = 'absolutely_sure'
+        elif oracle_accuracy > .5:
+            user_confidence = 'pretty_sure'
+        else:
+            user_confidence = 'guessing'
+        return observed, error, user_confidence
+
+    refresh_criteria = RefreshCriteria()
+    self = refresh_criteria
+    self.frac_thresh
+
+    infr.remove_feedback(apply=True)
+    infr._init_priority_queue()
+    print(infr.queue)
 
     # for edge, priority in infr.generate_reviews(data=True):
     while True:
         try:
             edge, priority = infr.pop()
         except StopIteration:
+            print('Priority queue is empty')
             break
         aid1, aid2 = edge
         flag, decision, tags = check_autodecide(edge, priority)
         print('edge=%r, priority=%r, flag=%r' % (edge, priority, flag))
         if autoreview_enabled and flag:
+            user_id = 'auto_clf'
+            user_confidence = 'pretty_sure'
             print('auto-decision = %r' % (decision,))
-            infr.add_feedback(aid1, aid2, decision, tags, apply=True,
-                              user_id='auto_clf',
-                              user_confidence='pretty_sure')
         else:
-            decision, error = oracle_review(edge)
+            decision, error, user_confidence = oracle_review(edge)
+            user_id = 'oracle'
             print('oracle-decision = %r, error=%r' % (decision, error))
-            infr.add_feedback(aid1, aid2, decision, tags, apply=True,
-                              user_id='oracle',
-                              user_confidence='absolutely_sure')
+        infr.add_feedback(aid1, aid2, decision, tags, apply=True,
+                          user_id=user_id, user_confidence=user_confidence)
+        refresh_criteria.add(decision, user_id)
+
+        if refresh_criteria.check():
+            print('need to refresh')
+            break
 
         infr.show(show_candidate_edges=True)
 

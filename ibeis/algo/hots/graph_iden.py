@@ -1082,8 +1082,6 @@ class _AnnotInfrFeedback(object):
         extended_subgraph = infr.graph.subgraph(extended_nodes)
 
         # This re-infers all attributes of the influenced sub-graph only
-        # import utool
-        # with utool.embed_on_exception_context:
         infr.apply_review_inference(graph=extended_subgraph)
 
     def _del_feedback_edges(infr, edges=None):
@@ -1996,8 +1994,6 @@ class _AnnotInfrUpdates(object):
         nid_to_cc = collections.defaultdict(set)
         for item, groupid in node_to_label.items():
             nid_to_cc[groupid].add(item)
-        # nid_to_cc = ut.invert_dict(node_to_label, unique_vals=False)
-        # nid_to_cc = ut.map_vals(set, nid_to_cc)
 
         # Get edge -> reviewed_state
         all_edges = [e_(u, v) for u, v in graph.edges()]
@@ -2187,46 +2183,41 @@ class _AnnotInfrUpdates(object):
         queue = infr.queue
         pos_redundancy = infr.queue_params['pos_redundancy']
         neg_redundancy = infr.queue_params['neg_redundancy']
-        return
 
-        if pos_redundancy is not None:
-            for pcc in nid_to_cc.values():
-                edge_k = nx.edge_connectivity(graph.subgraph(pcc))
-                if edge_k >= pos_redundancy:
-                    # We can ignore the rest.
-                    pass
-            # queue.delete_items(strong_positives)
-        else:
-            for edges in positive.values():
-                queue.delete_items(edges)
+        if neg_redundancy and neg_redundancy < np.inf:
+            # Remove priority of PCC-pairs with k-negative edges between them
+            for (nid1, nid2), neg_edges in reviewed_negatives.items():
+                if len(neg_edges) >= neg_redundancy:
+                    other_edges = negative[(nid1, nid2)]
+                    queue.delete_items(other_edges)
 
-        if neg_redundancy is not None:
-            strong_negatives = infr._get_strong_negatives(
-                graph, reviewed_positives, reviewed_negatives, negative,
-                node_to_label, nid_to_cc, neg_redundancy)
-            queue.delete_items(strong_negatives)
-        else:
-            for edges in negative.values():
-                queue.delete_items(edges)
+        if pos_redundancy and pos_redundancy < np.inf:
+            # Remove priority internal edges of k-consistent PCCs.
+            for nid, pos_edges in reviewed_positives.items():
+                pos_conn = nx.edge_connectivity(nx.Graph(pos_edges))
+                if pos_conn >= neg_redundancy:
+                    other_edges = positive[nid]
+                    queue.delete_items(other_edges)
 
-        # Add error edges back in with higher priority
-        queue.update(zip(suggested_fix_edges,
-                         -infr._get_priorites(suggested_fix_edges)))
+        if suggested_fix_edges:
+            # Add error edges back in with higher priority
+            queue.update(zip(suggested_fix_edges,
+                             -infr._get_priorites(suggested_fix_edges)))
 
-        queue.delete_items(other_error_edges)
+            queue.delete_items(other_error_edges)
 
         needs_priority = [e for e in unreviewed_edges if e not in queue]
-        # assert not needs_priority, (
-        #     'shouldnt need this needs_priority=%r ' % (needs_priority,))
         queue.update(zip(needs_priority, -infr._get_priorites(needs_priority)))
 
     @profile
     def get_nomatch_ccs(infr, cc):
         """
+        Returns a set of PCCs that are known to have at least one negative
+        match to any node in the input nodes.
+
         Search every neighbor in this cc for a nomatch connection. Then add the
-        cc belonging to that connected node.
-        In the case of an inconsistent cc, nodes within the cc will not be
-        returned.
+        cc belonging to that connected node.  In the case of an inconsistent
+        cc, nodes within the cc will not be returned.
         """
         visited = set(cc)
         # visited_nodes = set([])
@@ -2240,7 +2231,6 @@ class _AnnotInfrUpdates(object):
                                                          'unreviewed')
                     if _state == 'nomatch':
                         cc2 = infr.get_annot_cc(n2)
-                        # visited_nodes=visited_nodes)
                         nomatch_ccs.append(cc2)
                         visited.update(cc2)
         return nomatch_ccs
