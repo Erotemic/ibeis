@@ -15,6 +15,31 @@ import networkx as nx
 print, rrr, profile = ut.inject2(__name__)
 
 
+class RefreshCriteria(object):
+    # TODO: becomes part of feedback on annot infr
+    def __init__(self):
+        self.window = 50
+        self.manual_decisions = []
+        self.num_pos = 0
+        self.frac_thresh = 1 / self.window
+        self.pos_thresh = 2
+
+    def add(self, decision, user_id):
+        code = 1 if decision == 'match' else 0
+        if user_id == 'oracle':
+            self.manual_decisions.append(code)
+        if code:
+            self.num_pos += 1
+
+    @property
+    def pos_frac(self):
+        return np.mean(self.manual_decisions[-self.window:])
+
+    def check(self):
+        return (self.positive_frac < self.frac_thresh and
+                self.num_pos > self.pos_thresh)
+
+
 @six.add_metaclass(ut.ReloadingMetaclass)
 class _AnnotInfrGroundtruth(object):
     """

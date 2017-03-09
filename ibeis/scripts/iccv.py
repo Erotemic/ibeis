@@ -96,30 +96,6 @@ def end_to_end():
     if False:
         test_aids = ut.flatten(names[1::2][::2])
 
-    class RefreshCriteria(object):
-        # TODO: becomes part of feedback on annot infr
-        def __init__(self):
-            self.window = 50
-            self.manual_decisions = []
-            self.num_pos = 0
-            self.frac_thresh = 1 / self.window
-            self.pos_thresh = 2
-
-        def add(self, decision, user_id):
-            code = 1 if decision == 'match' else 0
-            if user_id == 'oracle':
-                self.manual_decisions.append(code)
-            if code:
-                self.num_pos += 1
-
-        @property
-        def pos_frac(self):
-            return np.mean(self.manual_decisions[-self.window:])
-
-        def check(self):
-            return (self.positive_frac < self.frac_thresh and
-                    self.num_pos > self.pos_thresh)
-
     import pandas as pd
     import plottool as pt  # NOQA
     # Create a new AnnotInference instance to go end-to-end
@@ -209,6 +185,7 @@ def end_to_end():
             user_confidence = 'guessing'
         return observed, error, user_confidence
 
+    from ibeis.algo.hots.graph_iden import RefreshCriteria
     refresh_criteria = RefreshCriteria()
     self = refresh_criteria
     self.frac_thresh
