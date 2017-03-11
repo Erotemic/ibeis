@@ -74,8 +74,8 @@ def end_to_end():
     print_cfg = dict(per_multiple=False)
     ibs.print_annot_stats(test_aids, prefix='TRAIN_', **print_cfg)
     ibs.print_annot_stats(test_aids, prefix='TEST_', **print_cfg)
-    import utool
-    utool.embed()
+    # import utool
+    # utool.embed()
 
     train_cfgstr = ibs.get_annot_hashid_visual_uuid(train_aids)
 
