@@ -71,6 +71,9 @@ def end_to_end():
     train_aids = ut.flatten(names[0::2])
     test_aids = ut.flatten(names[1::2])
 
+    # Hack
+    test_aids = ut.flatten(names[1::2][::2])
+
     print_cfg = dict(per_multiple=False)
     ibs.print_annot_stats(test_aids, prefix='TRAIN_', **print_cfg)
     ibs.print_annot_stats(test_aids, prefix='TEST_', **print_cfg)
