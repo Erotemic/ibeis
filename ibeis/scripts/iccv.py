@@ -108,34 +108,6 @@ def end_to_end():
     train_cfgstr = ibs.get_annot_hashid_visual_uuid(train_aids)
 
     if False:
-        # quick test
-        # phi_aids = ibs.filter_annots_general(min_pername=2, **filt_kw)
-        # phi_annots = ibs.annots(phi_aids)
-        # phi_names = list(phi_annots.group_items(phi_annots.nids).values())
-        # cmc_aids = ut.flatten(phi_names[:75])
-        # ibs.print_annot_stats(cmc_aids, prefix='CMC_', **print_cfg)
-
-        # Ranking Experiment
-        import plottool as pt
-        pt.qtensure()
-        ranks = 20
-        phis = learn_termination(ibs, aids=expt_aids)
-        ydatas = [phi.cumsum()[0:ranks] for phi in phis.values()]
-        species = ibs.get_species_nice(
-            ibs.get_species_rowids_from_text(ibs.get_database_species()))[0]
-        pt.multi_plot(
-            xdata=np.arange(1, ranks + 1),
-            ydata_list=ydatas,
-            num_xticks=ranks,
-            label_list=['annots per query: %d' % d for d in phis.keys()],
-            title='Rank CMC for %s' % (species,),
-        )
-        pt.gca().set_ylim(pt.gca().get_ylim()[0], 1)
-        pt.set_xlabel('rank')
-        pt.set_ylabel('cumulative probability of a correct match')
-        pass
-
-    if False:
         # One-vs-One Experiment
         from ibeis.scripts.script_vsone import OneVsOneProblem
         clf_key = 'RF'
@@ -172,6 +144,32 @@ def end_to_end():
                                   label='LNBNN')
         pt.legend()
 
+    if False:
+        # quick test
+        # phi_aids = ibs.filter_annots_general(min_pername=2, **filt_kw)
+        # phi_annots = ibs.annots(phi_aids)
+        # phi_names = list(phi_annots.group_items(phi_annots.nids).values())
+        # cmc_aids = ut.flatten(phi_names[:75])
+        # ibs.print_annot_stats(cmc_aids, prefix='CMC_', **print_cfg)
+
+        # Ranking Experiment
+        import plottool as pt
+        pt.qtensure()
+        ranks = 20
+        phis = learn_termination(ibs, aids=expt_aids)
+        ydatas = [phi.cumsum()[0:ranks] for phi in phis.values()]
+        species = ibs.get_species_nice(
+            ibs.get_species_rowids_from_text(ibs.get_database_species()))[0]
+        pt.multi_plot(
+            xdata=np.arange(1, ranks + 1),
+            ydata_list=ydatas,
+            num_xticks=ranks,
+            label_list=['annots per query: %d' % d for d in phis.keys()],
+            title='Rank CMC for %s' % (species,),
+        )
+        pt.gca().set_ylim(pt.gca().get_ylim()[0], 1)
+        pt.set_xlabel('rank')
+        pt.set_ylabel('cumulative probability of a correct match')
         pass
 
     # -----------
