@@ -505,7 +505,7 @@ def run_expt(infr, dials):
     if infr.method == 'graph':
         # Enforce that a user checks any PCC that was auto-reviewed
         # but was unable to achieve k-positive-consistency
-        for pcc in infr.non_pos_redundant_pccs():
+        for pcc in list(infr.non_pos_redundant_pccs()):
             subgraph = infr.graph.subgraph(pcc)
             for u, v, data in subgraph.edges(data=True):
                 edge = infr.e_(u, v)
