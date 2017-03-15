@@ -516,6 +516,7 @@ def end_to_end():
         # Remove non-transferable attributes
         infr.ibs = None
         infr.qreq_ = None
+        infr.vsmany_qreq_ = None
         expt_metrics[idx] = (dials, metrics_df, infr)
 
     ut.cprint('SAVE ETE', 'green')
@@ -562,14 +563,14 @@ def draw_ete(dbname):
         dbname (?):
 
     CommandLine:
-        python -m ibeis.scripts.iccv draw_ete --show
+        python -m ibeis.scripts.iccv draw_ete --show --db PZ_Master1
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.scripts.iccv import *  # NOQA
         >>> dbname = 'GZ_Master1'
-        >>> dbname = 'PZ_Master1'
         >>> dbname = 'PZ_MTEST'
+        >>> dbname = 'PZ_Master1'
         >>> dbname = ut.get_argval('--db', default=dbname)
         >>> draw_ete(dbname)
     """
@@ -588,10 +589,15 @@ def draw_ete(dbname):
     possible_expts = sorted(fig_dpath.glob('ete_expt_' + dbname + '*'))[::-1]
     assert len(possible_expts) > 0, 'no ete expts found'
     expt_dpath = possible_expts[0]
-    infos_ = [
-        ut.load_cPkl(str(fpath))
-        for fpath in expt_dpath.glob('*.cPkl')
-    ]
+
+    infos_ = []
+    for fpath in expt_dpath.glob('*.cPkl'):
+        x = ut.load_cPkl(str(fpath))
+        infr = x['infr']
+        if getattr(infr, 'vsmany_qreq_', None) is not None:
+            infr.vsmany_qreq_ = None
+            ut.save_cPkl(str(fpath), x)
+        infos_.append(x)
 
     infos = {info['dials']['name']: info
              for info in infos_ if 'Error' in info['dials']['name']}
@@ -634,6 +640,7 @@ def draw_ete(dbname):
     ax = pt.gca()
     for ete_info in infos.values():
         infr = ete_info['infr']
+        species = ete_info['species']
 
         count = ete_info['expt_count']
         metrics = ete_info['metrics_df']
@@ -650,12 +657,12 @@ def draw_ete(dbname):
     ax.set_xlabel('# manual reviews')
     ax.set_ylabel('# of errors')
     ax.legend()
-    pt.set_figtitle('Identification performance', fontweight='normal',
-                    fontfamily='DejaVu Sans')
+    pt.set_figtitle('Identification performance for %s' % (species,),
+                    fontweight='normal', fontfamily='DejaVu Sans')
 
-    pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9, wspace=.25,
+    pt.adjust_subplots(top=.85, bottom=.2, left=.07, right=.98, wspace=.12,
                        hspace=.2)
-    fig.set_size_inches([7.4375,  3.125])
+    fig.set_size_inches([1.5 * 7.4375,  3.125])
     # fig_fpath = splitext(info_fpath)[0] + '.png'
     plot_fpath = expt_dpath.joinpath('ete_%s.png' % (dbname))
     fig.savefig(str(plot_fpath))
