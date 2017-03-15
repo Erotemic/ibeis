@@ -515,6 +515,8 @@ def end_to_end():
         # infr.non_complete_pcc_pairs().__next__()
         import utool
         utool.embed()
+        # Remove non-transferable attributes
+        infr.ibs = None
         expt_metrics[idx] = (dials, metrics_df, infr)
 
     ut.cprint('SAVE ETE', 'green')
