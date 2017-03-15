@@ -417,7 +417,9 @@ def end_to_end():
     # test_aids = ut.flatten(names[1::2][::2])
     complete_thresh = .95
     ranking_loops = 2
-    graph_loops = np.inf
+    # graph_loops = np.inf
+    graph_loops = 2
+    # np.inf
     expt_dials = [
         {
             'name': 'Ranking',
@@ -500,7 +502,7 @@ def end_to_end():
     expt_metrics = {}
     # idx_list = list(range(0, 3))
     # idx_list = list(range(0, 6))
-    idx_list = [5]
+    idx_list = [4, 5]
 
     for idx in idx_list:
         dials = expt_dials[idx]
