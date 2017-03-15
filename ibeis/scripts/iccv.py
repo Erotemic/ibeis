@@ -520,9 +520,11 @@ def end_to_end():
     expt_cfgstr = ibs.get_annot_hashid_visual_uuid(expt_aids)
     import pathlib
     fig_dpath = pathlib.Path(ut.truepath('~/latex/crall-iccv-2017/figures'))
+    # fig_dpath = pathlib.Path('~/latex/crall-iccv-2017/figures').expanduser()
     expt_dname = '_'.join(['ete_expt', ibs.dbname, ut.timestamp()])
     expt_dpath = fig_dpath.joinpath(expt_dname)
-    expt_dpath.mkdir(exist_ok=True)
+    ut.ensuredir(str(expt_dpath))
+    # expt_dpath.mkdir(exist_ok=True)
     from six.moves import cPickle as pickle
 
     for count, (dials, metrics_df, infr) in expt_metrics.items():
@@ -571,7 +573,8 @@ def draw_ete(dbname):
     pt.qtensure()
 
     import pathlib
-    fig_dpath = pathlib.Path('~/latex/crall-iccv-2017/figures').expanduser()
+    # fig_dpath = pathlib.Path('~/latex/crall-iccv-2017/figures').expanduser()
+    fig_dpath = pathlib.Path(ut.truepath('~/latex/crall-iccv-2017/figures'))
     possible_expts = sorted(fig_dpath.glob('ete_expt_' + dbname + '*'))[::-1]
     for dpath in possible_expts:
         if not any(p.is_file() for p in dpath.rglob('*')):
