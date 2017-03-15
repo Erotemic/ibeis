@@ -136,6 +136,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
     def demo_classes(pblm):
         r"""
         CommandLine:
+            python -m ibeis.scripts.script_vsone demo_classes --saveparts --save=classes.png --clipwhite
+
             python -m ibeis.scripts.script_vsone demo_classes --saveparts --save=figures/classes.png --clipwhite --dpath=~/latex/crall-iccv-2017
 
         Example:
