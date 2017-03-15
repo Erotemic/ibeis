@@ -379,9 +379,11 @@ def end_to_end():
             for fpr in [0, .001, .005, .01]
         }
         for fpr, thresh_df in fpr_thresholds.items():
-            pass
-            # fpr_thresholds
-        # import pprint
+            # disable notcomp thresholds due to training issues
+            thresh_df['notcomp'] = max(1.0, thresh_df['notcomp'])
+            # ensure thresholds are over .5
+            thresh_df['match'] = max(.51, thresh_df['match'])
+            thresh_df['nomatch'] = max(.51, thresh_df['nomatch'])
         print('fpr_thresholds = %s' % (ut.repr3(fpr_thresholds),))
         thresh_cacher.save(fpr_thresholds)
 
@@ -596,6 +598,8 @@ def draw_ete(dbname):
     for fpath in expt_dpath.glob('*.cPkl'):
         x = ut.load_cPkl(str(fpath))
         infr = x['infr']
+        print('DIALS')
+        print(ut.repr4(x['dials']))
         if getattr(infr, 'vsmany_qreq_', None) is not None:
             infr.vsmany_qreq_ = None
             ut.save_cPkl(str(fpath), x)
