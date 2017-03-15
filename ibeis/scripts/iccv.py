@@ -513,6 +513,8 @@ def end_to_end():
         run_expt(infr, dials=dials)
         metrics_df = pd.DataFrame.from_dict(infr.metrics_list)
         # infr.non_complete_pcc_pairs().__next__()
+        import utool
+        utool.embed()
         expt_metrics[idx] = (dials, metrics_df, infr)
 
     ut.cprint('SAVE ETE', 'green')
@@ -551,7 +553,8 @@ def end_to_end():
 def draw_ete(dbname):
     """
     rsync -r hyrule:ete* ~/latex/crall-iccv-2017/figures
-    rsync -r lev:code/ibeis/ete* ~/latex/crall-iccv-2017/figures
+    rsync -r hyrule:latex/crall-iccv-2017/figures/ete_expt* ~/latex/crall-iccv-2017/figures
+    rsync -r    lev:latex/crall-iccv-2017/figures/ete_expt* ~/latex/crall-iccv-2017/figures
     rsync -r lev:ete* ~/latex/crall-iccv-2017/figures
 
     Args:
@@ -563,6 +566,8 @@ def draw_ete(dbname):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.scripts.iccv import *  # NOQA
+        >>> dbname = 'GZ_Master1'
+        >>> dbname = 'PZ_Master1'
         >>> dbname = 'PZ_MTEST'
         >>> dbname = ut.get_argval('--db', default=dbname)
         >>> draw_ete(dbname)
