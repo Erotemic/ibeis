@@ -455,7 +455,7 @@ def end_to_end():
             'max_loops': graph_loops,
         },
     ]
-    oracle_accuracy = .98
+    oracle_accuracy = .99
     expt_dials += [
         {
             'name': 'Ranking+Error',
@@ -563,7 +563,8 @@ def draw_ete(dbname):
         dbname (?):
 
     CommandLine:
-        python -m ibeis.scripts.iccv draw_ete --show --db PZ_Master1
+        python -m ibeis.scripts.iccv draw_ete --db PZ_Master1
+        python -m ibeis.scripts.iccv draw_ete --db GZ_Master1
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -603,6 +604,11 @@ def draw_ete(dbname):
              for info in infos_ if 'Error' in info['dials']['name']}
 
     # xmax = 2000
+    alias = {
+        'Ranking+Classifier,fpr=0+Error': 'Ranking+Classifier',
+        'Graph,K=2,fpr=.001+Error': 'Graph',
+    }
+
 
     import matplotlib as mpl
     tmprc = {
@@ -628,7 +634,7 @@ def draw_ete(dbname):
         pt.plt.plot(
             metrics['n_manual'],
             metrics['n_merge_remain'], '-',
-            label=dials['name'],
+            label=alias.get(dials['name'], dials['name']),
             # color=colors[count],
         )
     # ax.set_xlim(0,xmax)
@@ -649,7 +655,7 @@ def draw_ete(dbname):
         pt.plt.plot(
             metrics['n_manual'],
             metrics['n_errors'], '-',
-            label=dials['name'],
+            label=alias.get(dials['name'], dials['name']),
             # color=colors[count],
         )
     # ax.set_xlim(0,xmax)
