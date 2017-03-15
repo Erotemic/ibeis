@@ -420,7 +420,7 @@ def end_to_end():
     complete_thresh = .95
     # graph_loops = np.inf
     ranking_loops = 1
-    graph_loops = 1
+    graph_loops = 2
     # np.inf
     expt_dials = [
         {
@@ -556,13 +556,8 @@ def end_to_end():
 
 def draw_ete(dbname):
     """
-    rsync -r hyrule:ete* ~/latex/crall-iccv-2017/figures
     rsync -r hyrule:latex/crall-iccv-2017/figures/ete_expt* ~/latex/crall-iccv-2017/figures
     rsync -r    lev:latex/crall-iccv-2017/figures/ete_expt* ~/latex/crall-iccv-2017/figures
-    rsync -r lev:ete* ~/latex/crall-iccv-2017/figures
-
-    Args:
-        dbname (?):
 
     CommandLine:
         python -m ibeis.scripts.iccv draw_ete --db PZ_Master1
@@ -604,8 +599,36 @@ def draw_ete(dbname):
             infr.vsmany_qreq_ = None
             ut.save_cPkl(str(fpath), x)
         infos_.append(x)
+        import utool
+        utool.embed()
         if False:
             infr.show(groupby='orig_name_label')
+        if False:
+            from ibeis.algo.hots.graph_iden_utils import (
+                bridges_inside, bridges_cross)
+
+            groups_nid = ut.ddict(list)
+            groups_type = ut.ddict(list)
+            for edge, error in list(infr.error_edges()):
+                print('error = %s' % (ut.repr2(error),))
+                data = infr.graph.get_edge_data(*edge)
+                print('user_id = %r' % (data['user_id'],))
+                aid1, aid2 = edge
+                nid1 = infr.graph.node[aid1]['orig_name_label']
+                nid2 = infr.graph.node[aid2]['orig_name_label']
+                print('nid1, nid2 = %r, %r' % (nid1, nid2))
+                print('len1, len2 = %r, %r' % (len(cc1), len(cc2)))
+                cc1 = infr.nid_to_gt_cc[nid1]
+                cc2 = infr.nid_to_gt_cc[nid2]
+                list(ut.nx_edges_between(infr.graph, cc1, cc2))
+                groups_type[(error['real'], error['pred'])].append(edge)
+                groups_nid[(nid1, nid2)].append((edge, error))
+            print('error breakdown: %r' % ut.map_dict_vals(len, groups_type))
+
+            for (real, pred), edges in groups_type.items():
+                for edge in edges:
+                    nid1 = infr.graph.node[aid1]['orig_name_label']
+                    nid2 = infr.graph.node[aid2]['orig_name_label']
 
     infos = {info['dials']['name']: info
              for info in infos_ if 'Error' in info['dials']['name']}
@@ -720,18 +743,7 @@ def run_expt(infr, dials):
 
     infr.init_refresh_criteria()
 
-    for count in it.count(0):
-        if count >= dials['max_loops']:
-            # Just do a maximum of some number of runs for now
-            ut.cprint('Early stop', 'blue')
-            break
-        ut.cprint('Outer loop iter %d ' % (count,), 'blue')
-        infr.refresh_candidate_edges(**cand_kw)
-
-        if not len(infr.queue):
-            ut.cprint('Queue is empty. Terminate.', 'blue')
-            break
-
+    def inner_loop():
         ut.cprint('Start inner loop', 'blue')
         while True:
             if len(infr.queue) == 0:
@@ -755,6 +767,26 @@ def run_expt(infr, dials):
                     error, review = infr.oracle_review(edge, oracle_accuracy,
                                                        rng)
             infr.add_feedback(edge=edge, apply=True, rectify=False, **review)
+
+    for count in it.count(0):
+        if count >= dials['max_loops']:
+            # Just do a maximum of some number of runs for now
+            ut.cprint('Early stop', 'blue')
+            break
+        ut.cprint('Outer loop iter %d ' % (count,), 'blue')
+        infr.refresh_candidate_edges(**cand_kw)
+
+        if not len(infr.queue):
+            ut.cprint('Queue is empty. Terminate.', 'blue')
+            break
+
+        inner_loop()
+
+        if infr.method == 'graph':
+            # Fix anything that is not positive/negative redundant
+            infr.refresh_candidate_edges(ranking=False, **cand_kw)
+            inner_loop()
+
 
     if infr.method == 'graph':
         # Enforce that a user checks any PCC that was auto-reviewed

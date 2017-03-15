@@ -1108,7 +1108,7 @@ class _AnnotInfrFeedback(object):
                 yield cc
 
     @profile
-    def refresh_candidate_edges(infr, pblm=None):
+    def refresh_candidate_edges(infr, pblm=None, ranking=True):
         """
         Args:
             infr (?):
@@ -1144,30 +1144,34 @@ class _AnnotInfrFeedback(object):
         # do LNBNN query for new edges
         # Use one-vs-many to establish candidate edges to classify
         # uses temporary name labels to requery neighbors
-        infr.exec_matching(cfgdict={
-            'resize_dim': 'width',
-            'dim_size': 700,
-            'condknn': True,
-            'can_match_samename': False,
-            'can_match_sameimg': False,
-        })
-        # infr.apply_match_edges(review_cfg={'ranks_top': 5})
-        candidate_edges = infr._cm_breaking(review_cfg={'ranks_top': 5})
-        already_reviewed = {
-            edge for edge, state in
-            infr.get_edge_attrs('reviewed_state', edges=candidate_edges,
-                                default='unreviewed').items()
-            if state != 'unreviewed'
-        }
-        candidate_edges = set(candidate_edges) - already_reviewed
+        if ranking:
+            infr.exec_matching(cfgdict={
+                'resize_dim': 'width',
+                'dim_size': 700,
+                'condknn': True,
+                'can_match_samename': False,
+                'can_match_sameimg': False,
+            })
+            # infr.apply_match_edges(review_cfg={'ranks_top': 5})
+            candidate_edges = infr._cm_breaking(review_cfg={'ranks_top': 5})
+            already_reviewed = {
+                edge for edge, state in
+                infr.get_edge_attrs('reviewed_state', edges=candidate_edges,
+                                    default='unreviewed').items()
+                if state != 'unreviewed'
+            }
+            candidate_edges = set(candidate_edges) - already_reviewed
+            if infr.verbose:
+                print('[infr] vsmany found %d/%d new edges' % (
+                    len(candidate_edges), len(candidate_edges) +
+                    len(already_reviewed)))
+        else:
+            candidate_edges = set([])
         # if infr.method == 'graph':
         #     # need to remove inferred candidates as well
         #     # hacking this in bellow
         #     pass
 
-        if infr.verbose:
-            print('[infr] vsmany found %d/%d new edges' % (
-                len(candidate_edges), len(candidate_edges) + len(already_reviewed)))
         if infr.method == 'graph':
             if len(candidate_edges) < infr.refresh.window:
                 if infr.verbose >= 0:
@@ -1180,11 +1184,18 @@ class _AnnotInfrFeedback(object):
             else:
                 print('[infr] WE DONE NEED TO CHECK CONSISTENCY')
 
-            # Add random edges between exisiting non-redundant PCCs
+            # Add random edges within exisiting non-redundant PCCs
             for pcc in infr.non_pos_redundant_pccs(relax_size=True):
                 sub = infr.graph.subgraph(pcc)
                 # Very agressive, need to tone down
                 check_edges = set(it.starmap(e_, nx.complement(sub).edges()))
+                if check_edges:
+                    # prioritize edges by lowest degree
+                    check_edges = list(check_edges - candidate_edges)
+                    sortx = ut.argsort([tuple(sorted([infr.pos_graph.degree(u),
+                                                      infr.pos_graph.degree(v)]))
+                                        for u, v in check_edges])
+                    ut.take(check_edges, sortx[0:3])
                 candidate_edges.update(check_edges)
 
         if infr.test_mode:
@@ -1202,6 +1213,7 @@ class _AnnotInfrFeedback(object):
             infr.task_probs = None
             infr.apply_match_scores()
         else:
+            # If we have the pairwise classifier
             if infr.verbose > 1:
                 print('Prioritizing edges with one-vs-one probabilities')
             # data_key = 'learn(sum,glob)'
@@ -1209,10 +1221,15 @@ class _AnnotInfrFeedback(object):
             data_key = pblm.default_data_key
             task_keys = list(pblm.samples.subtasks.keys())
             # Construct pairwise features on edges in infr
-            needs_probs = [edge for edge, p in
-                           infr.get_edge_attrs('task_probs', candidate_edges,
-                                               default=None).items() if p is
-                           None]
+            # import operator as op
+            # needs_probs = list(infr._get_edges_where('task_probs', op.is_, None, edges=candidate_edges, default=None))
+            needs_probs = list(infr.get_edges_where_eq('task_probs', None,
+                                                       edges=candidate_edges,
+                                                       default=None))
+            # needs_probs = [edge for edge, p in
+            #                infr.get_edge_attrs('task_probs', candidate_edges,
+            #                                    default=None).items() if p is
+            #                None]
             if needs_probs:
                 X = pblm.make_deploy_features(infr, needs_probs, data_key)
                 task_probs = pblm.predict_proba_deploy(X, task_keys)
@@ -1233,10 +1250,11 @@ class _AnnotInfrFeedback(object):
                                                      nomatch_probs[flags])
 
                 # do same for not-comp
-                notcomp_probs = task_probs[primary_task]['notcomp']
-                flags = notcomp_probs > infr.task_thresh[primary_task]['notcomp']
-                default_priority[flags] = np.maximum(default_priority[flags],
-                                                     notcomp_probs[flags])
+                # actually dont.
+                # notcomp_probs = task_probs[primary_task]['notcomp']
+                # flags = notcomp_probs > infr.task_thresh[primary_task]['notcomp']
+                # default_priority[flags] = np.maximum(default_priority[flags],
+                #                                      notcomp_probs[flags])
 
                 infr.set_edge_attrs(infr.PRIORITY_METRIC, default_priority.to_dict())
 
@@ -3260,6 +3278,20 @@ class AnnotInference(ut.NiceRepr,
                 elif reviewed_state == 'nomatch':
                     confusion['incorrect']['pred_neg'].append(edge)
 
+    def error_edges(infr):
+        for edge, data in infr.edges(data=True):
+            true_state = infr.edge_truth[edge]
+            reviewed_state = data.get('reviewed_state', 'unreviewed')
+            if reviewed_state == 'unreviewed':
+                pass
+            elif true_state == reviewed_state:
+                pass
+            elif true_state != reviewed_state:
+                yield edge, ut.odict([('real', true_state),
+                                      ('pred', reviewed_state)])
+            else:
+                assert False
+
     def measure_metrics(infr):
         real_pos_edges = []
         n_error_edges = 0
@@ -3275,15 +3307,15 @@ class AnnotInference(ut.NiceRepr,
             elif reviewed_state != 'unreviewed':
                 if true_state != reviewed_state:
                     # Check if noncomps are messing with us
-                    # n_error_edges += 1
+                    n_error_edges += 1
                     if true_state == 'match':
-                        if reviewed_state == 'nomatch':
-                            n_error_edges += 1
+                        # if reviewed_state == 'nomatch':
+                        #     n_error_edges += 1
                         n_fn += 1
                     elif true_state == 'nomatch':
                         n_fp += 1
-                        if reviewed_state == 'match':
-                            n_error_edges += 1
+                        # if reviewed_state == 'match':
+                        #     n_error_edges += 1
 
         import networkx as nx
         for cc in nx.connected_components(nx.Graph(real_pos_edges)):
