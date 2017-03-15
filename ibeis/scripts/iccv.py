@@ -418,7 +418,7 @@ def end_to_end():
     complete_thresh = .95
     ranking_loops = 2
     # graph_loops = np.inf
-    graph_loops = 4
+    graph_loops = 2
     # np.inf
     expt_dials = [
         {
@@ -565,6 +565,7 @@ def draw_ete(dbname):
     CommandLine:
         python -m ibeis.scripts.iccv draw_ete --db PZ_Master1
         python -m ibeis.scripts.iccv draw_ete --db GZ_Master1
+        python -m ibeis.scripts.iccv draw_ete --db PZ_MTEST --show
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -599,6 +600,8 @@ def draw_ete(dbname):
             infr.vsmany_qreq_ = None
             ut.save_cPkl(str(fpath), x)
         infos_.append(x)
+        if False:
+            infr.show(groupby='orig_name_label')
 
     infos = {info['dials']['name']: info
              for info in infos_ if 'Error' in info['dials']['name']}

@@ -2544,11 +2544,12 @@ class _AnnotInfrUpdates(object):
                     if edge_to_reviewstate[(u, v)] != 'unreviewed'
                 ]
                 subgraph = nx.Graph(reviewed_inconsistent)
-                # TODO: only need to use one fix edge here.
                 cc_error_edges = infr._find_possible_error_edges(subgraph)
                 import utool
                 with utool.embed_on_exception_context:
                     assert len(cc_error_edges) > 0, 'no fixes found'
+                # HACK: only need to use one fix edge here.
+                cc_error_edges = cc_error_edges[0:1]
                 cc_other_edges = ut.setdiff(cc_incon_edges, cc_error_edges)
                 suggested_fix_edges.extend(cc_error_edges)
                 other_error_edges.extend(cc_other_edges)
@@ -2732,8 +2733,7 @@ class _AnnotInfrUpdates(object):
             # Add error edges back in with higher priority
             queue.update(zip(suggested_fix_edges,
                              -infr._get_priorites(suggested_fix_edges)))
-
-            queue.delete_items(other_error_edges)
+            # queue.delete_items(other_error_edges)
 
         needs_priority = [e for e in unreviewed_edges if e not in queue]
         queue.update(zip(needs_priority, -infr._get_priorites(needs_priority)))
@@ -3274,11 +3274,16 @@ class AnnotInference(ut.NiceRepr,
                 real_pos_edges.append(edge)
             elif reviewed_state != 'unreviewed':
                 if true_state != reviewed_state:
-                    n_error_edges += 1
+                    # Check if noncomps are messing with us
+                    # n_error_edges += 1
                     if true_state == 'match':
+                        if reviewed_state == 'nomatch':
+                            n_error_edges += 1
                         n_fn += 1
                     elif true_state == 'nomatch':
                         n_fp += 1
+                        if reviewed_state == 'match':
+                            n_error_edges += 1
 
         import networkx as nx
         for cc in nx.connected_components(nx.Graph(real_pos_edges)):
