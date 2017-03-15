@@ -418,7 +418,7 @@ def end_to_end():
     complete_thresh = .95
     ranking_loops = 2
     # graph_loops = np.inf
-    graph_loops = 2
+    graph_loops = 4
     # np.inf
     expt_dials = [
         {
