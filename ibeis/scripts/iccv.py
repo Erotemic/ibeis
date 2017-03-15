@@ -513,10 +513,9 @@ def end_to_end():
         run_expt(infr, dials=dials)
         metrics_df = pd.DataFrame.from_dict(infr.metrics_list)
         # infr.non_complete_pcc_pairs().__next__()
-        import utool
-        utool.embed()
         # Remove non-transferable attributes
         infr.ibs = None
+        infr.qreq_ = None
         expt_metrics[idx] = (dials, metrics_df, infr)
 
     ut.cprint('SAVE ETE', 'green')
