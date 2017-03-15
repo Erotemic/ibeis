@@ -519,7 +519,7 @@ def end_to_end():
 
     expt_cfgstr = ibs.get_annot_hashid_visual_uuid(expt_aids)
     import pathlib
-    fig_dpath = pathlib.Path('~/latex/crall-iccv-2017/figures').expanduser()
+    fig_dpath = pathlib.Path(ut.truepath('~/latex/crall-iccv-2017/figures'))
     expt_dname = '_'.join(['ete_expt', ibs.dbname, ut.timestamp()])
     expt_dpath = fig_dpath.joinpath(expt_dname)
     expt_dpath.mkdir(exist_ok=True)
