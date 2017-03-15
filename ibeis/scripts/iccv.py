@@ -561,8 +561,14 @@ def end_to_end():
             ut.load_json(fpath)
             for fpath in ut.glob(dpath, '*')
         ]
-        if 'GZ' in infos_[0]['dbname']:
-            break
+        if 1:
+            if 'PZ' in infos_[0]['dbname']:
+                species = 'PZ'
+                break
+        else:
+            if 'GZ' in infos_[0]['dbname']:
+                species = 'GZ'
+                break
 
     infos = {info['dials']['name']: info
              for info in infos_ if 'Error' in info['dials']['name']}
