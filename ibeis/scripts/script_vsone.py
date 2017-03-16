@@ -771,8 +771,6 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             print('[pblm] predicting %s probabilities' % (task_key,))
             clf = pblm.deploy_task_clfs[task_key]
             labels = pblm.samples.subtasks[task_key]
-            import utool
-            utool.embed()
             probs_df = clf_helpers.predict_proba_df(
                 clf, X, labels.class_names)
             # columns = ut.take(labels.class_names, clf.classes_)
@@ -1118,13 +1116,20 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                 ]))
                 X_dict['learn(sum,glob,3,+view)'] = featinfo.X[sorted(cols)]
 
-            # if 0:
-            #     summary_cols_ = summary_cols.copy()
-            #     summary_cols_ = [c for c in summary_cols_ if 'lnbnn' not in c]
-            #     cols = set([])
-            #     cols.update(summary_cols_)
-            #     cols.update(global_cols)
-            #     X_dict['learn(sum,glob,4)'] = featinfo.X[sorted(cols)]
+            if 0:
+                summary_cols_ = summary_cols.copy()
+                summary_cols_ = [c for c in summary_cols_ if 'lnbnn' not in c]
+                cols = set([])
+                cols.update(summary_cols_)
+                cols.update(global_cols)
+                cols.update(featinfo.select_columns([
+                    ('measure_type', '==', 'global'),
+                    # Add yaw back in if not_comp is explicitly labeled
+                    ('measure', 'in', [
+                        'yaw_1', 'yaw_2', 'yaw_delta'
+                    ]),
+                ]))
+                X_dict['learn(sum,glob,4)'] = featinfo.X[sorted(cols)]
 
             # if 0:
             #     cols = set([])
