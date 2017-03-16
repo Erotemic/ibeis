@@ -350,8 +350,11 @@ def end_to_end():
     # TRAINING
 
     clf_key = 'RF'
-    data_key = 'learn(sum,glob)'
+    # data_key = 'learn(sum,glob)'
+    data_key = 'learn(sum,glob,4)'
     task_keys = ['match_state', 'photobomb_state']
+    import utool
+    utool.embed()
     pblm = OneVsOneProblem.from_aids(ibs=ibs, aids=train_aids, verbose=1)
     pblm.load_features()
     pblm.load_samples()
