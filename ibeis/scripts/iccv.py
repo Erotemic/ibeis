@@ -338,6 +338,8 @@ def end_to_end():
         python -m ibeis.scripts.iccv end_to_end --show --db PZ_MTEST
         python -m ibeis.scripts.iccv end_to_end --show --db PZ_Master1
         python -m ibeis.scripts.iccv end_to_end --show --db GZ_Master1
+        python -m ibeis.scripts.iccv end_to_end --db PZ_Master1
+        python -m ibeis.scripts.iccv end_to_end --db GZ_Master1
 
     Example:
         >>> from ibeis.scripts.iccv import *  # NOQA
