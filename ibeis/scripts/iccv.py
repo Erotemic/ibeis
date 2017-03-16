@@ -202,6 +202,8 @@ def iccv_roc():
     data_key = 'learn(sum,glob,4)'
     task_keys = ['match_state']
     pblm = OneVsOneProblem.from_aids(ibs, aids=expt_aids, verbose=1)
+    pblm.default_clf_key = clf_key
+    pblm.default_data_key = data_key
     pblm.load_features()
     pblm.load_samples()
     pblm.build_feature_subsets()
@@ -354,9 +356,8 @@ def end_to_end():
     data_key = 'learn(sum,glob,4)'
     task_keys = ['match_state', 'photobomb_state']
     pblm = OneVsOneProblem.from_aids(ibs=ibs, aids=train_aids, verbose=1)
-    pblm.default_data_key = data_key
     pblm.default_clf_key = clf_key
-    pblm.default_data_key = 'learn(sum,glob)'
+    pblm.default_data_key = data_key
     pblm.load_features()
     pblm.load_samples()
     pblm.build_feature_subsets()
@@ -608,7 +609,7 @@ def draw_ete(dbname):
         infos_.append(x)
         if False:
             infr.show(groupby='orig_name_label')
-        if False:
+        if True:
             from ibeis.algo.hots.graph_iden_utils import (
                 bridges_inside, bridges_cross)
 
@@ -621,10 +622,10 @@ def draw_ete(dbname):
                 aid1, aid2 = edge
                 nid1 = infr.graph.node[aid1]['orig_name_label']
                 nid2 = infr.graph.node[aid2]['orig_name_label']
-                print('nid1, nid2 = %r, %r' % (nid1, nid2))
-                print('len1, len2 = %r, %r' % (len(cc1), len(cc2)))
                 cc1 = infr.nid_to_gt_cc[nid1]
                 cc2 = infr.nid_to_gt_cc[nid2]
+                print('nid1, nid2 = %r, %r' % (nid1, nid2))
+                print('len1, len2 = %r, %r' % (len(cc1), len(cc2)))
                 list(ut.nx_edges_between(infr.graph, cc1, cc2))
                 groups_type[(error['real'], error['pred'])].append(edge)
                 groups_nid[(nid1, nid2)].append((edge, error))

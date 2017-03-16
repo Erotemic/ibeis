@@ -1196,7 +1196,7 @@ class _AnnotInfrFeedback(object):
                     sortx = ut.argsort([tuple(sorted([infr.pos_graph.degree(u),
                                                       infr.pos_graph.degree(v)]))
                                         for u, v in check_edges])
-                    ut.take(check_edges, sortx[0:3])
+                    ut.take(check_edges, sortx)
                 candidate_edges.update(check_edges)
 
         if infr.test_mode:
