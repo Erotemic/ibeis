@@ -1,5 +1,6 @@
 import numpy as np
 import utool as ut
+import pathlib
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -102,22 +103,26 @@ def iccv_data(defaultdb=None):
     return ibs, expt_aids, train_aids, test_aids, species
 
 
-def iccv_cmc():
-    """ Ranking Experiment """
-    defaultdb = None
-    defaultdb = 'PZ_Master1'
-    ibs, expt_aids, train_aids, test_aids, species = iccv_data(defaultdb)
+def iccv_cmc(defaultdb=None):
+    """
+    Ranking Experiment
 
-    # quick test
-    # phi_aids = ibs.filter_annots_general(min_pername=2, **filt_kw)
-    # phi_annots = ibs.annots(phi_aids)
-    # phi_names = list(phi_annots.group_items(phi_annots.nids).values())
-    # cmc_aids = ut.flatten(phi_names[:75])
-    # ibs.print_annot_stats(cmc_aids, prefix='CMC_', **print_cfg)
-    max_per_query = 4
+    CommandLine:
+        python -m ibeis.scripts.iccv iccv_cmc
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.scripts.iccv import *  # NOQA
+        >>> defaultdb = ut.get_argval('--db', default='PZ_MTEST')
+        >>> result = iccv_cmc(defaultdb)
+        >>> print(result)
+    """
+    if defaultdb is None:
+        defaultdb = 'PZ_Master1'
+    ibs, expt_aids, train_aids, test_aids, species = iccv_data(defaultdb)
+    max_per_query = 3
     phis = learn_termination(ibs, aids=expt_aids, max_per_query=max_per_query)
-    # phis_ = phis
-    phis = {str(k): v for k, v in phis.items() if k < 5}
+    phis = {str(k): v for k, v in phis.items() if k <= 3}
     expt_annots = ibs.annots(expt_aids)
 
     expt_cfgstr = ibs.get_annot_hashid_visual_uuid(expt_aids)
@@ -128,42 +133,58 @@ def iccv_cmc():
         'dbname': ibs.dbname,
         'annot_uuids': expt_annots.uuids,
         'visual_uuids': expt_annots.visual_uuids,
-        # 'qreq_cfgstr': pblm.qreq_.get_cfgstr(),
-        # 'pblm_hyperparams': getstate_todict_recursive(pblm.hyper_params),
-        # 'pblm_hyperparams': pblm.hyper_params.getstate_todict_recursive(),
     }
-    suffix = 'nAids=%r,nNids=%r' % (len(expt_annots),
-                                    len(set(expt_annots.nids)))
-    hashid = ut.hashstr27(pblm.qreq_.get_cfgstr())
-    fname = '_'.join(['cmc', species_code, suffix, hashid])
-    fig_fname = fname  + '.png'
-    info_fname = fname + '.json'
-    dpath = 'cmc_expt_' + ut.timestamp()
-    ut.ensuredir(dpath)
-    info_fpath = join(dpath, info_fname)
-    ut.save_json(info_fpath, info)
+    suffix = 'k=%d,nAids=%r,nNids=%r' % (
+        max_per_query,
+        len(expt_annots),
+        len(set(expt_annots.nids))
+    )
+    import pathlib
+    dbname = ibs.dbname
+    fig_dpath = pathlib.Path(ut.truepath('~/latex/crall-iccv-2017/figures'))
+    timestamp = ut.timestamp()
+    fname = '_'.join(['cmc', dbname, timestamp, suffix, expt_cfgstr])
+    info_fname = fname + '.cPkl'
+    info_fpath = fig_dpath.joinpath(info_fname)
+    ut.save_cPkl(info_fpath, info)
 
-def draw_cmcs():
+    draw_cmcs(dbname)
+
+
+def draw_cmcs(dbname):
     """
     rsync
     scp -r lev:code/ibeis/cmc* ~/latex/crall-iccv-2017/figures
     rsync -r lev:code/ibeis/cmc* ~/latex/crall-iccv-2017/figures
     rsync -r hyrule:cmc_expt* ~/latex/crall-iccv-2017/figures
+
+    CommandLine:
+        python -m ibeis.scripts.iccv draw_cmcs --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.scripts.iccv import *  # NOQA
+        >>> dbname = ut.get_argval('--db', default='PZ_MTEST')
+        >>> result = draw_cmcs(dbname)
+        >>> print(result)
     """
     # DRAW RESULTS
     import vtool as vt
     import plottool as pt
-    from os.path import splitext
-    pt.qtensure()
-    fig_dpath = ut.truepath('~/latex/crall-iccv-2017/figures')
-    dpath = sorted(ut.glob(fig_dpath, 'cmc_expt_*'))[-1]
-    info_fpath = ut.glob(dpath, '*.json')[0]
-    fig_fpath = splitext(info_fpath)[0] + '.png'
+    import pathlib
+    if dbname is None:
+        dbname = 'PZ_Master1'
 
-    info = ut.load_json(info_fpath)
+    fig_dpath = pathlib.Path(ut.truepath('~/latex/crall-iccv-2017/figures'))
+    possible_paths = sorted(fig_dpath.glob('cmc_' + dbname + '_*.cPkl'))[::-1]
+    info_fpath = possible_paths[-1]
+    fig_fpath = info_fpath.splitext()[0] + '.png'
+
+    info = ut.load_cPkl(info_fpath)
     phis = info['phis']
     species = info['species']
 
+    pt.qtensure()
     tmprc = {
         'legend.fontsize': 16,
         'axes.titlesize': 18,
@@ -199,9 +220,18 @@ def draw_cmcs():
     vt.clipwhite_ondisk(fig_fpath)
 
 
-def iccv_roc():
-    """ Classifier Experiment """
-    ibs, expt_aids, train_aids, test_aids, species = iccv_data()
+def iccv_roc(dbname):
+    """
+    Classifier Experiment
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.scripts.iccv import *  # NOQA
+        >>> dbname = ut.get_argval('--db', default='PZ_MTEST')
+        >>> result = iccv_roc(dbname)
+        >>> print(result)
+    """
+    ibs, expt_aids, train_aids, test_aids, species = iccv_data(dbname)
     import plottool as pt
     pt.qtensure()
     from ibeis.scripts.script_vsone import OneVsOneProblem
@@ -275,7 +305,7 @@ def iccv_roc():
     ut.save_json(info_fpath, info)
 
 
-def draw_saved_roc():
+def draw_saved_roc(dbname):
     """
     rsync
     scp -r lev:code/ibeis/roc* ~/latex/crall-iccv-2017/figures
@@ -283,15 +313,27 @@ def draw_saved_roc():
 
     rsync lev:code/ibeis/roc* ~/latex/crall-iccv-2017/figures
     rsync lev:code/ibeis/cmc* ~/latex/crall-iccv-2017/figures
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.scripts.iccv import *  # NOQA
+        >>> dbname = ut.get_argval('--db', default='PZ_MTEST')
+        >>> result = iccv_roc(dbname)
+        >>> print(result)
+
     """
     # Draw the ROC in another process for quick iterations to appearance
     # DRAW RESULTS
     import plottool as pt
     pt.qtensure()
-    dpath = sorted(ut.glob('.', 'roc_expt_*'))[-1]
-    from os.path import splitext
-    info_fpath = ut.glob(dpath, '*.json')[0]
-    fig_fpath = splitext(info_fpath)[0] + '.png'
+
+    if dbname is None:
+        dbname = 'PZ_Master1'
+
+    fig_dpath = pathlib.Path(ut.truepath('~/latex/crall-iccv-2017/figures'))
+    possible_paths = sorted(fig_dpath.glob('roc_' + dbname + '_*.cPkl'))[::-1]
+    info_fpath = possible_paths[-1]
+    fig_fpath = info_fpath.splitext()[0] + '.png'
 
     info = ut.load_json(info_fpath)
     lnbnn_fpr = info['lnbnn_fpr']
@@ -299,7 +341,6 @@ def draw_saved_roc():
     clf_fpr = info['clf_fpr']
     clf_tpr = info['clf_tpr']
     species = info['species']
-
 
     import sklearn.metrics
     clf_auc = sklearn.metrics.auc(clf_fpr, clf_tpr)
@@ -335,6 +376,7 @@ def draw_saved_roc():
             # 'bbox_inches': pt.extract_axes_extents(fig)[0]
         }
         fig.savefig(fig_fpath, **savekw)
+    import vtool as vt
     vt.clipwhite_ondisk(fig_fpath)
 
 
@@ -437,7 +479,7 @@ def end_to_end():
     complete_thresh = .95
     # graph_loops = np.inf
     ranking_loops = 1
-    graph_loops = 2
+    graph_loops = 1
     # np.inf
     expt_dials = [
         {
@@ -474,7 +516,7 @@ def end_to_end():
             'max_loops': graph_loops,
         },
     ]
-    oracle_accuracy = .99
+    oracle_accuracy = .98
     expt_dials += [
         {
             'name': 'Ranking+Error',
