@@ -771,6 +771,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             print('[pblm] predicting %s probabilities' % (task_key,))
             clf = pblm.deploy_task_clfs[task_key]
             labels = pblm.samples.subtasks[task_key]
+            import utool
+            utool.embed()
             probs_df = clf_helpers.predict_proba_df(
                 clf, X, labels.class_names)
             # columns = ut.take(labels.class_names, clf.classes_)
