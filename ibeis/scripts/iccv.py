@@ -395,7 +395,7 @@ def end_to_end():
         print('fpr_thresholds = %s' % (ut.repr3(fpr_thresholds),))
         thresh_cacher.save(fpr_thresholds)
 
-    clf_cacher = ut.Cacher('deploy_clf_', cfgstr=train_cfgstr + data_key)
+    clf_cacher = ut.Cacher('deploy_clf_v2_', cfgstr=train_cfgstr + data_key)
     pblm.deploy_task_clfs = clf_cacher.tryload()
     if pblm.deploy_task_clfs is None:
         pblm.learn_deploy_classifiers(task_keys, data_key=data_key,
