@@ -1174,15 +1174,16 @@ class _AnnotInfrFeedback(object):
 
         if infr.method == 'graph':
             if len(candidate_edges) < infr.refresh.window:
-                if infr.verbose >= 0:
-                    print('[infr] Not enough vsmany edges, adding random edges')
-                for c1, c2, check_edges in infr.non_complete_pcc_pairs():
-                    candidate_edges.update(check_edges)
-                if infr.verbose >= 0:
-                    print('[infr] now have %d new candidate edges' %
-                          (len(candidate_edges),))
+                if ranking:
+                    if infr.verbose >= 0:
+                        print('[infr] Not enough vsmany edges, adding random edges')
+                    for c1, c2, check_edges in infr.non_complete_pcc_pairs():
+                        candidate_edges.update(check_edges)
+                    if infr.verbose >= 0:
+                        print('[infr] now have %d new candidate edges' %
+                              (len(candidate_edges),))
             else:
-                print('[infr] WE DONE NEED TO CHECK CONSISTENCY')
+                print('[infr] WE DONT NEED TO CHECK CONSISTENCY')
 
             # Add random edges within exisiting non-redundant PCCs
             for pcc in infr.non_pos_redundant_pccs(relax_size=True):
