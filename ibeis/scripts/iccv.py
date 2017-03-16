@@ -199,7 +199,7 @@ def iccv_roc():
     pt.qtensure()
     from ibeis.scripts.script_vsone import OneVsOneProblem
     clf_key = 'RF'
-    data_key = 'learn(sum,glob)'
+    data_key = 'learn(sum,glob,4)'
     task_keys = ['match_state']
     pblm = OneVsOneProblem.from_aids(ibs, aids=expt_aids, verbose=1)
     pblm.load_features()
@@ -353,17 +353,21 @@ def end_to_end():
     # data_key = 'learn(sum,glob)'
     data_key = 'learn(sum,glob,4)'
     task_keys = ['match_state', 'photobomb_state']
-    import utool
-    utool.embed()
     pblm = OneVsOneProblem.from_aids(ibs=ibs, aids=train_aids, verbose=1)
+    pblm.default_data_key = data_key
+    pblm.default_clf_key = clf_key
+    pblm.default_data_key = 'learn(sum,glob)'
     pblm.load_features()
     pblm.load_samples()
     pblm.build_feature_subsets()
 
+    pblm.print_featinfo(data_key)
+
     train_cfgstr = ibs.get_annot_hashid_visual_uuid(train_aids)
 
     # Figure out what the thresholds should be
-    thresh_cacher = ut.Cacher('clf_thresh', cfgstr=train_cfgstr + 'v3',
+    thresh_cacher = ut.Cacher('clf_thresh',
+                              cfgstr=train_cfgstr + data_key + 'v3',
                               enabled=False)
     fpr_thresholds = thresh_cacher.tryload()
     if fpr_thresholds is None:
@@ -390,7 +394,7 @@ def end_to_end():
         print('fpr_thresholds = %s' % (ut.repr3(fpr_thresholds),))
         thresh_cacher.save(fpr_thresholds)
 
-    clf_cacher = ut.Cacher('deploy_clf_', cfgstr=train_cfgstr)
+    clf_cacher = ut.Cacher('deploy_clf_', cfgstr=train_cfgstr + data_key)
     pblm.deploy_task_clfs = clf_cacher.tryload()
     if pblm.deploy_task_clfs is None:
         pblm.learn_deploy_classifiers(task_keys, data_key=data_key,
@@ -602,8 +606,6 @@ def draw_ete(dbname):
             infr.vsmany_qreq_ = None
             ut.save_cPkl(str(fpath), x)
         infos_.append(x)
-        import utool
-        utool.embed()
         if False:
             infr.show(groupby='orig_name_label')
         if False:
