@@ -212,13 +212,20 @@ def draw_cmcs(dbname):
     pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9, wspace=.2,
                        hspace=.2)
     fig.set_size_inches([7.4375,  3.125])
-    fig.savefig(fig_fpath)
-    vt.clipwhite_ondisk(fig_fpath)
+    fig.savefig(str(fig_fpath))
+    vt.clipwhite_ondisk(str(fig_fpath))
+
+    ut.show_if_requested()
 
 
 def iccv_roc(dbname):
     """
     Classifier Experiment
+
+    CommandLine:
+        python -m ibeis.scripts.iccv iccv_roc --db PZ_MTEST --show
+        python -m ibeis.scripts.iccv iccv_roc --db PZ_Master1 --show
+        python -m ibeis.scripts.iccv iccv_roc --db GZ_Master1 --show
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -227,13 +234,15 @@ def iccv_roc(dbname):
         >>> result = iccv_roc(dbname)
         >>> print(result)
     """
-    ibs, expt_aids, train_aids, test_aids, species = iccv_data(dbname)
     import plottool as pt
-    pt.qtensure()
+    import vtool as vt
     from ibeis.scripts.script_vsone import OneVsOneProblem
+    ibs, expt_aids, train_aids, test_aids, species = iccv_data(dbname)
+    pt.qtensure()
     clf_key = 'RF'
     data_key = 'learn(sum,glob,4)'
     task_keys = ['match_state']
+    task_key = task_keys[0]
     pblm = OneVsOneProblem.from_aids(ibs, aids=expt_aids, verbose=1)
     pblm.default_clf_key = clf_key
     pblm.default_data_key = data_key
@@ -248,15 +257,12 @@ def iccv_roc(dbname):
                   pblm.qreq_.get_cfgstr() + feat_cfgstr)
     pblm.learn_evaluation_classifiers(['match_state'], ['RF'], [data_key],
                                       cfg_prefix)
-    task_key = 'match_state'
-    clf_key = 'RF'
 
     res = pblm.task_combo_res[task_key][clf_key][data_key]
 
     pblm.report_simple_scores(task_key)
     res.extended_clf_report()
 
-    import vtool as vt
     class_name = 'match'
     labels = res.target_bin_df[class_name].values
     probs = res.probs_df[class_name].values
@@ -264,7 +270,6 @@ def iccv_roc(dbname):
     clf_fpr = clf_conf.fpr
     clf_tpr = clf_conf.tpr
 
-    fnum = 1
     class_name = 'match'
     labels = pblm.samples.subtasks['match_state'].indicator_df[class_name]
     scores = pblm.samples.simple_scores['score_lnbnn_1vM']
@@ -292,13 +297,24 @@ def iccv_roc(dbname):
                                               len(set(expt_annots.nids)),
                                               len(pblm.samples))
     hashid = ut.hashstr27(pblm.qreq_.get_cfgstr())
-    fname = '_'.join(['roc', species_code, suffix, hashid])
-    fig_fname = fname  + '.png'
-    info_fname = fname + '.json'
-    dpath = 'roc_expt_' + ut.timestamp()
-    ut.ensuredir(dpath)
-    info_fpath = join(dpath, info_fname)
-    ut.save_json(info_fpath, info)
+
+    dbname = ibs.dbname
+    fig_dpath = pathlib.Path(ut.truepath('~/latex/crall-iccv-2017/figures'))
+    timestamp = ut.timestamp()
+    fname = '_'.join(['roc', dbname, timestamp, suffix, hashid])
+    info_fname = fname + '.cPkl'
+    info_fpath = fig_dpath.joinpath(info_fname)
+    ut.save_cPkl(str(info_fpath), info)
+
+    draw_saved_roc(dbname)
+
+    # fname = '_'.join(['roc', species_code, suffix, hashid])
+    # fig_fname = fname  + '.png'
+    # info_fname = fname + '.cPkl'
+    # dpath = 'roc_expt_' + ut.timestamp()
+    # ut.ensuredir(dpath)
+    # info_fpath = join(dpath, info_fname)
+    # ut.save_cPkl(info_fpath, info)
 
 
 def draw_saved_roc(dbname):
@@ -310,11 +326,15 @@ def draw_saved_roc(dbname):
     rsync lev:code/ibeis/roc* ~/latex/crall-iccv-2017/figures
     rsync lev:code/ibeis/cmc* ~/latex/crall-iccv-2017/figures
 
+    CommandLine:
+        python -m ibeis.scripts.iccv draw_saved_roc --db PZ_Master1 --show
+        python -m ibeis.scripts.iccv draw_saved_roc --db PZ_MTEST --show
+
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.scripts.iccv import *  # NOQA
         >>> dbname = ut.get_argval('--db', default='PZ_MTEST')
-        >>> result = iccv_roc(dbname)
+        >>> result = draw_saved_roc(dbname)
         >>> print(result)
 
     """
@@ -327,11 +347,12 @@ def draw_saved_roc(dbname):
         dbname = 'PZ_Master1'
 
     fig_dpath = pathlib.Path(ut.truepath('~/latex/crall-iccv-2017/figures'))
+
     possible_paths = sorted(fig_dpath.glob('roc_' + dbname + '_*.cPkl'))[::-1]
     info_fpath = possible_paths[-1]
-    fig_fpath = info_fpath.splitext()[0] + '.png'
+    fig_fpath = info_fpath.parent.joinpath(info_fpath.stem + '.png')
 
-    info = ut.load_json(info_fpath)
+    info = ut.load_data(str(info_fpath))
     lnbnn_fpr = info['lnbnn_fpr']
     lnbnn_tpr = info['lnbnn_tpr']
     clf_fpr = info['clf_fpr']
@@ -354,26 +375,26 @@ def draw_saved_roc(dbname):
     }
     mpl.rcParams.update(tmprc)
     # with pt.plt.rc_context(tmprc):
-    if True:
-        fnum = 11
-        fnum = pt.ensure_fnum(fnum)
-        fig = pt.figure(fnum=fnum)
-        pt.plot(clf_fpr, clf_tpr, label='Pairwise AUC=%.3f' % (clf_auc,))
-        pt.plot(lnbnn_fpr, lnbnn_tpr, label='LNBNN AUC=%.3f' % (lnbnn_auc,))
-        ax = pt.gca()
-        ax.set_xlabel('False Positive Rate')
-        ax.set_ylabel('True Positive Rate')
-        ax.set_title('Positive Match ROC for %s' % (species,))
-        ax.legend()
-        pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9, wspace=.2,
-                           hspace=.2)
-        fig.set_size_inches([7.4375,  3.125])
-        savekw = {
-            # 'bbox_inches': pt.extract_axes_extents(fig)[0]
-        }
-        fig.savefig(fig_fpath, **savekw)
-    import vtool as vt
-    vt.clipwhite_ondisk(fig_fpath)
+    fnum = 11
+    fnum = pt.ensure_fnum(fnum)
+    fig = pt.figure(fnum=fnum)
+    pt.plot(clf_fpr, clf_tpr, label='Pairwise AUC=%.3f' % (clf_auc,))
+    pt.plot(lnbnn_fpr, lnbnn_tpr, label='LNBNN AUC=%.3f' % (lnbnn_auc,))
+    ax = pt.gca()
+    ax.set_xlabel('false positive rate')
+    ax.set_ylabel('true positive rate')
+    species = species.lower()
+    if species[0] == 'G':
+        species = 'G' + species[1:]
+    ax.set_title('Positive match ROC for %s' % (species,))
+    ax.legend()
+    pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9, wspace=.2,
+                       hspace=.2)
+    fig.set_size_inches([7.4375,  3.125])
+    # fig.savefig(fig_fpath, **savekw)
+    # import vtool as vt
+    # vt.clipwhite_ondisk(fig_fpath)
+    ut.show_if_requested()
 
 
 # @profile
@@ -683,7 +704,7 @@ def draw_ete(dbname):
         infos_.append(x)
         if False:
             infr.show(groupby='orig_name_label')
-        if True:
+        if 0:
             from ibeis.algo.hots.graph_iden_utils import (
                 bridges_inside, bridges_cross)
 
@@ -715,27 +736,32 @@ def draw_ete(dbname):
 
     # xmax = 2000
     alias = {
-        'Ranking+Classifier,fpr=0+Error': 'Ranking+Classifier',
-        'Graph,K=2,fpr=.001+Error': 'Graph',
+        'Ranking+Error': 'ranking',
+        'Ranking+Classifier,fpr=0+Error': 'ranking+clf',
+        'Graph,K=2,fpr=.001+Error': 'graph',
     }
 
     import matplotlib as mpl
     tmprc = {
-        'legend.fontsize': 16,
+        'legend.fontsize': 18,
         'axes.titlesize': 18,
-        'axes.labelsize': 14,
+        'axes.labelsize': 18,
         'legend.facecolor': 'w',
         'font.family': 'DejaVu Sans',
-        'xtick.labelsize': 12,
-        'ytick.labelsize': 12,
+        'xtick.labelsize': 14,
+        'ytick.labelsize': 14,
     }
+
+    keys = sorted(infos.keys())
+
     mpl.rcParams.update(tmprc)
     fnum = 13
     fnum = pt.ensure_fnum(fnum)
     # colors = pt.distinct_colors(4)
     fig = pt.figure(fnum=fnum, pnum=(1, 2, 1))
     ax = pt.gca()
-    for ete_info in infos.values():
+    for key in keys:
+        ete_info = infos[key]
         count = ete_info['expt_count']
         metrics = ete_info['metrics_df']
         dials = ete_info['dials']
@@ -749,15 +775,20 @@ def draw_ete(dbname):
     # ax.set_xlim(0,xmax)
     ax.set_xlabel('# manual reviews')
     ax.set_ylabel('# merges remaining')
-    # ax.legend()
+    ax.legend()
 
     pt.figure(fnum=fnum, pnum=(1, 2, 2))
     ax = pt.gca()
-    for ete_info in infos.values():
+    for key in keys:
+        ete_info = infos[key]
         infr = ete_info['infr']
         species = ete_info['species']
 
-        count = ete_info['expt_count']
+        species = species.lower()
+        if species[0] == 'G':
+            species = 'G' + species[1:]
+
+        # count = ete_info['expt_count']
         metrics = ete_info['metrics_df']
         dials = ete_info['dials']
         # metrics.keys()
@@ -771,18 +802,22 @@ def draw_ete(dbname):
     # ax.set_ylim(0,40)
     ax.set_xlabel('# manual reviews')
     ax.set_ylabel('# of errors')
-    ax.legend()
-    pt.set_figtitle('Identification performance for %s' % (species,),
+    # ax.legend()
+    pt.set_figtitle('End-to-end accuracy and error for %s' % (species,),
                     fontweight='normal', fontfamily='DejaVu Sans')
 
-    pt.adjust_subplots(top=.85, bottom=.2, left=.07, right=.98, wspace=.12,
-                       hspace=.2)
-    fig.set_size_inches([1.5 * 7.4375,  3.125])
+    pt.adjust_subplots(top=.85, bottom=.2, left=.1, right=.98, wspace=.2,
+                       hspace=.35)
+    fig.set_size_inches([1.3 * 7.4375,  3.125])
     # fig_fpath = splitext(info_fpath)[0] + '.png'
-    plot_fpath = expt_dpath.joinpath('ete_%s.png' % (dbname))
+    plot_fpath = pathlib.Path(str(expt_dpath) + '.png')
+    plot_fpath = plot_fpath.parent.joinpath('fig_' + plot_fpath.stem + plot_fpath.suffix)
+    # .joinpath('ete_%s.png' % (dbname))
     fig.savefig(str(plot_fpath))
     import vtool as vt
-    vt.clipwhite_ondisk(str(plot_fpath))
+    clip_fpath = vt.clipwhite_ondisk(str(plot_fpath))
+    print('plot_fpath = %r' % (plot_fpath,))
+    print('clip_fpath = %r' % (clip_fpath,))
 
     # infr.show(fnum=3, groupby='name_label')
     ut.show_if_requested()
