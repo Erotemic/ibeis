@@ -559,8 +559,8 @@ def end_to_end():
     # idx_list = list(range(0, 3))
     # idx_list = list(range(0, 6))
     # idx_list = [3, 4, 5]
-    # idx_list = [3, 4, 5]
-    idx_list = [5]
+    idx_list = [3, 4, 5]
+    # idx_list = [5]
 
     for idx in idx_list:
         dials = expt_dials[idx]
@@ -643,7 +643,7 @@ def draw_ete(dbname):
 
     CommandLine:
         python -m ibeis.scripts.iccv draw_ete --db PZ_Master1
-        python -m ibeis.scripts.iccv draw_ete --db GZ_Master1
+        python -m ibeis.scripts.iccv draw_ete --db GZ_Master1 --show
         python -m ibeis.scripts.iccv draw_ete --db PZ_MTEST --show
 
     Example:
