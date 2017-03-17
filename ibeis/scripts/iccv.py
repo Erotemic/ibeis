@@ -378,13 +378,13 @@ def draw_saved_roc(dbname):
     fnum = 11
     fnum = pt.ensure_fnum(fnum)
     fig = pt.figure(fnum=fnum)
-    pt.plot(clf_fpr, clf_tpr, label='Pairwise AUC=%.3f' % (clf_auc,))
+    pt.plot(clf_fpr, clf_tpr, label='pairwise AUC=%.3f' % (clf_auc,))
     pt.plot(lnbnn_fpr, lnbnn_tpr, label='LNBNN AUC=%.3f' % (lnbnn_auc,))
     ax = pt.gca()
     ax.set_xlabel('false positive rate')
     ax.set_ylabel('true positive rate')
     species = species.lower()
-    if species[0] == 'G':
+    if species[0] == 'g':
         species = 'G' + species[1:]
     ax.set_title('Positive match ROC for %s' % (species,))
     ax.legend()
@@ -785,7 +785,7 @@ def draw_ete(dbname):
         species = ete_info['species']
 
         species = species.lower()
-        if species[0] == 'G':
+        if species[0] == 'g':
             species = 'G' + species[1:]
 
         # count = ete_info['expt_count']
