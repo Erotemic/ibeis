@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import utool as ut
 import pathlib
 print, rrr, profile = ut.inject2(__name__)
@@ -82,11 +83,6 @@ def iccv_data(defaultdb=None):
     ut.shuffle(names, rng=321)
     train_aids = ut.flatten(names[0::2])
     test_aids = ut.flatten(names[1::2])
-
-    # Hack
-    # num_names = 75
-    # train_aids = ut.flatten(names[0::2][0:num_names])
-    # test_aids = ut.flatten(names[1::2][0:num_names])
 
     print_cfg = dict(per_multiple=False, use_hist=False)
     ibs.print_annot_stats(expt_aids, prefix='EXPT_', **print_cfg)
@@ -413,14 +409,12 @@ def end_to_end():
     pblm.load_samples()
     pblm.build_feature_subsets()
 
-    pblm.print_featinfo(data_key)
-
     train_cfgstr = ibs.get_annot_hashid_visual_uuid(train_aids)
 
     # Figure out what the thresholds should be
     thresh_cacher = ut.Cacher('clf_thresh',
                               cfgstr=train_cfgstr + data_key + 'v3',
-                              enabled=False)
+                              enabled=True)
     fpr_thresholds = thresh_cacher.tryload()
     if fpr_thresholds is None:
         feat_cfgstr = ut.hashstr_arr27(
@@ -452,14 +446,16 @@ def end_to_end():
         pblm.learn_deploy_classifiers(task_keys, data_key=data_key,
                                       clf_key=clf_key)
         clf_cacher.save(pblm.deploy_task_clfs)
-    # pblm.samples.print_info()
-    # task_keys = list(pblm.samples.subtasks.keys())
-    # match_clf = pblm.deploy_task_clfs['match_state']
-    # pb_clf = pblm.deploy_task_clfs['photobomb_state']
 
-    # Inspect feature importances if you want
-    # pblm.report_classifier_importance2(match_clf, data_key=data_key)
-    # pblm.report_classifier_importance2(pb_clf, data_key=data_key)
+    if False:
+        pblm.print_featinfo(data_key)
+        pblm.samples.print_info()
+        task_keys = list(pblm.samples.subtasks.keys())
+        match_clf = pblm.deploy_task_clfs['match_state']
+        pb_clf = pblm.deploy_task_clfs['photobomb_state']
+        # Inspect feature importances if you want
+        pblm.report_classifier_importance2(match_clf, data_key=data_key)
+        pblm.report_classifier_importance2(pb_clf, data_key=data_key)
 
     # aids = train_aids
     maxphi = 3
@@ -472,10 +468,6 @@ def end_to_end():
 
     # ------------
     # TESTING
-    import plottool as pt  # NOQA
-    # test_aids = ut.flatten(names[1::2])
-    # test_aids = ut.flatten(names[1::2][0:4])
-    # test_aids = ut.flatten(names[1::2][::2])
     complete_thresh = .95
     # graph_loops = np.inf
     ranking_loops = 2
@@ -555,8 +547,11 @@ def end_to_end():
 
     # colors = pt.distinct_colors(len(expt_dials))_
 
+    # hack, reduce size
+    # test_annots = ibs.annots(test_aids)
+    # test_aids = ut.flatten(test_annots.group(test_annots.nids)[1][0:200])
+
     dials = expt_dials[1]
-    import pandas as pd
 
     verbose = 0
     # verbose = 1
@@ -565,7 +560,7 @@ def end_to_end():
     # idx_list = list(range(0, 6))
     # idx_list = [3, 4, 5]
     # idx_list = [3, 4, 5]
-    idx_list = [3, 4, 5]
+    idx_list = [5]
 
     for idx in idx_list:
         dials = expt_dials[idx]
@@ -581,6 +576,7 @@ def end_to_end():
                 classifiers=dials['cand_kw']['pblm'],
                 complete_thresh=dials['complete_thresh'],
                 match_state_thresh=dials['match_state_thresh'],
+                name=dials['name'],
             )
             infr.init_test_mode2(**new_dials)
             print('new_dials = %s' % (ut.repr4(new_dials),))
