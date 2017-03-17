@@ -214,13 +214,20 @@ class CandidateSearch2(object):
             primary_thresh = infr.task_thresh[primary_task]
             prob_match = primary_probs['match']
 
-            # Give negatives that pass automatic thresholds high priority
             default_priority = prob_match.copy()
-            if False:
-                nomatch_probs = task_probs[primary_task]['nomatch']
-                flags = nomatch_probs > primary_thresh['nomatch']
+            # Give negatives that pass automatic thresholds high priority
+            if True:
+                _probs = task_probs[primary_task]['nomatch']
+                flags = _probs > primary_thresh['nomatch']
                 default_priority[flags] = np.maximum(default_priority[flags],
-                                                     nomatch_probs[flags])
+                                                     _probs[flags])
+
+            # Give not-comps that pass automatic thresholds high priority
+            if True:
+                _probs = task_probs[primary_task]['notcomp']
+                flags = _probs > primary_thresh['notcomp']
+                default_priority[flags] = np.maximum(default_priority[flags],
+                                                     _probs[flags])
 
             # Pack into edge attributes
             edge_task_probs = {edge: {} for edge in new_edges}
@@ -310,6 +317,10 @@ class InfrRecovery2(object):
 
     @profile
     def hypothesis_errors(infr, pos_subgraph, neg_edges):
+        import utool
+        with utool.embed_on_exception_context:
+            assert nx.is_connected(pos_subgraph)
+
         pos_edges = list(pos_subgraph.edges())
 
         # Generate weights for edges
@@ -319,8 +330,8 @@ class InfrRecovery2(object):
         neg_n = list(infr.gen_edge_values('num_reviews', neg_edges))
         pos_weight = pos_n
         neg_weight = neg_n
-        pos_weight = np.add(pos_prob, np.array(pos_n) ** 2)
-        neg_weight = np.add(neg_prob, np.array(neg_n) ** 2)
+        pos_weight = np.add(pos_prob, np.array(pos_n))
+        neg_weight = np.add(neg_prob, np.array(neg_n))
         capacity = 'weight'
         nx.set_edge_attributes(pos_subgraph, capacity,
                                ut.dzip(pos_edges, pos_weight))
@@ -353,18 +364,18 @@ class InfrRecovery2(object):
         pos_graph = infr.pos_graph
         neg_graph = infr.neg_graph
 
-        if infr.recover_hypothesis is not None:
-            # If the user disagrees with the hypothesis, redo everything
-            if edge in infr.recover_hypothesis:
-                hypothesis = infr.recover_hypothesis[edge]
-                if decision != hypothesis:
-                    infr.recover_hypothesis = None
-                    print('decision %r disagreed with hypothesis %r' %
-                          (decision, hypothesis))
-                else:
-                    print('decision agrees with hypothesis')
-                    # otherwise remove this edge and move to the next
-                    del infr.recover_hypothesis[edge]
+        # if infr.recover_hypothesis is not None:
+        #     # If the user disagrees with the hypothesis, redo everything
+        #     if edge in infr.recover_hypothesis:
+        #         hypothesis = infr.recover_hypothesis[edge]
+        #         if decision != hypothesis:
+        #             infr.recover_hypothesis = None
+        #             print('decision %r disagreed with hypothesis %r' %
+        #                   (decision, hypothesis))
+        #         else:
+        #             print('decision agrees with hypothesis')
+        #             # otherwise remove this edge and move to the next
+        #             del infr.recover_hypothesis[edge]
 
         # Add in the new edge
         infr._add_review_edge(edge, decision)
@@ -391,16 +402,16 @@ class InfrRecovery2(object):
                         #     map(pos_graph.node_label, incon_cc))
 
             pos_subgraph = pos_graph.subgraph(infr.recovery_cc).copy()
-            if not nx.is_connected(pos_subgraph):
-                import utool
-                utool.embed()
+            import utool
+            with utool.embed_on_exception_context:
+                assert nx.is_connected(pos_subgraph)
 
             # ut.cprint('graph is inconsistent. searching for errors', 'red')
-            if not infr.recover_hypothesis:
-                print('recompute hypothesis')
-                pos_subgraph = pos_graph.subgraph(infr.recovery_cc).copy()
-                infr.recover_hypothesis = dict(infr.hypothesis_errors(
-                    pos_subgraph, inconsistent_edges))
+            # if not infr.recover_hypothesis:
+            # print('recompute hypothesis')
+            pos_subgraph = pos_graph.subgraph(infr.recovery_cc).copy()
+            infr.recover_hypothesis = dict(infr.hypothesis_errors(
+                pos_subgraph, inconsistent_edges))
 
             # if edge in infr.recover_hypothesis and len(infr.recover_hypothesis) > 1:
             #     del infr.recover_hypothesis[edge]
@@ -432,9 +443,19 @@ class InfrRecovery2(object):
             for nid1, nid2 in it.combinations(nid_to_cc.keys(), 2):
                 infr.update_neg_redun(nid1, nid2, check_reinstate=True)
 
-            for nid1, nid2 in it.product(nid_to_cc.keys(),
+            for nid1, nid2 in it.product(nid_to_cc.keys()/
                                          infr.recover_prev_neg_nids):
                 infr.update_neg_redun(nid1, nid2, check_reinstate=True)
+
+            # Ensure reviewed edges are removed
+            pos_subgraph = pos_graph.subgraph(infr.recovery_cc)
+            incomp_subgraph = infr.incomp_graph.subgraph(infr.recovery_cc)
+            reviewed_edges = it.starmap(e_, ut.iflatten([
+                pos_subgraph.edges(), neg_subgraph.edges(),
+                incomp_subgraph.edges()]))
+            for edge in reviewed_edges:
+                if edge in infr.queue:
+                    del infr.queue[edge]
 
             # Remove recovery flags
             infr.recovery_cc = None
