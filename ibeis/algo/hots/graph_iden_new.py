@@ -88,6 +88,33 @@ class UserOracle(object):
         return feedback
 
 
+class InfrInvariants(object):
+    def assert_consistency_invariant(infr, label=''):
+        if not DEBUG_INCON:
+            return
+        if infr.enable_inference:
+            incon_ccs = list(infr.inconsistent_components())
+            with ut.embed_on_exception_context:
+                if len(incon_ccs) > 0:
+                    raise AssertionError('The graph is not consistent. ' +
+                                         label)
+
+    def assert_recovery_invariant(infr, label=''):
+        if not DEBUG_INCON:
+            return
+        inconsistent_ccs = list(infr.inconsistent_components())
+        incon_cc = set(ut.flatten(inconsistent_ccs))
+        import utool
+        with utool.embed_on_exception_context:
+            assert infr.recovery_cc.issuperset(incon_cc), 'diff incon'
+            if False:
+                print('infr.recovery_cc = %r' % (infr.recovery_cc,))
+                print('incon_cc = %r' % (incon_cc,))
+                # nid_to_cc2 = ut.group_items(
+                #     incon_cc,
+                #     map(pos_graph.node_label, incon_cc))
+
+
 class CandidateSearch2(object):
     """ Search for candidate edges """
 
@@ -178,11 +205,9 @@ class CandidateSearch2(object):
             if not ranking:
                 new_pos = set(infr.find_pos_redun_candidate_edges())
                 candidate_edges.update(new_pos)
-        import utool
-        with utool.embed_on_exception_context:
-            new_edges = {
-                edge for edge in candidate_edges if not infr.graph.has_edge(*edge)
-            }
+        new_edges = {
+            edge for edge in candidate_edges if not infr.graph.has_edge(*edge)
+        }
         return new_edges
 
     @profile
@@ -258,17 +283,12 @@ class CandidateSearch2(object):
         """
         if infr.verbose:
             print('[infr] refresh_candidate_edges2')
-        if DEBUG_INCON:
-            with ut.embed_on_exception_context:
-                assert len(list(infr.inconsistent_components())) == 0, (
-                    'inconsistencies must not exist1')
+
+        infr.assert_consistency_invariant()
         infr.refresh.reset()
         new_edges = infr.find_new_candidate_edges(ranking=ranking)
         infr.add_new_candidate_edges(new_edges)
-        if DEBUG_INCON:
-            with ut.embed_on_exception_context:
-                assert len(list(infr.inconsistent_components())) == 0, (
-                    'inconsistencies must not exist2')
+        infr.assert_consistency_invariant()
 
     @profile
     def _make_task_probs(infr, edges):
@@ -388,23 +408,7 @@ class InfrRecovery2(object):
             if pos_graph.node_label(u) == pos_graph.node_label(v)
         ]
         if inconsistent_edges:
-            if DEBUG_INCON:
-                inconsistent_ccs = list(infr.inconsistent_components())
-                incon_cc = set(ut.flatten(inconsistent_ccs))
-                import utool
-                with utool.embed_on_exception_context:
-                    assert infr.recovery_cc.issuperset(incon_cc), 'diff incon'
-                    if False:
-                        print('infr.recovery_cc = %r' % (infr.recovery_cc,))
-                        print('incon_cc = %r' % (incon_cc,))
-                        # nid_to_cc2 = ut.group_items(
-                        #     incon_cc,
-                        #     map(pos_graph.node_label, incon_cc))
-
-            pos_subgraph = pos_graph.subgraph(infr.recovery_cc).copy()
-            import utool
-            with utool.embed_on_exception_context:
-                assert nx.is_connected(pos_subgraph)
+            infr.assert_recovery_invariant()
 
             # ut.cprint('graph is inconsistent. searching for errors', 'red')
             # if not infr.recover_hypothesis:
@@ -417,7 +421,7 @@ class InfrRecovery2(object):
             #     del infr.recover_hypothesis[edge]
 
             # choose just one error edge and give it insanely high priority
-            assert len(infr.recover_hypothesis) > 0
+            assert len(infr.recover_hypothesis) > 0, 'must have at least one'
             error_edge = next(iter(infr.recover_hypothesis.keys()))
             base = infr.graph.get_edge_data(*error_edge).get('prob_match')
             infr.queue[error_edge] = -(10 + base)
@@ -426,10 +430,7 @@ class InfrRecovery2(object):
             # infr.set_edge_attrs('num_reviews', ut.dzip(infr.edges(), [0]))
 
             if DEBUG_INCON:
-                inconsistent_ccs = list(infr.inconsistent_components())
-                import utool
-                with utool.embed_on_exception_context:
-                    assert len(inconsistent_ccs) == 0, 'not actually fixed'
+                infr.assert_consistency_invariant('should have fixed incon')
 
             nid_to_cc = ut.group_items(
                 infr.recovery_cc,
@@ -443,7 +444,7 @@ class InfrRecovery2(object):
             for nid1, nid2 in it.combinations(nid_to_cc.keys(), 2):
                 infr.update_neg_redun(nid1, nid2, check_reinstate=True)
 
-            for nid1, nid2 in it.product(nid_to_cc.keys()/
+            for nid1, nid2 in it.product(nid_to_cc.keys(),
                                          infr.recover_prev_neg_nids):
                 infr.update_neg_redun(nid1, nid2, check_reinstate=True)
 
@@ -532,11 +533,7 @@ class InfrFeedback2(object):
         else:
             raise AssertionError('impossible consistent state')
 
-        if DEBUG_INCON:
-            inconsistent_ccs = list(infr.inconsistent_components())
-            import utool
-            with utool.embed_on_exception_context:
-                assert len(inconsistent_ccs) == 0, 'should not be inconsistent'
+        infr.assert_consistency_invariant()
 
     @profile
     def add_feedback2(infr, edge, decision, tags=None, user_id=None,
@@ -835,7 +832,7 @@ class TestStuff2(object):
 
 
 class AnnotInfr2(InfrRecovery2, InfrFeedback2, CandidateSearch2, InfrReviewers,
-                 TestStuff2, DynamicUpdate2):
+                 TestStuff2, DynamicUpdate2, InfrInvariants):
 
     def inner_loop2(infr):
         """
@@ -891,11 +888,7 @@ class AnnotInfr2(InfrRecovery2, InfrFeedback2, CandidateSearch2, InfrReviewers,
                 break
             infr.inner_loop2()
             if infr.enable_inference:
-                import utool
-                with utool.embed_on_exception_context:
-                    assert len(list(infr.inconsistent_components())) == 0, (
-                        'inconsistencies must not exist')
-
+                infr.assert_consistency_invariant()
                 ut.cprint('HACK FIX REDUN', 'white')
                 # Fix anything that is not positive/negative redundant
                 real_queue = infr.queue
@@ -926,10 +919,7 @@ class AnnotInfr2(InfrRecovery2, InfrFeedback2, CandidateSearch2, InfrReviewers,
             infr.recovery_review_loop()
 
         if infr.enable_inference and DEBUG_INCON:
-            import utool
-            with utool.embed_on_exception_context:
-                assert len(list(infr.inconsistent_components())) == 0, (
-                    'inconsistencies must not exist')
+            infr.assert_consistency_invariant()
         # true_groups = list(map(set, infr.nid_to_gt_cc.values()))
         # pred_groups = list(infr.positive_connected_compoments())
         # from ibeis.algo.hots import sim_graph_iden
