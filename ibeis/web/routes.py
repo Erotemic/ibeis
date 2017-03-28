@@ -2080,7 +2080,7 @@ def load_identification_query_object(autoinit=False,
         feedback = current_app.QUERY_OBJECT_FEEDBACK_BUFFER.pop()
         print('Popping %r out of QUERY_OBJECT_FEEDBACK_BUFFER' % (feedback, ))
         aid1, aid2, state, tags = feedback
-        query_object.add_feedback(aid1, aid2, state, tags, apply=True)
+        query_object.add_feedback2((aid1, aid2), decision=state, tags=tags)
         query_object.GLOBAL_FEEDBACK_COUNTER += 1
 
     return query_object
