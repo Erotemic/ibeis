@@ -8,7 +8,8 @@ print, rrr, profile = ut.inject2(__name__)
 def gt_review():
     r"""
     CommandLine:
-        python -m ibeis.scripts.iccv gt_review
+        python -m ibeis.scripts.iccv gt_review --db PZ_MTEST
+        python -m ibeis.scripts.iccv gt_review --db GZ_Master1
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -19,7 +20,7 @@ def gt_review():
     import ibeis
     import ubelt as ub
 
-    defaultdb = ibs.get_argval('--db', default='GZ_Master1')
+    defaultdb = ut.get_argval('--db', default='GZ_Master1')
     # defaultdb = 'PZ_MTEST'
     cacher = ub.Cacher('tmp_gz_review', defaultdb + 'v2')
     data = cacher.tryload()
