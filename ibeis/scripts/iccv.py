@@ -18,8 +18,8 @@ def gt_review():
     """
     import ibeis
     import ubelt as ub
-    # defaultdb = 'GZ_Master'
-    defaultdb = 'PZ_MTEST'
+    defaultdb = 'GZ_Master'
+    # defaultdb = 'PZ_MTEST'
     cacher = ub.Cacher('tmp_gz_review', defaultdb + 'v2')
     data = cacher.tryload()
     if data is None:
