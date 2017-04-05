@@ -2009,7 +2009,7 @@ def _init_identification_query_object(ibs, debug_ignore_name_gt=False,
         >>> _init_identification_query_object(ibs)
 
     """
-    from ibeis.algo.hots import graph_iden
+    from ibeis.algo.graph_iden import graph_iden
 
     if ibs.dbname == 'EWT_Cheetahs':
         aid_list = ibs.filter_annots_general(view=['right', 'frontright', 'backright'])
