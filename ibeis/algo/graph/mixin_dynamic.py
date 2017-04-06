@@ -908,14 +908,9 @@ class Redundancy(_RedundancyHelpers):
             assert isinstance(cc, set)
             if required_k <= 1:
                 return True
-            if required_k == 2:
-                pos_subgraph = infr.pos_graph.subgraph(cc)
-                # not quite, need bi-ege-connected, but this is stronger
-                return nx.is_biconnected(pos_subgraph)
             else:
                 pos_subgraph = infr.pos_graph.subgraph(cc)
-                pos_conn = nx.edge_connectivity(pos_subgraph)
-                return pos_conn >= required_k
+                nx_utils.is_edge_connected(pos_subgraph, k=required_k)
 
     def is_neg_redundant(infr, cc1, cc2):
         k_neg = infr.queue_params['neg_redun']

@@ -59,6 +59,8 @@ class IBEISIO(object):
         for aid1, aid2, feedback_item in _iter:
             decision_key = feedback_item['decision']
             tags = feedback_item['tags']
+            if tags is None:
+                tags = []
             timestamp = feedback_item.get('timestamp', None)
             conf_key = feedback_item.get('confidence', None)
             user_id = feedback_item.get('user_id', None)
@@ -407,17 +409,6 @@ class IBEISIO(object):
         new_feedback = infr._feedback_df(new)
         edge_delta_df = infr._make_state_delta(old_feedback, new_feedback)
         return edge_delta_df
-
-    def all_feedback_items(infr):
-        for edge, vals in six.iteritems(infr.external_feedback):
-            yield edge, vals
-        for edge, vals in six.iteritems(infr.internal_feedback):
-            yield edge, vals
-
-    def all_feedback(infr):
-        all_feedback = ut.ddict(list)
-        all_feedback.update(infr.all_feedback_items())
-        return all_feedback
 
     @staticmethod
     def _make_state_delta(old_feedback, new_feedback):

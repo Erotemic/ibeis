@@ -191,7 +191,7 @@ def demo2():
     # infr.ensure_full()
     apply_dummy_scores(infr, rng)
     infr.break_graph(b)
-    infr.remove_name_labels()
+    infr.clear_name_labels()
 
     if VISUALIZE:
         infr.update_visual_attrs(splines=splines)
@@ -462,7 +462,7 @@ def demo_ibeis_graph_iden():
     infr.show_graph(**ut.update_existing(showkw.copy(), dict(with_colorbar=True)))
     pt.set_title('target-gt')
     infr.set_node_attrs('pin', 'true')
-    infr.remove_name_labels()
+    infr.clear_name_labels()
     infr.remove_dummy_edges()
 
     total = 0
@@ -678,7 +678,7 @@ def do_infr_test(ccs, edges, new_edges):
             self.infr2 = infr2
 
         def __call__(self, infr, u, v, key, val, msg):
-            data = infr.get_edge_data(u, v)
+            data = infr.get_nonvisual_edge_data((u, v))
             if data is None:
                 assert infr.graph.has_edge(u, v), (
                     'uv=%r, %r does not exist'  % (u, v))

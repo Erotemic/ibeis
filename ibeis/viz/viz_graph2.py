@@ -55,15 +55,18 @@ class AnnotPairDialog(gt.GuitoolWidget):
         >>>                       info_text='text describing this match')
         >>> gt.qtapp_loop(qwin=win, freq=10)
     """
+    accepted = QtCore.pyqtSignal(dict)
+
     def initialize(self, edge=None, infr=None, ibs=None, info_text=None,
-                   get_index_data=None, total=None, hack_write=True):
+                   get_index_data=None,
+                   total=None, standalone=True):
 
         from ibeis.gui import inspect_gui
         self.infr = infr
         if infr is not None:
             ibs = infr.ibs
 
-        self.hack_write = hack_write
+        self.standalone = standalone
 
         self.annot_state1 = AnnotStateDialog(ibs=ibs)
         self.annot_state2 = AnnotStateDialog(ibs=ibs)
@@ -132,6 +135,7 @@ class AnnotPairDialog(gt.GuitoolWidget):
                 str(self.count), editingFinishedSlot=self.edit_jump)
             self.next_but = np_bar.addNewButton(
                 'Next', pressed=lambda: self.step_by(1))
+            # self.accepted.connect(standalone_write)
 
         if edge is not None:
             self.set_edge(edge, info_text)
@@ -141,18 +145,22 @@ class AnnotPairDialog(gt.GuitoolWidget):
         self.seek(index)
 
     def feedback_dict(self):
-        return self.annot_review.feedback_dict()
+        feedback = self.annot_review.feedback_dict()
+        feedback['annot1_state'] = self.annot_state1.current_annot_state()
+        feedback['annot2_state'] = self.annot_state2.current_annot_state()
+        return feedback
 
-    def write_review(self):
+    def infr_write(self, feedback):
         # TODO: eventually stage annotation attributes
-        self.annot_state1.ibeis_write()
-        self.annot_state2.ibeis_write()
         # Stage edge attributes
         # edge = self.annot_review.edge
-        feedback = self.feedback_dict()
         print('feedback = %s' % (ut.repr4(feedback),))
+        annot1_state = feedback.pop('annot1_state')
+        annot2_state = feedback.pop('annot2_state')
         infr = self.infr
         if infr is not None:
+            infr.add_node_feedback(**annot1_state)
+            infr.add_node_feedback(**annot2_state)
             infr.add_feedback(**feedback)
             # Commit change to staging
             # edge_delta_df = infr.match_state_delta(old='staging', new='internal')
@@ -160,23 +168,24 @@ class AnnotPairDialog(gt.GuitoolWidget):
         else:
             print('Edge feedback not recoreded')
 
+    def goto_next(self):
+        if self.count is not None:
+            # Move to the next item
+            self.step_by(1)
+
     def accept(self):
         self.was_confirmed = True
-        if self.hack_write:
-            self.write_review()
-            if self.count is not None:
-                # Move to the next item
-                self.step_by(1)
+        feedback = self.feedback_dict()
+        if self.standalone:
+            self.infr_write(feedback)
+            self.goto_next()
         else:
-            # even more of a hack, this should be returned to something so it
-            # can write the properties
-            self.annot_state1.ibeis_write()
-            self.annot_state2.ibeis_write()
-            self.close()
+            self.accepted.emit(feedback)
 
     def set_edge(self, edge, info_text=None):
+        self.was_confirmed = False
         edge_data = (None if self.infr is None else
-                     self.infr.get_edge_data(*edge))
+                     self.infr.get_nonvisual_edge_data(edge))
         self.tuner.set_edge(edge, info_text)
         self.annot_state1.set_aid(edge[0])
         self.annot_state2.set_aid(edge[1])
@@ -319,16 +328,17 @@ class AnnotStateDialog(gt.GuitoolWidget):
             annot_state['yaw_texts'] = 'UNKNOWN'
         return annot_state
 
-    def ibeis_write(self):
-        ibs = self.ibs
-        annot_state = self.current_annot_state()
-        print('Writing state')
-        print(ut.repr3(annot_state))
-        aid = annot_state['aid']
-        ibs.set_annot_quality_texts([aid], [annot_state['quality_texts']])
-        ibs.set_annot_yaw_texts([aid], [annot_state['yaw_texts']])
-        ibs.overwrite_annot_case_tags([aid], [annot_state['case_tags']])
-        ibs.set_annot_multiple([aid], [annot_state['multiple']])
+    # def ibeis_write(self):
+    #     ibs = self.ibs
+    #     annot_state = self.current_annot_state()
+    #     print('Writing state')
+    #     print(ut.repr3(annot_state))
+    #     aid = annot_state['aid']
+    #     # TODO: use infr.add_node_feedback
+    #     ibs.set_annot_quality_texts([aid], [annot_state['quality_texts']])
+    #     ibs.set_annot_yaw_texts([aid], [annot_state['yaw_texts']])
+    #     ibs.overwrite_annot_case_tags([aid], [annot_state['case_tags']])
+    #     ibs.set_annot_multiple([aid], [annot_state['multiple']])
 
     def current_annot_state(self):
         return {
@@ -1216,7 +1226,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             ctx.set_progress(msg='reset feedback edges')
             infr.apply_feedback_edges()
             ctx.set_progress(msg='remove name labels')
-            infr.remove_name_labels()
+            infr.clear_name_labels()
             # ctx.set_progress(msg='apply match scores')
             # infr.apply_match_scores()
             ctx.set_progress(msg='repopulate')
@@ -1234,7 +1244,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             ctx.set_progress(1, 3)
             infr.remove_feedback()
             ctx.set_progress(2, 3)
-            infr.remove_name_labels()
+            infr.clear_name_labels()
             ctx.set_progress(3, 3)
 
     def edit_filters(self):
@@ -1359,7 +1369,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         aid1, aid2 = aid_pairs[0]
         # import utool
         # utool.embed()
-        edge_data = self.infr.get_edge_data(aid1, aid2)
+        edge_data = self.infr.get_nonvisual_edge_data((aid1, aid2))
         dlg = EdgeReviewDialog.as_dialog(self, edge=(aid1, aid2),
                                          edge_data=edge_data)
         dlg.resize(400, 300)
@@ -1500,9 +1510,10 @@ class AnnotGraphWidget(gt.GuitoolWidget):
 
     def use_ibeis_names(self):
         # Hack
-        num_names, num_inconsistent = self.infr.relabel_using_reviews()
-        aid_to_newname = self.infr.get_ibeis_name_delta()
-        nx.set_node_attributes(self.infr.graph, 'name_label', aid_to_newname)
+        infr = self.infr
+        num_names, num_inconsistent = infr.relabel_using_reviews()
+        aid_to_newname = infr.get_ibeis_name_delta()
+        nx.set_node_attributes(infr.graph, 'name_label', aid_to_newname['new_name'].to_dict())
 
     def hack_keep_old_tags(self):
         # Creates new reviews that rectify old tags in the annotmatch table
@@ -1535,10 +1546,10 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         infr = self.infr
 
         # Ensure internal state is up to date
-        num_new_names, num_inconsistent = self.infr.relabel_using_reviews()
+        num_new_names, num_inconsistent = infr.relabel_using_reviews()
 
         # keep track of residual data
-        name_delta_df = self.infr.get_ibeis_name_delta()
+        name_delta_df = infr.get_ibeis_name_delta()
         edge_delta_df = infr.match_state_delta(old='annotmatch', new='all')
 
         # Look at what changed

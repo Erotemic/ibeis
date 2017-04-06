@@ -7,7 +7,8 @@ import numpy as np
 import utool as ut
 import vtool as vt
 from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV
-from ibeis.algo.graph.nx_utils import e_
+from ibeis.algo.graph.nx_utils import e_, edges_inside
+from ibeis.algo.graph import nx_utils
 import six
 print, rrr, profile = ut.inject2(__name__)
 
@@ -90,8 +91,11 @@ class AttrAccess(object):
         # flag = infr.graph.has_edge(*edge) or infr.graph.has_edge(*redge)
         # return flag
 
-    def get_edge_data(infr, u, v):
-        data = infr.graph.get_edge_data(u, v)
+    def get_edge_data(infr, edge):
+        return infr.graph.get_edge_data(*edge)
+
+    def get_nonvisual_edge_data(infr, edge):
+        data = infr.get_edge_data(edge)
         if data is not None:
             data = ut.delete_dict_keys(data.copy(), infr.visual_edge_attrs)
         return data
@@ -165,6 +169,38 @@ class DummyEdges(object):
         infr.graph.add_edges_from(new_edges)
         infr.set_edge_attrs('_dummy_edge', ut.dzip(new_edges, [True]))
 
+    def find_connecting_edges(infr):
+        """
+        Searches for a small set of edges, which if reviewed as positive would
+        ensure that each PCC is k-connected.  Note that in somes cases this is
+        not possible
+        """
+        name_attr = 'name_label'
+        node_to_label = infr.get_node_attrs(name_attr)
+        label_to_nodes = ut.group_items(node_to_label.keys(),
+                                        node_to_label.values())
+
+        # k = infr.queue_params['pos_redun']
+        k = 1
+        new_edges = []
+        prog = ut.ProgIter(list(label_to_nodes.keys()),
+                           label='finding connecting edges',
+                           enabled=infr.verbose > 0)
+        for nid in prog:
+            nodes = set(label_to_nodes[nid])
+            G = infr.pos_graph.subgraph(nodes, dynamic=False)
+            impossible = edges_inside(infr.neg_graph, nodes)
+            impossible |= edges_inside(infr.incomp_graph, nodes)
+
+            candidates = set(nx.complement(G).edges())
+            candidates.difference_update(impossible)
+
+            aug_edges = nx_utils.edge_connected_augmentation(
+                G, k=k, candidates=candidates, hack=False)
+            new_edges += aug_edges
+        prog.ensure_newline()
+        return new_edges
+
     def find_mst_edges2(infr):
         """
         Returns edges to augment existing PCCs (by label) in order to ensure
@@ -174,8 +210,8 @@ class DummyEdges(object):
         """
         import networkx as nx
         # Find clusters by labels
-        name_attr = 'name_label'
         # name_attr = 'orig_name_label'
+        name_attr = 'name_label'
         node_to_label = infr.get_node_attrs(name_attr)
         label_to_nodes = ut.group_items(node_to_label.keys(),
                                         node_to_label.values())
@@ -353,13 +389,15 @@ class DummyEdges(object):
         infr.print('review_dummy_edges', 2)
         if method == 2:
             new_edges = infr.find_mst_edges2()
-        else:
+        elif method == 1:
             new_edges = infr.find_mst_edges()
+        elif method == 3:
+            new_edges = infr.find_connecting_edges()
         infr.print('reviewing %s dummy edges' % (len(new_edges),), 1)
         # TODO apply set of new edges in bulk
         for u, v in new_edges:
             infr.add_feedback((u, v), decision=POSTV, confidence='guessing',
-                               user_id='mst', verbose=False)
+                               user_id='dummy', verbose=False)
 
 
 class AssertInvariants(object):

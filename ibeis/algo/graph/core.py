@@ -13,7 +13,7 @@ from ibeis.algo.graph import mixin_dynamic
 from ibeis.algo.graph import mixin_loops
 from ibeis.algo.graph import mixin_matching
 from ibeis.algo.graph import mixin_ibeis
-from ibeis.algo.graph.nx_utils import e_, _dz
+from ibeis.algo.graph.nx_utils import e_
 from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV
 import networkx as nx
 print, rrr, profile = ut.inject2(__name__)
@@ -35,6 +35,15 @@ class Feedback(object):
     def add_feedback_from(infr, items):
         for item in items:
             infr.add_feedback(*item)
+
+    def add_node_feedback(infr, aid, **attrs):
+        infr.print('Writing annot aid=%r %s' % (aid, ut.repr2(attrs)))
+        ibs = infr.ibs
+        ibs.set_annot_quality_texts([aid], [attrs['quality_texts']])
+        ibs.set_annot_yaw_texts([aid], [attrs['yaw_texts']])
+        ibs.overwrite_annot_case_tags([aid], [attrs['case_tags']])
+        ibs.set_annot_multiple([aid], [attrs['multiple']])
+        pass
 
     @profile
     def add_feedback(infr, edge, decision, tags=None, user_id=None,
@@ -149,7 +158,7 @@ class Feedback(object):
         print(msg)
 
     @profile
-    def apply_feedback_edges(infr, safe=True):
+    def apply_feedback_edges(infr):
         r"""
         Transforms the feedback dictionaries into nx graph edge attributes
 
@@ -170,69 +179,86 @@ class Feedback(object):
             <AnnotInference(nAids=6, nEdges=3)>
         """
         infr.print('apply_feedback_edges', 1)
-        if safe:
-            # You can be unsafe if you know that the current feedback is a
-            # strict superset of previous feedback
-            infr._del_feedback_edges()
         # Transforms dictionary feedback into numpy array
-        feedback_edges = []
-        num_review_list = []
-        decision_list = []
-        confidence_list = []
-        userid_list = []
-        tags_list = []
+        edges = []
+        attr_lists = {
+            'decision': [],
+            'num_reviews': [],
+            'tags':  [],
+            'user_id': [],
+            'timestamp': [],
+            'confidence': [],
+        }
         for edge, vals in infr.all_feedback_items():
             # hack for feedback rectification
+            edges.append(edge)
             feedback_item = infr._rectify_feedback_item(vals)
-            decision = feedback_item['decision']
-            if decision == 'unknown':
+            feedback_item['num_reviews'] = len(vals)
+            if feedback_item['decision'] == 'unknown':
                 continue
-            feedback_edges.append(edge)
-            num_review_list.append(len(vals))
-            userid_list.append(feedback_item['user_id'])
-            decision_list.append(decision)
-            tags_list.append(feedback_item['tags'])
-            confidence_list.append(feedback_item['confidence'])
+            assert feedback_item.keys() == attr_lists.keys(), str((
+                set(feedback_item.keys()), set(attr_lists.keys())))
+            for key, val in feedback_item.items():
+                attr_lists[key].append(val)
 
         # Put pair orders in context of the graph
-        edges = feedback_edges
         infr.print('_set_feedback_edges(nEdges=%d)' % (len(edges),), 3)
         # Ensure edges exist
         for edge in edges:
             if not infr.graph.has_edge(*edge):
                 infr.graph.add_edge(*edge)
 
-        for decision, es in ut.group_items(edges, decision_list).items():
-            infr._add_review_edges_from(es, decision)
+        for state, es in ut.group_items(edges, attr_lists['decision']).items():
+            infr._add_review_edges_from(es, state)
+
+        for key, val_list in attr_lists.items():
+            infr.set_edge_attrs(key, ut.dzip(edges, val_list))
 
         # use UTC timestamps
-        timestamp = ut.get_timestamp('int', isutc=True)
-        infr.set_edge_attrs('decision', _dz(edges, decision_list))
-        infr.set_edge_attrs('tags', _dz(edges, tags_list))
-        infr.set_edge_attrs('confidence', _dz(edges, confidence_list))
-        infr.set_edge_attrs('user_id', _dz(edges, userid_list))
-        infr.set_edge_attrs('num_reviews', _dz(edges, num_review_list))
-        infr.set_edge_attrs('review_timestamp', _dz(edges, [timestamp]))
+        # timestamp = ut.get_timestamp('int', isutc=True)
+        # infr.set_edge_attrs('tags', _dz(edges, tags_list))
+        # infr.set_edge_attrs('confidence', _dz(edges, confidence_list))
+        # infr.set_edge_attrs('user_id', _dz(edges, userid_list))
+        # infr.set_edge_attrs('num_reviews', _dz(edges, num_review_list))
+        # infr.set_edge_attrs('timestamp', _dz(edges, [timestamp]))
 
         if infr.enable_inference:
             infr.apply_nondynamic_update()
 
-    def _del_feedback_edges(infr, edges=None):
+    def clear_feedback(infr, edges=None):
         """ Delete all edges properties related to feedback """
         if edges is None:
-            edges = list(infr.graph.edges())
-        infr.print('_del_feedback_edges len(edges) = %r' % (len(edges)), 2)
-        keys = ['decision', 'tags', 'num_reviews',
-                'reviewed_weight']
-        ut.nx_delete_edge_attr(infr.graph, keys, edges)
+            edges = infr.graph.edges()
+        edges = list(edges)
+        infr.print('clear_feedback len(edges) = %r' % (len(edges)), 2)
 
-    def remove_feedback(infr, apply=False):
-        """ Deletes all feedback """
-        infr.print('remove_feedback', 1)
         infr.external_feedback = ut.ddict(list)
         infr.internal_feedback = ut.ddict(list)
-        if apply:
-            infr._del_feedback_edges()
+        keys = ['decision', 'tags', 'num_reviews', 'user_id',
+                'confidence', 'timestamp', 'reviewed_weight']
+        ut.nx_delete_edge_attr(infr.graph, keys, edges)
+
+        # Move reviewed edges back into the unreviewed graph
+        for key in (POSTV, NEGTV, INCMP):
+            rev_graph = infr.review_graphs[key]
+            prev_edges = ut.compress(edges, list(rev_graph.has_edges(edges)))
+            rev_graph.remove_edges_from(prev_edges)
+            infr.review_graphs[UNREV].add_edges_from(prev_edges)
+
+        infr.pos_redun_nids.clear()
+        infr.neg_redun_nids.clear()
+        infr.nid_to_errors.clear()
+
+    def clear_edges(infr):
+        """
+        Removes all edges from the graph and the feedback dictionaries.
+        """
+        for graph in infr.review_graphs.values():
+            graph.remove_edges_from(list(graph.edges()))
+        infr.graph.remove_edges_from(list(infr.graph.edges()))
+        infr.pos_redun_nids.clear()
+        infr.neg_redun_nids.clear()
+        infr.nid_to_errors.clear()
 
     def _rectify_feedback(infr, feedback):
         return {edge: infr._rectify_feedback_item(vals)
@@ -242,9 +268,21 @@ class Feedback(object):
         """ uses most recently use strategy """
         return vals[-1]
 
+    def all_feedback_items(infr):
+        for edge, vals in six.iteritems(infr.external_feedback):
+            yield edge, vals
+        for edge, vals in six.iteritems(infr.internal_feedback):
+            yield edge, vals
+
+    def all_feedback(infr):
+        all_feedback = ut.ddict(list)
+        all_feedback.update(infr.all_feedback_items())
+        return all_feedback
+
     def reset_feedback(infr, mode='annotmatch', apply=False):
         """ Resets feedback edges to state of the SQL annotmatch table """
         infr.print('reset_feedback mode=%r' % (mode,), 1)
+        infr.clear_feedback()
         if mode == 'annotmatch':
             infr.external_feedback = infr.read_ibeis_annotmatch_feedback()
         elif mode == 'staging':
@@ -259,15 +297,13 @@ class Feedback(object):
         """
         Removes all edges from graph and resets name labels.
         """
+        infr.clear_edges()
+        infr.clear_feedback()
         if state == 'empty':
             # Remove all edges, and component names
-            infr.graph.remove_edges_from(list(infr.graph.edges()))
-            infr.remove_feedback()
-            infr.remove_name_labels()
+            infr.clear_name_labels()
         elif state == 'orig':
             raise NotImplementedError('unused')
-            infr.graph.remove_edges_from(list(infr.graph.edges()))
-            infr.remove_feedback()
             infr.reset_name_labels()
         else:
             raise ValueError('Unknown state=%r' % (state,))
@@ -278,9 +314,9 @@ class Feedback(object):
         orig_names = infr.get_node_attrs('orig_name_label')
         infr.set_node_attrs('name_label', orig_names)
 
-    def remove_name_labels(infr):
+    def clear_name_labels(infr):
         """ Sets all annotation node name labels to be unknown """
-        infr.print('remove_name_labels()', 1)
+        infr.print('clear_name_labels()', 1)
         # make distinct names for all nodes
         distinct_names = {
             node: -aid for node, aid in infr.get_node_attrs('aid').items()
@@ -551,16 +587,17 @@ class MiscHelpers(object):
         aid_to_node = ut.invert_dict(node_to_aid)
         node_to_nid = {aid: nid for aid, nid in zip(aids, nids)}
         ut.assert_eq_len(node_to_nid, node_to_aid)
+
         infr.graph.add_nodes_from(aids)
+        for subgraph in infr.review_graphs.values():
+            subgraph.add_nodes_from(aids)
+
         infr.set_node_attrs('aid', node_to_aid)
         infr.set_node_attrs('name_label', node_to_nid)
         infr.set_node_attrs('orig_name_label', node_to_nid)
+        # TODO: depricate these, they will always be identity I think
         infr.node_to_aid.update(node_to_aid)
         infr.aid_to_node.update(aid_to_node)
-
-        infr.pos_graph.add_nodes_from(aids)
-        infr.neg_graph.add_nodes_from(aids)
-        infr.incomp_graph.add_nodes_from(aids)
 
     def initialize_graph(infr, graph=None):
         infr.print('initialize_graph', 1)
@@ -851,6 +888,8 @@ class AnnotInference(ut.NiceRepr,
         # Once we sync, this is merged into external feedback.
         infr.internal_feedback = ut.ddict(list)
 
+        infr.enable_autoreview = False
+
         infr.thresh = None
         infr.cm_list = None
         infr.vsone_matches = {}
@@ -863,6 +902,9 @@ class AnnotInference(ut.NiceRepr,
             'complete_thresh': 1.0,
         }
         infr.add_aids(aids, nids)
+
+        infr.manual_wgt = None
+
         if autoinit:
             infr.initialize_graph()
 
