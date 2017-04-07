@@ -102,8 +102,32 @@ def demodata_tarjan_bridge():
     return G
 
 
+# def is_tri_edge_connected(G):
+#     """
+#     Yet another Simple Algorithm for Triconnectivity
+#     http://www.sciencedirect.com/science/article/pii/S1570866708000415
+#     """
+#     pass
+
+
 def is_edge_connected(G, k):
-    """ Determines if G is k-edge-connected """
+    """
+    Determines if G is k-edge-connected
+
+    References:
+        https://arxiv.org/pdf/1211.6553.pdf
+        https://github.com/adrianN/edge-connectivity
+
+        Reducing edge connectivity to vertex connectivity
+        Yet another optimal algorithm for 3-edge-connectivity
+        A simple 3-edge-connected component algorithm.
+        A linear time algorithm for computing all 3-edgeconnected components of a multigraph.
+        Finding triconnected components of graphs
+
+        A Simple Algorithm for Triconnectivity of a Multigraph
+           * reduces 3-edge-connectivity to 3-vertex-connectivity
+
+    """
     if k == 0:
         return True
     elif k == 1:
