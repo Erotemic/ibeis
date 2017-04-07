@@ -594,25 +594,8 @@ class DevGraphWidget(gt.GuitoolWidget):
 
         small_graph = len(self_parent.infr.aids) < 20
 
-        class GraphVizConfig(dtool.Config):
-            _param_info_list = [
-                # Appearance
-                ut.ParamInfo('show_image', default=use_image),
-                ut.ParamInfo('in_image', default=use_image, hideif=lambda cfg: not cfg['show_image']),
-                ut.ParamInfo('pin_positions', default=use_image),
-
-                # Visibility
-                ut.ParamInfo('show_reviewed_edges', small_graph),
-                ut.ParamInfo('show_unreviewed_edges', small_graph),
-                ut.ParamInfo('show_reviewed_cuts', small_graph),
-                ut.ParamInfo('show_inferred_same', small_graph),
-                ut.ParamInfo('show_inferred_diff', small_graph),
-                ut.ParamInfo('highlight_reviews', True),
-                ut.ParamInfo('show_recent_review', False),
-                ut.ParamInfo('show_labels', small_graph),
-                ut.ParamInfo('splines', 'spline' if small_graph else 'line', valid_values=['line', 'spline', 'ortho']),
-                ut.ParamInfo('groupby', 'name_label', valid_values=['name_label', None]),
-            ]
+        import ibeis
+        GraphVizConfig = ibeis.AnnotInference.make_viz_config(use_image, small_graph)
 
         def on_graphviz_config_changed(key=None):
             if key == 'pin_positions':
@@ -728,7 +711,7 @@ class DevGraphWidget(gt.GuitoolWidget):
         # TODO: move to mpl widget
         if graph_widget.plotinfo is None:
             return
-        node = graph_widget.infr.aid_to_node[aid]
+        node = aid
         frame = graph_widget.plotinfo['patch_frame_dict'][node]
         framewidth = graph_widget.infr.graph.node[node]['framewidth']
         if color is True:
@@ -820,7 +803,7 @@ class DevGraphWidget(gt.GuitoolWidget):
         pos_list = np.array(pos_list)
         index, dist = vt.closest_point(point, pos_list, distfunc=vt.L2)
         node = nodes[index]
-        aid = graph_widget.infr.node_to_aid[node]
+        aid = node
         context_shown = False
 
         if event.button == 3 and not context_shown:
@@ -1980,7 +1963,7 @@ class EdgeAPIHelper(object):
         return thumbdat
 
     def get_num_other(self, aid):
-        node = self.infr.aid_to_node[aid]
+        node = aid
         node_to_name_label = nx.get_node_attributes(self.graph, 'name_label')
         name_label = node_to_name_label[node]
         labels = list(node_to_name_label.values())

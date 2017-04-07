@@ -9,12 +9,12 @@ from ibeis.algo.graph.state import (POSTV, NEGTV, INCMP, UNREV)
 print, rrr, profile = ut.inject2(__name__)
 
 
-class TerminationCriteria2(object):
+class TerminationCriteria(object):
     def __init__(term, phis):
         term.phis = phis
 
 
-class RefreshCriteria2(object):
+class RefreshCriteria(object):
     """
     Determine when to re-query for candidate edges
     """
@@ -138,7 +138,7 @@ class InfrLoops(object):
             infr.add_feedback(edge=edge, **feedback)
 
     def priority_review_loop(infr, max_loops):
-        infr.refresh = RefreshCriteria2()
+        infr.refresh = RefreshCriteria()
         for count in it.count(0):
             if count >= max_loops:
                 infr.print('early stop')
@@ -349,14 +349,14 @@ class SimulationHelpers(object):
         infr.enable_inference = enable_inference
         infr.enable_autoreview = enable_autoreview
 
-        infr.queue_params['pos_redundancy'] = k_redun
-        infr.queue_params['neg_redundancy'] = k_redun
+        infr.queue_params['pos_redun'] = k_redun
+        infr.queue_params['neg_redun'] = k_redun
         infr.queue_params['complete_thresh'] = complete_thresh
 
         infr.queue = ut.PriorityQueue()
 
         infr.oracle = UserOracle(oracle_accuracy, infr.name)
-        infr.term = TerminationCriteria2(phis)
+        infr.term = TerminationCriteria(phis)
 
         infr.task_thresh = {
             'photobomb_state': pd.Series({

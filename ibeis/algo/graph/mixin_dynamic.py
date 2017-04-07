@@ -948,8 +948,22 @@ class Redundancy(_RedundancyHelpers):
         return False
 
     def filter_nonredun_edges(infr, edges):
+        """
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.algo.graph.mixin_dynamic import *  # NOQA
+            >>> from ibeis.algo.graph import demo
+            >>> infr = demo.demodata_infr(num_pccs=1, size=4)
+            >>> infr.clear_edges()
+            >>> infr.ensure_cliques()
+            >>> infr.clear_feedback()
+            >>> print(ut.repr4(infr.status()))
+            >>> nonredun_edges = list(infr.filter_nonredun_edges(
+            >>>     infr.unreviewed_graph.edges()))
+            >>> assert len(nonredun_edges) == 6
+        """
         for edge in edges:
-            if infr.is_redundant(edge):
+            if not infr.is_redundant(edge):
                 yield edge
 
 

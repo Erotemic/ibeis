@@ -12,6 +12,7 @@ from ibeis.algo.graph import mixin_helpers
 from ibeis.algo.graph import mixin_dynamic
 from ibeis.algo.graph import mixin_loops
 from ibeis.algo.graph import mixin_matching
+from ibeis.algo.graph import mixin_groundtruth
 from ibeis.algo.graph import mixin_ibeis
 from ibeis.algo.graph.nx_utils import e_
 from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV
@@ -157,6 +158,13 @@ class Feedback(object):
             for cc in sorted_ccs]) + ']'
         print(msg)
 
+    @property
+    def feedback_keys(infr):
+        """ edge attribute keys used for feedback """
+        return ['decision', 'num_reviews', 'tags', 'user_id', 'timestamp',
+                'confidence']
+        # 'reviewed_weight'
+
     @profile
     def apply_feedback_edges(infr):
         r"""
@@ -181,14 +189,7 @@ class Feedback(object):
         infr.print('apply_feedback_edges', 1)
         # Transforms dictionary feedback into numpy array
         edges = []
-        attr_lists = {
-            'decision': [],
-            'num_reviews': [],
-            'tags':  [],
-            'user_id': [],
-            'timestamp': [],
-            'confidence': [],
-        }
+        attr_lists = {key: [] for key in infr.feedback_keys}
         for edge, vals in infr.all_feedback_items():
             # hack for feedback rectification
             edges.append(edge)
@@ -225,17 +226,34 @@ class Feedback(object):
         if infr.enable_inference:
             infr.apply_nondynamic_update()
 
+    def _rectify_feedback(infr, feedback):
+        return {edge: infr._rectify_feedback_item(vals)
+                for edge, vals in feedback.items()}
+
+    def _rectify_feedback_item(infr, vals):
+        """ uses most recently use strategy """
+        return vals[-1]
+
+    def all_feedback_items(infr):
+        for edge, vals in six.iteritems(infr.external_feedback):
+            yield edge, vals
+        for edge, vals in six.iteritems(infr.internal_feedback):
+            yield edge, vals
+
+    def all_feedback(infr):
+        all_feedback = ut.ddict(list)
+        all_feedback.update(infr.all_feedback_items())
+        return all_feedback
+
     def clear_feedback(infr, edges=None):
         """ Delete all edges properties related to feedback """
         if edges is None:
             edges = infr.graph.edges()
         edges = list(edges)
         infr.print('clear_feedback len(edges) = %r' % (len(edges)), 2)
-
         infr.external_feedback = ut.ddict(list)
         infr.internal_feedback = ut.ddict(list)
-        keys = ['decision', 'tags', 'num_reviews', 'user_id',
-                'confidence', 'timestamp', 'reviewed_weight']
+        keys = infr.feedback_keys + ['inferred_state']
         ut.nx_delete_edge_attr(infr.graph, keys, edges)
 
         # Move reviewed edges back into the unreviewed graph
@@ -259,25 +277,6 @@ class Feedback(object):
         infr.pos_redun_nids.clear()
         infr.neg_redun_nids.clear()
         infr.nid_to_errors.clear()
-
-    def _rectify_feedback(infr, feedback):
-        return {edge: infr._rectify_feedback_item(vals)
-                for edge, vals in feedback.items()}
-
-    def _rectify_feedback_item(infr, vals):
-        """ uses most recently use strategy """
-        return vals[-1]
-
-    def all_feedback_items(infr):
-        for edge, vals in six.iteritems(infr.external_feedback):
-            yield edge, vals
-        for edge, vals in six.iteritems(infr.internal_feedback):
-            yield edge, vals
-
-    def all_feedback(infr):
-        all_feedback = ut.ddict(list)
-        all_feedback.update(infr.all_feedback_items())
-        return all_feedback
 
     def reset_feedback(infr, mode='annotmatch', apply=False):
         """ Resets feedback edges to state of the SQL annotmatch table """
@@ -344,8 +343,7 @@ class NameRelabel(object):
     def reset_labels_to_ibeis(infr):
         """ Sets to IBEIS de-facto labels if available """
         nids = infr._rectify_nids(infr.aids, None)
-        nodes = ut.take(infr.aid_to_node, infr.aids)
-        infr.set_node_attrs('name_label', ut.dzip(nodes, nids))
+        infr.set_node_attrs('name_label', ut.dzip(infr.aids, nids))
 
     def _rectify_names(infr, old_names, new_labels):
         """
@@ -518,8 +516,6 @@ class MiscHelpers(object):
         ut.delete_items_by_index(infr.orig_name_labels, remove_idxs)
         ut.delete_items_by_index(infr.aids, remove_idxs)
         infr.graph.remove_nodes_from(aids)
-        ut.delete_dict_keys(infr.aid_to_node, aids)
-        ut.delete_dict_keys(infr.node_to_aid, aids)
         infr.aids_set = set(infr.aids)
         remove_edges = [(u, v) for u, v in infr.external_feedback.keys()
                         if u not in infr.aids_set or v not in infr.aids_set]
@@ -579,12 +575,9 @@ class MiscHelpers(object):
         if aids is None:
             aids = infr.aids
             nids = infr.orig_name_labels
-            infr.node_to_aid = {}
-            infr.aid_to_node = {}
         assert aids is not None, 'must have aids'
         assert nids is not None, 'must have nids'
         node_to_aid = {aid: aid for aid in aids}
-        aid_to_node = ut.invert_dict(node_to_aid)
         node_to_nid = {aid: nid for aid, nid in zip(aids, nids)}
         ut.assert_eq_len(node_to_nid, node_to_aid)
 
@@ -596,8 +589,6 @@ class MiscHelpers(object):
         infr.set_node_attrs('name_label', node_to_nid)
         infr.set_node_attrs('orig_name_label', node_to_nid)
         # TODO: depricate these, they will always be identity I think
-        infr.node_to_aid.update(node_to_aid)
-        infr.aid_to_node.update(aid_to_node)
 
     def initialize_graph(infr, graph=None):
         infr.print('initialize_graph', 1)
@@ -663,9 +654,6 @@ class AltConstructors(object):
 
     @classmethod
     def from_pairs(AnnotInference, aid_pairs, attrs=None, ibs=None, verbose=False):
-        # infr.graph = G
-        # infr.update_node_attributes(G)
-        # aids = set(ut.flatten(aid_pairs))
         import networkx as nx
         G = AnnotInference._graph_cls()
         assert not any([a1 == a2 for a1, a2 in aid_pairs]), 'cannot have self-edges'
@@ -679,10 +667,18 @@ class AltConstructors(object):
     @classmethod
     def from_netx(AnnotInference, G, ibs=None, verbose=False, infer=True):
         aids = list(G.nodes())
-        nids = [-a for a in aids]
-        infr = AnnotInference(ibs, aids, nids, autoinit=False, verbose=verbose)
+        if ibs is not None:
+            nids = None
+        else:
+            nids = [-a for a in aids]
+        infr = AnnotInference(ibs, aids, nids, autoinit=False,
+                              verbose=verbose)
         infr.initialize_graph(graph=G)
-        infr.update_node_attributes()
+        # hack
+        orig_name_labels = [infr.pos_graph.node_label(a) for a in aids]
+        infr.orig_name_labels = orig_name_labels
+        infr.set_node_attrs('orig_name_label',
+                            ut.dzip(aids, orig_name_labels))
         if infer:
             infr.apply_nondynamic_update()
         return infr
@@ -701,15 +697,39 @@ class AltConstructors(object):
         infr.qreq_ = qreq_
         return infr
 
+    def status(infr):
+        return ut.odict([
+            ('nNodes', len(infr.aids)),
+            ('nEdges', infr.graph.number_of_edges()),
+            ('nCCs', infr.pos_graph.number_of_components()),
+            ('nPostvEdges', infr.pos_graph.number_of_edges()),
+            ('nNegtvEdges', infr.neg_graph.number_of_edges()),
+            ('nIncmpEdges', infr.incomp_graph.number_of_edges()),
+            ('nUnrevEdges', infr.unreviewed_graph.number_of_edges()),
+            ('nPosRedunCCs', len(infr.pos_redun_nids)),
+            ('nNegRedunPairs', infr.neg_redun_nids.number_of_edges()),
+            #('nUnkwnEdges', infr.unknown_graph.number_of_edges()),
+        ])
+
     def __nice__(infr):
         if infr.graph is None:
             return 'nAids=%r, G=None' % (len(infr.aids))
         else:
-            return 'nAids={}, nEdges={}, nCCs={}'.format(
+            fmt = 'nNodes={}, nEdges={}, nCCs={}, nN={}'
+            msg = fmt.format(
                 len(infr.aids),
                 infr.graph.number_of_edges(),
-                infr.pos_graph.number_of_components()
+                infr.pos_graph.number_of_components(),
+                infr.neg_graph.number_of_edges(),
+                # infr.incomp_graph.number_of_edges(),
+                # infr.unreviewed_graph.number_of_edges(),
             )
+            return msg
+            # return 'nAids={}, nEdges={}, nCCs={}'.format(
+            #     len(infr.aids),
+            #     infr.graph.number_of_edges(),
+            #     infr.pos_graph.number_of_components()
+            # )
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
@@ -741,6 +761,7 @@ class AnnotInference(ut.NiceRepr,
                      # Visualization
                      mixin_viz.GraphVisualization,
                      # plugging into IBEIS
+                     mixin_groundtruth.Groundtruth,
                      mixin_ibeis.IBEISIO,
                      mixin_ibeis.IBEISGroundtruth,
                      # _dep_mixins._AnnotInfrDepMixin,
@@ -838,8 +859,6 @@ class AnnotInference(ut.NiceRepr,
         infr.method = 'graph'
         infr.aids_set = None
         infr.orig_name_labels = None
-        infr.aid_to_node = None
-        infr.node_to_aid = None
 
         # If not dirty, new feedback should dynamically maintain a consistent
         # state. If dirty it means we need to recompute connected compoments
@@ -868,7 +887,6 @@ class AnnotInference(ut.NiceRepr,
         infr.recovery_ccs = []
         # TODO: keep one main recovery cc but once it is done pop the next one
         # from recovery_ccs until none are left
-        infr.recovery_cc = None
 
         # graph holding positive edges of inconsistent PCCs
         # infr.recover_graph = infr._graph_cls()
@@ -922,10 +940,8 @@ class AnnotInference(ut.NiceRepr,
         infr2.qreq_ = copy.deepcopy(infr.qreq_)
         infr2.nid_counter = infr.nid_counter
         infr2.thresh = infr.thresh
-        infr2.aid_to_node = copy.deepcopy(infr.aid_to_node)
 
         infr2.recovery_ccs = copy.deepcopy(infr.recovery_ccs)
-        infr2.recovery_cc = copy.deepcopy(infr.recovery_cc)
 
         infr2.recover_graph = copy.deepcopy(infr.recover_graph)
         infr2.recover_prev_neg_nids = copy.deepcopy(infr.recover_prev_neg_nids)

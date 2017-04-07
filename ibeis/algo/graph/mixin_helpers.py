@@ -6,7 +6,7 @@ import operator
 import numpy as np
 import utool as ut
 import vtool as vt
-from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV
+from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN
 from ibeis.algo.graph.nx_utils import e_, edges_inside
 from ibeis.algo.graph import nx_utils
 import six
@@ -116,6 +116,10 @@ class AttrAccess(object):
     def unreviewed_graph(infr):
         return infr.review_graphs[UNREV]
 
+    @property
+    def unknown_graph(infr):
+        return infr.review_graphs[UNKWN]
+
 
 class Convenience(object):
     @staticmethod
@@ -150,6 +154,7 @@ class DummyEdges(object):
         # if infr.verbose:
         #     infr.print('adding %d complement edges' % (len(new_edges)))
         infr.graph.add_edges_from(new_edges)
+        infr.unreviewed_graph.add_edges_from(new_edges)
         infr.set_edge_attrs('_dummy_edge', ut.dzip(new_edges, [True]))
 
     def ensure_cliques(infr, label='name_label'):
@@ -167,6 +172,7 @@ class DummyEdges(object):
                     new_edges.append(edge)
         infr.print('adding %d clique edges' % (len(new_edges)), 2)
         infr.graph.add_edges_from(new_edges)
+        infr.unreviewed_graph.add_edges_from(new_edges)
         infr.set_edge_attrs('_dummy_edge', ut.dzip(new_edges, [True]))
 
     def find_connecting_edges(infr):
