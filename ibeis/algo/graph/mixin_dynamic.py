@@ -797,29 +797,31 @@ class Redundancy(_RedundancyHelpers):
         need_add = False
         need_remove = False
         force = True
+        was_neg_redun = infr.neg_redun_nids.has_edge(nid1, nid2)
         if force:
             cc1 = infr.pos_graph.component(nid1)
             cc2 = infr.pos_graph.component(nid2)
             need_add = infr.is_neg_redundant(cc1, cc2)
             need_remove = not need_add
         else:
-            was_neg_redun = infr.neg_redun_nids.has_edge(nid1, nid2)
             if may_add and not was_neg_redun:
                 cc1 = infr.pos_graph.component(nid1)
                 cc2 = infr.pos_graph.component(nid2)
                 need_add = infr.is_neg_redundant(cc1, cc2)
             elif may_remove and not was_neg_redun:
                 need_remove = not infr.is_neg_redundant(cc1, cc2)
-        if force:
-            infr.print('is_neg_redun=%r' % (need_add,))
+        # if force:
+        #     infr.print('is_neg_redun=%r' % (need_add,))
         if need_add:
             # Flag ourselves as negative redundant and remove priorities
-            infr.print('flag_neg_redun=%r,%r' % (nid1, nid2,))
+            if not was_neg_redun:
+                infr.print('flag_neg_redun=%r,%r' % (nid1, nid2,))
             infr.neg_redun_nids.add_edge(nid1, nid2)
             if infr.queue is not None:
                 infr.remove_between_priority(cc1, cc2)
         elif need_remove:
-            infr.print('unflag_neg_redun=%r,%r' % (nid1, nid2,))
+            if was_neg_redun:
+                infr.print('unflag_neg_redun=%r,%r' % (nid1, nid2,))
             try:
                 infr.neg_redun_nids.remove_edge(nid1, nid2)
             except nx.exception.NetworkXError:
