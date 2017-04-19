@@ -131,6 +131,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         infr = ibeis.AnnotInference(ibs=ibs, aids=aids, autoinit=True)
         assert infr._is_staging_above_annotmatch()
         infr.reset_feedback('staging', apply=True)
+        if infr.ibs.dbname == 'PZ_MTEST':
+            assert False, 'need to do conversion'
         # if infr.needs_conversion():
         #     infr.ensure_mst()
         pblm = OneVsOneProblem(infr=infr)
@@ -149,6 +151,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         else:
             pblm.hyper_params.vsone_assign['weight'] = None
 
+    @profile
     def make_training_pairs(pblm):
         infr = pblm.infr
         ibs = pblm.infr.ibs
@@ -159,20 +162,30 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         aids = ibs.filter_annots_general(
             infr.aids, min_pername=3, species='primary')
         qreq_ = ibs.new_query_request(aids, aids, cfgdict=cfgdict,
-                                      verbose=max(0, pblm.verbose - 1))
+                                      verbose=False)
         pblm._fix_hyperparams(qreq_)
 
+        use_cache = True
+        cfgstr = qreq_.get_cfgstr(with_input=True)
+        cacher = ut.Cacher('pairwise_sample_v1', cfgstr=cfgstr,
+                           appname=pblm.appname, enabled=use_cache,
+                           verbose=pblm.verbose + 10)
         assert qreq_.qparams.can_match_samename is True
         assert qreq_.qparams.prescore_method == 'csum'
         assert pblm.hyper_params.subsample is None
-        cm_list = qreq_.execute()
-        infr._set_vsmany_info(qreq_, cm_list)
+        data = cacher.tryload()
+        if data is None:
+            cm_list = qreq_.execute()
+            infr._set_vsmany_info(qreq_, cm_list)
 
-        # Sample hard moderate and easy positives / negative
-        # For each query, choose same, different, and random training pairs
-        rng = np.random.RandomState(42)
-        aid_pairs_ = infr._cm_training_pairs(rng=rng,
-                                             **pblm.hyper_params.pair_sample)
+            # Sample hard moderate and easy positives / negative
+            # For each query, choose same, different, and random training pairs
+            rng = np.random.RandomState(42)
+            aid_pairs_ = infr._cm_training_pairs(
+                rng=rng, **pblm.hyper_params.pair_sample)
+            cacher.save(aid_pairs_)
+            data = aid_pairs_
+        aid_pairs_ = data
 
         if pblm.verbose > 0:
             print('[pblm] gather photobomb and incomparable cases')
@@ -185,12 +198,17 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         return aid_pairs
 
     def load_samples(pblm):
-        """
-        >>> from ibeis.scripts.script_vsone import *  # NOQA
-        >>> pblm = OneVsOneProblem.from_empty('PZ_PB_RF_TRAIN')
-        >>> pblm.load_samples()
-        >>> samples = pblm.samples
-        >>> samples.print_info()
+        r"""
+        CommandLine:
+            python -m ibeis.scripts.script_vsone load_samples --profile
+
+        Example:
+            >>> from ibeis.scripts.script_vsone import *  # NOQA
+            >>> #pblm = OneVsOneProblem.from_empty('PZ_MTEST')
+            >>> pblm = OneVsOneProblem.from_empty('PZ_PB_RF_TRAIN')
+            >>> pblm.load_samples()
+            >>> samples = pblm.samples
+            >>> samples.print_info()
         """
         # Get a set of training pairs
         if pblm.verbose > 0:
@@ -200,12 +218,17 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         # simple_scores=copy.deepcopy(pblm.raw_simple_scores),
         # X_dict=copy.deepcopy(pblm.raw_X_dict),
 
+    @profile
     def load_features(pblm, use_cache=True):
         """
-        >>> from ibeis.scripts.script_vsone import *  # NOQA
-        >>> pblm = OneVsOneProblem.from_empty('PZ_PB_RF_TRAIN')
-        >>> pblm.load_samples()
-        >>> pblm.load_features()
+        CommandLine:
+            python -m ibeis.scripts.script_vsone load_features --profile
+
+        Example:
+            >>> from ibeis.scripts.script_vsone import *  # NOQA
+            >>> pblm = OneVsOneProblem.from_empty('PZ_PB_RF_TRAIN')
+            >>> pblm.load_samples()
+            >>> pblm.load_features()
         """
         if pblm.verbose > 0:
             print('[pblm] load_features')
@@ -218,15 +241,30 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         feat_hashid = ut.hashstr27(edge_hashid + feat_cfgstr)
         # print('features_hashid = %r' % (features_hashid,))
         cfgstr = '_'.join(['devcache', str(dbname), feat_hashid])
-        cacher = ut.Cacher('pairwise_data_v12', cfgstr=cfgstr,
+        # use_cache = False
+        cacher = ut.Cacher('pairwise_data_v14', cfgstr=cfgstr,
                            appname=pblm.appname, enabled=use_cache,
-                           verbose=pblm.verbose + 10)
+                           verbose=pblm.verbose)
         data = cacher.tryload()
         if not data:
             config = hyper_params.vsone_assign
             pairfeat_cfg = hyper_params.pairwise_feats
+            need_lnbnn = False
+            if need_lnbnn:
+                raise NotImplementedError('not done yet')
+                if infr.qreq_ is None:
+                    pass
+                    # cfgdict = pblm.hyper_params['sample_search']
+                    # ibs = pblm.infr.ibs
+                    # infr = pblm.infr
+                    # aids = ibs.filter_annots_general(
+                    #     infr.aids, min_pername=3, species='primary')
+                    # qreq_ = ibs.new_query_request(aids, aids, cfgdict=cfgdict,
+                    #                               verbose=False)
+                    # infr.qreq_ = qreq_
             matches, X_all = infr._make_pairwise_features(
-                aid_pairs, config=config, pairfeat_cfg=pairfeat_cfg)
+                aid_pairs, config=config, pairfeat_cfg=pairfeat_cfg,
+                need_lnbnn=need_lnbnn)
 
             # # Pass back just one match to play with
             # for match in matches:
@@ -242,18 +280,36 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             )
 
             if True:
-                # FIXME: maybe lnbnn was not run
+                # The main idea here is to load lnbnn scores for the pairwise
+                # matches so we can compare them to the outputs of the pairwise
+                # classifeir.
+                # TODO: separate this into different cache
                 # Add vsmany_lnbnn to simple scores
-                infr.add_aids(ut.unique(ut.flatten(aid_pairs)))
-                # Ensure that all annots exist in the graph
-                infr.graph.add_edges_from(aid_pairs)
-                # test original lnbnn score sep
-                infr.apply_match_scores()
-                edge_data = [infr.graph.get_edge_data(u, v) for u, v in aid_pairs]
-                lnbnn_score_list = [0 if d is None else d.get('score', 0)
-                                    for d in edge_data]
-                lnbnn_score_list = np.nan_to_num(lnbnn_score_list)
-                simple_scores = simple_scores.assign(score_lnbnn_1vM=lnbnn_score_list)
+                cfgdict = pblm.hyper_params['sample_search']
+                ibs = pblm.infr.ibs
+                infr = pblm.infr
+                aids = ibs.filter_annots_general(
+                    infr.aids, min_pername=3, species='primary')
+                qreq_ = ibs.new_query_request(aids, aids, cfgdict=cfgdict,
+                                              verbose=False)
+                cm_list = qreq_.execute()
+                edge_to_data = infr._get_cm_edge_data(aid_pairs, cm_list=cm_list)
+                edge_data = ut.take(edge_to_data, aid_pairs)
+                lnbnn_score_list = [d.get('score', 0) for d in edge_data]
+                lnbnn_score_list = [0 if s is None else s
+                                    for s in lnbnn_score_list]
+
+                # infr.add_aids(ut.unique(ut.flatten(aid_pairs)))
+                # # Ensure that all annots exist in the graph
+                # infr.graph.add_edges_from(aid_pairs)
+                # # test original lnbnn score sep
+                # infr.apply_match_scores()
+                # edge_data = [infr.graph.get_edge_data(u, v) for u, v in aid_pairs]
+                # lnbnn_score_list = [0 if d is None else d.get('score', 0)
+                #                     for d in edge_data]
+                # lnbnn_score_list = np.nan_to_num(lnbnn_score_list)
+                simple_scores = simple_scores.assign(
+                    score_lnbnn_1vM=lnbnn_score_list)
             simple_scores[pd.isnull(simple_scores)] = 0
             data = simple_scores, X_all
             cacher.save(data)
