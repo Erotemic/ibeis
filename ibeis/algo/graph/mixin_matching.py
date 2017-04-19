@@ -443,12 +443,14 @@ class AnnotInfrMatching(object):
         ranked_aids = ut.take_column(max_scores, 1)
         return ranked_aids
 
-    def _get_cm_edge_data(infr, edges):
+    def _get_cm_edge_data(infr, edges, cm_list=None):
         symmetric = True
 
+        if cm_list is None:
+            cm_list = infr.cm_list
         # Find scores for the edges that exist in the graph
         edge_to_data = ut.ddict(dict)
-        aid_to_cm = {cm.qaid: cm for cm in infr.cm_list}
+        aid_to_cm = {cm.qaid: cm for cm in cm_list}
         for u, v in edges:
             if symmetric:
                 u, v = e_(u, v)
