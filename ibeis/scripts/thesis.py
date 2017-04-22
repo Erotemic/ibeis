@@ -28,6 +28,7 @@ def chapter4_collect(defaultdb):
         >>> #defaultdb = 'GZ_Master1'
         >>> defaultdb = 'PZ_MTEST'
         >>> self = chapter4_collect(defaultdb)
+        >>> self.draw()
     """
     pblm = OneVsOneProblem.from_empty(defaultdb)
     data_key = pblm.default_data_key
