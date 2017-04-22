@@ -1239,48 +1239,6 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         conf.label = score_key
         return conf
 
-    def learned_prob_plotdata(pblm, task_key=None,
-                              target_class=None,
-                              bins=None):
-        if task_key is None:
-            task_key = pblm.primary_task_key
-        clf_key = pblm.default_clf_key
-        data_key = pblm.default_data_key
-        if target_class is None:
-            target_class = pblm.samples[task_key].default_class_name
-
-        res = pblm.task_combo_res[task_key][clf_key][data_key]
-        return res.score_frequencies(target_class, bins)
-
-    def simple_scores_plotdata(pblm, score_key=None, task_key=None,
-                               target_class=None, bins=None):
-        if bins is None:
-            bins = np.linspace(0, 10, 100)
-        if score_key is None:
-            score_key = 'score_lnbnn_1vM'
-        if task_key is None:
-            task_key = pblm.primary_task_key
-        task = pblm.samples[task_key]
-        if target_class is None:
-            target_class = task.default_class_name
-        target_class_idx = task.lookup_class_idx(target_class)
-        scores = pblm.samples.simple_scores[score_key]
-        y = task.y_bin.T[target_class_idx]
-        pos_scores = scores[y]
-        neg_scores = scores[~y]
-        pos_freq, _ = np.histogram(pos_scores, bins)
-        neg_freq, _ = np.histogram(neg_scores, bins)
-        pos_freq = pos_freq / pos_freq.sum()
-        neg_freq = neg_freq / neg_freq.sum()
-        freq_plotdata = {
-            'target_class': target_class,
-            'key': score_key,
-            'bins': bins,
-            'pos_freq': pos_freq,
-            'neg_freq': neg_freq,
-        }
-        return freq_plotdata
-
     def qt_review_hardcases(pblm):
         task_key = pblm.primary_task_key
         data_key = pblm.default_data_key

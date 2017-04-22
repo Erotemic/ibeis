@@ -261,16 +261,20 @@ def classification_report2(y_true, y_pred, target_names=None,
     perclass_df = pd.DataFrame(perclass_data, index=index)
     combined_df = pd.DataFrame(combined_data, index=['ave/sum'])
     metric_df = pd.concat([perclass_df, combined_df])
+    metric_df.index.name = 'class'
+    metric_df.columns.name = 'metric'
 
-    pred_id = ['p(%s)' % m for m in target_names]
-    real_id = ['r(%s)' % m for m in target_names]
+    pred_id = ['%s' % m for m in target_names]
+    real_id = ['%s' % m for m in target_names]
     confusion_df = pd.DataFrame(confusion, columns=pred_id, index=real_id)
     confusion_df = confusion_df.append(pd.DataFrame(
         [confusion.sum(axis=0)], columns=pred_id, index=['Σp']))
-    confusion_df['Σr'] = np.hstack([confusion.sum(axis=1), ['-']])
-    cfsm_str = confusion_df.to_string(float_format=lambda x: '%.1f' % (x,))
+    confusion_df['Σr'] = np.hstack([confusion.sum(axis=1), [np.nan]])
+    confusion_df.index.name = 'real'
+    confusion_df.columns.name = 'pred'
 
     if verbose:
+        cfsm_str = confusion_df.to_string(float_format=lambda x: '%.1f' % (x,))
         print('Confusion Matrix (real × pred) :')
         print(ut.hz_str('    ', cfsm_str))
 

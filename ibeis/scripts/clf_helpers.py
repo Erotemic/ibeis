@@ -827,28 +827,6 @@ class ClfResult(ut.NiceRepr):
         confusions = vt.ConfusionMetrics.from_scores_and_labels(probs, labels)
         return confusions
 
-    def score_frequencies(res, class_name, bins=None):
-        if bins is None:
-            bins = np.linspace(0, 1, 100)
-        y_test_bin = res.target_bin_df.values
-        clf_probs = res.probs_df.values
-        k = res.class_names.index(class_name)
-        scores, y = clf_probs.T[k], y_test_bin.T[k]
-        pos_scores = scores[y]
-        neg_scores = scores[~y]
-        pos_freq, _ = np.histogram(pos_scores, bins)
-        neg_freq, _ = np.histogram(neg_scores, bins)
-        pos_freq = pos_freq / pos_freq.sum()
-        neg_freq = neg_freq / neg_freq.sum()
-        freq_data = {
-            'target_class': class_name,
-            'data_key': res.data_key,
-            'bins': bins,
-            'pos_freq': pos_freq,
-            'neg_freq': neg_freq,
-        }
-        return freq_data
-
     def ishow_roc(res):
         import vtool as vt
         import plottool as pt
