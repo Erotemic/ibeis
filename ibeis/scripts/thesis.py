@@ -97,19 +97,25 @@ class ThesisPlots(object):
         res = pblm.task_combo_res[task_key][self.clf_key][self.data_key]
         c2 = pblm.simple_confusion('score_lnbnn_1vM', task_key=task_key)
         c3 = res.confusions(target_class)
-        self.task_rocs[task_key] = [
-            {'label': 'LNBNN', 'fpr': c2.fpr, 'tpr': c2.tpr, 'auc': c2.auc},
-            {'label': 'pairwise', 'fpr': c3.fpr, 'tpr': c3.tpr, 'auc': c3.auc},
-        ]
+        self.task_rocs[task_key] = {
+            'target_class': target_class,
+            'curves': [
+                {'label': 'LNBNN', 'fpr': c2.fpr, 'tpr': c2.tpr, 'auc': c2.auc},
+                {'label': 'pairwise', 'fpr': c3.fpr, 'tpr': c3.tpr, 'auc': c3.auc},
+            ]
+        }
 
     def build_roc_data_photobomb(self, pblm, task_key):
         task_key = 'photobomb_state'
         target_class = 'pb'
         res = pblm.task_combo_res[task_key][self.clf_key][self.data_key]
         c1 = res.confusions(target_class)
-        self.task_rocs[task_key] = [
-            {'label': 'pairwise', 'fpr': c1.fpr, 'tpr': c1.tpr, 'auc': c1.auc},
-        ]
+        self.task_rocs[task_key] = {
+            'target_class': target_class,
+            'curves': [
+                {'label': 'pairwise', 'fpr': c1.fpr, 'tpr': c1.tpr, 'auc': c1.auc},
+            ]
+        }
 
     def build_hard_cases(self, pblm, task_key):
         # Find a failure case for each class
@@ -133,90 +139,73 @@ class ThesisPlots(object):
             })
         self.hard_cases[task_key] = cases
 
+    # -------------------
+
     def draw_hard_cases(self, task_key, pblm):
+        from ibeis.constants import REVIEW
         infr = pblm.infr
         dbname = pblm.infr.ibs.dbname
         dpath = FIG_DPATH.joinpath(dbname + '_' + task_key + '_failures')
         ut.ensuredir(str(dpath))
 
-        from ibeis.constants import REVIEW
         for case in self.hard_cases[task_key]:
             aid1, aid2 = case['edge']
             real_name = case['real']
             pred_name = case['pred']
             real_nice, pred_nice = ut.take(REVIEW.CODE_TO_NICE,
                                            [real_name, pred_name])
+
+            fname = 'fail_{}_{}_{}_{}_{}'.format(task_key, real_nice,
+                                                 pred_nice, aid1, aid2)
             # Draw case
             fig = pt.figure(fnum=1, clf=True)
             ax = pt.gca()
-            if False:
-                infr.draw_aids([aid1, aid2], fnum=1)
-            else:
-                probs = case['probs'].to_dict()
-                order = list(REVIEW.CODE_TO_NICE.values())
-                order = ut.setintersect(order, probs.keys())
-                probs = ut.map_dict_keys(REVIEW.CODE_TO_NICE, probs)
-                probstr = ut.repr2(probs, precision=2, strkeys=True, nobr=True,
-                                   key_order=order)
-                xlabel = 'real={}, pred={},\n{}'.format(real_nice, pred_nice, probstr)
+            probs = case['probs'].to_dict()
+            order = list(REVIEW.CODE_TO_NICE.values())
+            order = ut.setintersect(order, probs.keys())
+            probs = ut.map_dict_keys(REVIEW.CODE_TO_NICE, probs)
+            probstr = ut.repr2(probs, precision=2, strkeys=True, nobr=True,
+                               key_order=order)
+            xlabel = 'real={}, pred={},\n{}'.format(real_nice, pred_nice, probstr)
 
-                config = pblm.hyper_params['vsone_match'].asdict()
-                config.update(pblm.hyper_params['vsone_kpts'])
-                match = infr._exec_pairwise_match([(aid1, aid2)], config)[0]
-                match.show(ax, vert=False, ell_alpha=.3, modifysize=True)
-                ax.set_xlabel(xlabel)
-                fname = 'fail_{}_{}_{}_{}_{}_overlay.jpg'.format(task_key, real_nice,
-                                                                 pred_nice, aid1, aid2)
-                fpath = dpath.joinpath(fname)
-                fig.savefig(str(fpath), dpi=256)
-                vt.clipwhite_ondisk(str(fpath), str(fpath))
+            config = pblm.hyper_params['vsone_match'].asdict()
+            config.update(pblm.hyper_params['vsone_kpts'])
+            match = infr._exec_pairwise_match([(aid1, aid2)], config)[0]
+            match.show(ax, vert=False, ell_alpha=.3, modifysize=True)
+            ax.set_xlabel(xlabel)
+            fpath = dpath.joinpath(fname + '_overlay.jpg')
+            fig.savefig(str(fpath), dpi=256)
+            vt.clipwhite_ondisk(str(fpath), str(fpath))
 
-                ax.cla()
-                match.show(ax, vert=False, overlay=False, modifysize=True)
-                ax.set_xlabel(xlabel)
-                fname = 'fail_{}_{}_{}_{}_{}.jpg'.format(task_key, real_nice,
-                                                         pred_nice, aid1, aid2)
-                fpath = dpath.joinpath(fname)
-                fig.savefig(str(fpath), dpi=256)
-                vt.clipwhite_ondisk(str(fpath), str(fpath))
+            ax.cla()
+            match.show(ax, vert=False, overlay=False, modifysize=True)
+            ax.set_xlabel(xlabel)
+            fpath = dpath.joinpath(fname + '.jpg')
+            fig.savefig(str(fpath), dpi=256)
+            vt.clipwhite_ondisk(str(fpath), str(fpath))
 
-        # nid1, nid2 = infr.pos_graph.node_labels(aid1, aid2)
-        # cc1 = infr.pos_graph.connected_to(aid1)
-        # cc2 = infr.pos_graph.connected_to(aid2)
-        # cc3 = set.union(cc1, cc2)
-        pass
-
-    def draw_score_hist(self, freq_plotdata):
-        key = freq_plotdata.get('key', freq_plotdata.get('data_key'))
-        fname = 'scorehist_%s_%s.png' % (key, freq_plotdata['data_code'],)
+    def draw_score_hist(self):
+        fname = 'scorehist_%s_%s.png' % (self.data_key, self.data_code)
         fig_fpath = FIG_DPATH.joinpath(fname)
 
-        import plottool as pt
-        fnum = 1
-        pnum = (1, 1, 1)
-        fnum = pt.ensure_fnum(fnum)
-        bins = freq_plotdata['bins']
-        pos_freq = freq_plotdata['pos_freq']
-        neg_freq = freq_plotdata['neg_freq']
-        true_color = pt.TRUE_BLUE
-        false_color = pt.FALSE_RED
-        score_colors = (false_color, true_color)
+        freqs = self.score_freq_lnbnn
+        freqs = self.score_freq_pairclf
+
         fig = pt.multi_plot(
-            bins, (neg_freq, pos_freq),
+            freqs['bins'], (freqs['neg_freq'], freqs['pos_freq']),
             label_list=('negative', 'positive'),
-            fnum=fnum, color_list=score_colors, pnum=pnum, kind='bar',
-            width=np.diff(bins)[0], alpha=.7, stacked=True, edgecolor='none',
-            rcParams=TMP_RC,
+            color_list=(pt.FALSE_RED, pt.TRUE_BLUE),
+            kind='bar', width=np.diff(freqs['bins'])[0], alpha=.7, stacked=True,
+            edgecolor='none', fnum=1, pnum=(1, 1, 1), rcParams=TMP_RC,
             xlabel='positive probability', ylabel='frequency',
             title='pairwise probability separation')
 
-        pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9, wspace=.2,
-                           hspace=.2)
+        pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9)
         fig.set_size_inches([7.4375,  3.125])
         fig.savefig(str(fig_fpath), dpi=256)
         vt.clipwhite_ondisk(str(fig_fpath))
 
-    def draw_roc(roc_data):
+    def draw_roc(self, task_key):
         mpl.rcParams.update(TMP_RC)
 
         target_class = roc_data['class']
@@ -225,21 +214,18 @@ class ThesisPlots(object):
         if target_class == 'match':
             target_class = 'positive'
 
-        fname = 'roc_%s_%s.png' % (target_class, roc_data['data_code'],)
+        fname = 'roc_%s_%s.png' % (target_class, self.data_code)
         fig_fpath = FIG_DPATH.joinpath(fname)
 
         fig = pt.figure(fnum=1)  # NOQA
         ax = pt.gca()
-        for algo in roc_data['algos']:
-            ax.plot(algo['fpr'], algo['tpr'], label='%s AUC=%.2f' % (
-                algo['label'], algo['auc']))
+        for data in roc_data:
+            ax.plot(data['fpr'], data['tpr'], label='%s AUC=%.2f' % (data['label'], data['auc']))
         ax.set_xlabel('false positive rate')
         ax.set_ylabel('true positive rate')
-        ax.set_title('%s ROC for %s' % (target_class.title(),
-                                        roc_data['species'],))
+        ax.set_title('%s ROC for %s' % (target_class.title(), self.species))
         ax.legend()
-        pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9, wspace=.2,
-                           hspace=.2)
+        pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9)
         fig.set_size_inches([7.4375,  3.125])
         fig.savefig(str(fig_fpath), dpi=256)
         vt.clipwhite_ondisk(str(fig_fpath))
@@ -251,28 +237,28 @@ class ThesisPlots(object):
         fig_fpath = FIG_DPATH.joinpath(fname)
         fig = pt.figure(fnum=fnum)
         importances = wc_data['importances']
-        importances = ut.map_keys(feat_map, importances)
+        importances = ut.map_keys(feat_alias, importances)
         pt.wordcloud(importances, fnum=fnum)
         fig.savefig(str(fig_fpath), dpi=256)
         vt.clipwhite_ondisk(str(fig_fpath))
 
-    def print_top_importance():
+    def print_top_importance(self, task_key):
         # Print info for latex table
-        importances = wc_data['importances']
-        print('TOP 5 importances for ' + wc_data['task'])
-        print('# of dimensions: %d' % (len(importances)))
+        importances = self.task_importance[task_key]
         vals = importances.values()
         items = importances.items()
         top_dims = ut.sortedby(items, vals)[::-1]
         lines = []
         for k, v in top_dims[:5]:
-            k = feat_map(k)
+            k = feat_alias(k)
             k = k.replace('_', '\\_')
             lines.append('{} & {:.4f} \\\\'.format(k, v))
+        print('TOP 5 importances for ' + task_key)
+        print('# of dimensions: %d' % (len(importances)))
         print('\n'.join(ut.align_lines(lines, '&')))
 
 
-def feat_map(k):
+def feat_alias(k):
     # presentation values for feature dimension
     k = k.replace('weighted_', 'wgt_')
     k = k.replace('norm_x', 'x')
