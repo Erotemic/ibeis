@@ -476,7 +476,8 @@ class AnnotInfrMatching(object):
                 rank = None
             else:
                 rank = vt.safe_min(ranks)
-                score = np.nanmean(scores)
+                # score = np.nanmean(scores)
+                score = np.nanmax(scores)
             edge_to_data[(u, v)]['score'] = score
             edge_to_data[(u, v)]['rank'] = rank
         return edge_to_data

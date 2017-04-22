@@ -42,9 +42,11 @@ class AttrAccess(object):
         """ Networkx node getter helper """
         return dict(infr.gen_node_attrs(key, nodes=nodes, default=default))
 
-    def get_edge_attrs(infr, key, edges=None, default=ut.NoParam):
+    def get_edge_attrs(infr, key, edges=None, default=ut.NoParam,
+                       check_exist=False):
         """ Networkx edge getter helper """
-        return dict(infr.gen_edge_attrs(key, edges=edges, default=default))
+        return dict(infr.gen_edge_attrs(key, edges=edges, default=default,
+                                        check_exist=check_exist))
 
     def _get_edges_where(infr, key, op, val, edges=None, default=ut.NoParam):
         edge_to_attr = infr.gen_edge_attrs(key, edges=edges, default=default)
