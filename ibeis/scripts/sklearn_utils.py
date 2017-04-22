@@ -240,10 +240,10 @@ def classification_report2(y_true, y_pred, target_names=None,
         ('mcc', np.sign(bms) * np.sqrt(np.abs(bms * mks))),
         ('support', real_total),
     ])
-    tpa = tpas.dot(rprob)
-    tpr = tprs.dot(rprob)
-    mk = mks.dot(rprob)
-    bm = bms.dot(pprob)
+    tpa = np.nansum(tpas * rprob)
+    tpr = np.nansum(tprs * rprob)
+    mk = np.nansum(mks * rprob)
+    bm = np.nansum(bms * pprob)
 
     combined_data = ut.odict([
         ('precision', tpa),

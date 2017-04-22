@@ -17,15 +17,17 @@ TMP_RC = {
     'ytick.labelsize': 14,
 }
 
-FIG_DPATH = pathlib.Path(ut.truepath('~/latex/crall-thesis-2017/figures_pairclf'))
-
 
 def build_plots():
-    pblm = OneVsOneProblem.from_empty('PZ_PB_RF_TRAIN')
+    """
+    from ibeis.scripts.thesis import *
+    """
+    # pblm = OneVsOneProblem.from_empty('PZ_PB_RF_TRAIN')
     # pblm = OneVsOneProblem.from_empty('GZ_Master1')
-    pblm.eval_task_keys = ['match_state', 'photobomb_state']
+    pblm = OneVsOneProblem.from_empty('PZ_MTEST')
     data_key = pblm.default_data_key
     clf_key = pblm.default_clf_key
+    pblm.eval_task_keys = ['match_state', 'photobomb_state']
     pblm.eval_data_keys = [data_key]
     pblm.eval_clf_keys = [clf_key]
     pblm.setup_evaluation()
@@ -47,14 +49,24 @@ def build_plots():
     self.data_code = data_code
     self.data_key = data_key
     self.clf_key = clf_key
+    if ibs.dbname == 'PZ_MTEST':
+        self.dpath = ut.truepath('~/Desktop/mtest_plots')
+        self.dpath = pathlib.Path(self.dpath)
+        ut.ensuredir(self.dpath)
+        # ut.vd(self.dpath)
 
-    self.build_importance_data(pblm, 'match_state')
-    self.build_importance_data(pblm, 'photobomb_state')
+    if 'match_state' in pblm.eval_task_keys:
+        task_key = 'match_state'
+        self.build_importance_data(pblm, task_key)
 
-    self.build_roc_data_positive(pblm)
-    self.build_roc_data_photobomb(pblm)
+        self.build_roc_data_positive(pblm)
+        self.build_roc_data_photobomb(pblm)
 
-    self.build_score_freq_positive(pblm)
+        self.build_score_freq_positive(pblm)
+
+    if 'photobomb_state' in pblm.eval_task_keys:
+        task_key = 'photobomb_state'
+        self.build_importance_data(pblm, task_key)
 
 
 def draw_plots(self):
@@ -66,6 +78,8 @@ def draw_plots(self):
 @ut.reloadable_class
 class ThesisPlots(object):
     def __init__(self):
+        self.dpath = ut.truepath('~/latex/crall-thesis-2017/figures_pairclf')
+        self.dpath = pathlib.Path(self.dpath)
         self.species = None
         self.data_code = None
         self.data_key = None
@@ -136,7 +150,7 @@ class ThesisPlots(object):
     def draw_hard_cases(self, task_key, pblm):
         infr = pblm.infr
         dbname = pblm.infr.ibs.dbname
-        dpath = FIG_DPATH.joinpath(dbname + '_' + task_key + '_failures')
+        dpath = self.dpath.joinpath(dbname + '_' + task_key + '_failures')
         ut.ensuredir(str(dpath))
 
         from ibeis.constants import REVIEW
@@ -189,7 +203,7 @@ class ThesisPlots(object):
     def draw_score_hist(self, freq_plotdata):
         key = freq_plotdata.get('key', freq_plotdata.get('data_key'))
         fname = 'scorehist_%s_%s.png' % (key, freq_plotdata['data_code'],)
-        fig_fpath = FIG_DPATH.joinpath(fname)
+        fig_fpath = self.dpath.joinpath(fname)
 
         import plottool as pt
         fnum = 1
@@ -226,7 +240,7 @@ class ThesisPlots(object):
             target_class = 'positive'
 
         fname = 'roc_%s_%s.png' % (target_class, roc_data['data_code'],)
-        fig_fpath = FIG_DPATH.joinpath(fname)
+        fig_fpath = self.dpath.joinpath(fname)
 
         fig = pt.figure(fnum=1)  # NOQA
         ax = pt.gca()
@@ -244,15 +258,13 @@ class ThesisPlots(object):
         fig.savefig(str(fig_fpath), dpi=256)
         vt.clipwhite_ondisk(str(fig_fpath))
 
-    def draw_wordcloud(self, wc_data):
+    def draw_wordcloud(self, task_key):
         import plottool as pt
-        fnum = 2
-        fname = 'wc_%s_%s.png' % (wc_data['task'], wc_data['data_code'],)
-        fig_fpath = FIG_DPATH.joinpath(fname)
+        importances = ut.map_keys(feat_map, self.task_importance[task_key])
+        fname = 'wc_%s_%s.png' % (task_key, self.data_code)
+        fig_fpath = self.dpath.joinpath(fname)
         fig = pt.figure(fnum=fnum)
-        importances = wc_data['importances']
-        importances = ut.map_keys(feat_map, importances)
-        pt.wordcloud(importances, fnum=fnum)
+        pt.wordcloud(importances, fnum=1)
         fig.savefig(str(fig_fpath), dpi=256)
         vt.clipwhite_ondisk(str(fig_fpath))
 

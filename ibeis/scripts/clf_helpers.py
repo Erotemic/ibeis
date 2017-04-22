@@ -614,6 +614,9 @@ class ClfResult(ut.NiceRepr):
         return missing_classes
 
     def augment_if_needed(res):
+        """
+        Adds in dummy values for missing classes
+        """
         missing_classes = res.missing_classes()
         n_classes = len(res.class_names)
         y_test_enc_aug = res.target_enc_df.values
@@ -635,8 +638,8 @@ class ClfResult(ut.NiceRepr):
             y_test_enc_aug = np.vstack([y_test_enc_aug, missing_enc])
             y_test_bin_aug = np.vstack([y_test_bin_aug, missing_bin])
             clf_probs_aug = np.vstack([clf_probs_aug, missing_bin])
-            # make sample weights where dummies are significantly downweighted
-            sample_weight = np.hstack([sample_weight, np.full(n_missing, 1e-9)])
+            # make sample weights where dummies have no weight
+            sample_weight = np.hstack([sample_weight, np.full(n_missing, 0)])
 
             if res.probhats_df is not None:
                 clf_probhats_aug = np.vstack([clf_probhats_aug, missing_bin])
@@ -716,6 +719,7 @@ class ClfResult(ut.NiceRepr):
 
     def report_thresholds(res):
         import vtool as vt
+        ut.cprint('Threshold Report', 'yellow')
         y_test_bin = res.target_bin_df.values
         # y_test_enc = y_test_bin.argmax(axis=1)
         clf_probs = res.probs_df.values
@@ -804,8 +808,11 @@ class ClfResult(ut.NiceRepr):
                 sklearn.metrics.matthews_corrcoef(auto_truth_enc, auto_pred_enc)))
         except ValueError:
             pass
-        print('Autoclassify AUC(Macro): ' + str(
-            sklearn.metrics.roc_auc_score(auto_truth_bin, auto_probs)))
+        try:
+            print('Autoclassify AUC(Macro): ' + str(
+                sklearn.metrics.roc_auc_score(auto_truth_bin, auto_probs)))
+        except ValueError:
+            pass
         # return pos_threshes
 
         # print('hist of auto_truth labels' + str(ut.dict_hist(auto_pred_enc)))

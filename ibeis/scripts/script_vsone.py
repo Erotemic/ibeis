@@ -157,7 +157,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         assert infr._is_staging_above_annotmatch()
         infr.reset_feedback('staging', apply=True)
         if infr.ibs.dbname == 'PZ_MTEST':
-            assert False, 'need to do conversion'
+            # assert False, 'need to do conversion'
+            infr.ensure_mst()
         # if infr.needs_conversion():
         #     infr.ensure_mst()
         pblm = OneVsOneProblem(infr=infr)
@@ -1354,6 +1355,7 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples):
         >>> assert np.all(samples.index == indica_index)
     """
     def __init__(samples, ibs, aid_pairs, infr=None):
+        assert aid_pairs is not None
         super(AnnotPairSamples, samples).__init__(aid_pairs)
         samples.aid_pairs = np.array(aid_pairs)
         samples.infr = infr
@@ -1441,10 +1443,11 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples):
     def is_photobomb(samples):
         infr = samples.infr
         edges = samples.aid_pairs
-        flags = [
-            'photobomb' in d['tags'] if d is not None else None
-            for d in ut.lstarmap(infr.graph.get_edge_data, edges)
-        ]
+        assert edges is not None
+        tags = [None if d is None else d.get('tags')
+                for d in map(infr.get_edge_data, edges)]
+        flags = [None if t is None else 'photobomb' in t
+                 for t in tags]
         return np.array(flags, dtype=np.bool)
         # return samples.infr.is_photobomb(samples.aid_pairs)
 

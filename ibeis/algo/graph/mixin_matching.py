@@ -339,7 +339,6 @@ class AnnotInfrMatching(object):
         infr.print('apply_match_edges', 1)
         edges = infr._cm_breaking(review_cfg)
         # Create match-based graph structure
-        infr.remove_dummy_edges()
         infr.print('apply_match_edges adding %d edges' % len(edges), 1)
         infr.graph.add_edges_from(edges)
         infr.apply_match_scores()
