@@ -46,7 +46,7 @@ def precollect(defaultdb):
         species = 'Grévy\'s Zebras'
     dbcode = '{}_{}'.format(ibs.dbname, len(pblm.samples))
 
-    self = ExptChapter4()
+    self = Chap4()
     self.eval_task_keys = pblm.eval_task_keys
     self.species = species
     self.dbcode = dbcode
@@ -109,9 +109,91 @@ def chapter4_collect(defaultdb):
     ut.save_data(str(self.dpath.joinpath(fname)), self)
     return self
 
+class Chap3(object):
+
+    def __init__(self):
+        pass
+
+    def baseline(self):
+        import ibeis
+        from ibeis.init import main_helpers
+        from ibeis.expt import test_result, harness
+        from ibeis.init.filter_annots import encounter_crossval
+
+        defaultdb = 'PZ_MTEST'
+        ibs = ibeis.opendb(defaultdb)
+        aids = ibs.filter_annots_general(require_timestamp=True, is_known=True)
+        main_helpers.monkeypatch_encounters(ibs, aids, days=50)
+        annots = ibs.annots(aids)
+        expanded_aids = encounter_crossval(ibs, annots.aids, qenc_per_name=1,
+                                           denc_per_name=1, rebalance=False)
+        qaids, daids = expanded_aids[0]
+        cfgdict = {
+            # '_cfgname': 'baseline',
+        }
+        # testres = harness.make_single_testres(ibs, qaids, daids, [cfgdict],
+        #                                       ['baseline'], [cfgdict],
+        #                                       'baseline', 'baseline')
+        qreq_ = ibs.new_query_request(qaids, daids, cfgdict=cfgdict)
+        cm_list = qreq_.execute()
+        cmsinfo = test_result.build_cmsinfo(cm_list, qreq_)
+        testres = test_result.TestResult([cfgdict], ['baseline'], [cmsinfo],
+                                         [qreq_])
+        testres.acfg = {
+            'qcfg': {
+                'joinme': None
+            },
+            'dcfg': {
+                'joinme': None
+            }
+        }
+        testres.cfgdict_list = [cfgdict]
+        # testres.cfgx2_pcfg = [{cfgdict}]
+        from ibeis.expt.experiment_drawing import draw_rank_cmc
+        testres_ = test_result.combine_testres_list(ibs, [testres])
+        draw_rank_cmc(ibs, testres_)
+
+        cfgx2_cumhist_percent, edges = testres.get_rank_percentage_cumhist(
+            bins='dense', key='qnx2_gt_name_rank', join_acfgs=False)
+        pnum_ = pt.make_pnum_nextgen(nRows=1, nCols=1)
+
+        numranks = 20
+        edges_short = edges[0:min(len(edges), numranks + 1)]
+        target_label = 'accuracy (% per name)'
+        import plottool as pt
+        cfglbl_list = ['']
+        label_list = [
+            ('%6.2f%%' % (percent,)) + ' - ' + label
+            for label, percent in zip(cfglbl_list, cfgx2_cumhist_percent.T[0])]
+        fnum = 1
+        xpad = .9  # if kind == 'plot' else .5
+        kind = 'plot'
+        figtitle = ''
+        ymin = 30
+        num_yticks = 8 if ymin == 30 else 11
+        color_list = pt.distinct_colors(len(label_list))
+        marker_list = pt.distinct_markers(len(label_list))
+        cumhistkw = dict(
+            xlabel='rank', ylabel=target_label, color_list=color_list,
+            marker_list=marker_list, fnum=fnum,
+            legend_loc='lower right',
+            num_yticks=num_yticks, ymax=100, ymin=ymin, ypad=.5, xmin=xpad,
+            kind=kind, title=figtitle,
+        )
+        maxpos = min(len(cfgx2_cumhist_percent.T), numranks)
+        cfgx2_cumhist_short = cfgx2_cumhist_percent[:, 0:maxpos]
+        minval = numranks if numranks <= 10 else 10
+        pt.plot_rank_cumhist(
+            cfgx2_cumhist_short, edges=edges_short, label_list=label_list,
+            num_xticks=max(5, min(minval, (numranks // 20) + 2)),
+            legend_alpha=.92,
+            xmax=numranks + 1 - .5,
+            use_legend=True,
+            pnum=pnum_(), **cumhistkw)
+
 
 # @ut.reloadable_class
-class ExptChapter4(object):
+class Chap4(object):
     """
     Collect data from experiments to visualize
 
@@ -120,6 +202,25 @@ class ExptChapter4(object):
         >>> fpath = ut.glob(ut.truepath('~/Desktop/mtest_plots'), '*.pkl')[0]
         >>> self = ut.load_data(fpath)
     """
+
+    def __init__(self):
+        self.dpath = ut.truepath('~/latex/crall-thesis-2017/figures_pairclf')
+        self.dpath = pathlib.Path(self.dpath)
+        self.species = None
+        self.dbcode = None
+        self.data_key = None
+        self.clf_key = None
+        # info
+        self.eval_task_keys = None
+        self.task_importance = {}
+        self.task_rocs = {}
+        self.hard_cases = {}
+        self.task_confusion = {}
+        self.task_metrics = {}
+        self.task_nice_lookup = None
+
+        self.score_hist_lnbnn = None
+        self.score_hist_pos = None
 
     def draw(self):
         task_key = 'photobomb_state'
@@ -141,25 +242,6 @@ class ExptChapter4(object):
             if not ut.get_argflag('--nodraw'):
                 self.draw_hard_cases(task_key)
 
-    def __init__(self):
-        self.dpath = ut.truepath('~/latex/crall-thesis-2017/figures_pairclf')
-        self.dpath = pathlib.Path(self.dpath)
-        self.species = None
-        self.dbcode = None
-        self.data_key = None
-        self.clf_key = None
-        # info
-        self.eval_task_keys = None
-        self.task_importance = {}
-        self.task_rocs = {}
-        self.hard_cases = {}
-        self.task_confusion = {}
-        self.task_metrics = {}
-        self.task_nice_lookup = None
-
-        self.score_hist_lnbnn = None
-        self.score_hist_pos = None
-
     def build_metrics(self, pblm, task_key):
         res = pblm.task_combo_res[task_key][self.clf_key][self.data_key]
         res.augment_if_needed()
@@ -179,12 +261,12 @@ class ExptChapter4(object):
     def write_metrics(self, task_key='match_state'):
         """
         CommandLine:
-            python -m ibeis.scripts.thesis ExptChapter4.write_metrics --db PZ_PB_RF_TRAIN --task-key=match_state
-            python -m ibeis.scripts.thesis ExptChapter4.write_metrics --db GZ_Master1 --task-key=match_state
+            python -m ibeis.scripts.thesis Chap4.write_metrics --db PZ_PB_RF_TRAIN --task-key=match_state
+            python -m ibeis.scripts.thesis Chap4.write_metrics --db GZ_Master1 --task-key=match_state
 
         Example:
             >>> from ibeis.scripts.thesis import *
-            >>> kwargs = ut.argparse_funckw(ExptChapter4.write_metrics)
+            >>> kwargs = ut.argparse_funckw(Chap4.write_metrics)
             >>> defaultdb = 'GZ_Master1'
             >>> defaultdb = 'PZ_PB_RF_TRAIN'
             >>> self, pblm = precollect(defaultdb)
