@@ -47,17 +47,17 @@ class Chap3(object):
         import ibeis
         from ibeis.init import main_helpers
         ibs = ibeis.opendb(dbdir=self.dbdir)
-        # if ibs.dbname == 'PZ_Master0':
-        #     aids = ibs.filter_annots_general(require_timestamp=False, is_known=True,
-        #                                      # require_viewpoint=True,
-        #                                      # view='primary', view_ext=2,
-        #                                      min_pername=2, minqual='poor')
-        # else:
-        if True:
+        if ibs.dbname == 'PZ_Master0':
             aids = ibs.filter_annots_general(require_timestamp=True, is_known=True,
                                              # require_viewpoint=True,
                                              view='primary', view_ext=2,
                                              min_pername=2, minqual='poor')
+        else:
+            aids = ibs.filter_annots_general(require_timestamp=True,
+                                             is_known=True,
+                                             require_viewpoint=True,
+                                             view='primary', view_ext=2,
+                                             minqual='poor')
         ibs.print_annot_stats(aids, prefix='P')
         main_helpers.monkeypatch_encounters(ibs, aids, minutes=30)
         self.ibs = ibs
@@ -373,8 +373,9 @@ class Chap3(object):
     def measure_all(self):
         """
         from ibeis.scripts.thesis import *
-        self = Chap3.collect('PZ_Master1')
         self = Chap3.collect('GZ_Master1')
+        self = Chap3.collect('PZ_Master0')
+        self = Chap3.collect('PZ_Master1')
         """
         self.measure_baseline()
         self.measure_foregroundness()
