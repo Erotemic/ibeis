@@ -18,121 +18,83 @@ TMP_RC = {
 }
 
 
-def precollect(defaultdb):
-    """
-    Example:
-        >>> from ibeis.scripts.thesis import *
-        >>> defaultdb = 'GZ_Master1'
-        >>> self, pblm = precollect(defaultdb)
-        >>> task_key = 'match_state'
-        >>> self.build_metrics(pblm, task_key)()
-    """
-    pblm = OneVsOneProblem.from_empty(defaultdb)
-    data_key = pblm.default_data_key
-    clf_key = pblm.default_clf_key
-    pblm.eval_task_keys = ['match_state', 'photobomb_state']
-    pblm.eval_data_keys = [data_key]
-    pblm.eval_clf_keys = [clf_key]
-    pblm.setup_evaluation()
-
-    # pblm.evaluate_classifiers()
-    ibs = pblm.infr.ibs
-    pblm.samples.print_info()
-
-    species_code = ibs.get_database_species(pblm.infr.aids)[0]
-    if species_code == 'zebra_plains':
-        species = 'Plains Zebras'
-    if species_code == 'zebra_grevys':
-        species = 'Grévy\'s Zebras'
-    dbcode = '{}_{}'.format(ibs.dbname, len(pblm.samples))
-
-    self = Chap4()
-    self.eval_task_keys = pblm.eval_task_keys
-    self.species = species
-    self.dbcode = dbcode
-    self.data_key = data_key
-    self.clf_key = clf_key
-
-    self.task_nice_lookup = {
-        'match_state': ibs.const.REVIEW.CODE_TO_NICE,
-        'photobomb_state': {
-            'pb': 'Phototomb',
-            'notpb': 'Not Phototomb',
-        }
-    }
-
-    if ibs.dbname == 'PZ_MTEST':
-        self.dpath = ut.truepath('~/Desktop/' + self.dbcode)
-    else:
-        base = '~/latex/crall-thesis-2017/figures_pairclf'
-        self.dpath = ut.truepath(base + '/' + self.dbcode)
-    self.dpath = pathlib.Path(self.dpath)
-    ut.ensuredir(self.dpath)
-    return self, pblm
-
-
-def chapter4_collect(defaultdb):
-    """
-    CommandLine:
-        python -m ibeis.scripts.thesis chapter4_collect --db PZ_PB_RF_TRAIN
-        python -m ibeis.scripts.thesis chapter4_collect --db GZ_Master1
-        python -m ibeis.scripts.thesis chapter4_collect --db PZ_MTEST
-        python -m ibeis.scripts.thesis chapter4_collect
-
-    Example:
-        >>> from ibeis.scripts.thesis import *
-        >>> defaultdb = 'PZ_PB_RF_TRAIN'
-        >>> #defaultdb = 'GZ_Master1'
-        >>> defaultdb = 'PZ_MTEST'
-        >>> self = chapter4_collect(defaultdb)
-        >>> self.draw()
-    """
-    self, pblm = precollect(defaultdb)
-    #-----------
-    # COLLECTION
-    #-----------
-    task_key = 'match_state'
-    if task_key in pblm.eval_task_keys:
-        self.build_importance_data(pblm, task_key)
-        self.build_roc_data_positive(pblm)
-        self.build_score_freq_positive(pblm)
-        self.build_hard_cases(pblm, task_key, num_top=4)
-        self.build_metrics(pblm, task_key)
-
-    task_key = 'photobomb_state'
-    if task_key in pblm.eval_task_keys:
-        # self.build_roc_data_photobomb(pblm)
-        self.build_importance_data(pblm, task_key)
-        self.build_metrics(pblm, task_key)
-
-    fname = 'collected_data.pkl'
-    ut.save_data(str(self.dpath.joinpath(fname)), self)
-    return self
-
+@ut.reloadable_class
 class Chap3(object):
-
+    """
+    """
     def __init__(self):
-        pass
+        self.dpath = ut.truepath('~/latex/crall-thesis-2017/figures_new3')
 
-    def testdata1(self):
+    @classmethod
+    def collect(Chap3, defaultdb='PZ_MTEST'):
+        """
+        Example:
+            >>> from ibeis.scripts.thesis import *
+            >>> #self = Chap3.collect('PZ_MTEST')
+            >>> self = Chap3.collect('PZ_PB_RF_TRAIN')
+            >>> #self = Chap3.collect('GZ_Master1')
+        """
+        import ibeis
+        self = Chap3()
+        self.dbdir = ibeis.sysres.get_args_dbdir(defaultdb=defaultdb)
+        self._init()
+        return self
+
+    def _init(self):
         import ibeis
         from ibeis.init import main_helpers
-        from ibeis.expt import test_result, harness
-        from ibeis.init.filter_annots import encounter_crossval
-        import plottool as pt
-        pt.qtensure()
-        defaultdb = 'PZ_MTEST'
-        ibs = ibeis.opendb(defaultdb)
+        ibs = ibeis.opendb(dbdir=self.dbdir)
         aids = ibs.filter_annots_general(require_timestamp=True, is_known=True)
-        main_helpers.monkeypatch_encounters(ibs, aids, days=50)
+        main_helpers.monkeypatch_encounters(ibs, aids, minutes=30)
+        self.ibs = ibs
+        self.aids_pool = aids
+        if False:
+            # check encounter stats
+            annots = ibs.annots(aids)
+            annots_list = annots.group(annots.encounter_text)[1]
+            # singletons = [a for a in annots_list if len(a) == 1]
+            multitons = [a for a in annots_list if len(a) > 1]
+            deltas = []
+            for a in multitons:
+                times = a.image_unixtimes_asfloat
+                deltas.append(max(times) - min(times))
+            ut.lmap(ut.get_posix_timedelta_str, sorted(deltas))
+
+    # def _baseline_inputs(self):
+    #     aids = self.ibs.filter_annots_general(self.aids_pool, minqual='ok',
+    #                                           view='primary')
+    #     annots = self.ibs.annots(aids)
+    #     encounters = annots.group(annots.encounter_text)[1]
+    #     # Choose annotation per encounter
+    #     rng = np.random.RandomState(0)
+    #     annots2 = self.ibs.annots([rng.choice(enc.aids) for enc in encounters])
+    #     names = annots2.group(annots2.nids)[1]
+    #     singletons = [a for a in names if len(a) == 1]
+    #     multitons = [a for a in names if len(a) > 1]
+    #     qaids = []
+    #     daids = []
+    #     for a in multitons:
+    #         qaid, daid = rng.choice(a, 2, replace=False)
+    #         qaids.append(qaid)
+    #         daids.append(daid)
+    #     daids.extend(ut.flatten(singletons))
+    #     ibs.print_annotconfig_stats(qaids, daids)
+
+    def _inputs(self):
+        from ibeis.init.filter_annots import encounter_crossval
         # Sample a dataset
-        expanded_aids = encounter_crossval(ibs, aids, qenc_per_name=1,
-                                           denc_per_name=1, rebalance=False)
+        ibs = self.ibs
+        aids = self.ibs.filter_annots_general(self.aids_pool, minqual='ok',
+                                              view='primary')
+        expanded_aids = encounter_crossval(self.ibs, aids, qenc_per_name=1,
+                                           annots_per_enc=1, denc_per_name=1,
+                                           rebalance=True, rng=0)
         qaids, daids = expanded_aids[0]
+        ibs.print_annotconfig_stats(qaids, daids)
         return ibs, qaids, daids
 
-    def exec_ranking(self, ibs, qaids, daids, cfgdict):
-        ibs, qaids, daids = self.testdata1()
+    def _exec_ranking(self, ibs, qaids, daids, cfgdict):
+        ibs, qaids, daids = self._inputs()
         # Execute the ranking algorithm
         qreq_ = ibs.new_query_request(qaids, daids, cfgdict=cfgdict)
         cm_list = qreq_.execute()
@@ -141,57 +103,81 @@ class Chap3(object):
         # Measure rank probabilities
         bins = np.arange(len(qreq_.dnids))
         hist = np.histogram(name_ranks, bins=bins)[0]
-        cdf_percent = (np.cumsum(hist) / sum(hist)) * 100
-        return cdf_percent
+        cdf = (np.cumsum(hist) / sum(hist))
+        return cdf
+
+    def measure_baseline(self):
+        ibs, qaids, daids = self._inputs()
+        cfgdict = {}
+        cdf = self._exec_ranking(ibs, qaids, daids, cfgdict)
+        return cdf, 'baseline'
+
+    def measure_foregroundness(self):
+        ibs, qaids, daids = self._inputs()
+        cfgdict = {'fg_on': False}
+        cdf = self._exec_ranking(ibs, qaids, daids, cfgdict)
+        return cdf, 'without foregroundness'
 
     def baseline(self):
-        """
-        >>> from ibeis.scripts.thesis import *
-        >>> self = Chap3()
-        """
-        ibs, qaids, daids = self.testdata1()
-        cfgdict = {}
-        cdf_percent = self.exec_ranking(ibs, qaids, daids, cfgdict)
-        # Truncate the cdf and prepare to plot
-        label = '%6.2f%%' % (cdf_percent[0],)
-        num_ranks = min(len(bins), 20)
-        xdata = np.arange(1, num_ranks + 1)
-        cdf_trunc = cdf_percent[0:num_ranks]
-        pt.multi_plot(
-            xdata, [cdf_trunc], label_list=[label],
-            xlabel='rank', ylabel='accuracy (% per name)',
-            use_legend=True, legend_loc='lower right', num_yticks=8, ymax=100,
-            ymin=30, ypad=.5, xmin=.9, num_xticks=5, xmax=num_ranks + 1 - .5,
-        )
+        cdfs, labels = zip(*[self.measure_baseline()])
+        self.plot_cmcs(cdfs, labels)
 
     def foregroundness(self):
-        ibs, qaids, daids = self.testdata1()
-        cfgdict = {'fg_on': False}
-        cdf_percent = self.exec_ranking(ibs, qaids, daids, cfgdict)
-        # Truncate the cdf and prepare to plot
-        label = '%6.2f%%' % (cdf_percent[0],)
+        """
+        Example:
+            >>> from ibeis.scripts.thesis import *
+            >>> self = Chap3.collect('PZ_PB_RF_TRAIN')
+        """
+        cdfs, labels = zip(*[
+            self.measure_baseline(),
+            self.measure_foregroundness()
+        ])
+        self.plot_cmcs(cdfs, labels)
+
+    def plot_cmcs(self, cdfs, labels):
+        cdfs = np.array(cdfs)
+        num_ranks = min(cdfs.shape[-1], 20)
         xdata = np.arange(1, num_ranks + 1)
-        cdf_trunc = cdf_percent[0:num_ranks]
+        cdfs_trunc = cdfs[:, 0:num_ranks]
+
+        sortx = np.lexsort(cdfs.T)[::-1]
+        cdfs = cdfs[sortx]
+        labels = ut.take(labels, sortx)
+
+        label_list = ['%6.2f%% - %s' % (cdf[0] * 100, lbl)
+                      for cdf, lbl in zip(cdfs, labels)]
         pt.multi_plot(
-            xdata, [cdf_trunc], label_list=[label],
-            xlabel='rank', ylabel='accuracy (% per name)',
-            use_legend=True, legend_loc='lower right', num_yticks=8, ymax=100,
-            ymin=30, ypad=.5, xmin=.9, num_xticks=5, xmax=num_ranks + 1 - .5,
+            xdata, cdfs_trunc, label_list=label_list,
+            xlabel='rank', ylabel='match probability',
+            use_legend=True, legend_loc='lower right', num_yticks=5, ymax=1,
+            ymin=.5, ypad=.005, xmin=.9, num_xticks=5, xmax=num_ranks + 1 - .5,
         )
 
     def invariance(self):
+        ALIAS_KEYS = ut.invert_dict({
+            'RI': 'rotation_invariance',
+            'AI': 'affine_invariance',
+            'QRH': 'query_rotation_heuristic',
+        })
         invar = [
-            {'affine_invariance':  [True], 'rotation_invariance': [False], 'query_rotation_heuristic': [False]},
-            {'affine_invariance':  [True], 'rotation_invariance':  [True], 'query_rotation_heuristic': [False]},
-            {'affine_invariance': [False], 'rotation_invariance':  [True], 'query_rotation_heuristic': [False]},
-            {'affine_invariance': [False], 'rotation_invariance': [False], 'query_rotation_heuristic': [False]},
-            {'affine_invariance':  [True], 'rotation_invariance': [False], 'query_rotation_heuristic':  [True]},
-            {'affine_invariance': [False], 'rotation_invariance': [False], 'query_rotation_heuristic':  [True]},
+            {'affine_invariance':  True, 'rotation_invariance': False, 'query_rotation_heuristic': False},
+            {'affine_invariance':  True, 'rotation_invariance':  True, 'query_rotation_heuristic': False},
+            {'affine_invariance': False, 'rotation_invariance':  True, 'query_rotation_heuristic': False},
+            {'affine_invariance': False, 'rotation_invariance': False, 'query_rotation_heuristic': False},
+            {'affine_invariance':  True, 'rotation_invariance': False, 'query_rotation_heuristic':  True},
+            {'affine_invariance': False, 'rotation_invariance': False, 'query_rotation_heuristic':  True},
         ]
-        ibs, qaids, daids = self.testdata1()
-        cfgdict = {'fg_on': False}
-        cdf_percent, bins = self.exec_ranking(ibs, qaids, daids, cfgdict)
+        ibs, qaids, daids = self._inputs()
+        pairs = []
+        for cfgdict in invar:
+            cdf = self._exec_ranking(ibs, qaids, daids, cfgdict)
+            label = ut.get_cfg_lbl(ut.map_keys(ALIAS_KEYS, cfgdict))[1:]
+            label = label.replace('True', 'T').replace('False', 'F')
+            pairs.append((cdf, label))
+        pairs.append(self.measure_baseline())
 
+        cdfs, labels = zip(*pairs)
+        self.plot_cmcs(cdfs, labels)
 
 
 # @ut.reloadable_class
@@ -204,6 +190,87 @@ class Chap4(object):
         >>> fpath = ut.glob(ut.truepath('~/Desktop/mtest_plots'), '*.pkl')[0]
         >>> self = ut.load_data(fpath)
     """
+
+    @classmethod
+    def collect(Chap4, defaultdb):
+        r"""
+        CommandLine:
+            python -m ibeis.scripts.thesis Chap4.collect --db PZ_PB_RF_TRAIN
+            python -m ibeis.scripts.thesis Chap4.collect --db PZ_MTEST
+            python -m ibeis.scripts.thesis Chap4.collect
+
+            python -m ibeis.scripts.thesis Chap4.collect --db GZ_Master1
+
+        Example:
+            >>> from ibeis.scripts.thesis import *
+            >>> defaultdb = 'PZ_PB_RF_TRAIN'
+            >>> #defaultdb = 'GZ_Master1'
+            >>> defaultdb = 'PZ_MTEST'
+            >>> self = Chap4.collect(defaultdb)
+            >>> self.draw()
+        """
+        pblm = OneVsOneProblem.from_empty(defaultdb)
+        data_key = pblm.default_data_key
+        clf_key = pblm.default_clf_key
+        pblm.eval_task_keys = ['match_state', 'photobomb_state']
+        pblm.eval_data_keys = [data_key]
+        pblm.eval_clf_keys = [clf_key]
+        pblm.setup_evaluation()
+
+        # pblm.evaluate_classifiers()
+        ibs = pblm.infr.ibs
+        pblm.samples.print_info()
+
+        species_code = ibs.get_database_species(pblm.infr.aids)[0]
+        if species_code == 'zebra_plains':
+            species = 'Plains Zebras'
+        if species_code == 'zebra_grevys':
+            species = 'Grévy\'s Zebras'
+        dbcode = '{}_{}'.format(ibs.dbname, len(pblm.samples))
+
+        self = Chap4()
+        self.eval_task_keys = pblm.eval_task_keys
+        self.species = species
+        self.dbcode = dbcode
+        self.data_key = data_key
+        self.clf_key = clf_key
+
+        self.task_nice_lookup = {
+            'match_state': ibs.const.REVIEW.CODE_TO_NICE,
+            'photobomb_state': {
+                'pb': 'Phototomb',
+                'notpb': 'Not Phototomb',
+            }
+        }
+
+        if ibs.dbname == 'PZ_MTEST':
+            self.dpath = ut.truepath('~/Desktop/' + self.dbcode)
+        else:
+            base = '~/latex/crall-thesis-2017/figures_pairclf'
+            self.dpath = ut.truepath(base + '/' + self.dbcode)
+        self.dpath = pathlib.Path(self.dpath)
+        ut.ensuredir(self.dpath)
+
+        #-----------
+        # COLLECTION
+        #-----------
+        task_key = 'match_state'
+        if task_key in pblm.eval_task_keys:
+            self.build_importance_data(pblm, task_key)
+            self.build_roc_data_positive(pblm)
+            self.build_score_freq_positive(pblm)
+            self.build_hard_cases(pblm, task_key, num_top=4)
+            self.build_metrics(pblm, task_key)
+
+        task_key = 'photobomb_state'
+        if task_key in pblm.eval_task_keys:
+            # self.build_roc_data_photobomb(pblm)
+            self.build_importance_data(pblm, task_key)
+            self.build_metrics(pblm, task_key)
+
+        fname = 'collected_data.pkl'
+        ut.save_data(str(self.dpath.joinpath(fname)), self)
+        return self
 
     def __init__(self):
         self.dpath = ut.truepath('~/latex/crall-thesis-2017/figures_pairclf')

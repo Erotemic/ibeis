@@ -678,6 +678,7 @@ def crossval_helper(nid_to_sample_pool, perquery, perdatab, n_need,
 
 def encounter_crossval(ibs, aids, qenc_per_name=1, denc_per_name=1,
                        enc_labels=None, confusors=True, rng=None,
+                       annots_per_enc=None,
                        rebalance=True, n_splits=None, early=False):
     """
     Constructs a list of [ (qaids, daids) ] where there are `qenc_per_name` and
@@ -745,6 +746,9 @@ def encounter_crossval(ibs, aids, qenc_per_name=1, denc_per_name=1,
     # Group annotations by encounter
     encounters = ibs._annot_groups(annots.group(enc_labels)[1])
     enc_nids = ut.take_column(encounters.nids, 0)
+    rng = ut.ensure_rng(rng, impl='python')
+    if annots_per_enc is not None:
+        encounters = [rng.sample(list(a), annots_per_enc) for a in encounters]
     # Group encounters by name
     nid_to_encs = ut.group_items(encounters, enc_nids)
 
