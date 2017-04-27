@@ -221,36 +221,6 @@ class Chap3(object):
         cdf = (np.cumsum(hist) / sum(hist))
         return cdf
 
-    def measure_baseline(self):
-        ibs, qaids, daids = self._inputs()
-        cfgdict = {}
-        cdf = self._exec_ranking(ibs, qaids, daids, cfgdict)
-        return cdf, 'baseline'
-
-    def measure_foregroundness(self):
-        ibs, qaids, daids = self._inputs()
-        cfgdict = {'fg_on': False}
-        cdf = self._exec_ranking(ibs, qaids, daids, cfgdict)
-        return cdf, 'without foregroundness'
-
-    def baseline(self):
-        cdfs, labels = zip(*[self.measure_baseline()])
-        self.plot_cmcs(cdfs, labels)
-
-    def foregroundness(self):
-        """
-        Example:
-            >>> from ibeis.scripts.thesis import *
-            >>> self = Chap3.collect('PZ_PB_RF_TRAIN')
-            >>> self = Chap3.collect('PZ_MTEST')
-            >>> self = Chap3.collect('GZ_Master1')
-        """
-        cdfs, labels = zip(*[
-            self.measure_baseline(),
-            self.measure_foregroundness()
-        ])
-        self.plot_cmcs(cdfs, labels)
-
     def plot_cmcs(self, cdfs, labels):
         cdfs = np.array(cdfs)
         # Sort so the best is on top
@@ -270,7 +240,37 @@ class Chap3(object):
             ymin=.5, ypad=.005, xmin=.9, num_xticks=5, xmax=num_ranks + 1 - .5,
         )
 
-    def invariance(self):
+    def baseline(self):
+        cdfs, labels = zip(*[self.measure_baseline()])
+        self.plot_cmcs(cdfs, labels)
+
+    def foregroundness(self):
+        """
+        Example:
+            >>> from ibeis.scripts.thesis import *
+            >>> self = Chap3.collect('PZ_PB_RF_TRAIN')
+            >>> self = Chap3.collect('PZ_MTEST')
+            >>> self = Chap3.collect('GZ_Master1')
+        """
+        cdfs, labels = zip(*[
+            self.measure_baseline(),
+            self.measure_foregroundness()
+        ])
+        self.plot_cmcs(cdfs, labels)
+
+    def measure_baseline(self):
+        ibs, qaids, daids = self._inputs()
+        cfgdict = {}
+        cdf = self._exec_ranking(ibs, qaids, daids, cfgdict)
+        return cdf, 'baseline'
+
+    def measure_foregroundness(self):
+        ibs, qaids, daids = self._inputs()
+        cfgdict = {'fg_on': False}
+        cdf = self._exec_ranking(ibs, qaids, daids, cfgdict)
+        return cdf, 'without foregroundness'
+
+    def measure_invariance(self):
         ALIAS_KEYS = ut.invert_dict({
             'RI': 'rotation_invariance',
             'AI': 'affine_invariance',
@@ -294,11 +294,10 @@ class Chap3(object):
             # baseline
             pairs.append((cdf, label))
         # pairs.append(self.measure_baseline())
-
         cdfs, labels = zip(*pairs)
-        self.plot_cmcs(cdfs, labels)
+        # self.plot_cmcs(cdfs, labels)
 
-    def nsum_expt(self):
+    def measure_nsum(self):
         ibs, qaids, daids_list = self._vary_dpername_inputs()
         cfgdict1 = {
             'score_method': 'nsum',
@@ -317,12 +316,11 @@ class Chap3(object):
             cdf2 = self._exec_ranking(ibs, qaids, daids, cfgdict2)
             pairs.append((cdf2, 'csum,dpername=%d' % count))
         cdfs, labels = zip(*pairs)
-        self.plot_cmcs(cdfs, labels)
-        pt.gca().set_title('#qaids=%r #daids=%r' % (len(qaids), len(daids)))
+        # self.plot_cmcs(cdfs, labels)
+        # pt.gca().set_title('#qaids=%r #daids=%r' % (len(qaids), len(daids)))
 
-    def k_expt(self):
+    def measure_k_dbsize(self):
         ibs, qaids, daids_list = self._vary_dbsize_inputs()
-
         cfg_grid = {
             'query_rotation_heuristic': True,
             'K': [1, 2, 4, 6, 10],
@@ -333,11 +331,10 @@ class Chap3(object):
                 cdf = self._exec_ranking(ibs, qaids, daids, cfgdict)
                 label = 'K=%r, dsize=%r' % (cfgdict['K'], len(daids))
                 pairs.append((cdf, label))
+        cdfs, labels = zip(*pairs)
 
-    def smk_expt(self):
+    def measure_smk(self):
         from ibeis.algo.smk.smk_pipeline import SMKRequest
-        # from ibeis.scripts.thesis import *
-        self = Chap3.collect('PZ_MTEST')
         # ibs = ibeis.opendb('PZ_MTEST')
         ibs, qaids, daids = self._inputs()
         config = {'nAssign': 1, 'num_words': 8000, 'sv_on': True}
@@ -352,9 +349,22 @@ class Chap3(object):
         cdf = (np.cumsum(hist) / sum(hist))
         pairs = [(cdf, 'smk')]
         pairs.append(self.measure_baseline())
-        cdfs, labels = zip(*pairs)
-        self.plot_cmcs(cdfs, labels)
-        pt.gca().set_title('#qaids=%r #daids=%r' % (len(qaids), len(daids)))
+
+        # cdfs, labels = zip(*pairs)
+        # self.plot_cmcs(cdfs, labels)
+        # pt.gca().set_title('#qaids=%r #daids=%r' % (len(qaids), len(daids)))
+
+    def measure_all(self):
+        """
+        from ibeis.scripts.thesis import *
+        self = Chap3.collect('GZ_Master1')
+        """
+        self.measure_baseline()
+        self.measure_foregroundness()
+        self.measure_smk()
+        self.measure_nsum()
+        self.measure_k_dbsize()
+        self.measure_invariance()
 
 
 # @ut.reloadable_class
