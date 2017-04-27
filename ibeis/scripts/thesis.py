@@ -86,6 +86,7 @@ class Chap3(object):
         ibs = self.ibs
         # aids = self.ibs.filter_annots_general(self.aids_pool, minqual='ok',
         #                                       view='primary')
+        aids = self.ibs.filter_annots_general(self.aids_pool, minqual='poor')
         aids = self.aids_pool
         expanded_aids = encounter_crossval(self.ibs, aids, qenc_per_name=1,
                                            annots_per_enc=1, denc_per_name=1,
@@ -100,7 +101,7 @@ class Chap3(object):
         from ibeis.init.filter_annots import encounter_crossval
         # Sample a dataset
         ibs = self.ibs
-        aids = self.ibs.filter_annots_general(self.aids_pool, minqual='ok')
+        aids = self.ibs.filter_annots_general(self.aids_pool, minqual='poor')
         denc_per_name = 3
         enc_splits, nid_to_confusors = encounter_crossval(
             self.ibs, aids, qenc_per_name=1, annots_per_enc=1,
@@ -138,6 +139,67 @@ class Chap3(object):
         print('max_dsize = %r' % (max_dsize,))
         print('num_extra = %r' % (num_extra,))
         print(list(map(len, daids_list)))
+        if True:
+            print_cfg = dict(per_multiple=False, use_hist=False)
+            for daids in daids_list:
+                ibs.print_annotconfig_stats(qaids, daids, **print_cfg)
+        return ibs, qaids, daids_list
+
+    def _vary_dbsize_inputs(self):
+        """
+        Vary num per name and total number of annots
+        """
+        from ibeis.init.filter_annots import encounter_crossval
+        # Sample a dataset
+        ibs = self.ibs
+        aids = self.ibs.filter_annots_general(self.aids_pool, minqual='poor')
+        denc_per_name = 2
+        enc_splits, nid_to_confusors = encounter_crossval(
+            self.ibs, aids, qenc_per_name=1, annots_per_enc=1,
+            denc_per_name=denc_per_name, rebalance=True, rng=0, early=True)
+        qencs, dencs = enc_splits[0]
+        qaids = sorted(ut.flatten(ut.flatten(qencs)))
+
+        confusor_pool = ut.flatten(ut.flatten(nid_to_confusors.values()))
+        confusor_pool = ut.shuffle(confusor_pool, rng=0)
+
+        target_daids_list = []
+        # Keep the number of annots in the database (more or less) constant
+        for num in range(1, denc_per_name + 1):
+            denc_ = ut.take_column(dencs, list(range(num)))
+            daids_ = ut.flatten(ut.flatten(denc_))
+            target_daids_list.append(daids_)
+
+        dbsize_list = ut.lmap(len, target_daids_list)
+        min_dsize = min(dbsize_list)
+        max_dsize = max(dbsize_list)
+        num_need = max_dsize - min_dsize
+        num_extra = len(confusor_pool) - num_need
+        if len(confusor_pool) < num_need:
+            print('Warning: not enough confusors to pad dbsize')
+
+        confusor_daids_list = []
+        for dsize in dbsize_list:
+            num_take = max_dsize - dsize
+            confusor_daids_list.append(confusor_pool[:num_take])
+
+        extra_fracs = [0, .5, 1]
+        nextra_list = ut.unique([int(num_extra * frac) for frac in extra_fracs])
+        print('nextra_list = %r' % (nextra_list,))
+
+        daids_list_ = [a + b for a, b in zip(target_daids_list,
+                                             confusor_daids_list)]
+        print(list(map(len, daids_list_)))
+
+        daids_list = [sorted(daids + confusor_pool[len(confusor_pool) - n:])
+                      for n in nextra_list for daids in daids_list_]
+        print(list(map(len, daids_list)))
+
+        print('nextra_list = %r' % (nextra_list,))
+        print('#qaids = %r' % (len(qaids),))
+        print('num_need = %r' % (num_need,))
+        print('max_dsize = %r' % (max_dsize,))
+        print('num_extra = %r' % (num_extra,))
         if True:
             print_cfg = dict(per_multiple=False, use_hist=False)
             for daids in daids_list:
@@ -257,67 +319,6 @@ class Chap3(object):
         cdfs, labels = zip(*pairs)
         self.plot_cmcs(cdfs, labels)
         pt.gca().set_title('#qaids=%r #daids=%r' % (len(qaids), len(daids)))
-
-    def _vary_dbsize_inputs(self):
-        """
-        Vary num per name and total number of annots
-        """
-        from ibeis.init.filter_annots import encounter_crossval
-        # Sample a dataset
-        ibs = self.ibs
-        aids = self.ibs.filter_annots_general(self.aids_pool, minqual='poor')
-        denc_per_name = 2
-        enc_splits, nid_to_confusors = encounter_crossval(
-            self.ibs, aids, qenc_per_name=1, annots_per_enc=1,
-            denc_per_name=denc_per_name, rebalance=True, rng=0, early=True)
-        qencs, dencs = enc_splits[0]
-        qaids = sorted(ut.flatten(ut.flatten(qencs)))
-
-        confusor_pool = ut.flatten(ut.flatten(nid_to_confusors.values()))
-        confusor_pool = ut.shuffle(confusor_pool, rng=0)
-
-        target_daids_list = []
-        # Keep the number of annots in the database (more or less) constant
-        for num in range(1, denc_per_name + 1):
-            denc_ = ut.take_column(dencs, list(range(num)))
-            daids_ = ut.flatten(ut.flatten(denc_))
-            target_daids_list.append(daids_)
-
-        dbsize_list = ut.lmap(len, target_daids_list)
-        min_dsize = min(dbsize_list)
-        max_dsize = max(dbsize_list)
-        num_need = max_dsize - min_dsize
-        num_extra = len(confusor_pool) - num_need
-        if len(confusor_pool) < num_need:
-            print('Warning: not enough confusors to pad dbsize')
-
-        confusor_daids_list = []
-        for dsize in dbsize_list:
-            num_take = max_dsize - dsize
-            confusor_daids_list.append(confusor_pool[:num_take])
-
-        extra_fracs = [0, .5, 1]
-        nextra_list = ut.unique([int(num_extra * frac) for frac in extra_fracs])
-        print('nextra_list = %r' % (nextra_list,))
-
-        daids_list_ = [a + b for a, b in zip(target_daids_list,
-                                             confusor_daids_list)]
-        print(list(map(len, daids_list_)))
-
-        daids_list = [sorted(daids + confusor_pool[len(confusor_pool) - n:])
-                      for n in nextra_list for daids in daids_list_]
-        print(list(map(len, daids_list)))
-
-        print('nextra_list = %r' % (nextra_list,))
-        print('#qaids = %r' % (len(qaids),))
-        print('num_need = %r' % (num_need,))
-        print('max_dsize = %r' % (max_dsize,))
-        print('num_extra = %r' % (num_extra,))
-        if True:
-            print_cfg = dict(per_multiple=False, use_hist=False)
-            for daids in daids_list:
-                ibs.print_annotconfig_stats(qaids, daids, **print_cfg)
-        return ibs, qaids, daids_list
 
     def k_expt(self):
         ibs, qaids, daids_list = self._vary_dbsize_inputs()
