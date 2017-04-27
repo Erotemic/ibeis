@@ -44,7 +44,8 @@ class Chap3(object):
         import ibeis
         from ibeis.init import main_helpers
         ibs = ibeis.opendb(dbdir=self.dbdir)
-        aids = ibs.filter_annots_general(require_timestamp=True, is_known=True)
+        aids = ibs.filter_annots_general(require_timestamp=True, is_known=True,
+                                         minqual='poor')
         main_helpers.monkeypatch_encounters(ibs, aids, minutes=30)
         self.ibs = ibs
         self.aids_pool = aids
@@ -341,7 +342,7 @@ class Chap3(object):
         qreq_ = SMKRequest(ibs, qaids, daids, config)
         qreq_.ensure_data()
         cm_list = qreq_.execute()
-        # cm_list = [cm.extend_results(qreq_) for cm in cm_list]
+        cm_list = [cm.extend_results(qreq_) for cm in cm_list]
         name_ranks = [cm.get_name_ranks([cm.qnid])[0] for cm in cm_list]
         # Measure rank probabilities
         bins = np.arange(len(qreq_.dnids))
@@ -357,6 +358,7 @@ class Chap3(object):
     def measure_all(self):
         """
         from ibeis.scripts.thesis import *
+        self = Chap3.collect('PZ_Master1')
         self = Chap3.collect('GZ_Master1')
         """
         self.measure_baseline()
