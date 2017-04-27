@@ -114,82 +114,84 @@ class Chap3(object):
     def __init__(self):
         pass
 
-    def baseline(self):
+    def testdata1(self):
         import ibeis
         from ibeis.init import main_helpers
         from ibeis.expt import test_result, harness
         from ibeis.init.filter_annots import encounter_crossval
-
+        import plottool as pt
+        pt.qtensure()
         defaultdb = 'PZ_MTEST'
         ibs = ibeis.opendb(defaultdb)
         aids = ibs.filter_annots_general(require_timestamp=True, is_known=True)
         main_helpers.monkeypatch_encounters(ibs, aids, days=50)
-        annots = ibs.annots(aids)
-        expanded_aids = encounter_crossval(ibs, annots.aids, qenc_per_name=1,
+        # Sample a dataset
+        expanded_aids = encounter_crossval(ibs, aids, qenc_per_name=1,
                                            denc_per_name=1, rebalance=False)
         qaids, daids = expanded_aids[0]
-        cfgdict = {
-            # '_cfgname': 'baseline',
-        }
-        # testres = harness.make_single_testres(ibs, qaids, daids, [cfgdict],
-        #                                       ['baseline'], [cfgdict],
-        #                                       'baseline', 'baseline')
+        return ibs, qaids, daids
+
+    def exec_ranking(self, ibs, qaids, daids, cfgdict):
+        ibs, qaids, daids = self.testdata1()
+        # Execute the ranking algorithm
         qreq_ = ibs.new_query_request(qaids, daids, cfgdict=cfgdict)
         cm_list = qreq_.execute()
-        cmsinfo = test_result.build_cmsinfo(cm_list, qreq_)
-        testres = test_result.TestResult([cfgdict], ['baseline'], [cmsinfo],
-                                         [qreq_])
-        testres.acfg = {
-            'qcfg': {
-                'joinme': None
-            },
-            'dcfg': {
-                'joinme': None
-            }
-        }
-        testres.cfgdict_list = [cfgdict]
-        # testres.cfgx2_pcfg = [{cfgdict}]
-        from ibeis.expt.experiment_drawing import draw_rank_cmc
-        testres_ = test_result.combine_testres_list(ibs, [testres])
-        draw_rank_cmc(ibs, testres_)
+        cm_list = [cm.extend_results(qreq_) for cm in cm_list]
+        name_ranks = [cm.get_name_ranks([cm.qnid])[0] for cm in cm_list]
+        # Measure rank probabilities
+        bins = np.arange(len(qreq_.dnids))
+        hist = np.histogram(name_ranks, bins=bins)[0]
+        cdf_percent = (np.cumsum(hist) / sum(hist)) * 100
+        return cdf_percent
 
-        cfgx2_cumhist_percent, edges = testres.get_rank_percentage_cumhist(
-            bins='dense', key='qnx2_gt_name_rank', join_acfgs=False)
-        pnum_ = pt.make_pnum_nextgen(nRows=1, nCols=1)
-
-        numranks = 20
-        edges_short = edges[0:min(len(edges), numranks + 1)]
-        target_label = 'accuracy (% per name)'
-        import plottool as pt
-        cfglbl_list = ['']
-        label_list = [
-            ('%6.2f%%' % (percent,)) + ' - ' + label
-            for label, percent in zip(cfglbl_list, cfgx2_cumhist_percent.T[0])]
-        fnum = 1
-        xpad = .9  # if kind == 'plot' else .5
-        kind = 'plot'
-        figtitle = ''
-        ymin = 30
-        num_yticks = 8 if ymin == 30 else 11
-        color_list = pt.distinct_colors(len(label_list))
-        marker_list = pt.distinct_markers(len(label_list))
-        cumhistkw = dict(
-            xlabel='rank', ylabel=target_label, color_list=color_list,
-            marker_list=marker_list, fnum=fnum,
-            legend_loc='lower right',
-            num_yticks=num_yticks, ymax=100, ymin=ymin, ypad=.5, xmin=xpad,
-            kind=kind, title=figtitle,
+    def baseline(self):
+        """
+        >>> from ibeis.scripts.thesis import *
+        >>> self = Chap3()
+        """
+        ibs, qaids, daids = self.testdata1()
+        cfgdict = {}
+        cdf_percent = self.exec_ranking(ibs, qaids, daids, cfgdict)
+        # Truncate the cdf and prepare to plot
+        label = '%6.2f%%' % (cdf_percent[0],)
+        num_ranks = min(len(bins), 20)
+        xdata = np.arange(1, num_ranks + 1)
+        cdf_trunc = cdf_percent[0:num_ranks]
+        pt.multi_plot(
+            xdata, [cdf_trunc], label_list=[label],
+            xlabel='rank', ylabel='accuracy (% per name)',
+            use_legend=True, legend_loc='lower right', num_yticks=8, ymax=100,
+            ymin=30, ypad=.5, xmin=.9, num_xticks=5, xmax=num_ranks + 1 - .5,
         )
-        maxpos = min(len(cfgx2_cumhist_percent.T), numranks)
-        cfgx2_cumhist_short = cfgx2_cumhist_percent[:, 0:maxpos]
-        minval = numranks if numranks <= 10 else 10
-        pt.plot_rank_cumhist(
-            cfgx2_cumhist_short, edges=edges_short, label_list=label_list,
-            num_xticks=max(5, min(minval, (numranks // 20) + 2)),
-            legend_alpha=.92,
-            xmax=numranks + 1 - .5,
-            use_legend=True,
-            pnum=pnum_(), **cumhistkw)
+
+    def foregroundness(self):
+        ibs, qaids, daids = self.testdata1()
+        cfgdict = {'fg_on': False}
+        cdf_percent = self.exec_ranking(ibs, qaids, daids, cfgdict)
+        # Truncate the cdf and prepare to plot
+        label = '%6.2f%%' % (cdf_percent[0],)
+        xdata = np.arange(1, num_ranks + 1)
+        cdf_trunc = cdf_percent[0:num_ranks]
+        pt.multi_plot(
+            xdata, [cdf_trunc], label_list=[label],
+            xlabel='rank', ylabel='accuracy (% per name)',
+            use_legend=True, legend_loc='lower right', num_yticks=8, ymax=100,
+            ymin=30, ypad=.5, xmin=.9, num_xticks=5, xmax=num_ranks + 1 - .5,
+        )
+
+    def invariance(self):
+        invar = [
+            {'affine_invariance':  [True], 'rotation_invariance': [False], 'query_rotation_heuristic': [False]},
+            {'affine_invariance':  [True], 'rotation_invariance':  [True], 'query_rotation_heuristic': [False]},
+            {'affine_invariance': [False], 'rotation_invariance':  [True], 'query_rotation_heuristic': [False]},
+            {'affine_invariance': [False], 'rotation_invariance': [False], 'query_rotation_heuristic': [False]},
+            {'affine_invariance':  [True], 'rotation_invariance': [False], 'query_rotation_heuristic':  [True]},
+            {'affine_invariance': [False], 'rotation_invariance': [False], 'query_rotation_heuristic':  [True]},
+        ]
+        ibs, qaids, daids = self.testdata1()
+        cfgdict = {'fg_on': False}
+        cdf_percent, bins = self.exec_ranking(ibs, qaids, daids, cfgdict)
+
 
 
 # @ut.reloadable_class
