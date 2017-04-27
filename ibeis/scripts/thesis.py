@@ -30,8 +30,11 @@ class Chap3(object):
         """
         Example:
             >>> from ibeis.scripts.thesis import *
+            >>> defaultdb = 'PZ_Master1'
+            >>> defaultdb = 'PZ_Master0'
             >>> self = Chap3.collect('PZ_MTEST')
             >>> self = Chap3.collect('PZ_PB_RF_TRAIN')
+            >>> self = Chap3.collect('PZ_Master1')
             >>> #self = Chap3.collect('GZ_Master1')
         """
         import ibeis
@@ -44,8 +47,18 @@ class Chap3(object):
         import ibeis
         from ibeis.init import main_helpers
         ibs = ibeis.opendb(dbdir=self.dbdir)
-        aids = ibs.filter_annots_general(require_timestamp=True, is_known=True,
-                                         minqual='poor')
+        # if ibs.dbname == 'PZ_Master0':
+        #     aids = ibs.filter_annots_general(require_timestamp=False, is_known=True,
+        #                                      # require_viewpoint=True,
+        #                                      # view='primary', view_ext=2,
+        #                                      min_pername=2, minqual='poor')
+        # else:
+        if True:
+            aids = ibs.filter_annots_general(require_timestamp=True, is_known=True,
+                                             # require_viewpoint=True,
+                                             view='primary', view_ext=2,
+                                             min_pername=2, minqual='poor')
+        ibs.print_annot_stats(aids, prefix='P')
         main_helpers.monkeypatch_encounters(ibs, aids, minutes=30)
         self.ibs = ibs
         self.aids_pool = aids
@@ -87,7 +100,7 @@ class Chap3(object):
         ibs = self.ibs
         # aids = self.ibs.filter_annots_general(self.aids_pool, minqual='ok',
         #                                       view='primary')
-        aids = self.ibs.filter_annots_general(self.aids_pool, minqual='poor')
+        # aids = self.ibs.filter_annots_general(self.aids_pool, minqual='poor')
         aids = self.aids_pool
         expanded_aids = encounter_crossval(self.ibs, aids, qenc_per_name=1,
                                            annots_per_enc=1, denc_per_name=1,
@@ -102,7 +115,8 @@ class Chap3(object):
         from ibeis.init.filter_annots import encounter_crossval
         # Sample a dataset
         ibs = self.ibs
-        aids = self.ibs.filter_annots_general(self.aids_pool, minqual='poor')
+        # aids = self.ibs.filter_annots_general(self.aids_pool, minqual='poor')
+        aids = self.aids_pool
         denc_per_name = 3
         enc_splits, nid_to_confusors = encounter_crossval(
             self.ibs, aids, qenc_per_name=1, annots_per_enc=1,
@@ -153,7 +167,8 @@ class Chap3(object):
         from ibeis.init.filter_annots import encounter_crossval
         # Sample a dataset
         ibs = self.ibs
-        aids = self.ibs.filter_annots_general(self.aids_pool, minqual='poor')
+        # aids = self.ibs.filter_annots_general(self.aids_pool, minqual='poor')
+        aids = self.aids_pool
         denc_per_name = 2
         enc_splits, nid_to_confusors = encounter_crossval(
             self.ibs, aids, qenc_per_name=1, annots_per_enc=1,
