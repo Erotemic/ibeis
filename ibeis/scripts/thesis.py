@@ -64,7 +64,7 @@ class Chap3(object):
                                              minqual='poor')
             # flags = ['left' not in text for text in ibs.annots(aids).yaw_texts]
             # aids = ut.compress(aids, flags)
-            ibs.print_annot_stats(aids, prefix='P')
+        ibs.print_annot_stats(aids, prefix='P')
         main_helpers.monkeypatch_encounters(ibs, aids, minutes=30)
         self.ibs = ibs
         self.aids_pool = aids
