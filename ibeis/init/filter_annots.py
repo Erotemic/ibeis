@@ -678,8 +678,8 @@ def crossval_helper(nid_to_sample_pool, perquery, perdatab, n_need,
 
 def encounter_crossval(ibs, aids, qenc_per_name=1, denc_per_name=1,
                        enc_labels=None, confusors=True, rng=None,
-                       annots_per_enc=None,
-                       rebalance=True, n_splits=None, early=False):
+                       annots_per_enc=None, rebalance=True, n_splits=None,
+                       early=False):
     """
     Constructs a list of [ (qaids, daids) ] where there are `qenc_per_name` and
     `denc_per_name` for each individual in the datasets respectively.

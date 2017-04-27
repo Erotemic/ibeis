@@ -30,7 +30,7 @@ class Chap3(object):
         """
         Example:
             >>> from ibeis.scripts.thesis import *
-            >>> #self = Chap3.collect('PZ_MTEST')
+            >>> self = Chap3.collect('PZ_MTEST')
             >>> self = Chap3.collect('PZ_PB_RF_TRAIN')
             >>> #self = Chap3.collect('GZ_Master1')
         """
@@ -87,14 +87,65 @@ class Chap3(object):
         aids = self.ibs.filter_annots_general(self.aids_pool, minqual='ok',
                                               view='primary')
         expanded_aids = encounter_crossval(self.ibs, aids, qenc_per_name=1,
-                                           annots_per_enc=1, denc_per_name=1,
+                                           annots_per_enc=1,
+                                           denc_per_name=3,
                                            rebalance=True, rng=0)
         qaids, daids = expanded_aids[0]
-        ibs.print_annotconfig_stats(qaids, daids)
+        # if True:
+        #     print_cfg = dict(per_multiple=False, use_hist=False)
+        #     ibs.print_annotconfig_stats(qaids, daids, **print_cfg)
         return ibs, qaids, daids
 
+    def _vary_dpername_inputs(self):
+        from ibeis.init.filter_annots import encounter_crossval
+        # Sample a dataset
+        ibs = self.ibs
+        aids = self.ibs.filter_annots_general(self.aids_pool, minqual='ok')
+        denc_per_name = 3
+        enc_splits, nid_to_confusors = encounter_crossval(
+            self.ibs, aids, qenc_per_name=1, annots_per_enc=1,
+            denc_per_name=denc_per_name, rebalance=True, rng=0, early=True)
+        qencs, dencs = enc_splits[0]
+        qaids = ut.flatten(ut.flatten(qencs))
+
+        confusor_pool = ut.flatten(ut.flatten(nid_to_confusors.values()))
+        confusor_pool = ut.shuffle(confusor_pool, rng=0)
+
+        target_daids_list = []
+        # Keep the number of annots in the database (more or less) constant
+        for num in range(1, denc_per_name + 1):
+            denc_ = ut.take_column(dencs, list(range(num)))
+            daids_ = ut.flatten(ut.flatten(denc_))
+            target_daids_list.append(daids_)
+
+        dbsize_list = ut.lmap(len, target_daids_list)
+        min_dsize = min(dbsize_list)
+        max_dsize = max(dbsize_list)
+        num_need = max_dsize - min_dsize
+        num_extra = len(confusor_pool) - num_need
+        if len(confusor_pool) < num_need:
+            print('Warning: not enough confusors to pad dbsize')
+
+        confusor_daids_list = []
+        for dsize in dbsize_list:
+            num_take = max_dsize - dsize + num_extra
+            confusor_daids_list.append(confusor_pool[:num_take])
+
+        daids_list = [a + b for a, b in zip(target_daids_list,
+                                            confusor_daids_list)]
+        print('#qaids = %r' % (len(qaids),))
+        print('num_need = %r' % (num_need,))
+        print('max_dsize = %r' % (max_dsize,))
+        print('num_extra = %r' % (num_extra,))
+        print(list(map(len, daids_list)))
+        if True:
+            print_cfg = dict(per_multiple=False, use_hist=False)
+            for daids in daids_list:
+                ibs.print_annotconfig_stats(qaids, daids, **print_cfg)
+        return ibs, qaids, daids_list
+
     def _exec_ranking(self, ibs, qaids, daids, cfgdict):
-        ibs, qaids, daids = self._inputs()
+        # ibs, qaids, daids = self._inputs()
         # Execute the ranking algorithm
         qreq_ = ibs.new_query_request(qaids, daids, cfgdict=cfgdict)
         cm_list = qreq_.execute()
@@ -126,6 +177,7 @@ class Chap3(object):
         """
         Example:
             >>> from ibeis.scripts.thesis import *
+            >>> self = Chap3.collect('GZ_Master1')
             >>> self = Chap3.collect('PZ_PB_RF_TRAIN')
         """
         cdfs, labels = zip(*[
@@ -136,20 +188,20 @@ class Chap3(object):
 
     def plot_cmcs(self, cdfs, labels):
         cdfs = np.array(cdfs)
+        # Sort so the best is on top
+        sortx = np.lexsort(cdfs.T[::-1])[::-1]
+        cdfs = cdfs[sortx]
+        labels = ut.take(labels, sortx)
+        # Truncte to 20 ranks
         num_ranks = min(cdfs.shape[-1], 20)
         xdata = np.arange(1, num_ranks + 1)
         cdfs_trunc = cdfs[:, 0:num_ranks]
-
-        sortx = np.lexsort(cdfs.T)[::-1]
-        cdfs = cdfs[sortx]
-        labels = ut.take(labels, sortx)
-
         label_list = ['%6.2f%% - %s' % (cdf[0] * 100, lbl)
-                      for cdf, lbl in zip(cdfs, labels)]
+                      for cdf, lbl in zip(cdfs_trunc, labels)]
         pt.multi_plot(
             xdata, cdfs_trunc, label_list=label_list,
             xlabel='rank', ylabel='match probability',
-            use_legend=True, legend_loc='lower right', num_yticks=5, ymax=1,
+            use_legend=True, legend_loc='lower right', num_yticks=6, ymax=1,
             ymin=.5, ypad=.005, xmin=.9, num_xticks=5, xmax=num_ranks + 1 - .5,
         )
 
@@ -173,11 +225,32 @@ class Chap3(object):
             cdf = self._exec_ranking(ibs, qaids, daids, cfgdict)
             label = ut.get_cfg_lbl(ut.map_keys(ALIAS_KEYS, cfgdict))[1:]
             label = label.replace('True', 'T').replace('False', 'F')
+            # TODO: put a baseline label on whichever of these corresponds to
+            # baseline
             pairs.append((cdf, label))
-        pairs.append(self.measure_baseline())
+        # pairs.append(self.measure_baseline())
 
         cdfs, labels = zip(*pairs)
         self.plot_cmcs(cdfs, labels)
+
+    def nsum_expt(self):
+        ibs, qaids, daids_list = self._vary_dpername_inputs()
+        cfgdict1 = {
+            'score_method': 'nsum',
+            'score_method': 'nsum',
+            'query_rotation_heuristic': True,
+        }
+        cfgdict2 = {
+            'score_method': 'csum',
+            'score_method': 'csum',
+            'query_rotation_heuristic': True,
+        }
+        pairs = []
+        for count, daids in enumerate(daids_list):
+            cdf1 = self._exec_ranking(ibs, qaids, daids, cfgdict1)
+            pairs.append((cdf1, 'nsum%d' % count))
+            cdf2 = self._exec_ranking(ibs, qaids, daids, cfgdict2)
+            pairs.append((cdf2, 'nsum%d' % count))
 
 
 # @ut.reloadable_class
