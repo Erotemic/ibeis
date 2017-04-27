@@ -84,11 +84,11 @@ class Chap3(object):
         from ibeis.init.filter_annots import encounter_crossval
         # Sample a dataset
         ibs = self.ibs
-        aids = self.ibs.filter_annots_general(self.aids_pool, minqual='ok',
-                                              view='primary')
+        # aids = self.ibs.filter_annots_general(self.aids_pool, minqual='ok',
+        #                                       view='primary')
+        aids = self.aids_pool
         expanded_aids = encounter_crossval(self.ibs, aids, qenc_per_name=1,
-                                           annots_per_enc=1,
-                                           denc_per_name=3,
+                                           annots_per_enc=1, denc_per_name=1,
                                            rebalance=True, rng=0)
         qaids, daids = expanded_aids[0]
         # if True:
@@ -249,11 +249,14 @@ class Chap3(object):
             'query_rotation_heuristic': True,
         }
         pairs = []
-        for count, daids in enumerate(daids_list):
+        for count, daids in enumerate(daids_list, start=1):
             cdf1 = self._exec_ranking(ibs, qaids, daids, cfgdict1)
-            pairs.append((cdf1, 'nsum%d' % count))
+            pairs.append((cdf1, 'nsum,dpername=%d' % count))
             cdf2 = self._exec_ranking(ibs, qaids, daids, cfgdict2)
-            pairs.append((cdf2, 'nsum%d' % count))
+            pairs.append((cdf2, 'csum,dpername=%d' % count))
+        cdfs, labels = zip(*pairs)
+        self.plot_cmcs(cdfs, labels)
+        pt.gca().set_title('#qaids=%r #daids=%r' % (len(qaids), len(daids)))
 
     def _vary_dbsize_inputs(self):
         """
@@ -268,7 +271,7 @@ class Chap3(object):
             self.ibs, aids, qenc_per_name=1, annots_per_enc=1,
             denc_per_name=denc_per_name, rebalance=True, rng=0, early=True)
         qencs, dencs = enc_splits[0]
-        qaids = ut.flatten(ut.flatten(qencs))
+        qaids = sorted(ut.flatten(ut.flatten(qencs)))
 
         confusor_pool = ut.flatten(ut.flatten(nid_to_confusors.values()))
         confusor_pool = ut.shuffle(confusor_pool, rng=0)
@@ -301,7 +304,7 @@ class Chap3(object):
                                              confusor_daids_list)]
         print(list(map(len, daids_list_)))
 
-        daids_list = [daids + confusor_pool[len(confusor_pool) - n:]
+        daids_list = [sorted(daids + confusor_pool[len(confusor_pool) - n:])
                       for n in nextra_list for daids in daids_list_]
         print(list(map(len, daids_list)))
 
@@ -317,19 +320,40 @@ class Chap3(object):
         return ibs, qaids, daids_list
 
     def k_expt(self):
-        from ibeis.init.filter_annots import encounter_crossval
-        # Sample a dataset
-        # ibs = self.ibs
-        aids = self.ibs.filter_annots_general(self.aids_pool, minqual='poor')
-        denc_per_name = 2
-        enc_splits, nid_to_confusors = encounter_crossval(
-            self.ibs, aids, qenc_per_name=1, annots_per_enc=1,
-            denc_per_name=denc_per_name, rebalance=True, rng=0, early=True)
-        qencs, dencs = enc_splits[0]
-        # qaids = ut.flatten(ut.flatten(qencs))
-        confusor_pool = ut.flatten(ut.flatten(nid_to_confusors.values()))
-        confusor_pool = ut.shuffle(confusor_pool, rng=0)
-        pass
+        ibs, qaids, daids_list = self._vary_dbsize_inputs()
+
+        cfg_grid = {
+            'query_rotation_heuristic': True,
+            'K': [1, 2, 4, 6, 10],
+        }
+        pairs = []
+        for cfgdict in ut.all_dict_combinations(cfg_grid):
+            for daids in daids_list:
+                cdf = self._exec_ranking(ibs, qaids, daids, cfgdict)
+                label = 'K=%r, dsize=%r' % (cfgdict['K'], len(daids))
+                pairs.append((cdf, label))
+
+    def smk_expt(self):
+        from ibeis.algo.smk.smk_pipeline import SMKRequest
+        # from ibeis.scripts.thesis import *
+        self = Chap3.collect('PZ_MTEST')
+        # ibs = ibeis.opendb('PZ_MTEST')
+        ibs, qaids, daids = self._inputs()
+        config = {'nAssign': 1, 'num_words': 8000, 'sv_on': True}
+        qreq_ = SMKRequest(ibs, qaids, daids, config)
+        qreq_.ensure_data()
+        cm_list = qreq_.execute()
+        # cm_list = [cm.extend_results(qreq_) for cm in cm_list]
+        name_ranks = [cm.get_name_ranks([cm.qnid])[0] for cm in cm_list]
+        # Measure rank probabilities
+        bins = np.arange(len(qreq_.dnids))
+        hist = np.histogram(name_ranks, bins=bins)[0]
+        cdf = (np.cumsum(hist) / sum(hist))
+        pairs = [(cdf, 'smk')]
+        pairs.append(self.measure_baseline())
+        cdfs, labels = zip(*pairs)
+        self.plot_cmcs(cdfs, labels)
+        pt.gca().set_title('#qaids=%r #daids=%r' % (len(qaids), len(daids)))
 
 
 # @ut.reloadable_class
