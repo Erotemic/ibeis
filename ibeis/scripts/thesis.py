@@ -114,7 +114,7 @@ class Chap3(object):
     def __init__(self):
         pass
 
-    def baseline(self):
+    def testdata1(self):
         import ibeis
         from ibeis.init import main_helpers
         from ibeis.expt import test_result, harness
@@ -129,8 +129,11 @@ class Chap3(object):
         expanded_aids = encounter_crossval(ibs, aids, qenc_per_name=1,
                                            denc_per_name=1, rebalance=False)
         qaids, daids = expanded_aids[0]
+        return ibs, qaids, daids
+
+    def exec_ranking(self, ibs, qaids, daids, cfgdict):
+        ibs, qaids, daids = self.testdata1()
         # Execute the ranking algorithm
-        cfgdict = {}
         qreq_ = ibs.new_query_request(qaids, daids, cfgdict=cfgdict)
         cm_list = qreq_.execute()
         cm_list = [cm.extend_results(qreq_) for cm in cm_list]
@@ -139,10 +142,20 @@ class Chap3(object):
         bins = np.arange(len(qreq_.dnids))
         hist = np.histogram(name_ranks, bins=bins)[0]
         cdf_percent = (np.cumsum(hist) / sum(hist)) * 100
+        return cdf_percent
+
+    def baseline(self):
+        """
+        >>> from ibeis.scripts.thesis import *
+        >>> self = Chap3()
+        """
+        ibs, qaids, daids = self.testdata1()
+        cfgdict = {}
+        cdf_percent = self.exec_ranking(ibs, qaids, daids, cfgdict)
         # Truncate the cdf and prepare to plot
         label = '%6.2f%%' % (cdf_percent[0],)
         num_ranks = min(len(bins), 20)
-        xdata = bins[1:num_ranks + 1]
+        xdata = np.arange(1, num_ranks + 1)
         cdf_trunc = cdf_percent[0:num_ranks]
         pt.multi_plot(
             xdata, [cdf_trunc], label_list=[label],
@@ -150,6 +163,35 @@ class Chap3(object):
             use_legend=True, legend_loc='lower right', num_yticks=8, ymax=100,
             ymin=30, ypad=.5, xmin=.9, num_xticks=5, xmax=num_ranks + 1 - .5,
         )
+
+    def foregroundness(self):
+        ibs, qaids, daids = self.testdata1()
+        cfgdict = {'fg_on': False}
+        cdf_percent = self.exec_ranking(ibs, qaids, daids, cfgdict)
+        # Truncate the cdf and prepare to plot
+        label = '%6.2f%%' % (cdf_percent[0],)
+        xdata = np.arange(1, num_ranks + 1)
+        cdf_trunc = cdf_percent[0:num_ranks]
+        pt.multi_plot(
+            xdata, [cdf_trunc], label_list=[label],
+            xlabel='rank', ylabel='accuracy (% per name)',
+            use_legend=True, legend_loc='lower right', num_yticks=8, ymax=100,
+            ymin=30, ypad=.5, xmin=.9, num_xticks=5, xmax=num_ranks + 1 - .5,
+        )
+
+    def invariance(self):
+        invar = [
+            {'affine_invariance':  [True], 'rotation_invariance': [False], 'query_rotation_heuristic': [False]},
+            {'affine_invariance':  [True], 'rotation_invariance':  [True], 'query_rotation_heuristic': [False]},
+            {'affine_invariance': [False], 'rotation_invariance':  [True], 'query_rotation_heuristic': [False]},
+            {'affine_invariance': [False], 'rotation_invariance': [False], 'query_rotation_heuristic': [False]},
+            {'affine_invariance':  [True], 'rotation_invariance': [False], 'query_rotation_heuristic':  [True]},
+            {'affine_invariance': [False], 'rotation_invariance': [False], 'query_rotation_heuristic':  [True]},
+        ]
+        ibs, qaids, daids = self.testdata1()
+        cfgdict = {'fg_on': False}
+        cdf_percent, bins = self.exec_ranking(ibs, qaids, daids, cfgdict)
+
 
 
 # @ut.reloadable_class
