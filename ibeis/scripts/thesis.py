@@ -31,6 +31,7 @@ class Chap3(object):
         Example:
             >>> from ibeis.scripts.thesis import *
             >>> defaultdb = 'PZ_Master1'
+            >>> defaultdb = 'GZ_Master1'
             >>> defaultdb = 'PZ_Master0'
             >>> self = Chap3.collect('PZ_MTEST')
             >>> self = Chap3.collect('PZ_PB_RF_TRAIN')
@@ -50,15 +51,20 @@ class Chap3(object):
         if ibs.dbname == 'PZ_Master0':
             aids = ibs.filter_annots_general(require_timestamp=True, is_known=True,
                                              # require_viewpoint=True,
-                                             view='primary', view_ext=2,
+                                             view='left',
+                                             # view_ext=2,  # FIXME
                                              min_pername=2, minqual='poor')
-        else:
+        elif ibs.dbname == 'GZ_Master1':
             aids = ibs.filter_annots_general(require_timestamp=True,
                                              is_known=True,
-                                             require_viewpoint=True,
-                                             view='primary', view_ext=2,
+                                             # require_viewpoint=True,
+                                             # view='right',
+                                             # view_ext2=2,
+                                             # view_ext1=2,
                                              minqual='poor')
-        ibs.print_annot_stats(aids, prefix='P')
+            # flags = ['left' not in text for text in ibs.annots(aids).yaw_texts]
+            # aids = ut.compress(aids, flags)
+            ibs.print_annot_stats(aids, prefix='P')
         main_helpers.monkeypatch_encounters(ibs, aids, minutes=30)
         self.ibs = ibs
         self.aids_pool = aids
@@ -373,8 +379,8 @@ class Chap3(object):
     def measure_all(self):
         """
         from ibeis.scripts.thesis import *
-        self = Chap3.collect('GZ_Master1')
         self = Chap3.collect('PZ_Master0')
+        self = Chap3.collect('GZ_Master1')
         self = Chap3.collect('PZ_Master1')
         """
         self.measure_baseline()
