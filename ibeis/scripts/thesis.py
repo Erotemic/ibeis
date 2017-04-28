@@ -26,9 +26,10 @@ class Chap3(object):
     def __init__(self):
         self.base_dpath = ut.truepath('~/latex/crall-thesis-2017/figures_new3')
         self.expt_results = {}
+        self.ibs = None
 
     @classmethod
-    def collect(Chap3, defaultdb='PZ_MTEST'):
+    def collect(Chap3, defaultdb='PZ_MTEST', init=True):
         """
         Example:
             >>> from ibeis.scripts.thesis import *
@@ -47,7 +48,8 @@ class Chap3(object):
         self.dpath = join(self.base_dpath, self.dbname)
         # ut.ensuredir(self.dpath)
         # ut.vd(self.dpath)
-        self._precollect()
+        if init:
+            self._precollect()
         return self
 
     def _precollect(self):
@@ -449,11 +451,13 @@ class Chap3(object):
     def measure_all(self):
         """
         from ibeis.scripts.thesis import *
-        self = Chap3.collect('PZ_Master1')
-        self = Chap3.collect('GZ_Master1')
+        self = Chap3.collect('PZ_Master1', init=False)
+        self = Chap3.collect('GZ_Master1', init=False)
         self.measure_all()
         self = Chap3.collect('PZ_Master0')
         """
+        if self.ibs is None:
+            self._precollect()
         self.measure_baseline()
         self.measure_foregroundness()
         self.measure_smk()
