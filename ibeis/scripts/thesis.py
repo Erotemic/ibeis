@@ -186,11 +186,13 @@ class Chap3(object):
         confusor_pool = ut.shuffle(confusor_pool, rng=0)
 
         target_daids_list = []
+        info_list_ = []
         # Keep the number of annots in the database (more or less) constant
         for num in range(1, denc_per_name + 1):
             denc_ = ut.take_column(dencs, list(range(num)))
             daids_ = ut.flatten(ut.flatten(denc_))
             target_daids_list.append(daids_)
+            info_list_.append({'denc_pername': num})
 
         dbsize_list = ut.lmap(len, target_daids_list)
         min_dsize = min(dbsize_list)
@@ -213,9 +215,17 @@ class Chap3(object):
                                              confusor_daids_list)]
         print(list(map(len, daids_list_)))
 
-        daids_list = [sorted(daids + confusor_pool[len(confusor_pool) - n:])
-                      for n in nextra_list for daids in daids_list_]
+        daids_list = []
+        info_list = []
+        for n in nextra_list:
+            for info, daids_ in zip(info_list_, daids_list_):
+                daids = sorted(daids_ + confusor_pool[len(confusor_pool) - n:])
+                daids_list.append(daids)
+                info = info.copy()
+                info_list.append(info)
+
         print(list(map(len, daids_list)))
+        print(info_list)
 
         print('nextra_list = %r' % (nextra_list,))
         print('#qaids = %r' % (len(qaids),))
@@ -226,7 +236,7 @@ class Chap3(object):
             print_cfg = dict(per_multiple=False, use_hist=False)
             for daids in daids_list:
                 ibs.print_annotconfig_stats(qaids, daids, **print_cfg)
-        return ibs, qaids, daids_list
+        return ibs, qaids, daids_list, info_list
 
     def _exec_ranking(self, ibs, qaids, daids, cfgdict):
         # ibs, qaids, daids = self._inputs()
@@ -244,6 +254,9 @@ class Chap3(object):
         return cdf
 
     def plot_cmcs(self, cdfs, labels):
+        # Pad length
+        total = max(map(len, cdfs))
+        cdfs = [np.hstack([c, np.ones(total - len(c))]) for c in cdfs]
         cdfs = np.array(cdfs)
         # Sort so the best is on top
         sortx = np.lexsort(cdfs.T[::-1])[::-1]
@@ -342,18 +355,20 @@ class Chap3(object):
         # pt.gca().set_title('#qaids=%r #daids=%r' % (len(qaids), len(daids)))
 
     def measure_k_dbsize(self):
-        ibs, qaids, daids_list = self._vary_dbsize_inputs()
+        ibs, qaids, daids_list, info_list = self._vary_dbsize_inputs()
         cfg_grid = {
             'query_rotation_heuristic': True,
             'K': [1, 2, 4, 6, 10],
         }
         pairs = []
         for cfgdict in ut.all_dict_combinations(cfg_grid):
-            for daids in daids_list:
+            for daids, info in zip(daids_list, info_list):
                 cdf = self._exec_ranking(ibs, qaids, daids, cfgdict)
-                label = 'K=%r, dsize=%r' % (cfgdict['K'], len(daids))
+                dpername = info['denc_pername']
+                label = 'K=%r,dsize=%r,dpername=%r' % (cfgdict['K'], len(daids), dpername)
                 pairs.append((cdf, label))
         cdfs, labels = zip(*pairs)
+        self.plot_cmcs(cdfs, labels)
 
     def measure_smk(self):
         from ibeis.algo.smk.smk_pipeline import SMKRequest
@@ -379,8 +394,9 @@ class Chap3(object):
     def measure_all(self):
         """
         from ibeis.scripts.thesis import *
-        self = Chap3.collect('PZ_Master0')
         self = Chap3.collect('GZ_Master1')
+        self.measure_all()
+        self = Chap3.collect('PZ_Master0')
         self = Chap3.collect('PZ_Master1')
         """
         self.measure_baseline()
