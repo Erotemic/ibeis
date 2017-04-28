@@ -52,11 +52,13 @@ class Chap3(object):
             aids = ibs.filter_annots_general(require_timestamp=True, is_known=True,
                                              # require_viewpoint=True,
                                              view='left',
+                                             species='primary',
                                              # view_ext=2,  # FIXME
                                              min_pername=2, minqual='poor')
         elif ibs.dbname == 'GZ_Master1':
             aids = ibs.filter_annots_general(require_timestamp=True,
                                              is_known=True,
+                                             species='primary',
                                              # require_viewpoint=True,
                                              # view='right',
                                              # view_ext2=2,
@@ -253,15 +255,19 @@ class Chap3(object):
         cdf = (np.cumsum(hist) / sum(hist))
         return cdf
 
-    def plot_cmcs(self, cdfs, labels):
-        # Pad length
+    def prepare_cdfs(self, cdfs, labels):
         total = max(map(len, cdfs))
+        # Pad length
         cdfs = [np.hstack([c, np.ones(total - len(c))]) for c in cdfs]
         cdfs = np.array(cdfs)
         # Sort so the best is on top
         sortx = np.lexsort(cdfs.T[::-1])[::-1]
         cdfs = cdfs[sortx]
         labels = ut.take(labels, sortx)
+        return cdfs, labels
+
+    def plot_cmcs(self, cdfs, labels, fnum=1, pnum=(1, 1, 1)):
+        cdfs, labels = self.prepare_cdfs(cdfs, labels)
         # Truncte to 20 ranks
         num_ranks = min(cdfs.shape[-1], 20)
         xdata = np.arange(1, num_ranks + 1)
@@ -273,6 +279,7 @@ class Chap3(object):
             xlabel='rank', ylabel='match probability',
             use_legend=True, legend_loc='lower right', num_yticks=6, ymax=1,
             ymin=.5, ypad=.005, xmin=.9, num_xticks=5, xmax=num_ranks + 1 - .5,
+            pnum=pnum, fnum=fnum
         )
 
     def baseline(self):
@@ -363,12 +370,29 @@ class Chap3(object):
         pairs = []
         for cfgdict in ut.all_dict_combinations(cfg_grid):
             for daids, info in zip(daids_list, info_list):
+                info = info.copy()
+                info['K'] = cfgdict['K']
+                info['dsize'] = len(daids)
                 cdf = self._exec_ranking(ibs, qaids, daids, cfgdict)
                 dpername = info['denc_pername']
-                label = 'K=%r,dsize=%r,dpername=%r' % (cfgdict['K'], len(daids), dpername)
-                pairs.append((cdf, label))
-        cdfs, labels = zip(*pairs)
-        self.plot_cmcs(cdfs, labels)
+                label = 'K={},dsize={},dpername={}'.format(
+                    info['K'], info['dsize'], dpername)
+                pairs.append((cdf, info, label))
+        cdfs, infos, labels = zip(*pairs)
+
+        import pandas as pd
+        df = pd.DataFrame.from_records(infos)
+        df['cdfs'] = cdfs
+        df['label'] = labels
+        import plottool as pt
+        groups = list(df.groupby(('dsize', 'denc_pername')))
+        pnum_ = pt.make_pnum_nextgen(nCols=2, nSubplots=groups)
+        for val, df_group in groups:
+            print('---')
+            print(df_group)
+            cdfs = df_group['cdfs']
+            labels = df_group['label']
+            self.plot_cmcs(cdfs, labels, fnum=1, pnum=pnum_())
 
     def measure_smk(self):
         from ibeis.algo.smk.smk_pipeline import SMKRequest
@@ -387,8 +411,8 @@ class Chap3(object):
         pairs = [(cdf, 'smk')]
         pairs.append(self.measure_baseline())
 
-        # cdfs, labels = zip(*pairs)
-        # self.plot_cmcs(cdfs, labels)
+        cdfs, labels = zip(*pairs)
+        self.plot_cmcs(cdfs, labels)
         # pt.gca().set_title('#qaids=%r #daids=%r' % (len(qaids), len(daids)))
 
     def measure_all(self):
