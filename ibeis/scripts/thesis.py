@@ -61,7 +61,10 @@ class Chap3(object):
                                              species='primary',
                                              # view_ext=2,  # FIXME
                                              min_pername=2, minqual='poor')
-            flags = ['right' not in text for text in ibs.annots(aids).yaw_texts]
+            # flags = ['right' not in text for text in ibs.annots(aids).yaw_texts]
+            flags = ['left' in text for text in ibs.annots(aids).yaw_texts]
+            # sum(['left' == text for text in ibs.annots(aids).yaw_texts])
+            aids = ut.compress(aids, flags)
         # elif ibs.dbname == 'GZ_Master1':
         else:
             aids = ibs.filter_annots_general(require_timestamp=True,
