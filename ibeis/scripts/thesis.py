@@ -61,6 +61,7 @@ class Chap3(object):
                                              species='primary',
                                              # view_ext=2,  # FIXME
                                              min_pername=2, minqual='poor')
+            flags = ['right' not in text for text in ibs.annots(aids).yaw_texts]
         # elif ibs.dbname == 'GZ_Master1':
         else:
             aids = ibs.filter_annots_general(require_timestamp=True,
@@ -445,10 +446,10 @@ class Chap3(object):
     def measure_all(self):
         """
         from ibeis.scripts.thesis import *
+        self = Chap3.collect('PZ_Master1')
         self = Chap3.collect('GZ_Master1')
         self.measure_all()
         self = Chap3.collect('PZ_Master0')
-        self = Chap3.collect('PZ_Master1')
         """
         self.measure_baseline()
         self.measure_foregroundness()
