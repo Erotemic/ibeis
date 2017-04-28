@@ -48,7 +48,7 @@ class Chap3(object):
         import ibeis
         from ibeis.init import main_helpers
         ibs = ibeis.opendb(dbdir=self.dbdir)
-        if ibs.dbname == 'PZ_Master0':
+        if ibs.dbname.startswith('PZ_Master'):
             aids = ibs.filter_annots_general(require_timestamp=True, is_known=True,
                                              # require_viewpoint=True,
                                              view='left',
@@ -386,13 +386,13 @@ class Chap3(object):
         df['label'] = labels
         import plottool as pt
         groups = list(df.groupby(('dsize', 'denc_pername')))
-        pnum_ = pt.make_pnum_nextgen(nCols=2, nSubplots=groups)
+        pnum_ = pt.make_pnum_nextgen(nCols=2, nSubplots=len(groups))
         for val, df_group in groups:
             print('---')
             print(df_group)
-            cdfs = df_group['cdfs']
-            labels = df_group['label']
-            self.plot_cmcs(cdfs, labels, fnum=1, pnum=pnum_())
+            cdfs_ = df_group['cdfs'].values
+            labels_ = df_group['label'].values
+            self.plot_cmcs(cdfs_, labels_, fnum=1, pnum=pnum_())
 
     def measure_smk(self):
         from ibeis.algo.smk.smk_pipeline import SMKRequest
