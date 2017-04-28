@@ -32,7 +32,6 @@ class Chap3(object):
             >>> from ibeis.scripts.thesis import *
             >>> defaultdb = 'PZ_Master1'
             >>> defaultdb = 'GZ_Master1'
-            >>> defaultdb = 'PZ_Master0'
             >>> self = Chap3.collect('PZ_MTEST')
             >>> self = Chap3.collect('PZ_PB_RF_TRAIN')
             >>> self = Chap3.collect('PZ_Master1')
@@ -73,9 +72,16 @@ class Chap3(object):
         if False:
             # check encounter stats
             annots = ibs.annots(aids)
-            annots_list = annots.group(annots.encounter_text)[1]
-            # singletons = [a for a in annots_list if len(a) == 1]
-            multitons = [a for a in annots_list if len(a) > 1]
+            encounters = annots.group(annots.encounter_text)[1]
+            nids = ut.take_column(ibs._annot_groups(encounters).nids, 0)
+            nid_to_enc = ut.group_items(encounters, nids)
+            nenc_list = ut.lmap(len, nid_to_enc.values())
+            hist = ut.range_hist(nenc_list, [1, 2, 3, (4, np.inf)])
+            print('enc per name hist:')
+            print(ut.repr2(hist))
+
+            # singletons = [a for a in encounters if len(a) == 1]
+            multitons = [a for a in encounters if len(a) > 1]
             deltas = []
             for a in multitons:
                 times = a.image_unixtimes_asfloat
