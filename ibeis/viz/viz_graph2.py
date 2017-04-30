@@ -18,7 +18,7 @@ from guitool.__PYQT__ import QtCore
 from guitool.__PYQT__.QtCore import Qt
 from guitool import mpl_widget
 from guitool import PrefWidget2
-from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV
+from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN
 
 GRAPH_REVIEW_CFG_DEFAULTS = {
     'ranks_top': 3,
@@ -55,7 +55,7 @@ class AnnotPairDialog(gt.GuitoolWidget):
         >>>                       info_text='text describing this match')
         >>> gt.qtapp_loop(qwin=win, freq=10)
     """
-    accepted = QtCore.pyqtSignal(dict)
+    accepted = QtCore.pyqtSignal(dict, bool)
     skipped = QtCore.pyqtSignal()
     request = QtCore.pyqtSignal(tuple)
 
@@ -197,7 +197,11 @@ class AnnotPairDialog(gt.GuitoolWidget):
             self.infr_write(feedback)
             self.goto_next()
         else:
-            self.accepted.emit(feedback)
+            need_next = (self.count + 1) == self._total()
+            self.accepted.emit(feedback, need_next)
+            if not need_next:
+                self.goto_next()
+
 
     def goto_next(self):
         if self.count is not None:
@@ -401,7 +405,7 @@ class AnnotStateDialog(gt.GuitoolWidget):
 class EdgeReviewDialog(gt.GuitoolWidget):
     r"""
 
-    ibeis EdgeReviewDialog --show
+    python -m ibeis.viz.viz_graph2 EdgeReviewDialog --show
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -521,6 +525,20 @@ class EdgeReviewDialog(gt.GuitoolWidget):
 
         gt.set_qt_object_names(vars(self))
         gt.set_qt_object_names(locals())
+
+    def keyPressEvent(self, event):
+        print(event.key())
+        if event.key() == gt.__PYQT__.QtCore.Qt.Key_F:
+            self.match_state_combo.setCurrentValue(NEGTV)
+        elif event.key() == gt.__PYQT__.QtCore.Qt.Key_T:
+            self.match_state_combo.setCurrentValue(POSTV)
+        elif event.key() == gt.__PYQT__.QtCore.Qt.Key_N:
+            self.match_state_combo.setCurrentValue(INCMP)
+        elif event.key() == gt.__PYQT__.QtCore.Qt.Key_P:
+            self.match_state_combo.setCurrentValue(NEGTV)
+            self.tag_checkboxes[tagname].setChecked(True)
+        else:
+            super(EdgeReviewDialog, self).keyPressEvent(event)
 
     def read_edge_state(self, edge, edge_data):
         print('edge_data = %s' % (ut.repr4(edge_data),))
