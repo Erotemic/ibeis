@@ -43,6 +43,7 @@ class AnnotPairDialog(gt.GuitoolWidget):
     r"""
 
     ibeis AnnotPairDialog --show
+    python -m ibeis.algo.graph.mixin_loops qt_review_loop --show
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -197,7 +198,7 @@ class AnnotPairDialog(gt.GuitoolWidget):
             self.infr_write(feedback)
             self.goto_next()
         else:
-            need_next = (self.count + 1) == self._total()
+            need_next = (self.count + 1) == self.total
             self.accepted.emit(feedback, need_next)
             if not need_next:
                 self.goto_next()
