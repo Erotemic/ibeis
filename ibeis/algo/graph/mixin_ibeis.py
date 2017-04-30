@@ -138,7 +138,11 @@ class IBEISIO(object):
         missing_feedback = {k: [v] for k, v in tmp.to_dict('index').items()}
         feedback = missing_feedback
         infr._write_ibeis_staging_feedback(feedback)
-        pass
+
+        # am_fb = infr.read_ibeis_annotmatch_feedback()
+        # staging_fb = infr.read_ibeis_staging_feedback()
+        # set(am_fb.keys()) - set(staging_fb.keys())
+        # set(staging_fb.keys()) == set(am_fb.keys())
 
     def _write_ibeis_staging_feedback(infr, feedback):
         infr.print('write_ibeis_staging_feedback %d' %
@@ -343,6 +347,16 @@ class IBEISIO(object):
             }
             feedback[edge].append(feedback_item)
         return feedback
+
+    def _rectify_annotmatch_direction(infr):
+        ibs = infr
+        ams = ibs._get_all_annotmatch_rowids()
+        aids1 = np.array(ibs.get_annotmatch_aid1(ams))
+        aids2 = np.array(ibs.get_annotmatch_aid2(ams))
+
+        np.setdiff1d(aids1, infr.aids)
+        np.setdiff1d(aids2, infr.aids)
+        pass
 
     def read_ibeis_annotmatch_feedback(infr, only_existing_edges=False):
         r"""

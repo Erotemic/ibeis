@@ -179,10 +179,10 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             datas = [infr.get_edge_data(e) for e in edges]
             bad = [e for e, d in zip(edges, datas)
                    if d.get('decision') == POSTV]
-            if len(bad) > 1:
-                priorities.extend([dummy] * len(bad))
-                dummy += 1
-                bad_edges.extend(bad)
+            # if len(bad) > 1:
+            priorities.extend([dummy] * len(bad))
+            dummy += 1
+            bad_edges.extend(bad)
         print(len(bad_edges))
 
         infr.enable_redundancy = False
@@ -199,15 +199,19 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
         win = infr.qt_review_loop()
 
+        infr.enable_inference = True
+        win = infr.qt_review_loop()
+
+        df = infr.match_state_delta('annotmatch', 'staging')
+        df = infr.match_state_delta('staging', 'all')
+
 
     @classmethod
     def from_empty(OneVsOneProblem, defaultdb=None):
         """
         >>> from ibeis.scripts.script_vsone import *  # NOQA
         >>> defaultdb = 'GIRM_Master1'
-
-        infr.reset_feedback('annotmatch', apply=True)
-
+        >>> pblm = OneVsOneProblem.from_empty(defaultdb)
         """
         if defaultdb is None:
             defaultdb = 'PZ_PB_RF_TRAIN'
@@ -221,7 +225,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         # graph structure is not defined, it should apply the conversion
         # method.
         infr = ibeis.AnnotInference(ibs=ibs, aids=aids, autoinit=True)
-        assert infr._is_staging_above_annotmatch()
+        if infr.ibs.dbname not in {'GIRM_Master1', 'NNP_MasterGIRM_core'}:
+            assert infr._is_staging_above_annotmatch()
         infr.reset_feedback('staging', apply=True)
         if infr.ibs.dbname == 'PZ_MTEST':
             # assert False, 'need to do conversion'
