@@ -164,6 +164,12 @@ class AnnotPairDialog(gt.GuitoolWidget):
         else:
             return self._total
 
+    def keyPressEvent(self, event):
+        if event.key() == gt.__PYQT__.QtCore.Qt.Key_Return:
+            self.accept()
+        else:
+            return self.annot_review.keyPressEvent(event)
+
     def feedback_dict(self):
         feedback = self.annot_review.feedback_dict()
         feedback['annot1_state'] = self.annot_state1.current_annot_state()
@@ -233,6 +239,7 @@ class AnnotPairDialog(gt.GuitoolWidget):
         self.annot_state1.set_aid(edge[0])
         self.annot_state2.set_aid(edge[1])
         self.annot_review.set_edge(edge, edge_data)
+        self.annot_review.setFocus(True)
 
     def edit_jump(self):
         index = int(self.index_edit.text().split('/')[0]) - 1
@@ -528,17 +535,22 @@ class EdgeReviewDialog(gt.GuitoolWidget):
         gt.set_qt_object_names(locals())
 
     def keyPressEvent(self, event):
-        print(event.key())
+        print('Got event', event.key())
+        handled = False
         if event.key() == gt.__PYQT__.QtCore.Qt.Key_F:
             self.match_state_combo.setCurrentValue(NEGTV)
+            handled = True
         elif event.key() == gt.__PYQT__.QtCore.Qt.Key_T:
             self.match_state_combo.setCurrentValue(POSTV)
+            handled = True
         elif event.key() == gt.__PYQT__.QtCore.Qt.Key_N:
             self.match_state_combo.setCurrentValue(INCMP)
+            handled = True
         elif event.key() == gt.__PYQT__.QtCore.Qt.Key_P:
             self.match_state_combo.setCurrentValue(NEGTV)
             self.tag_checkboxes[tagname].setChecked(True)
-        else:
+            handled = True
+        if not handled:
             super(EdgeReviewDialog, self).keyPressEvent(event)
 
     def read_edge_state(self, edge, edge_data):
