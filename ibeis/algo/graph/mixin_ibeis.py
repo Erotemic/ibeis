@@ -122,17 +122,27 @@ class IBEISIO(object):
         nids = infr.ibs.get_annot_nids(infr.aids)
         infr.set_node_attrs('name_label', ut.dzip(infr.aids, nids))
 
-    def write_ibeis_staging_feedback(infr):
-        """
-        Commit all reviews in internal_feedback into the staging table.  The
-        edges are removed from interal_feedback and added to external feedback.
-        The staging tables stores each review in the order it happened so
-        history is fully reconstructable if staging is never deleted.
-        """
+    def update_staging_to_annotmatch():
+        print('Finding entries in annotmatch missing in staging')
+        df = infr.match_state_delta('staging', 'annotmatch')
+        # Find places that exist in annotmatch but not in staging
+        flags = pd.isnull(df['old_decision'])
+        missing_df = df[flags]
+        alias = {
+            'new_decision': 'decision',
+            'new_tags': 'tags',
+            'new_confidence': 'confidence',
+            'new_user_id': 'user_id',
+        }
+        tmp = missing_df[list(alias.keys())].rename(columns=alias)
+        missing_feedback = {k: [v] for k, v in tmp.to_dict('index').items()}
+        feedback = missing_feedback
+        infr._write_ibeis_staging_feedback(feedback)
+        pass
+
+    def _write_ibeis_staging_feedback(infr, feedback):
         infr.print('write_ibeis_staging_feedback %d' %
-                   (len(infr.internal_feedback),), 1)
-        if len(infr.internal_feedback) == 0:
-            return
+                   (len(feedback),), 1)
         aid_1_list = []
         aid_2_list = []
         decision_list = []
@@ -143,7 +153,7 @@ class IBEISIO(object):
         ibs = infr.ibs
         _iter = (
             (aid1, aid2, feedback_item)
-            for (aid1, aid2), feedbacks in infr.internal_feedback.items()
+            for (aid1, aid2), feedbacks in feedback.items()
             for feedback_item in feedbacks
         )
         for aid1, aid2, feedback_item in _iter:
@@ -172,6 +182,19 @@ class IBEISIO(object):
                 user_confidence_list=confidence_list,
                 timestamp_list=timestamp_list)
         assert len(ut.find_duplicate_items(review_id_list)) == 0
+
+    def write_ibeis_staging_feedback(infr):
+        """
+        Commit all reviews in internal_feedback into the staging table.  The
+        edges are removed from interal_feedback and added to external feedback.
+        The staging tables stores each review in the order it happened so
+        history is fully reconstructable if staging is never deleted.
+        """
+        if len(infr.internal_feedback) == 0:
+            infr.print('write_ibeis_staging_feedback 0', 1)
+            return
+        # Write internal feedback to disk
+        infr._write_ibeis_staging_feedback(infr.internal_feedback)
         # Copy internal feedback into external
         for edge, feedbacks in infr.internal_feedback.items():
             infr.external_feedback[edge].extend(feedbacks)

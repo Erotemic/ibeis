@@ -172,12 +172,16 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                                         node_to_label.values())
 
         bad_edges = []
+        priorities = []
+        dummy = 1.5
         for cc1, cc2 in it.combinations(label_to_nodes.values(), 2):
             edges = nx_utils.edges_cross(infr.graph, set(cc1), set(cc2))
             datas = [infr.get_edge_data(e) for e in edges]
             bad = [e for e, d in zip(edges, datas)
                    if d.get('decision') == POSTV]
-            if len(bad) == 1:
+            if len(bad) > 1:
+                priorities.extend([dummy] * len(bad))
+                dummy += 1
                 bad_edges.extend(bad)
         print(len(bad_edges))
 
@@ -188,7 +192,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         infr.fix_mode_split = True
         infr.classifiers = None
 
-        infr.set_edge_attrs('disagrees', ut.dzip(bad_edges, [2.5]))
+        infr.set_edge_attrs('disagrees', ut.dzip(bad_edges, priorities))
         infr.prioritize('disagrees', bad_edges, reset=True)
         # infr.apply_nondynamic_update()
         infr.verbose = 10
