@@ -272,6 +272,7 @@ class SpatialVerifyConfig(ConfigBase):
         sv_cfg.full_homog_checks = True
         sv_cfg.nNameShortlistSVER = 50
         sv_cfg.nAnnotPerNameSVER = 6
+        # sv_cfg.nAnnotPerNameSVER = 3
         #sv_cfg.prescore_method = 'csum'
         sv_cfg.prescore_method = 'nsum'
         sv_cfg.use_chip_extent = True  # BAD CONFIG?
