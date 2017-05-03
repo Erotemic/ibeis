@@ -54,9 +54,13 @@ class Chap3Commands(object):
 
     @classmethod
     def run_all(Chap3):
+        """
+        CommandLine:
+            python -m ibeis.scripts.thesis Chap3.run_all
+        """
         agg_dbnames = ['PZ_Master1', 'GZ_Master1', 'GIRM_Master1', 'humpbacks_fb']
 
-        if False:
+        if True:
             for dbname in agg_dbnames:
                 self = Chap3(dbname)
                 self.measure_all()
@@ -64,7 +68,11 @@ class Chap3Commands(object):
         else:
             from concurrent import futures
             executor = futures.ProcessPoolExecutor(len(agg_dbnames))
+            print('About to submit')
             fs = [executor.submit(measure_worker, dbname) for dbname in agg_dbnames]
+            while True:
+                print('waiting')
+                print('fs = %r' % (fs,))
             futures.wait(fs)
 
             for dbname in agg_dbnames:
