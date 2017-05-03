@@ -1,7 +1,7 @@
 from ibeis.scripts.script_vsone import OneVsOneProblem
 import pandas as pd
 import numpy as np
-from os.path import basename, join, splitext
+from os.path import basename, join, splitext, exists
 import utool as ut
 import plottool as pt
 import vtool as vt
@@ -110,7 +110,7 @@ class Chap3Commands(object):
 class Chap3Agg(object):
 
     @classmethod
-    def agg_db_stats(Chap3):
+    def agg_dbstats(Chap3):
         """
         CommandLine:
             python -m ibeis.scripts.thesis Chap3.agg_db_stats
@@ -119,7 +119,7 @@ class Chap3Agg(object):
         infos = ut.ddict(list)
         for dbname in agg_dbnames:
             self = Chap3(dbname)
-            info = self.measure_dbstats()
+            info = self.ensure_results('dbstats')
             infos['enc'].append(info['enc'])
             infos['qual'].append(info['qual'])
             infos['view'].append(info['view'])
@@ -169,7 +169,7 @@ class Chap3Agg(object):
         CommandLine:
             python -m ibeis.scripts.thesis Chap3.draw_agg_baseline
         """
-        agg_dbnames = ['GZ_Master1', 'PZ_Master1', 'GIRM_Master1']
+        agg_dbnames = ['GZ_Master1', 'PZ_Master1', 'GIRM_Master1', 'humpbacks_fb']
         cdfs = []
         labels = []
         for dbname in agg_dbnames:
@@ -199,6 +199,10 @@ class Chap3Agg(object):
         else:
             fpath = join(self.dpath, expt_name + '.pkl')
             expt_name = splitext(basename(fpath))[0]
+            if not exists(fpath):
+                if self.ibs is None:
+                    self._precollect()
+                getattr(self, 'measure_' + expt_name)()
             self.expt_results[expt_name] = ut.load_data(fpath)
             return self.expt_results[expt_name]
 
@@ -596,7 +600,6 @@ class Chap3Measures(object):
         expt_name = 'kexpt'
         self.expt_results[expt_name] = results
         ut.save_data(join(self.dpath, expt_name + '.pkl'), results)
-        cdfs, infos = zip(*results)
 
     def measure_dbstats(self):
         if self.ibs is None:
@@ -653,6 +656,11 @@ class Chap3Measures(object):
             'qual': qual_info,
             'view': view_info,
         }
+
+        expt_name = ut.get_stack_frame().f_code.co_name.replace('measure_', '')
+        expt_name = 'dbstats'
+        self.expt_results[expt_name] = info
+        ut.save_data(join(self.dpath, expt_name + '.pkl'), info)
         return info
 
 
