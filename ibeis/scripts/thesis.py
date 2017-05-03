@@ -351,6 +351,46 @@ class Chap3Inputs(object):
         dname_encs = ut.take_column(sample_splits.values(), 1)
         return qaids, dname_encs, confusor_pool
 
+    def _same_occur_split(self):
+        """
+            >>> from ibeis.scripts.thesis import *
+            >>> self = Chap3('PZ_Master1')
+            >>> self._precollect()
+        """
+        ibs = self.ibs
+        aids = self.aids_pool
+        annots = ibs.annots(aids)
+        # occurrences = ibs._annot_groups(annots.group(annots.occurrence_text)[1])
+        encounters = ibs._annot_groups(annots.group(annots.encounter_text)[1])
+
+        nid_to_splits = ut.ddict(list)
+        # Find the biggest occurrences and pick an annotation from that
+        # occurrence to be sampled
+        occur_to_encs = ut.group_items(encounters, ut.take_column(encounters.occurrence_text, 0))
+        occur_encs = ut.sortedby(list(occur_to_encs.values()), list(map(len, occur_to_encs.values())))[::-1]
+        for encs in occur_encs:
+            for enc in encs:
+                sortx = ut.argsort(enc.qualities)[::-1]
+                annot = enc[sortx[0]]
+                if len(nid_to_splits[annot.nid]) < 2:
+                    nid_to_splits[annot.nid].append(annot.aid)
+
+        rng = ut.ensure_rng(0)
+        pyrng = random.Random(rng.randint(sys.maxsize))
+
+        qaids = []
+        dname_encs = []
+        confusor_pool = []
+        for nid, aids_ in nid_to_splits.items():
+            if len(aids_) < 2:
+                confusor_pool.extend(aids_)
+            else:
+                pyrng.shuffle(aids_)
+                qaids.append(aids_[0])
+                dname_encs.append([[aids_[1]]])
+        confusor_pool = ut.shuffle(confusor_pool, rng=0)
+        return qaids, dname_encs, confusor_pool
+
     def _rand_splits(ibs, aids, qenc_per_name, denc_per_name_, annots_per_enc):
         """ This can be used for cross validation """
         # Find a split of query/database encounters and confusors
@@ -365,7 +405,8 @@ class Chap3Inputs(object):
         confusor_pool = ut.shuffle(confusor_pool, rng=0)
         return qaids, dname_encs, confusor_pool
 
-    def _varied_inputs(self, denc_per_name=[1], extra_dbsize_fracs=None):
+    def _varied_inputs(self, denc_per_name=[1], extra_dbsize_fracs=None,
+                       method='alt'):
         """
         Vary num per name and total number of annots
 
@@ -374,7 +415,7 @@ class Chap3Inputs(object):
             >>> self = Chap3('PZ_Master1')
             >>> self._precollect()
             >>> print('--------')
-            >>> ibs, qaids, daids_list, info_list = self._varied_inputs([1], [0])
+            >>> ibs, qaids, daids_list, info_list = self._varied_inputs([1], [1], method='same_occur')
             >>> print('qsize = %r' % (len(qaids),))
             >>> for info in info_list:
             >>>     print(ut.repr4(info))
@@ -401,8 +442,17 @@ class Chap3Inputs(object):
         qenc_per_name = 1
         annots_per_enc = 1
         denc_per_name_ = max(denc_per_name)
-        qaids, dname_encs, confusor_pool = self._alt_splits(
-            ibs, aids, qenc_per_name, denc_per_name_, annots_per_enc)
+
+        if method == 'alt':
+            qaids, dname_encs, confusor_pool = self._alt_splits(
+                ibs, aids, qenc_per_name, denc_per_name_, annots_per_enc)
+        elif method == 'same_occur':
+            assert denc_per_name_ == 1
+            assert annots_per_enc == 1
+            assert qenc_per_name == 1
+            qaids, dname_encs, confusor_pool = self._same_occur_split()
+        else:
+            raise KeyError(method)
 
         # Vary the number of database encounters in each sample
         target_daids_list = []
@@ -489,18 +539,18 @@ class Chap3Measures(object):
 
     def measure_foregroundness(self):
         ibs, qaids, daids_list, info_list = self._varied_inputs(
-            denc_per_name=[1], extra_dbsize_fracs=[1])
+            denc_per_name=[1], extra_dbsize_fracs=[1], method='same_occur')
         daids = daids_list[0]
         info = info_list[0]
 
         results = []
         cfgdict1 = {'fg_on': False}
         cdf = self._exec_ranking(ibs, qaids, daids, cfgdict1)
-        results = [(cdf, ut.update_dict(info.copy(), {'pcfg': cfgdict1}))]
+        results.append((cdf, ut.update_dict(info.copy(), {'pcfg': cfgdict1})))
 
         cfgdict2 = {'fg_on': True}
         cdf = self._exec_ranking(ibs, qaids, daids, cfgdict2)
-        results = [(cdf, ut.update_dict(info.copy(), {'pcfg': cfgdict2}))]
+        results.append((cdf, ut.update_dict(info.copy(), {'pcfg': cfgdict2})))
 
         expt_name = 'foregroundness'
         self.expt_results[expt_name] = results
@@ -674,6 +724,7 @@ class Chap3Draw(object):
         """
         CommandLine:
             python -m ibeis.scripts.thesis Chap3.measure_single --expt=nsum --dbs=GZ_Master1,PZ_Master1
+            python -m ibeis.scripts.thesis Chap3.measure_single --expt=foregroundness --dbs=GZ_Master1,PZ_Master1
 
         Example:
             >>> # DISABLE_DOCTEST
@@ -693,6 +744,7 @@ class Chap3Draw(object):
         """
         CommandLine:
             python -m ibeis.scripts.thesis Chap3.draw_single --expt=nsum --dbs=GZ_Master1,PZ_Master1
+            python -m ibeis.scripts.thesis Chap3.draw_single --expt=foregroundness --dbs=GZ_Master1,PZ_Master1 --diskshow
 
         Example:
             >>> # DISABLE_DOCTEST
@@ -705,9 +757,12 @@ class Chap3Draw(object):
         print('expt_name = %r' % (expt_name,))
         for dbname in dbnames:
             self = Chap3(dbname)
-            getattr(self, 'draw_' + expt_name)()
+            fpath = getattr(self, 'draw_' + expt_name)()
+            if ut.get_argflag('--diskshow'):
+                ut.startfile(fpath)
 
     def draw_nsum(self):
+        expt_name = ut.get_stack_frame().f_code.co_name.replace('draw_', '')
         expt_name = 'nsum'
         results = self.ensure_results(expt_name)
         cdfs, infos = list(zip(*results))
@@ -716,6 +771,20 @@ class Chap3Draw(object):
         fig = self.plot_cmcs2(cdfs, labels, fnum=1)
         fpath = join(self.dpath, expt_name + '.png')
         vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
+        return fpath
+
+    def draw_foregroundness(self):
+        expt_name = ut.get_stack_frame().f_code.co_name.replace('draw_', '')
+        results = self.ensure_results(expt_name)
+        cdf = results[0][0]
+        baseline_cdf = results[1][0]
+        cdfs = [cdf, baseline_cdf]
+        labels = ['fg=F', 'fg=T']
+        fig = self.plot_cmcs2(cdfs, labels, fnum=1, ymin=.5)
+        fig.set_size_inches([W, H * .6])
+        fpath = join(self.dpath, expt_name + '.png')
+        vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
+        return fpath
 
     def draw(self):
         """
@@ -750,14 +819,7 @@ class Chap3Draw(object):
 
         expt_name = 'foregroundness'
         if expt_name in self.expt_results:
-            cdf = self.expt_results[expt_name][0][0]
-            baseline_cdf = self.expt_results['baseline'][0][0]
-            cdfs = [cdf, baseline_cdf]
-            labels = ['fg=F', 'fg=T']
-            fig = self.plot_cmcs2(cdfs, labels, fnum=1)
-            fig.set_size_inches([W, H * .6])
-            fpath = join(self.dpath, expt_name + '.png')
-            vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
+            self.draw_foregroundness()
 
         expt_name = 'invar'
         if expt_name in self.expt_results:
