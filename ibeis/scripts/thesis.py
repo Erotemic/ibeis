@@ -44,6 +44,59 @@ W, H = 7.4375, 3.0
 # W, H = W * 1.25, H * 1.25
 
 
+def measure_worker(dbname):
+    self = Chap3(dbname)
+    self.measure_all()
+
+
+@ut.reloadable_class
+class Chap3Commands(object):
+
+    @classmethod
+    def run_all(Chap3):
+        agg_dbnames = ['PZ_Master1', 'GZ_Master1', 'GIRM_Master1', 'humpbacks_fb']
+
+        if False:
+            for dbname in agg_dbnames:
+                self = Chap3(dbname)
+                self.measure_all()
+                self.draw_time_distri()
+        else:
+            from concurrent import futures
+            executor = futures.ProcessPoolExecutor(len(agg_dbnames))
+            fs = [executor.submit(measure_worker, dbname) for dbname in agg_dbnames]
+            futures.wait(fs)
+
+            for dbname in agg_dbnames:
+                self = Chap3(dbname)
+                self.draw_time_distri()
+
+        Chap3.agg_db_stats()
+        Chap3.draw_agg_baseline()
+
+    def measure_all(self):
+        """
+        Example:
+            from ibeis.scripts.thesis import *
+            self = Chap3('PZ_Master1')
+            self.measure_all()
+            self = Chap3('GZ_Master1')
+            self.measure_all()
+            self = Chap3('GIRM_Master1')
+            self.measure_all()
+        """
+        if self.ibs is None:
+            self._precollect()
+        self.measure_baseline()
+        if self.dbname in {'PZ_Master1', 'GZ_Master1'}:
+            self.measure_foregroundness()
+            self.measure_smk()
+            self.measure_nsum()
+            self.measure_dbsize()
+            self.measure_kexpt()
+            self.measure_invariance()
+
+
 @ut.reloadable_class
 class Chap3Agg(object):
 
@@ -54,18 +107,16 @@ class Chap3Agg(object):
             python -m ibeis.scripts.thesis Chap3.agg_db_stats
         """
         agg_dbnames = ['PZ_Master1', 'GZ_Master1', 'GIRM_Master1', 'humpbacks_fb']
-        enc_infos = []
-        view_infos = []
-        qual_infos = []
+        infos = ut.ddict(list)
         for dbname in agg_dbnames:
             self = Chap3(dbname)
             info = self.measure_dbstats()
-            enc_infos.append(info['enc'])
-            qual_infos.append(info['qual'])
-            view_infos.append(info['view'])
+            infos['enc'].append(info['enc'])
+            infos['qual'].append(info['qual'])
+            infos['view'].append(info['view'])
             # labels.append(self.species_nice.capitalize())
 
-        df = pd.DataFrame(enc_infos)
+        df = pd.DataFrame(infos['enc'])
         # df = df.reindex_axis(ut.partial_order(df.columns, ['species_nice']), axis=1)
         df = df.rename(columns={'species_nice': 'Database'})
         text = df.to_latex(index=False).replace('±', '\pm')
@@ -77,13 +128,13 @@ class Chap3Agg(object):
         enc_text = text.replace('lrrllr', 'lrrrrr')
         # ut.render_latex_text(text, preamb_extra=r'\usepackage{makecell}')
 
-        df = pd.DataFrame(qual_infos)
+        df = pd.DataFrame(infos['qual'])
         df = df.rename(columns={'species_nice': 'Database'})
         df = df.reindex_axis(ut.partial_order(
             df.columns, ['Database', 'excellent', 'good', 'ok', 'poor', 'None']), axis=1)
         qual_text = df.to_latex(index=False)
 
-        df = pd.DataFrame(view_infos)
+        df = pd.DataFrame(infos['view'])
         df = df.rename(columns={
             'species_nice': 'Database',
             'back': 'B', 'left': 'L', 'right': 'R', 'front': 'F',
@@ -102,194 +153,6 @@ class Chap3Agg(object):
         ut.write_to(join(Chap3.base_dpath, 'agg-enc.tex'), enc_text)
         ut.write_to(join(Chap3.base_dpath, 'agg-view.tex'), view_text)
         ut.write_to(join(Chap3.base_dpath, 'agg-qual.tex'), qual_text)
-
-    def measure_dbstats(self):
-        """
-        CommandLine:
-            python -m ibeis.scripts.thesis Chap3.measure_dbstats --dbs=GZ_Master1,PZ_Master1,GIRM_MasterV
-            python -m ibeis.scripts.thesis Chap3.measure_dbstats --dbs=GIRM_Master1
-            python -m ibeis.scripts.thesis Chap3.measure_dbstats --dbs=GZ_Master1
-            python -m ibeis.scripts.thesis Chap3.measure_dbstats --dbs=PZ_Master1
-
-        Example:
-            >>> # DISABLE_DOCTEST
-            >>> from ibeis.scripts.thesis import *  # NOQA
-            >>> dbname = ut.get_argval('--db', default='PZ_MTEST')
-            >>> dbnames = ut.get_argval('--dbs', type_=list, default=[dbname])
-            >>> for dbname in dbnames:
-            >>>     print('dbname = %r' % (dbname,))
-            >>>     self = Chap3(dbname)
-            >>>     self.measure_dbstats()
-        """
-        self._precollect()
-
-        # self.ibs.print_annot_stats(self.aids_pool)
-        annots = self.ibs.annots(self.aids_pool)
-
-        encounters = annots.group(annots.encounter_text)[1]
-        nids = ut.take_column(self.ibs._annot_groups(encounters).nids, 0)
-        nid_to_enc = ut.group_items(encounters, nids)
-
-        single_encs = {nid: e for nid, e in nid_to_enc.items() if len(e) == 1}
-        multi_encs = {nid: e for nid, e in nid_to_enc.items() if len(e) > 1}
-        multi_aids = ut.flatten(ut.flatten(multi_encs.values()))
-
-        enc_deltas = []
-        for encs_ in nid_to_enc.values():
-            a = encs_[0]
-            times = a.image_unixtimes_asfloat
-            delta = times.max() - times.min()
-            enc_deltas.append(delta)
-        max_enc_timedelta = max(enc_deltas)
-        print('max enc timedelta = %r' % (
-            ut.get_unix_timedelta_str(max_enc_timedelta)))
-
-        multi_stats = self.ibs.get_annot_stats_dict(multi_aids)
-        multi_stats['enc_per_name']
-
-        enc_info = ut.odict()
-        enc_info['species_nice'] = self.species_nice
-        enc_info['n_singleton_names'] = len(single_encs)
-        enc_info['n_resighted_names'] = len(multi_encs)
-        enc_info['n_encounter_per_resighted_name'] = '{:.1f}±{:.1f}'.format(
-            *ut.take(multi_stats['enc_per_name'], ['mean', 'std']))
-        n_annots_per_enc = ut.lmap(len, encounters)
-        enc_info['n_annots_per_encounter'] = '{:.1f}±{:.1f}'.format(
-            np.mean(n_annots_per_enc), np.std(n_annots_per_enc))
-        enc_info['n_annots'] = sum(n_annots_per_enc)
-
-        # qual_info = ut.odict()
-        qual_info = ut.dict_hist(annots.quality_texts)
-        qual_info['None'] = qual_info.pop('UNKNOWN', 0)
-        qual_info['None'] += qual_info.pop(None, 0)
-        qual_info['species_nice'] = self.species_nice
-
-        view_info = ut.dict_hist(annots.yaw_texts)
-        view_info['None'] = view_info.pop('UNKNOWN', 0)
-        view_info['None'] += view_info.pop(None, 0)
-        view_info['species_nice'] = self.species_nice
-
-        info = {
-            'enc': enc_info,
-            'qual': qual_info,
-            'view': view_info,
-        }
-        return info
-
-    def time_distri(self):
-        """
-        CommandLine:
-            python -m ibeis.scripts.thesis Chap3.time_distri --dbs=GZ_Master1,PZ_Master1,GIRM_MasterV
-            python -m ibeis.scripts.thesis Chap3.time_distri --dbs=GIRM_Master1
-            python -m ibeis.scripts.thesis Chap3.time_distri --dbs=GZ_Master1
-            python -m ibeis.scripts.thesis Chap3.time_distri --dbs=PZ_Master1
-            python -m ibeis.scripts.thesis Chap3.time_distri --dbs=humpbacks_fb
-
-        Example:
-            >>> # DISABLE_DOCTEST
-            >>> from ibeis.scripts.thesis import *  # NOQA
-            >>> dbname = ut.get_argval('--db', default='PZ_MTEST')
-            >>> dbnames = ut.get_argval('--dbs', type_=list, default=[dbname])
-            >>> for dbname in dbnames:
-            >>>     print('dbname = %r' % (dbname,))
-            >>>     self = Chap3(dbname)
-            >>>     self.time_distri()
-        """
-        import matplotlib as mpl
-        mpl.rcParams.update(TMP_RC)
-        self._precollect()
-        ibs = self.ibs
-        annots = ibs.annots(self.aids_pool)
-        images = ibs.images(set(annots.gids))
-        unixtimes_ = images.unixtime_asfloat
-        num_nan = np.isnan(unixtimes_).sum()
-        num_total = len(unixtimes_)
-        unixtimes = unixtimes_[~np.isnan(unixtimes_)]
-
-        mintime = vt.safe_min(unixtimes)
-        maxtime = vt.safe_max(unixtimes)
-        unixtime_domain = np.linspace(mintime, maxtime, 1000)
-
-        import matplotlib as mpl
-        mpl.rcParams.update(TMP_RC)
-
-        from sklearn.neighbors.kde import KernelDensity
-        bw = ut.get_argval('--bw', default=None)
-        day = 60 * 60 * 24
-        if bw is not None:
-            pass
-        elif 'GIRM' in self.dbname:
-            bw = day / 4
-        elif 'GZ' in self.dbname:
-            bw = day * 30
-        elif 'PZ' in self.dbname:
-            bw = day * 30
-        elif 'humpbacks_fb' in self.dbname:
-            bw = day * 30
-        else:
-            from sklearn.model_selection import RandomizedSearchCV
-            space = np.linspace(day, day * 14, 14).tolist()
-            grid_params = {'bandwidth': space}
-            searcher = ut.partial(RandomizedSearchCV, n_iter=5, n_jobs=8)
-            print('Searching for best bandwidth')
-            grid = searcher(KernelDensity(kernel='gaussian'), grid_params,
-                            cv=2, verbose=0)
-            grid.fit(unixtimes[:, None])
-            bw = grid.best_params_['bandwidth']
-            print('bw = %r' % (bw,))
-            print('bw(days) = %r' % (bw / day,))
-
-        kde = KernelDensity(kernel='gaussian', bandwidth=bw)
-        kde.fit(unixtimes[:, None])
-        log_density = kde.score_samples(unixtime_domain[:, None])
-        density = np.exp(log_density)
-        ydata = density.copy()
-        # emphasize smaller values
-        ydata /= ydata.max()
-        ydata = np.sqrt(ydata)
-        xdata = unixtime_domain
-        xdata_ts = ut.lmap(ut.unixtime_to_datetimeobj, xdata)
-
-        pt.multi_plot(xdata_ts, [ydata], label_list=['time'],
-                      alpha=.7, fnum=1, pnum=(1, 1, 1), ymin=0, fill=True,
-                      marker='', xlabel='Date', ylabel='# images',
-                      num_xticks=5,
-                      use_legend=False)
-        infos = []
-        if num_nan > 0:
-            infos.append('#nan={}'.format(num_nan))
-            infos.append('#total={}'.format(num_total))
-        else:
-            infos.append('#total={}'.format(num_total))
-        text = '\n'.join(infos)
-        pt.relative_text(.02, .02, text, halign='left', valign='top')
-
-        ax = pt.gca()
-        fig = pt.gcf()
-        ax.set_yticks([])
-        if False:
-            icon = ibs.get_database_icon()
-            pt.overlay_icon(icon, coords=(0, 1), bbox_alignment=(0, 1),
-                            as_artist=1, max_asize=(100, 200))
-        pt.adjust_subplots(top=.9, bottom=.1, left=.12, right=.9)
-        fig.set_size_inches([W, H * .4])
-        fpath = join(self.dpath, 'timedist.png')
-        vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
-        if ut.get_argflag('--diskshow'):
-            ut.startfile(fpath)
-
-    def ensure_results(self, expt_name=None):
-        if expt_name is None:
-            # Load all
-            fpaths = ut.glob(self.dpath, '*.pkl')
-            expt_names = [splitext(basename(fpath))[0] for fpath in fpaths]
-            for fpath, expt_name in zip(fpaths, expt_names):
-                self.expt_results[expt_name] = ut.load_data(fpath)
-        else:
-            fpath = join(self.dpath, expt_name + '.pkl')
-            expt_name = splitext(basename(fpath))[0]
-            self.expt_results[expt_name] = ut.load_data(fpath)
-            return self.expt_results[expt_name]
 
     @classmethod
     def draw_agg_baseline(Chap3):
@@ -317,27 +180,18 @@ class Chap3Agg(object):
         fpath = join(Chap3.base_dpath, 'agg-baseline.png')
         vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
 
-    def measure_all(self):
-        """
-        Example:
-            from ibeis.scripts.thesis import *
-            self = Chap3('PZ_Master1')
-            self.measure_all()
-            self = Chap3('GZ_Master1')
-            self.measure_all()
-            self = Chap3('GIRM_Master1')
-            self.measure_all()
-        """
-        if self.ibs is None:
-            self._precollect()
-        self.measure_baseline()
-        if self.dbname in {'PZ_Master1', 'GZ_Master1'}:
-            self.measure_foregroundness()
-            self.measure_smk()
-            self.measure_nsum()
-            self.measure_dbsize()
-            self.measure_kexpt()
-            self.measure_invariance()
+    def ensure_results(self, expt_name=None):
+        if expt_name is None:
+            # Load all
+            fpaths = ut.glob(self.dpath, '*.pkl')
+            expt_names = [splitext(basename(fpath))[0] for fpath in fpaths]
+            for fpath, expt_name in zip(fpaths, expt_names):
+                self.expt_results[expt_name] = ut.load_data(fpath)
+        else:
+            fpath = join(self.dpath, expt_name + '.pkl')
+            expt_name = splitext(basename(fpath))[0]
+            self.expt_results[expt_name] = ut.load_data(fpath)
+            return self.expt_results[expt_name]
 
 
 @ut.reloadable_class
@@ -735,6 +589,63 @@ class Chap3Measures(object):
         ut.save_data(join(self.dpath, expt_name + '.pkl'), results)
         cdfs, infos = zip(*results)
 
+    def measure_dbstats(self):
+        if self.ibs is None:
+            self._precollect()
+
+        # self.ibs.print_annot_stats(self.aids_pool)
+        annots = self.ibs.annots(self.aids_pool)
+
+        encounters = annots.group(annots.encounter_text)[1]
+        nids = ut.take_column(self.ibs._annot_groups(encounters).nids, 0)
+        nid_to_enc = ut.group_items(encounters, nids)
+
+        single_encs = {nid: e for nid, e in nid_to_enc.items() if len(e) == 1}
+        multi_encs = {nid: e for nid, e in nid_to_enc.items() if len(e) > 1}
+        multi_aids = ut.flatten(ut.flatten(multi_encs.values()))
+
+        enc_deltas = []
+        for encs_ in nid_to_enc.values():
+            a = encs_[0]
+            times = a.image_unixtimes_asfloat
+            delta = times.max() - times.min()
+            enc_deltas.append(delta)
+        max_enc_timedelta = max(enc_deltas)
+        print('max enc timedelta = %r' % (
+            ut.get_unix_timedelta_str(max_enc_timedelta)))
+
+        multi_stats = self.ibs.get_annot_stats_dict(multi_aids)
+        multi_stats['enc_per_name']
+
+        enc_info = ut.odict()
+        enc_info['species_nice'] = self.species_nice
+        enc_info['n_singleton_names'] = len(single_encs)
+        enc_info['n_resighted_names'] = len(multi_encs)
+        enc_info['n_encounter_per_resighted_name'] = '{:.1f}±{:.1f}'.format(
+            *ut.take(multi_stats['enc_per_name'], ['mean', 'std']))
+        n_annots_per_enc = ut.lmap(len, encounters)
+        enc_info['n_annots_per_encounter'] = '{:.1f}±{:.1f}'.format(
+            np.mean(n_annots_per_enc), np.std(n_annots_per_enc))
+        enc_info['n_annots'] = sum(n_annots_per_enc)
+
+        # qual_info = ut.odict()
+        qual_info = ut.dict_hist(annots.quality_texts)
+        qual_info['None'] = qual_info.pop('UNKNOWN', 0)
+        qual_info['None'] += qual_info.pop(None, 0)
+        qual_info['species_nice'] = self.species_nice
+
+        view_info = ut.dict_hist(annots.yaw_texts)
+        view_info['None'] = view_info.pop('UNKNOWN', 0)
+        view_info['None'] += view_info.pop(None, 0)
+        view_info['species_nice'] = self.species_nice
+
+        info = {
+            'enc': enc_info,
+            'qual': qual_info,
+            'view': view_info,
+        }
+        return info
+
 
 @ut.reloadable_class
 class Chap3Draw(object):
@@ -908,9 +819,112 @@ class Chap3Draw(object):
         fig.set_size_inches([W, H])
         return fig
 
+    def draw_time_distri(self):
+        """
+        CommandLine:
+            python -m ibeis.scripts.thesis Chap3.draw_time_distri --dbs=GZ_Master1,PZ_Master1,GIRM_MasterV
+            python -m ibeis.scripts.thesis Chap3.draw_time_distri --dbs=GIRM_Master1
+            python -m ibeis.scripts.thesis Chap3.draw_time_distri --dbs=GZ_Master1
+            python -m ibeis.scripts.thesis Chap3.draw_time_distri --dbs=PZ_Master1
+            python -m ibeis.scripts.thesis Chap3.draw_time_distri --dbs=humpbacks_fb
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.scripts.thesis import *  # NOQA
+            >>> dbname = ut.get_argval('--db', default='PZ_MTEST')
+            >>> dbnames = ut.get_argval('--dbs', type_=list, default=[dbname])
+            >>> for dbname in dbnames:
+            >>>     print('dbname = %r' % (dbname,))
+            >>>     self = Chap3(dbname)
+            >>>     self.draw_time_distri()
+        """
+        import matplotlib as mpl
+        mpl.rcParams.update(TMP_RC)
+        if self.ibs is None:
+            self._precollect()
+        ibs = self.ibs
+        annots = ibs.annots(self.aids_pool)
+        images = ibs.images(set(annots.gids))
+        unixtimes_ = images.unixtime_asfloat
+        num_nan = np.isnan(unixtimes_).sum()
+        num_total = len(unixtimes_)
+        unixtimes = unixtimes_[~np.isnan(unixtimes_)]
+
+        mintime = vt.safe_min(unixtimes)
+        maxtime = vt.safe_max(unixtimes)
+        unixtime_domain = np.linspace(mintime, maxtime, 1000)
+
+        import matplotlib as mpl
+        mpl.rcParams.update(TMP_RC)
+
+        from sklearn.neighbors.kde import KernelDensity
+        bw = ut.get_argval('--bw', default=None)
+        day = 60 * 60 * 24
+        if bw is not None:
+            pass
+        elif 'GIRM' in self.dbname:
+            bw = day / 4
+        elif 'GZ' in self.dbname:
+            bw = day * 30
+        elif 'PZ' in self.dbname:
+            bw = day * 30
+        elif 'humpbacks_fb' in self.dbname:
+            bw = day * 30
+        else:
+            from sklearn.model_selection import RandomizedSearchCV
+            space = np.linspace(day, day * 14, 14).tolist()
+            grid_params = {'bandwidth': space}
+            searcher = ut.partial(RandomizedSearchCV, n_iter=5, n_jobs=8)
+            print('Searching for best bandwidth')
+            grid = searcher(KernelDensity(kernel='gaussian'), grid_params,
+                            cv=2, verbose=0)
+            grid.fit(unixtimes[:, None])
+            bw = grid.best_params_['bandwidth']
+            print('bw = %r' % (bw,))
+            print('bw(days) = %r' % (bw / day,))
+
+        kde = KernelDensity(kernel='gaussian', bandwidth=bw)
+        kde.fit(unixtimes[:, None])
+        log_density = kde.score_samples(unixtime_domain[:, None])
+        density = np.exp(log_density)
+        ydata = density.copy()
+        # emphasize smaller values
+        ydata /= ydata.max()
+        ydata = np.sqrt(ydata)
+        xdata = unixtime_domain
+        xdata_ts = ut.lmap(ut.unixtime_to_datetimeobj, xdata)
+
+        pt.multi_plot(xdata_ts, [ydata], label_list=['time'],
+                      alpha=.7, fnum=1, pnum=(1, 1, 1), ymin=0, fill=True,
+                      marker='', xlabel='Date', ylabel='# images',
+                      num_xticks=5,
+                      use_legend=False)
+        infos = []
+        if num_nan > 0:
+            infos.append('#nan={}'.format(num_nan))
+            infos.append('#total={}'.format(num_total))
+        else:
+            infos.append('#total={}'.format(num_total))
+        text = '\n'.join(infos)
+        pt.relative_text(.02, .02, text, halign='left', valign='top')
+
+        ax = pt.gca()
+        fig = pt.gcf()
+        ax.set_yticks([])
+        if False:
+            icon = ibs.get_database_icon()
+            pt.overlay_icon(icon, coords=(0, 1), bbox_alignment=(0, 1),
+                            as_artist=1, max_asize=(100, 200))
+        pt.adjust_subplots(top=.9, bottom=.1, left=.12, right=.9)
+        fig.set_size_inches([W, H * .4])
+        fpath = join(self.dpath, 'timedist.png')
+        vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
+        if ut.get_argflag('--diskshow'):
+            ut.startfile(fpath)
+
 
 @ut.reloadable_class
-class Chap3(Chap3Inputs, Chap3Agg, Chap3Draw, Chap3Measures):
+class Chap3(Chap3Inputs, Chap3Agg, Chap3Draw, Chap3Measures, Chap3Commands):
     pass
 
 
