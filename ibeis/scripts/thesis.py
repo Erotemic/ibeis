@@ -167,7 +167,7 @@ class Chap3Agg(object):
     def draw_agg_baseline(Chap3):
         """
         CommandLine:
-            python -m ibeis.scripts.thesis Chap3.draw_agg_baseline
+            python -m ibeis.scripts.thesis Chap3.draw_agg_baseline --diskshow
         """
         agg_dbnames = ['GZ_Master1', 'PZ_Master1', 'GIRM_Master1', 'humpbacks_fb']
         cdfs = []
@@ -178,16 +178,18 @@ class Chap3Agg(object):
             cdf, config = results[0]
             dsize = config['dsize']
             qsize = config['t_n_names']
-            baseline_cdf = self.ensure_results('baseline')[0][0]
+            baseline_cdf = results[0][0]
             cdfs.append(baseline_cdf)
             labels.append('{},qsize={},dsize={}'.format(
                 self.species_nice, qsize, dsize))
             # labels.append(self.species_nice.capitalize())
 
         fig = self.plot_cmcs2(cdfs, labels, fnum=1, ymin=.5)
-        fig.set_size_inches([W, H])
+        fig.set_size_inches([W, H * 1.5])
         fpath = join(Chap3.base_dpath, 'agg-baseline.png')
         vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
+        if ut.get_argflag('--diskshow'):
+            ut.startfile(fpath)
 
     def ensure_results(self, expt_name=None):
         if expt_name is None:
@@ -226,7 +228,7 @@ class Chap3Inputs(object):
         if 'GIRM' in dbname:
             self.species_nice = "Masai Giraffes"
         if 'humpback' in dbname:
-            self.species_nice = "Humpback Whales"
+            self.species_nice = "Humpbacks"
         self.expt_results = {}
         self.ibs = None
         if dbname is not None:
@@ -666,6 +668,55 @@ class Chap3Measures(object):
 
 @ut.reloadable_class
 class Chap3Draw(object):
+
+    @classmethod
+    def measure_single(Chap3, expt_name, dbnames):
+        """
+        CommandLine:
+            python -m ibeis.scripts.thesis Chap3.measure_single --expt=nsum --dbs=GZ_Master1,PZ_Master1
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.scripts.thesis import *  # NOQA
+            >>> expt_name = ut.get_argval('--expt', type_=str)
+            >>> dbnames = ut.get_argval('--dbs', type_=list, default=[])
+            >>> Chap3.measure_single(expt_name, dbnames)
+        """
+        for dbname in dbnames:
+            self = Chap3(dbname)
+            if self.ibs is None:
+                self._precollect()
+            getattr(self, 'measure_' + expt_name)()
+
+    @classmethod
+    def draw_single(Chap3, expt_name, dbnames):
+        """
+        CommandLine:
+            python -m ibeis.scripts.thesis Chap3.draw_single --expt=nsum --dbs=GZ_Master1,PZ_Master1
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.scripts.thesis import *  # NOQA
+            >>> expt_name = ut.get_argval('--expt', type_=str)
+            >>> dbnames = ut.get_argval('--dbs', type_=list, default=[])
+            >>> Chap3.draw_single(expt_name, dbnames)
+        """
+        print('dbnames = %r' % (dbnames,))
+        print('expt_name = %r' % (expt_name,))
+        for dbname in dbnames:
+            self = Chap3(dbname)
+            getattr(self, 'draw_' + expt_name)()
+
+    def draw_nsum(self):
+        expt_name = 'nsum'
+        results = self.ensure_results(expt_name)
+        cdfs, infos = list(zip(*results))
+        # pcfgs = ut.take_column(infos, 'pcfg')
+        labels = [x['pcfg']['score_method'] + ',dpername={}'.format(x['t_dpername']) for x in infos]
+        fig = self.plot_cmcs2(cdfs, labels, fnum=1)
+        fpath = join(self.dpath, expt_name + '.png')
+        vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
+
     def draw(self):
         """
         CommandLine:
@@ -744,13 +795,7 @@ class Chap3Draw(object):
 
         expt_name = 'nsum'
         if expt_name in self.expt_results:
-            results = self.expt_results[expt_name]
-            cdfs, infos = list(zip(*results))
-            pcfgs = ut.take_column(infos, 'pcfg')
-            labels = [x['pcfg']['score_method'] + ',dpername={}'.format(x['t_dpername']) for x in infos]
-            fig = self.plot_cmcs2(cdfs, labels, fnum=1)
-            fpath = join(self.dpath, expt_name + '.png')
-            vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
+            self.draw_nsum()
 
         import pandas as pd
         expt_name = 'kexpt'
