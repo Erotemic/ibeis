@@ -59,6 +59,7 @@ class Chap3Commands(object):
             python -m ibeis.scripts.thesis Chap3.run_all
         """
         agg_dbnames = ['PZ_Master1', 'GZ_Master1', 'GIRM_Master1', 'humpbacks_fb']
+        agg_dbnames = agg_dbnames[::-1]
 
         if True:
             for dbname in agg_dbnames:
