@@ -745,6 +745,7 @@ class Chap3Draw(object):
         CommandLine:
             python -m ibeis.scripts.thesis Chap3.draw_single --expt=nsum --dbs=GZ_Master1,PZ_Master1
             python -m ibeis.scripts.thesis Chap3.draw_single --expt=foregroundness --dbs=GZ_Master1,PZ_Master1 --diskshow
+            python -m ibeis.scripts.thesis Chap3.draw_single --expt=kexpt --dbs=GZ_Master1 --diskshow
 
         Example:
             >>> # DISABLE_DOCTEST
@@ -767,8 +768,12 @@ class Chap3Draw(object):
         results = self.ensure_results(expt_name)
         cdfs, infos = list(zip(*results))
         # pcfgs = ut.take_column(infos, 'pcfg')
-        labels = [x['pcfg']['score_method'] + ',dpername={}'.format(x['t_dpername']) for x in infos]
-        fig = self.plot_cmcs2(cdfs, labels, fnum=1)
+        alias = {
+            'nsum': 'fmech',
+            'csum': 'amech',
+        }
+        labels = [alias[x['pcfg']['score_method']] + ',dpername={}'.format(x['t_dpername']) for x in infos]
+        fig = self.plot_cmcs2(cdfs, labels, fnum=1, ymin=.5)
         fpath = join(self.dpath, expt_name + '.png')
         vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
         return fpath
@@ -782,6 +787,39 @@ class Chap3Draw(object):
         labels = ['fg=F', 'fg=T']
         fig = self.plot_cmcs2(cdfs, labels, fnum=1, ymin=.5)
         fig.set_size_inches([W, H * .6])
+        fpath = join(self.dpath, expt_name + '.png')
+        vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
+        return fpath
+
+    def draw_kexpt(self):
+        expt_name = ut.get_stack_frame().f_code.co_name.replace('draw_', '')
+        results = self.ensure_results(expt_name)
+        # results = self.expt_results[expt_name]
+        cdfs, infos = list(zip(*results))
+        pcfgs = ut.take_column(infos, 'pcfg')
+        df = pd.DataFrame.from_records(infos)
+        df['cdfs'] = cdfs
+        df['K'] = ut.take_column(pcfgs, 'K')
+        import plottool as pt
+        # groups = list(df.groupby(('dsize', 't_denc_pername')))
+        df = df[df['K'] != 10]
+        groups = list(df.groupby(('dsize')))
+        fig = pt.figure(fnum=1)
+        pnum_ = pt.make_pnum_nextgen(nCols=2, nSubplots=len(groups))
+        for val, df_group in groups:
+            # print('---')
+            # print(df_group)
+            relevant_df = df_group[['K', 'dsize', 't_dpername']]
+            relevant_df = relevant_df.rename(columns={'t_dpername': 'dpername'})
+            relevant_cfgs = relevant_df.to_dict('records')
+            nonvaried_kw, varied_kws = ut.partition_varied_cfg_list(relevant_cfgs)
+            labels_ = [ut.get_cfg_lbl(kw)[1:] for kw in varied_kws]
+            cdfs_ = df_group['cdfs'].values
+            self.plot_cmcs(cdfs_, labels_, fnum=1, pnum=pnum_(), ymin=.5)
+            ax = pt.gca()
+            ax.set_title(ut.get_cfg_lbl(nonvaried_kw)[1:])
+        pt.adjust_subplots(top=.9, bottom=.1, left=.12, right=.9, hspace=.5, wspace=.2)
+        fig.set_size_inches([W * 1.5, H])
         fpath = join(self.dpath, expt_name + '.png')
         vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
         return fpath
@@ -859,35 +897,9 @@ class Chap3Draw(object):
         if expt_name in self.expt_results:
             self.draw_nsum()
 
-        import pandas as pd
         expt_name = 'kexpt'
         if expt_name in self.expt_results:
-            results = self.expt_results[expt_name]
-            cdfs, infos = list(zip(*results))
-            pcfgs = ut.take_column(infos, 'pcfg')
-            df = pd.DataFrame.from_records(infos)
-            df['cdfs'] = cdfs
-            df['K'] = ut.take_column(pcfgs, 'K')
-            import plottool as pt
-            groups = list(df.groupby(('dsize', 't_denc_pername')))
-            fig = pt.figure(fnum=1)
-            pnum_ = pt.make_pnum_nextgen(nCols=2, nSubplots=len(groups))
-            for val, df_group in groups:
-                # print('---')
-                # print(df_group)
-                relevant_df = df_group[['K', 'dsize', 't_dpername']]
-                relevant_df = relevant_df.rename(columns={'t_dpername': 'dpername'})
-                relevant_cfgs = relevant_df.to_dict('records')
-                nonvaried_kw, varied_kws = ut.partition_varied_cfg_list(relevant_cfgs)
-                labels_ = [ut.get_cfg_lbl(kw)[1:] for kw in varied_kws]
-                cdfs_ = df_group['cdfs'].values
-                self.plot_cmcs(cdfs_, labels_, fnum=1, pnum=pnum_())
-                ax = pt.gca()
-                ax.set_title(ut.get_cfg_lbl(nonvaried_kw)[1:])
-            pt.adjust_subplots(top=.9, bottom=.1, left=.12, right=.9, hspace=.5, wspace=.2)
-            fig.set_size_inches([W * 2, H * 1.5])
-            fpath = join(self.dpath, expt_name + '.png')
-            vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
+            self.draw_kexpt()
 
     def _exec_ranking(self, ibs, qaids, daids, cfgdict):
         # Execute the ranking algorithm
