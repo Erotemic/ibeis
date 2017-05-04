@@ -53,34 +53,29 @@ def measure_worker(dbname):
 class Chap3Commands(object):
 
     @classmethod
+    def vd(Chap3):
+        """
+        CommandLine:
+            python -m ibeis.scripts.thesis Chap3.vd
+        """
+        ut.vd(Chap3.base_dpath)
+
+    @classmethod
     def run_all(Chap3):
         """
         CommandLine:
             python -m ibeis.scripts.thesis Chap3.run_all
         """
-        agg_dbnames = ['PZ_Master1', 'GZ_Master1', 'GIRM_Master1', 'humpbacks_fb']
+        agg_dbnames = ['PZ_Master1', 'GZ_Master1', 'GIRM_Master1',
+                       'humpbacks_fb']
         agg_dbnames = agg_dbnames[::-1]
 
-        if True:
-            for dbname in agg_dbnames:
-                self = Chap3(dbname)
-                self.measure_all()
-                self.draw_time_distri()
-        else:
-            from concurrent import futures
-            executor = futures.ProcessPoolExecutor(len(agg_dbnames))
-            print('About to submit')
-            fs = [executor.submit(measure_worker, dbname) for dbname in agg_dbnames]
-            while True:
-                print('waiting')
-                print('fs = %r' % (fs,))
-            futures.wait(fs)
+        for dbname in agg_dbnames:
+            self = Chap3(dbname)
+            self.measure_all()
+            self.draw_time_distri()
 
-            for dbname in agg_dbnames:
-                self = Chap3(dbname)
-                self.draw_time_distri()
-
-        Chap3.agg_db_stats()
+        Chap3.agg_dbstats()
         Chap3.draw_agg_baseline()
 
     def measure_all(self):
@@ -101,9 +96,58 @@ class Chap3Commands(object):
             self.measure_foregroundness()
             self.measure_smk()
             self.measure_nsum()
-            self.measure_dbsize()
+            # self.measure_dbsize()
             self.measure_kexpt()
             self.measure_invariance()
+
+    @classmethod
+    def measure(Chap3, expt_name, dbnames):
+        """
+        CommandLine:
+            python -m ibeis.scripts.thesis Chap3.measure nsum --dbs=GZ_Master1,PZ_Master1
+            python -m ibeis.scripts.thesis Chap3.measure foregroundness --dbs=GZ_Master1,PZ_Master1
+
+        Example:
+            >>> # Script
+            >>> from ibeis.scripts.thesis import *  # NOQA
+            >>> expt_name = ut.get_argval('--expt', type_=str, pos=1)
+            >>> dbnames = ut.get_argval(('--dbs', '--db'), type_=list, default=[])
+            >>> Chap3.measure(expt_name, dbnames)
+        """
+        for dbname in dbnames:
+            self = Chap3(dbname)
+            if self.ibs is None:
+                self._precollect()
+            if expt_name == 'all':
+                self.measure_all()
+            else:
+                getattr(self, 'measure_' + expt_name)()
+
+    @classmethod
+    def draw(Chap3, expt_name, dbnames):
+        """
+        CommandLine:
+            python -m ibeis.scripts.thesis Chap3.draw nsum --dbs=GZ_Master1,PZ_Master1
+            python -m ibeis.scripts.thesis Chap3.draw foregroundness --dbs=GZ_Master1,PZ_Master1 --diskshow
+            python -m ibeis.scripts.thesis Chap3.draw kexpt --dbs=GZ_Master1 --diskshow
+
+        Example:
+            >>> # Script
+            >>> from ibeis.scripts.thesis import *  # NOQA
+            >>> expt_name = ut.get_argval('--expt', type_=str, pos=1)
+            >>> dbnames = ut.get_argval(('--dbs', '--db'), type_=list, default=[])
+            >>> Chap3.draw(expt_name, dbnames)
+        """
+        print('dbnames = %r' % (dbnames,))
+        print('expt_name = %r' % (expt_name,))
+        for dbname in dbnames:
+            self = Chap3(dbname)
+            if expt_name == 'all':
+                self.draw_all()
+            else:
+                fpath = getattr(self, 'draw_' + expt_name)()
+                if ut.get_argflag('--diskshow'):
+                    ut.startfile(fpath)
 
 
 @ut.reloadable_class
@@ -184,6 +228,7 @@ class Chap3Agg(object):
                 self.species_nice, qsize, dsize))
             # labels.append(self.species_nice.capitalize())
 
+        mpl.rcParams.update(TMP_RC)
         fig = self.plot_cmcs2(cdfs, labels, fnum=1, ymin=.5)
         fig.set_size_inches([W, H * 1.5])
         fpath = join(Chap3.base_dpath, 'agg-baseline.png')
@@ -466,6 +511,7 @@ class Chap3Inputs(object):
             dpername = (name_lens[0] if ut.allsame(name_lens) else
                         np.mean(name_lens))
             target_info_list_.append(ut.odict([
+                ('qsize', len(qaids)),
                 ('t_n_names', len(dname_encs_)),
                 ('t_dpername', dpername),
                 ('t_denc_pername', num),
@@ -641,7 +687,7 @@ class Chap3Measures(object):
             denc_per_name=[1, 2], extra_dbsize_fracs=[0, 1.0])
         cfg_grid = {
             'query_rotation_heuristic': True,
-            'K': [1, 2, 4, 6, 10],
+            'K': [1, 2, 4, 6],
         }
         results = []
         for cfgdict in ut.all_dict_combinations(cfg_grid):
@@ -719,50 +765,19 @@ class Chap3Measures(object):
 @ut.reloadable_class
 class Chap3Draw(object):
 
-    @classmethod
-    def measure_single(Chap3, expt_name, dbnames):
-        """
-        CommandLine:
-            python -m ibeis.scripts.thesis Chap3.measure_single --expt=nsum --dbs=GZ_Master1,PZ_Master1
-            python -m ibeis.scripts.thesis Chap3.measure_single --expt=foregroundness --dbs=GZ_Master1,PZ_Master1
-
-        Example:
-            >>> # DISABLE_DOCTEST
-            >>> from ibeis.scripts.thesis import *  # NOQA
-            >>> expt_name = ut.get_argval('--expt', type_=str)
-            >>> dbnames = ut.get_argval('--dbs', type_=list, default=[])
-            >>> Chap3.measure_single(expt_name, dbnames)
-        """
-        for dbname in dbnames:
-            self = Chap3(dbname)
-            if self.ibs is None:
-                self._precollect()
-            getattr(self, 'measure_' + expt_name)()
-
-    @classmethod
-    def draw_single(Chap3, expt_name, dbnames):
-        """
-        CommandLine:
-            python -m ibeis.scripts.thesis Chap3.draw_single --expt=nsum --dbs=GZ_Master1,PZ_Master1
-            python -m ibeis.scripts.thesis Chap3.draw_single --expt=foregroundness --dbs=GZ_Master1,PZ_Master1 --diskshow
-            python -m ibeis.scripts.thesis Chap3.draw_single --expt=kexpt --dbs=GZ_Master1 --diskshow
-
-        Example:
-            >>> # DISABLE_DOCTEST
-            >>> from ibeis.scripts.thesis import *  # NOQA
-            >>> expt_name = ut.get_argval('--expt', type_=str)
-            >>> dbnames = ut.get_argval('--dbs', type_=list, default=[])
-            >>> Chap3.draw_single(expt_name, dbnames)
-        """
-        print('dbnames = %r' % (dbnames,))
-        print('expt_name = %r' % (expt_name,))
-        for dbname in dbnames:
-            self = Chap3(dbname)
-            fpath = getattr(self, 'draw_' + expt_name)()
-            if ut.get_argflag('--diskshow'):
-                ut.startfile(fpath)
+    def draw_baseline(self):
+        mpl.rcParams.update(TMP_RC)
+        expt_name = ut.get_stack_frame().f_code.co_name.replace('draw_', '')
+        results = self.ensure_results(expt_name)
+        baseline_cdf = results[0][0]
+        fig = self.plot_cmcs2([baseline_cdf], ['baseline'], fnum=1)
+        fig.set_size_inches([W, H * .6])
+        fpath = join(self.dpath, expt_name + '.png')
+        vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
+        return fpath
 
     def draw_nsum(self):
+        mpl.rcParams.update(TMP_RC)
         expt_name = ut.get_stack_frame().f_code.co_name.replace('draw_', '')
         expt_name = 'nsum'
         results = self.ensure_results(expt_name)
@@ -779,6 +794,7 @@ class Chap3Draw(object):
         return fpath
 
     def draw_foregroundness(self):
+        mpl.rcParams.update(TMP_RC)
         expt_name = ut.get_stack_frame().f_code.co_name.replace('draw_', '')
         results = self.ensure_results(expt_name)
         cdf = results[0][0]
@@ -791,7 +807,25 @@ class Chap3Draw(object):
         vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
         return fpath
 
+    def draw_smk(self):
+        mpl.rcParams.update(TMP_RC)
+        expt_name = ut.get_stack_frame().f_code.co_name.replace('draw_', '')
+        results = self.ensure_results(expt_name)
+        cdf, info = results[0]
+        baseline_cdf = self.ensure_results('baseline')[0][0]
+        cdfs = [cdf, baseline_cdf]
+        labels = ['smk', 'baseline']
+        fig = self.plot_cmcs2(cdfs, labels, fnum=1, ymin=.5)
+        fig.set_size_inches([W, H * .6])
+        import utool
+        utool.embed()
+        pt.gca().set_title('qsize={}, dsize={}'.format(info['qsize'], info['dsize']))
+        fpath = join(self.dpath, expt_name + '.png')
+        vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
+        return fpath
+
     def draw_kexpt(self):
+        mpl.rcParams.update(TMP_RC)
         expt_name = ut.get_stack_frame().f_code.co_name.replace('draw_', '')
         results = self.ensure_results(expt_name)
         # results = self.expt_results[expt_name]
@@ -824,10 +858,34 @@ class Chap3Draw(object):
         vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
         return fpath
 
-    def draw(self):
+    def draw_invar(self):
+        mpl.rcParams.update(TMP_RC)
+        expt_name = ut.get_stack_frame().f_code.co_name.replace('draw_', '')
+        results = self.ensure_results(expt_name)
+        ALIAS_KEYS = ut.invert_dict({
+            'RI': 'rotation_invariance',
+            'AI': 'affine_invariance',
+            'QRH': 'query_rotation_heuristic', })
+        results = [(c, i) for c, i in results
+                   if not i['pcfg'].get('rotation_invariance', False)]
+        cdfs, infos = list(zip(*results))
+        pcfgs = ut.take_column(infos, 'pcfg')
+
+        for p in pcfgs:
+            del p['rotation_invariance']
+
+        labels = [ut.get_cfg_lbl(ut.map_keys(ALIAS_KEYS, pcfg))[1:] for pcfg in pcfgs]
+        labels = ut.lmap(label_alias, labels)
+        fig = self.plot_cmcs2(cdfs, labels, fnum=1, ymin=.5)
+        fig.set_size_inches([W, H * .6])
+        fpath = join(self.dpath, expt_name + '.png')
+        vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
+        return fpath
+
+    def draw_all(self):
         """
         CommandLine:
-            python -m ibeis.scripts.thesis Chap3.draw --dbs=GZ_Master1,PZ_Master1,GIRM_Master1
+            python -m ibeis.scripts.thesis Chap3.draw_all --dbs=GZ_Master1,PZ_Master1,GIRM_Master1
 
         Example:
             >>> # DISABLE_DOCTEST
@@ -837,69 +895,24 @@ class Chap3Draw(object):
             >>> for dbname in dbnames:
             >>>     print('dbname = %r' % (dbname,))
             >>>     self = Chap3(dbname)
-            >>>     self.draw()
+            >>>     self.draw_all()
         """
-        import plottool as pt
         self.ensure_results()
 
-        mpl.rcParams.update(TMP_RC)
+        if 'baseline' in self.expt_results:
+            self.draw_baseline()
 
-        expt_name = 'baseline'
-        if expt_name in self.expt_results:
-            baseline_cdf = self.expt_results['baseline'][0][0]
-            fig = self.plot_cmcs2([baseline_cdf], ['baseline'], fnum=1)
-            fig.set_size_inches([W, H * .6])
-            fpath = join(self.dpath, expt_name + '.png')
-            vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
-
-        if not ('PZ' in self.dbname or 'GZ' in self.dbname):
-            return
-
-        expt_name = 'foregroundness'
-        if expt_name in self.expt_results:
-            self.draw_foregroundness()
-
-        expt_name = 'invar'
-        if expt_name in self.expt_results:
-            ALIAS_KEYS = ut.invert_dict({
-                'RI': 'rotation_invariance',
-                'AI': 'affine_invariance',
-                'QRH': 'query_rotation_heuristic', })
-            results = self.expt_results[expt_name]
-            results = [(c, i) for c, i in results
-                       if not i['pcfg'].get('rotation_invariance', False)]
-            cdfs, infos = list(zip(*results))
-            pcfgs = ut.take_column(infos, 'pcfg')
-
-            for p in pcfgs:
-                del p['rotation_invariance']
-
-            labels = [ut.get_cfg_lbl(ut.map_keys(ALIAS_KEYS, pcfg))[1:] for pcfg in pcfgs]
-            labels = ut.lmap(label_alias, labels)
-            fig = self.plot_cmcs2(cdfs, labels, fnum=1, ymin=.5)
-            fig.set_size_inches([W, H * .6])
-            fpath = join(self.dpath, expt_name + '.png')
-            vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
-
-        expt_name = 'smk'
-        if expt_name in self.expt_results:
-            results = self.expt_results[expt_name]
-            cdf = self.expt_results[expt_name][0][0]
-            baseline_cdf = self.expt_results['baseline'][0][0]
-            cdfs = [cdf, baseline_cdf]
-            labels = ['smk', 'baseline']
-            fig = self.plot_cmcs2(cdfs, labels, fnum=1)
-            fig.set_size_inches([W, H * .6])
-            fpath = join(self.dpath, expt_name + '.png')
-            vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
-
-        expt_name = 'nsum'
-        if expt_name in self.expt_results:
-            self.draw_nsum()
-
-        expt_name = 'kexpt'
-        if expt_name in self.expt_results:
-            self.draw_kexpt()
+        if ('PZ' in self.dbname or 'GZ' in self.dbname):
+            if 'foregroundness' in self.expt_results:
+                self.draw_foregroundness()
+            if 'invar' in self.expt_results:
+                self.draw_invar()
+            if 'smk' in self.expt_results:
+                self.draw_smk()
+            if 'nsum' in self.expt_results:
+                self.draw_nsum()
+            if 'kexpt' in self.expt_results:
+                self.draw_kexpt()
 
     def _exec_ranking(self, ibs, qaids, daids, cfgdict):
         # Execute the ranking algorithm
