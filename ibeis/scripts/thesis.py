@@ -49,6 +49,95 @@ def measure_worker(dbname):
     self.measure_all()
 
 
+class SplitSample(ut.NiceRepr):
+    def __init__(sample, qaids, daids):
+        sample.qaids = qaids
+        sample.daids = daids
+
+    def __nice__(sample):
+        return 'nQaids={}, nDaids={}'.format(
+            len(sample.qaids), len(sample.daids)
+        )
+
+
+class ExpandingSample(ut.NiceRepr):
+    def __init__(sample, qaids, dname_encs, confusor_pool):
+        sample.qaids = qaids
+        sample.dname_encs = dname_encs
+        sample.confusor_pool = confusor_pool
+
+    def __nice__(sample):
+        denc_pername = ut.lmap(len, sample.dname_encs)
+        n_denc_pername = np.mean(denc_pername)
+        return 'nQaids={}, nDEncPerName={}, nConfu={}'.format(
+            len(sample.qaids), n_denc_pername, len(sample.confusor_pool)
+        )
+
+    def expand(sample, denc_per_name=[1], extra_dbsize_fracs=[0]):
+        # Vary the number of database encounters in each sample
+        target_daids_list = []
+        target_info_list_ = []
+        for num in denc_per_name:
+            dname_encs_ = ut.take_column(sample.dname_encs, slice(0, num))
+            dnames_ = ut.lmap(ut.flatten, dname_encs_)
+            daids_ = ut.total_flatten(dname_encs_)
+            target_daids_list.append(daids_)
+            name_lens = ut.lmap(len, dnames_)
+            dpername = (name_lens[0] if ut.allsame(name_lens) else
+                        np.mean(name_lens))
+            target_info_list_.append(ut.odict([
+                ('qsize', len(sample.qaids)),
+                ('t_n_names', len(dname_encs_)),
+                ('t_dpername', dpername),
+                ('t_denc_pername', num),
+                ('t_dsize', len(daids_)),
+            ]))
+
+        # Append confusors to maintain a constant dbsize in each base sample
+        dbsize_list = ut.lmap(len, target_daids_list)
+        max_dsize = max(dbsize_list)
+        n_need = max_dsize - min(dbsize_list)
+        n_extra_avail = len(sample.confusor_pool) - n_need
+        assert len(sample.confusor_pool) > n_need, 'not enough confusors'
+        padded_daids_list = []
+        padded_info_list_ = []
+        for daids_, info_ in zip(target_daids_list, target_info_list_):
+            num_take = max_dsize - len(daids_)
+            pad_aids = sample.confusor_pool[:num_take]
+            new_aids = daids_ + pad_aids
+            info_ = info_.copy()
+            info_['n_pad'] = len(pad_aids)
+            info_['pad_dsize'] = len(new_aids)
+            padded_info_list_.append(info_)
+            padded_daids_list.append(new_aids)
+
+        # Vary the dbsize by appending extra confusors
+        if extra_dbsize_fracs is None:
+            extra_dbsize_fracs = [1.]
+        extra_fracs = np.array(extra_dbsize_fracs)
+        n_extra_list = np.unique(extra_fracs * n_extra_avail).astype(np.int)
+        daids_list = []
+        info_list = []
+        for n in n_extra_list:
+            for daids_, info_ in zip(padded_daids_list, padded_info_list_):
+                extra_aids = sample.confusor_pool[len(sample.confusor_pool) - n:]
+                daids = sorted(daids_ + extra_aids)
+                daids_list.append(daids)
+                info = info_.copy()
+                info['n_extra'] = len(extra_aids)
+                info['dsize'] = len(daids)
+                info_list.append(info)
+
+        import pandas as pd
+        verbose = 0
+        if verbose:
+            print(pd.DataFrame.from_records(info_list))
+            print('#qaids = %r' % (len(sample.qaids),))
+            print('num_need = %r' % (n_need,))
+            print('max_dsize = %r' % (max_dsize,))
+        return sample.qaids, daids_list, info_list
+
+
 @ut.reloadable_class
 class Chap3Commands(object):
 
@@ -56,7 +145,7 @@ class Chap3Commands(object):
     def vd(Chap3):
         """
         CommandLine:
-            python -m ibeis.scripts.thesis Chap3.vd
+            python -m ibeis Chap3.vd
         """
         ut.vd(Chap3.base_dpath)
 
@@ -64,7 +153,7 @@ class Chap3Commands(object):
     def run_all(Chap3):
         """
         CommandLine:
-            python -m ibeis.scripts.thesis Chap3.run_all
+            python -m ibeis Chap3.run_all
         """
         agg_dbnames = ['PZ_Master1', 'GZ_Master1', 'GIRM_Master1',
                        'humpbacks_fb']
@@ -98,14 +187,17 @@ class Chap3Commands(object):
             self.measure_nsum()
             # self.measure_dbsize()
             self.measure_kexpt()
-            self.measure_invariance()
+            self.measure_invar()
 
     @classmethod
     def measure(Chap3, expt_name, dbnames):
         """
         CommandLine:
-            python -m ibeis.scripts.thesis Chap3.measure nsum --dbs=GZ_Master1,PZ_Master1
-            python -m ibeis.scripts.thesis Chap3.measure foregroundness --dbs=GZ_Master1,PZ_Master1
+            python -m ibeis Chap3.measure all --dbs=GZ_Master1
+            python -m ibeis Chap3.measure all --dbs=PZ_Master1
+
+            python -m ibeis Chap3.measure nsum --dbs=GZ_Master1,PZ_Master1
+            python -m ibeis Chap3.measure foregroundness --dbs=GZ_Master1,PZ_Master1
 
         Example:
             >>> # Script
@@ -127,9 +219,9 @@ class Chap3Commands(object):
     def draw(Chap3, expt_name, dbnames):
         """
         CommandLine:
-            python -m ibeis.scripts.thesis Chap3.draw nsum --dbs=GZ_Master1,PZ_Master1
-            python -m ibeis.scripts.thesis Chap3.draw foregroundness --dbs=GZ_Master1,PZ_Master1 --diskshow
-            python -m ibeis.scripts.thesis Chap3.draw kexpt --dbs=GZ_Master1 --diskshow
+            python -m ibeis Chap3.draw nsum --dbs=GZ_Master1,PZ_Master1
+            python -m ibeis Chap3.draw foregroundness --dbs=GZ_Master1,PZ_Master1 --diskshow
+            python -m ibeis Chap3.draw kexpt --dbs=GZ_Master1 --diskshow
 
         Example:
             >>> # Script
@@ -157,7 +249,7 @@ class Chap3Agg(object):
     def agg_dbstats(Chap3):
         """
         CommandLine:
-            python -m ibeis.scripts.thesis Chap3.agg_db_stats
+            python -m ibeis Chap3.agg_db_stats
         """
         agg_dbnames = ['PZ_Master1', 'GZ_Master1', 'GIRM_Master1', 'humpbacks_fb']
         infos = ut.ddict(list)
@@ -211,7 +303,7 @@ class Chap3Agg(object):
     def draw_agg_baseline(Chap3):
         """
         CommandLine:
-            python -m ibeis.scripts.thesis Chap3.draw_agg_baseline --diskshow
+            python -m ibeis Chap3.draw_agg_baseline --diskshow
         """
         agg_dbnames = ['GZ_Master1', 'PZ_Master1', 'GIRM_Master1', 'humpbacks_fb']
         cdfs = []
@@ -436,6 +528,129 @@ class Chap3Inputs(object):
         confusor_pool = ut.shuffle(confusor_pool, rng=0)
         return qaids, dname_encs, confusor_pool
 
+    def _intra_enc(self):
+        # Make a query / database set for each occurrence
+        ibs = self.ibs
+        aids = self.aids_pool
+        annots = ibs.annots(aids)
+        # occurrences = ibs._annot_groups(annots.group(annots.occurrence_text)[1])
+        encounters = ibs._annot_groups(annots.group(annots.encounter_text)[1])
+
+        # rng = ut.ensure_rng(0)
+        # pyrng = random.Random(rng.randint(sys.maxsize))
+
+        # Find the biggest occurrences and pick an annotation from that
+        # occurrence to be sampled
+        occurrences = ut.group_items(encounters, ut.take_column(encounters.occurrence_text, 0))
+        occurrences = ut.map_vals(ibs._annot_groups, occurrences)
+
+        occur_nids = {o: set(ut.flatten(encs.nids))
+                      for o, encs in occurrences.items()}
+
+        # Need to find multiple disjoint exact covers of the nids
+        # Greedy solution because this is NP-hard
+        from ibeis.algo.graph import nx_dynamic_graph
+        G = nx_dynamic_graph.DynConnGraph()
+        G.add_nodes_from(occur_nids.keys())
+        occur_ids = ut.sortedby(
+            occur_nids.keys(), ut.lmap(len, occur_nids.values()))[::-1]
+        current_combos = {frozenset(G.connected_to(o1)): occur_nids[o1]
+                          for o1 in occur_ids}
+        for o1, o2 in ut.combinations(occur_ids, 2):
+            if G.node_label(o1) == G.node_label(o2):
+                continue
+            cc1 = frozenset(G.connected_to(o1))
+            cc2 = frozenset(G.connected_to(o2))
+            nids1 = current_combos[cc1]
+            nids2 = current_combos[cc2]
+            if nids1.isdisjoint(nids2):
+                G.add_edge(o1, o2)
+                del current_combos[cc1]
+                del current_combos[cc2]
+                current_combos[frozenset(cc1.union(cc2))] = nids1.union(nids2)
+
+        # Pick the top few occurrence groups with the most names
+        grouped_occurs = list(map(frozenset, G.connected_components()))
+        group_size = ut.lmap(len, list(grouped_occurs))
+        top_groups = ut.sortedby(grouped_occurs, group_size)[::-1][0:4]
+
+        samples = []
+
+        for os in top_groups:
+            encs = ut.flatten(occurrences[o].aids for o in os)
+            encs = ut.lmap(ibs.annots, encs)
+            qaids = []
+            daids = []
+            for enc in encs:
+                if len(enc) == 1:
+                    daids.extend(enc.aids)
+                else:
+                    daids.extend(enc.aids)
+                    qaids.extend(enc.aids)
+            sample = SplitSample(qaids, daids)
+            samples.append(sample)
+        return samples
+
+        #         nid = enc.nids[0]
+        #         if len(nid_to_splits[nid]) == 0:
+        #             chosen = pyrng.sample(enc.aids, min(len(enc), 2))
+        #             nid_to_splits[nid].extend(chosen)
+
+        #     qaids = []
+        #     dname_encs = []
+        #     confusor_pool = []
+        #     for nid, aids_ in nid_to_splits.items():
+        #         if len(aids_) < 2:
+        #             confusor_pool.extend(aids_)
+        #         else:
+        #             pyrng.shuffle(aids_)
+        #             qaids.append(aids_[0])
+        #             dname_encs.append([[aids_[1]]])
+        #     confusor_pool = ut.shuffle(confusor_pool, rng=0)
+        #     self = ExpandingSample(qaids, dname_encs, confusor_pool)
+        #     query_samples.append(self)
+        # return query_samples
+
+    def _same_enc_split(self):
+        """
+            >>> from ibeis.scripts.thesis import *
+            >>> self = Chap3('PZ_Master1')
+            >>> self._precollect()
+        """
+        ibs = self.ibs
+        aids = self.aids_pool
+        annots = ibs.annots(aids)
+        # occurrences = ibs._annot_groups(annots.group(annots.occurrence_text)[1])
+        encounters = ibs._annot_groups(annots.group(annots.encounter_text)[1])
+
+        rng = ut.ensure_rng(0)
+        pyrng = random.Random(rng.randint(sys.maxsize))
+
+        nid_to_splits = ut.ddict(list)
+        # Find the biggest occurrences and pick an annotation from that
+        # occurrence to be sampled
+        occur_to_encs = ut.group_items(encounters, ut.take_column(encounters.occurrence_text, 0))
+        occur_encs = ut.sortedby(list(occur_to_encs.values()), list(map(len, occur_to_encs.values())))[::-1]
+        for encs in occur_encs:
+            for enc in encs:
+                nid = enc.nids[0]
+                if len(nid_to_splits[nid]) == 0:
+                    chosen = pyrng.sample(enc.aids, min(len(enc), 2))
+                    nid_to_splits[nid].extend(chosen)
+
+        qaids = []
+        dname_encs = []
+        confusor_pool = []
+        for nid, aids_ in nid_to_splits.items():
+            if len(aids_) < 2:
+                confusor_pool.extend(aids_)
+            else:
+                pyrng.shuffle(aids_)
+                qaids.append(aids_[0])
+                dname_encs.append([[aids_[1]]])
+        confusor_pool = ut.shuffle(confusor_pool, rng=0)
+        return qaids, dname_encs, confusor_pool
+
     def _rand_splits(ibs, aids, qenc_per_name, denc_per_name_, annots_per_enc):
         """ This can be used for cross validation """
         # Find a split of query/database encounters and confusors
@@ -461,6 +676,11 @@ class Chap3Inputs(object):
             >>> self._precollect()
             >>> print('--------')
             >>> ibs, qaids, daids_list, info_list = self._varied_inputs([1], [1], method='same_occur')
+            >>> print('qsize = %r' % (len(qaids),))
+            >>> for info in info_list:
+            >>>     print(ut.repr4(info))
+            >>> print('--------')
+            >>> ibs, qaids, daids_list, info_list = self._varied_inputs([1], [1], method='same_enc')
             >>> print('qsize = %r' % (len(qaids),))
             >>> for info in info_list:
             >>>     print(ut.repr4(info))
@@ -496,6 +716,8 @@ class Chap3Inputs(object):
             assert annots_per_enc == 1
             assert qenc_per_name == 1
             qaids, dname_encs, confusor_pool = self._same_occur_split()
+        elif method == 'same_enc':
+            qaids, dname_encs, confusor_pool = self._same_enc_split()
         else:
             raise KeyError(method)
 
@@ -569,40 +791,102 @@ class Chap3Measures(object):
     def measure_baseline(self):
         """
             >>> from ibeis.scripts.thesis import *
-            >>> self = Chap3.collect('PZ_MTEST')
+            >>> self = Chap3('GZ_Master1')
+            >>> self._precollect()
         """
         ibs, qaids, daids_list, info_list = self._varied_inputs(
             denc_per_name=[1], extra_dbsize_fracs=[1])
         cfgdict = {}
         daids = daids_list[0]
         info = info_list[0]
-        cdf = self._exec_ranking(ibs, qaids, daids, cfgdict)
+        cdf = self._ranking_cdf(ibs, qaids, daids, cfgdict)
         results = [(cdf, ut.update_dict(info.copy(), {'pcfg': cfgdict}))]
 
         expt_name = 'baseline'
         self.expt_results[expt_name] = results
         ut.save_data(join(self.dpath, expt_name + '.pkl'), results)
 
+    def measure_foregroundness_intra(self):
+        ibs = self.ibs
+        samples = self._intra_enc()
+        # qaids, daids_list, info_list = sample.expand()
+
+        results = []
+        for sample in samples:
+            qaids = sample.qaids
+            daids = sample.daids
+            info = {'qsize': len(qaids), 'dsize': len(daids)}
+            grid = ut.all_dict_combinations(
+                {'featweight_enabled': [False, True]}
+            )
+            for cfgdict in grid:
+                hist = self._ranking_hist(ibs, qaids, daids, cfgdict)
+                info = ut.update_dict(info.copy(), {'pcfg': cfgdict})
+                results.append((hist, info))
+
+        expt_name = 'foregroundness_intra'
+        self.expt_results[expt_name] = results
+        ut.save_data(join(self.dpath, expt_name + '.pkl'), results)
+
+    def draw_foregroundness_intra(self):
+        """
+        python -m ibeis Chap3.measure foregroundness_intra --dbs=GZ_Master1,PZ_Master1
+        python -m ibeis Chap3.draw foregroundness_intra --dbs=GZ_Master1,PZ_Master1 --diskshow
+        """
+        expt_name = ut.get_stack_frame().f_code.co_name.replace('draw_', '')
+        expt_name = 'foregroundness_intra'
+
+        mpl.rcParams.update(TMP_RC)
+        results = self.ensure_results(expt_name)
+        hists, infos = list(zip(*results))
+        pcfgs = ut.take_column(infos, 'pcfg')
+        df = pd.DataFrame.from_records(infos)
+        df['hists'] = hists
+        df['fg_on'] = ut.take_column(pcfgs, 'featweight_enabled')
+
+        cdfs = []
+        labels = []
+
+        for fg, group in df.groupby(('fg_on')):
+            labels.append('fg=T' if fg else 'fg=F')
+            hists = vt.pad_vstack(group['hists'], fill_value=0)
+            hist = hists.sum(axis=0)
+            cdf = (np.cumsum(hist) / sum(hist))
+            cdfs.append(cdf)
+            qsize = str(group['qsize'].sum())
+            dsize = '{:.1f}±{:.1f}'.format(group['dsize'].mean(), group['dsize'].std())
+
+        fig = self.plot_cmcs2(cdfs, labels, ymin=.5)
+        fig.set_size_inches([W, H * .6])
+        nonvaried_text = 'qsize={:s}, dsize={:s}'.format(qsize, dsize)
+        pt.relative_text('lowerleft', nonvaried_text, ax=pt.gca())
+        fpath = join(self.dpath, expt_name + '.png')
+        vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
+        return fpath
+
     def measure_foregroundness(self):
         ibs, qaids, daids_list, info_list = self._varied_inputs(
-            denc_per_name=[1], extra_dbsize_fracs=[1], method='same_occur')
+            denc_per_name=[1], extra_dbsize_fracs=[1],
+            method='same_occur'
+            # method='same_enc'
+        )
         daids = daids_list[0]
         info = info_list[0]
 
         results = []
         cfgdict1 = {'fg_on': False}
-        cdf = self._exec_ranking(ibs, qaids, daids, cfgdict1)
+        cdf = self._ranking_cdf(ibs, qaids, daids, cfgdict1)
         results.append((cdf, ut.update_dict(info.copy(), {'pcfg': cfgdict1})))
 
         cfgdict2 = {'fg_on': True}
-        cdf = self._exec_ranking(ibs, qaids, daids, cfgdict2)
+        cdf = self._ranking_cdf(ibs, qaids, daids, cfgdict2)
         results.append((cdf, ut.update_dict(info.copy(), {'pcfg': cfgdict2})))
 
         expt_name = 'foregroundness'
         self.expt_results[expt_name] = results
         ut.save_data(join(self.dpath, expt_name + '.pkl'), results)
 
-    def measure_invariance(self):
+    def measure_invar(self):
         ibs, qaids, daids_list, info_list = self._varied_inputs(
             denc_per_name=[1], extra_dbsize_fracs=[1])
         daids = daids_list[0]
@@ -618,7 +902,7 @@ class Chap3Measures(object):
         ]
         results = []
         for cfgdict in cfgdict_list:
-            cdf = self._exec_ranking(ibs, qaids, daids, cfgdict)
+            cdf = self._ranking_cdf(ibs, qaids, daids, cfgdict)
             results.append((cdf, ut.update_dict(info.copy(), {'pcfg': cfgdict})))
 
         expt_name = 'invar'
@@ -626,24 +910,34 @@ class Chap3Measures(object):
         ut.save_data(join(self.dpath, expt_name + '.pkl'), results)
 
     def measure_smk(self):
+        """
+        python -m ibeis Chap3.measure smk --dbs=GZ_Master1,PZ_Master1
+        python -m ibeis Chap3.draw smk --dbs=GZ_Master1,PZ_Master1 --diskshow
+        """
         from ibeis.algo.smk.smk_pipeline import SMKRequest
         # ibs = ibeis.opendb('PZ_MTEST')
         ibs, qaids, daids_list, info_list = self._varied_inputs(
             denc_per_name=[1], extra_dbsize_fracs=[1])
         daids = daids_list[0]
         info = info_list[0]
+        results = []
 
+        # SMK pipeline
         config = {'nAssign': 1, 'num_words': 8000, 'sv_on': True}
         qreq_ = SMKRequest(ibs, qaids, daids, config)
         qreq_.ensure_data()
         cm_list = qreq_.execute()
         cm_list = [cm.extend_results(qreq_) for cm in cm_list]
         name_ranks = [cm.get_name_ranks([cm.qnid])[0] for cm in cm_list]
-        # Measure rank probabilities
         bins = np.arange(len(qreq_.dnids))
         hist = np.histogram(name_ranks, bins=bins)[0]
         cdf = (np.cumsum(hist) / sum(hist))
-        results = [(cdf, ut.update_dict(info.copy(), {'pcfg': config}))]
+        results.append((cdf, ut.update_dict(info.copy(), {'pcfg': config})))
+
+        # LNBNN pipeline
+        cfgdict = {}
+        cdf = self._ranking_cdf(ibs, qaids, daids, cfgdict)
+        results.append((cdf, ut.update_dict(info.copy(), {'pcfg': cfgdict})))
 
         expt_name = 'smk'
         self.expt_results[expt_name] = results
@@ -656,9 +950,9 @@ class Chap3Measures(object):
         cfgdict2 = {'score_method': 'csum', 'prescore_method': 'csum', 'query_rotation_heuristic': True}
         results = []
         for count, (daids, info) in enumerate(zip(daids_list, info_list), start=1):
-            cdf1 = self._exec_ranking(ibs, qaids, daids, cfgdict1)
+            cdf1 = self._ranking_cdf(ibs, qaids, daids, cfgdict1)
             results.append((cdf1, ut.update_dict(info.copy(), {'pcfg': cfgdict1})))
-            cdf2 = self._exec_ranking(ibs, qaids, daids, cfgdict2)
+            cdf2 = self._ranking_cdf(ibs, qaids, daids, cfgdict2)
             results.append((cdf2, ut.update_dict(info.copy(), {'pcfg': cfgdict2})))
 
         expt_name = 'nsum'
@@ -674,7 +968,7 @@ class Chap3Measures(object):
         results = []
         for daids, info in zip(daids_list, info_list):
             info = info.copy()
-            cdf = self._exec_ranking(ibs, qaids, daids, cfgdict)
+            cdf = self._ranking_cdf(ibs, qaids, daids, cfgdict)
             results.append((cdf, ut.update_dict(info.copy(), {'pcfg': cfgdict})))
 
         expt_name = 'dsize'
@@ -692,7 +986,7 @@ class Chap3Measures(object):
         results = []
         for cfgdict in ut.all_dict_combinations(cfg_grid):
             for daids, info in zip(daids_list, info_list):
-                cdf = self._exec_ranking(ibs, qaids, daids, cfgdict)
+                cdf = self._ranking_cdf(ibs, qaids, daids, cfgdict)
                 results.append((cdf, ut.update_dict(info.copy(), {'pcfg': cfgdict})))
 
         expt_name = 'kexpt'
@@ -769,96 +1063,66 @@ class Chap3Draw(object):
         mpl.rcParams.update(TMP_RC)
         expt_name = ut.get_stack_frame().f_code.co_name.replace('draw_', '')
         results = self.ensure_results(expt_name)
-        baseline_cdf = results[0][0]
+        cdfs, infos = list(zip(*results))
+        baseline_cdf = cdfs[0]
         fig = self.plot_cmcs2([baseline_cdf], ['baseline'], fnum=1)
         fig.set_size_inches([W, H * .6])
-        fpath = join(self.dpath, expt_name + '.png')
-        vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
-        return fpath
-
-    def draw_nsum(self):
-        mpl.rcParams.update(TMP_RC)
-        expt_name = ut.get_stack_frame().f_code.co_name.replace('draw_', '')
-        expt_name = 'nsum'
-        results = self.ensure_results(expt_name)
-        cdfs, infos = list(zip(*results))
-        # pcfgs = ut.take_column(infos, 'pcfg')
-        alias = {
-            'nsum': 'fmech',
-            'csum': 'amech',
-        }
-        labels = [alias[x['pcfg']['score_method']] + ',dpername={}'.format(x['t_dpername']) for x in infos]
-        fig = self.plot_cmcs2(cdfs, labels, fnum=1, ymin=.5)
-        fpath = join(self.dpath, expt_name + '.png')
-        vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
-        return fpath
-
-    def draw_foregroundness(self):
-        mpl.rcParams.update(TMP_RC)
-        expt_name = ut.get_stack_frame().f_code.co_name.replace('draw_', '')
-        results = self.ensure_results(expt_name)
-        cdf = results[0][0]
-        baseline_cdf = results[1][0]
-        cdfs = [cdf, baseline_cdf]
-        labels = ['fg=F', 'fg=T']
-        fig = self.plot_cmcs2(cdfs, labels, fnum=1, ymin=.5)
-        fig.set_size_inches([W, H * .6])
+        qsizes = ut.take_column(infos, 'qsize')
+        dsizes = ut.take_column(infos, 'dsize')
+        assert ut.allsame(qsizes) and ut.allsame(dsizes)
+        nonvaried_text = 'qsize={}, dsize={}'.format(qsizes[0], dsizes[0])
+        pt.relative_text('lowerleft', nonvaried_text, ax=pt.gca())
         fpath = join(self.dpath, expt_name + '.png')
         vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
         return fpath
 
     def draw_smk(self):
+        """
+        ibeis Chap3.measure smk --dbs=GZ_Master1,PZ_Master1
+        ibeis Chap3.draw smk --dbs=GZ_Master1,PZ_Master1
+        """
         mpl.rcParams.update(TMP_RC)
         expt_name = ut.get_stack_frame().f_code.co_name.replace('draw_', '')
         results = self.ensure_results(expt_name)
-        cdf, info = results[0]
-        baseline_cdf = self.ensure_results('baseline')[0][0]
-        cdfs = [cdf, baseline_cdf]
+        cdfs, infos = list(zip(*results))
         labels = ['smk', 'baseline']
         fig = self.plot_cmcs2(cdfs, labels, fnum=1, ymin=.5)
         fig.set_size_inches([W, H * .6])
-        import utool
-        utool.embed()
-        pt.gca().set_title('qsize={}, dsize={}'.format(info['qsize'], info['dsize']))
+        qsizes = ut.take_column(infos, 'qsize')
+        dsizes = ut.take_column(infos, 'dsize')
+        assert ut.allsame(qsizes) and ut.allsame(dsizes)
+        nonvaried_text = 'qsize={}, dsize={}'.format(qsizes[0], dsizes[0])
+        pt.relative_text('lowerleft', nonvaried_text, ax=pt.gca())
         fpath = join(self.dpath, expt_name + '.png')
         vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
         return fpath
 
-    def draw_kexpt(self):
+    def draw_foregroundness(self):
+        """
+        ibeis Chap3.measure foregroundness --dbs=GZ_Master1,PZ_Master1
+        ibeis Chap3.draw foregroundness --dbs=GZ_Master1,PZ_Master1
+        """
         mpl.rcParams.update(TMP_RC)
         expt_name = ut.get_stack_frame().f_code.co_name.replace('draw_', '')
         results = self.ensure_results(expt_name)
-        # results = self.expt_results[expt_name]
         cdfs, infos = list(zip(*results))
-        pcfgs = ut.take_column(infos, 'pcfg')
-        df = pd.DataFrame.from_records(infos)
-        df['cdfs'] = cdfs
-        df['K'] = ut.take_column(pcfgs, 'K')
-        import plottool as pt
-        # groups = list(df.groupby(('dsize', 't_denc_pername')))
-        df = df[df['K'] != 10]
-        groups = list(df.groupby(('dsize')))
-        fig = pt.figure(fnum=1)
-        pnum_ = pt.make_pnum_nextgen(nCols=2, nSubplots=len(groups))
-        for val, df_group in groups:
-            # print('---')
-            # print(df_group)
-            relevant_df = df_group[['K', 'dsize', 't_dpername']]
-            relevant_df = relevant_df.rename(columns={'t_dpername': 'dpername'})
-            relevant_cfgs = relevant_df.to_dict('records')
-            nonvaried_kw, varied_kws = ut.partition_varied_cfg_list(relevant_cfgs)
-            labels_ = [ut.get_cfg_lbl(kw)[1:] for kw in varied_kws]
-            cdfs_ = df_group['cdfs'].values
-            self.plot_cmcs(cdfs_, labels_, fnum=1, pnum=pnum_(), ymin=.5)
-            ax = pt.gca()
-            ax.set_title(ut.get_cfg_lbl(nonvaried_kw)[1:])
-        pt.adjust_subplots(top=.9, bottom=.1, left=.12, right=.9, hspace=.5, wspace=.2)
-        fig.set_size_inches([W * 1.5, H])
+        labels = ['fg=F', 'fg=T']
+        fig = self.plot_cmcs2(cdfs, labels, fnum=1, ymin=.5)
+        fig.set_size_inches([W, H * .6])
+        qsizes = ut.take_column(infos, 'qsize')
+        dsizes = ut.take_column(infos, 'dsize')
+        assert ut.allsame(qsizes) and ut.allsame(dsizes)
+        nonvaried_text = 'qsize={}, dsize={}'.format(qsizes[0], dsizes[0])
+        pt.relative_text('lowerleft', nonvaried_text, ax=pt.gca())
         fpath = join(self.dpath, expt_name + '.png')
         vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
         return fpath
 
     def draw_invar(self):
+        """
+        ibeis Chap3.measure invar --dbs=GZ_Master1,PZ_Master1
+        ibeis Chap3.draw invar --dbs=GZ_Master1,PZ_Master1
+        """
         mpl.rcParams.update(TMP_RC)
         expt_name = ut.get_stack_frame().f_code.co_name.replace('draw_', '')
         results = self.ensure_results(expt_name)
@@ -878,6 +1142,80 @@ class Chap3Draw(object):
         labels = ut.lmap(label_alias, labels)
         fig = self.plot_cmcs2(cdfs, labels, fnum=1, ymin=.5)
         fig.set_size_inches([W, H * .6])
+        qsizes = ut.take_column(infos, 'qsize')
+        dsizes = ut.take_column(infos, 'dsize')
+        assert ut.allsame(qsizes) and ut.allsame(dsizes)
+        nonvaried_text = 'qsize={}, dsize={}'.format(qsizes[0], dsizes[0])
+        pt.relative_text('lowerleft', nonvaried_text, ax=pt.gca())
+        fpath = join(self.dpath, expt_name + '.png')
+        vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
+        return fpath
+
+    def draw_nsum(self):
+        """
+        ibeis Chap3.measure nsum --dbs=GZ_Master1,PZ_Master1
+        ibeis Chap3.draw nsum --dbs=GZ_Master1,PZ_Master1
+        """
+        mpl.rcParams.update(TMP_RC)
+        expt_name = ut.get_stack_frame().f_code.co_name.replace('draw_', '')
+        expt_name = 'nsum'
+        results = self.ensure_results(expt_name)
+        cdfs, infos = list(zip(*results))
+        # pcfgs = ut.take_column(infos, 'pcfg')
+        alias = {
+            'nsum': 'fmech',
+            'csum': 'amech',
+        }
+        labels = [alias[x['pcfg']['score_method']] + ',dpername={}'.format(x['t_dpername']) for x in infos]
+        fig = self.plot_cmcs2(cdfs, labels, fnum=1, ymin=.5)
+        qsizes = ut.take_column(infos, 'qsize')
+        dsizes = ut.take_column(infos, 'dsize')
+        assert ut.allsame(qsizes) and ut.allsame(dsizes)
+        nonvaried_text = 'qsize={}, dsize={}'.format(qsizes[0], dsizes[0])
+        pt.relative_text('lowerleft', nonvaried_text, ax=pt.gca())
+        fpath = join(self.dpath, expt_name + '.png')
+        vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
+        return fpath
+
+    def draw_kexpt(self):
+        """
+        ibeis Chap3.measure kexpt --dbs=GZ_Master1,PZ_Master1
+        ibeis Chap3.draw kexpt --dbs=GZ_Master1,PZ_Master1 --diskshow
+        """
+        mpl.rcParams.update(TMP_RC)
+        expt_name = ut.get_stack_frame().f_code.co_name.replace('draw_', '')
+        results = self.ensure_results(expt_name)
+        # results = self.expt_results[expt_name]
+        cdfs, infos = list(zip(*results))
+        pcfgs = ut.take_column(infos, 'pcfg')
+        df = pd.DataFrame.from_records(infos)
+        df['cdfs'] = cdfs
+        df['K'] = ut.take_column(pcfgs, 'K')
+        import plottool as pt
+        # groups = list(df.groupby(('dsize', 't_denc_pername')))
+        df = df[df['K'] != 10]
+
+        fig = pt.figure(fnum=1)
+        pnum_ = pt.make_pnum_nextgen(nCols=1, nSubplots=len(groups))
+        groups = list(df.groupby(('dsize')))
+        for val, df_group in groups:
+            # print('---')
+            # print(df_group)
+            relevant_df = df_group[['K', 'qsize', 'dsize', 't_dpername']]
+            relevant_df = relevant_df.rename(columns={'t_dpername': 'dpername'})
+            relevant_cfgs = [ut.order_dict_by(d, relevant_df.columns.tolist())
+                             for d in relevant_df.to_dict('records')]
+            nonvaried_kw, varied_kws = ut.partition_varied_cfg_list(relevant_cfgs)
+            labels_ = [ut.get_cfg_lbl(kw)[1:] for kw in varied_kws]
+            cdfs_ = df_group['cdfs'].values
+            self.plot_cmcs(cdfs_, labels_, fnum=1, pnum=pnum_(), ymin=.5)
+            ax = pt.gca()
+            nonvaried_text = ut.get_cfg_lbl(nonvaried_kw)[1:]
+            # ax.set_title(nonvaried_text)
+            pt.relative_text('lowerleft', nonvaried_text, ax=ax)
+
+        pt.adjust_subplots(top=.9, bottom=.1, left=.12, right=.9, hspace=.3, wspace=.2)
+        fig.set_size_inches([W, H * 1.9])
         fpath = join(self.dpath, expt_name + '.png')
         vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
         return fpath
@@ -885,7 +1223,7 @@ class Chap3Draw(object):
     def draw_all(self):
         """
         CommandLine:
-            python -m ibeis.scripts.thesis Chap3.draw_all --dbs=GZ_Master1,PZ_Master1,GIRM_Master1
+            python -m ibeis Chap3.draw_all --dbs=GZ_Master1,PZ_Master1,GIRM_Master1
 
         Example:
             >>> # DISABLE_DOCTEST
@@ -899,22 +1237,28 @@ class Chap3Draw(object):
         """
         self.ensure_results()
 
-        if 'baseline' in self.expt_results:
-            self.draw_baseline()
+        # if 'baseline' in self.expt_results:
+        #     self.draw_baseline()
 
         if ('PZ' in self.dbname or 'GZ' in self.dbname):
-            if 'foregroundness' in self.expt_results:
-                self.draw_foregroundness()
-            if 'invar' in self.expt_results:
-                self.draw_invar()
-            if 'smk' in self.expt_results:
-                self.draw_smk()
-            if 'nsum' in self.expt_results:
-                self.draw_nsum()
-            if 'kexpt' in self.expt_results:
-                self.draw_kexpt()
+            expts = ['foregroundness', 'invar', 'smk', 'nsum', 'kexpt']
+            for expt_name in expts:
+                if expt_name in self.expt_results:
+                    try:
+                        getattr(self, 'draw_' + expt_name)()
+                    except KeyError:
+                        getattr(self, 'measure_' + expt_name)()
+                        getattr(self, 'draw_' + expt_name)()
+            # if 'invar' in self.expt_results:
+            #     self.draw_invar()
+            # if 'smk' in self.expt_results:
+            #     self.draw_smk()
+            # if 'nsum' in self.expt_results:
+            #     self.draw_nsum()
+            # if 'kexpt' in self.expt_results:
+            #     self.draw_kexpt()
 
-    def _exec_ranking(self, ibs, qaids, daids, cfgdict):
+    def _ranking_hist(self, ibs, qaids, daids, cfgdict):
         # Execute the ranking algorithm
         qaids = sorted(qaids)
         daids = sorted(daids)
@@ -925,14 +1269,15 @@ class Chap3Draw(object):
         # Measure rank probabilities
         bins = np.arange(len(qreq_.dnids))
         hist = np.histogram(name_ranks, bins=bins)[0]
+        return hist
+
+    def _ranking_cdf(self, ibs, qaids, daids, cfgdict):
+        hist = self._ranking_hist(ibs, qaids, daids, cfgdict)
         cdf = (np.cumsum(hist) / sum(hist))
         return cdf
 
     def prepare_cdfs(self, cdfs, labels):
-        total = max(map(len, cdfs))
-        # Pad length
-        cdfs = [np.hstack([c, np.ones(total - len(c))]) for c in cdfs]
-        cdfs = np.array(cdfs)
+        cdfs = vt.pad_vstack(cdfs, fill_value=1)
         # Sort so the best is on top
         sortx = np.lexsort(cdfs.T[::-1])[::-1]
         cdfs = cdfs[sortx]
@@ -971,11 +1316,11 @@ class Chap3Draw(object):
     def draw_time_distri(self):
         """
         CommandLine:
-            python -m ibeis.scripts.thesis Chap3.draw_time_distri --dbs=GZ_Master1,PZ_Master1,GIRM_MasterV
-            python -m ibeis.scripts.thesis Chap3.draw_time_distri --dbs=GIRM_Master1
-            python -m ibeis.scripts.thesis Chap3.draw_time_distri --dbs=GZ_Master1
-            python -m ibeis.scripts.thesis Chap3.draw_time_distri --dbs=PZ_Master1
-            python -m ibeis.scripts.thesis Chap3.draw_time_distri --dbs=humpbacks_fb
+            python -m ibeis Chap3.draw_time_distri --dbs=GZ_Master1,PZ_Master1,GIRM_MasterV
+            python -m ibeis Chap3.draw_time_distri --dbs=GIRM_Master1
+            python -m ibeis Chap3.draw_time_distri --dbs=GZ_Master1
+            python -m ibeis Chap3.draw_time_distri --dbs=PZ_Master1
+            python -m ibeis Chap3.draw_time_distri --dbs=humpbacks_fb
 
         Example:
             >>> # DISABLE_DOCTEST
@@ -1055,7 +1400,7 @@ class Chap3Draw(object):
         else:
             infos.append('#total={}'.format(num_total))
         text = '\n'.join(infos)
-        pt.relative_text(.02, .02, text, halign='left', valign='top')
+        pt.relative_text((.02, .02), text, halign='left', valign='top')
 
         ax = pt.gca()
         fig = pt.gcf()
@@ -1092,11 +1437,11 @@ class Chap4(object):
     def collect(Chap4, defaultdb):
         r"""
         CommandLine:
-            python -m ibeis.scripts.thesis Chap4.collect --db PZ_PB_RF_TRAIN
-            python -m ibeis.scripts.thesis Chap4.collect --db PZ_MTEST
-            python -m ibeis.scripts.thesis Chap4.collect
+            python -m ibeis Chap4.collect --db PZ_PB_RF_TRAIN
+            python -m ibeis Chap4.collect --db PZ_MTEST
+            python -m ibeis Chap4.collect
 
-            python -m ibeis.scripts.thesis Chap4.collect --db GZ_Master1
+            python -m ibeis Chap4.collect --db GZ_Master1
 
         Example:
             >>> from ibeis.scripts.thesis import *
@@ -1227,8 +1572,8 @@ class Chap4(object):
     def write_metrics(self, task_key='match_state'):
         """
         CommandLine:
-            python -m ibeis.scripts.thesis Chap4.write_metrics --db PZ_PB_RF_TRAIN --task-key=match_state
-            python -m ibeis.scripts.thesis Chap4.write_metrics --db GZ_Master1 --task-key=match_state
+            python -m ibeis Chap4.write_metrics --db PZ_PB_RF_TRAIN --task-key=match_state
+            python -m ibeis Chap4.write_metrics --db GZ_Master1 --task-key=match_state
 
         Example:
             >>> from ibeis.scripts.thesis import *
