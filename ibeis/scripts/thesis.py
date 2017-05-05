@@ -1265,8 +1265,8 @@ class Chap3Draw(object):
         df = df[df['K'] != 10]
 
         fig = pt.figure(fnum=1)
-        pnum_ = pt.make_pnum_nextgen(nCols=1, nSubplots=len(groups))
         groups = list(df.groupby(('dsize')))
+        pnum_ = pt.make_pnum_nextgen(nCols=1, nSubplots=len(groups))
         for val, df_group in groups:
             # print('---')
             # print(df_group)
