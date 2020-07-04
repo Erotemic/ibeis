@@ -3119,8 +3119,8 @@ class MainWindowBackend(GUIBACK_BASE):
         print('[back] export_database_as_csv')
         dump_dir = join(back.ibs.get_dbdir(), 'CSV_DUMP')
         ut.ensuredir(dump_dir)
+        dump_dir = back.ibs.dump_database_csv()
         ut.view_directory(dump_dir)
-        back.ibs.dump_database_csv()
 
     @blocking_slot()
     def backup_database(back):

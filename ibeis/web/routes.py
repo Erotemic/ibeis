@@ -723,7 +723,7 @@ def view_advanced0(**kwargs):
         if len(max_ages) > 0:
             max_age = max_ages[0]
         # Histogram
-        if (min_age is None and max_age is None) or (min_age is -1 and max_age is -1):
+        if (min_age is None and max_age is None) or (min_age == -1 and max_age == -1):
             # print('[web] Unreviewded name %r: Specify the age for the name' % (nid, ))
             age_unreviewed += 1
             continue
@@ -3970,19 +3970,19 @@ def turk_demographics(species='zebra_grevys', **kwargs):
             value_sex = None
         value_age_min, value_age_max = list(ibs.get_annot_age_months_est([aid]))[0]
         value_age = None
-        if (value_age_min is -1 or value_age_min is None) and (value_age_max is -1 or value_age_max is None):
+        if (value_age_min == -1 or value_age_min is None) and (value_age_max == -1 or value_age_max is None):
             value_age = 1
-        if (value_age_min is 0 or value_age_min is None) and value_age_max == 2:
+        if (value_age_min == 0 or value_age_min is None) and value_age_max == 2:
             value_age = 2
-        elif value_age_min is 3 and value_age_max == 5:
+        elif value_age_min == 3 and value_age_max == 5:
             value_age = 3
-        elif value_age_min is 6 and value_age_max == 11:
+        elif value_age_min == 6 and value_age_max == 11:
             value_age = 4
-        elif value_age_min is 12 and value_age_max == 23:
+        elif value_age_min == 12 and value_age_max == 23:
             value_age = 5
-        elif value_age_min is 24 and value_age_max == 35:
+        elif value_age_min == 24 and value_age_max == 35:
             value_age = 6
-        elif value_age_min is 36 and (value_age_max is None or value_age_max > 36):
+        elif value_age_min == 36 and (value_age_max is None or value_age_max > 36):
             value_age = 7
 
         review = 'review' in request.args.keys()

@@ -191,7 +191,7 @@ def get_demographic_info(**kwargs):
         if len(max_ages) > 0:
             max_age = max_ages[0]
         # Histogram
-        if (min_age is None and max_age is None) or (min_age is -1 and max_age is -1):
+        if (min_age is None and max_age is None) or (min_age == -1 and max_age == -1):
             age_list.append('UNREVIEWED')
             continue
         # Bins
