@@ -8,7 +8,6 @@ CommandLine:
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
-import vtool_ibeis as vt
 import plottool_ibeis as pt  # NOQA
 from functools import partial
 from ibeis import viz
@@ -503,7 +502,7 @@ def ishow_chip(ibs, aid, fnum=2, fx=None, dodraw=True, config2_=None,
                 elif viztype == 'chip':
                     kpts = ibs.get_annot_kpts(aid, config2_=config2_)
                     if len(kpts) > 0:
-                        fx = vt.nearest_point(
+                        fx = nearest_point(
                             x, y, kpts, conflict_mode='next')[0]
                         print('... clicked fx=%r' % fx)
                         _select_fxth_kpt(fx)
@@ -529,6 +528,32 @@ def ishow_chip(ibs, aid, fnum=2, fx=None, dodraw=True, config2_=None,
 
     if not ischild:
         ih.connect_callback(fig, 'button_press_event', _on_chip_click)
+
+
+def nearest_point(x, y, pts, conflict_mode='next', __next_counter=[0]):
+    """ finds the nearest point(s) in pts to (x, y)
+    """
+    import numpy as np
+    #with ut.embed_on_exception_context:
+    dists = (pts.T[0] - x) ** 2 + (pts.T[1] - y) ** 2
+    fx = dists.argmin()
+    mindist = dists[fx]
+    other_fx = np.where(mindist == dists)[0]
+    if len(other_fx) > 0:
+        if conflict_mode == 'random':
+            np.random.shuffle(other_fx)
+            fx = other_fx[0]
+        elif conflict_mode == 'next':
+            __next_counter[0] += 1
+            idx = __next_counter[0] % len(other_fx)
+            fx = other_fx[idx]
+        elif conflict_mode == 'all':
+            fx = other_fx
+        elif conflict_mode == 'first':
+            fx = fx
+        else:
+            raise AssertionError('unknown conflict_mode=%r' % (conflict_mode,))
+    return fx, mindist
 
 
 if __name__ == '__main__':
