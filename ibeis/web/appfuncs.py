@@ -412,7 +412,7 @@ def imageset_annot_viewpoint_processed(ibs, aid_list):
 
 
 def imageset_annot_quality_processed(ibs, aid_list):
-    annots_reviewed = [ reviewed is not None and reviewed is not -1 for reviewed in ibs.get_annot_qualities(aid_list) ]
+    annots_reviewed = [ reviewed is not None and reviewed != -1 for reviewed in ibs.get_annot_qualities(aid_list) ]
     return annots_reviewed
 
 

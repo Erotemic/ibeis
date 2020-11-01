@@ -1078,9 +1078,23 @@ class IBEISController(BASE_CLASS):
         sysres.copy_ibeisdb(ibs.get_dbdir(), dest_dbdir)
 
     def dump_database_csv(ibs):
+        """
+        Ignore:
+            >>> # DISABLE_DOCTEST
+            >>> import ibeis
+            >>> ibs = ibeis.opendb(defaultdb='testdb1')
+            >>> ibs.dump_database_csv()
+
+        Ignore:
+            db = ibs.db
+            tablename = tblname = 'annotations'
+            db.get_table_column_data(tblname)
+            print(db.get_table_csv(tblname))
+        """
         dump_dir = join(ibs.get_dbdir(), 'CSV_DUMP')
         ibs.db.dump_tables_to_csv(dump_dir=dump_dir)
         ibs.db.dump_to_fpath(dump_fpath=join(dump_dir, '_ibsdb.dump'))
+        return dump_dir
 
     def get_database_icon(ibs, max_dsize=(None, 192), aid=None):
         r"""
