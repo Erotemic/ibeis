@@ -24,7 +24,7 @@ I.B.E.I.S. = Image Based Ecological Information System
     :alt: "(Note: the rhino and wildebeest mathces may be dubious. Other species do work well though")
 
 
-Installation Instructions (updated 2020-May-03)
+Installation Instructions (updated 2020-Nov-01)
 -----------------------------------------------
 
 The IBEIS software is now available on `pypi
@@ -74,8 +74,11 @@ The workaround is to uninstall opencv-python and then install a variant that doe
     pip uninstall opencv-python
     pip install opencv-python-headless
 
+    
+Basic Usage (updated 2020-Nov-01)
+---------------------------------
 
-Running the ``ibeis`` command will open the GUI:
+After installation running the ``ibeis`` command will open the GUI:
 
 
 If you have already made a database, it will automatically open the most recently used database.
