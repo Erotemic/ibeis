@@ -4,6 +4,15 @@
 
 This project is a component of the WildMe / WildBook project: See https://github.com/WildbookOrg/
 
+NOTE: This IBEIS software is the result of my (Jon Crall's) PhD work. After I
+graduated, the image analysis components of IBEIS and the core HotSpotter
+program have been transferred and are now being developed by the WildMe
+organization. While this software is maintained and supported, it can only
+handle medium scale populations and its it GUI interface can be difficult to
+work with. If you have a larger population or the need for simpler and scalable
+web interfaces  please reach out to the WildMe project at services@wildme.org
+(more info: https://www.wildme.org/services/ ). 
+
 
 IBEIS - Image Analysis 
 ----------------------
@@ -41,6 +50,29 @@ computer savvy it is possible to build all of the requirements on from source.
 The only tricky components are installing the packages with binary
 dependencies: ``pyhesaff`` and ``vtool_ibeis``. If you have these built then
 the rest of the dependencies can be installed from pypi even on OSX / Windows.
+
+NOTE: When using a VM on windows, you may encounter an error:
+
+.. code:: 
+
+    qt.qpa.plugin: Could not load the Qt platform plugin "xcb" in 
+    ... even though it was found. This application failed to start because no
+    Qt platform plugin could be initialized. Reinstalling the application may
+    fix this problem.
+
+    Available platform plugins are: xcb, eglfs, ...
+
+    Core dumped
+
+The reason the issue happens appears to be because the opencv-python package
+includes libraries also packaged with PyQt5 and those are conflicting. 
+
+The workaround is to uninstall opencv-python and then install a variant that does not include extra Qt libts:
+
+.. code:: bash
+
+    pip uninstall opencv-python
+    pip install opencv-python-headless
 
 
 Running the ``ibeis`` command will open the GUI:
