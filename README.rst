@@ -67,7 +67,8 @@ NOTE: When using a VM on windows, you may encounter an error:
 The reason the issue happens appears to be because the opencv-python package
 includes libraries also packaged with PyQt5 and those are conflicting. 
 
-The workaround is to uninstall opencv-python and then install a variant that does not include extra Qt libts:
+The workaround is to uninstall opencv-python and then install a variant that
+does not include extra Qt libs:
 
 .. code:: bash
 
