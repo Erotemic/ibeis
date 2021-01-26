@@ -11,7 +11,7 @@ organization. While this software is maintained and supported, it can only
 handle medium scale populations and its it GUI interface can be difficult to
 work with. If you have a larger population or the need for simpler and scalable
 web interfaces  please reach out to the WildMe project at services@wildme.org
-(more info: https://www.wildme.org/services/ ). 
+(more info: https://www.wildme.org/#/services/ ). 
 
 
 IBEIS - Image Analysis 
