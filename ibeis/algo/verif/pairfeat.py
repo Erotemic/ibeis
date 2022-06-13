@@ -1,4 +1,26 @@
 # -*- coding: utf-8 -*-
+"""
+Quick example showing how to do a simple pairwise vsone scoring
+
+Ignore:
+    >>> from ibeis.algo.verif.pairfeat import PairwiseFeatureExtractor
+    >>> import ibeis
+    >>> ibs = ibeis.opendb('testdb1')
+    >>> extr = PairwiseFeatureExtractor(ibs)
+    >>> import itertools as it
+    >>> # Enumerate all possible pairs of annotation ids
+    >>> all_edges = list(it.permutations(list(ibs.annots()), 2))
+    >>> # Extract pairwise features for every requested pair of annotations
+    >>> matches = extr._exec_pairwise_match(all_edges)
+    >>> results = {}
+    >>> for match in matches:
+    ...     aid1 = match.annot1['aid']
+    ...     aid2 = match.annot2['aid']
+    ...     # Sum the fs (feature score) to get a simplified scalar score for each pair
+    ...     score = match.fs.sum()
+    ...     if score > 0:
+    ...         results[(aid1, aid2)] = score
+"""
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import vtool_ibeis as vt
@@ -78,8 +100,10 @@ class PairwiseFeatureExtractor(object):
         >>> from ibeis.algo.verif.pairfeat import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
-        >>> extr = PairwiseFeatureExtractor(ibs)
+        >>> extr = PairwiseFeatureExtractor(ibs, use_cache=False)
         >>> edges = [(1, 2), (2, 3)]
+        >>> matches = extr._exec_pairwise_match(edges)
+        >>> # After here is broken..
         >>> X = extr.transform(edges)
         >>> featinfo = vt.AnnotPairFeatInfo(X.columns)
         >>> print(featinfo.get_infostr())

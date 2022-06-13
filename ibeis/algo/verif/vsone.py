@@ -65,7 +65,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         python -m ibeis.algo.verif.vsone evaluate_classifiers --db testdb1 --show -a default
 
     Example:
-            >>> # DISABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.algo.verif.vsone import *  # NOQA
         >>> pblm = OneVsOneProblem.from_empty('PZ_MTEST')
         >>> pblm.hyper_params['xval_kw']['n_splits'] = 10
