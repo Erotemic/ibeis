@@ -162,8 +162,8 @@ def reset_testdbs(**kwargs):
         ibeis.ensure_pz_mtest()
     if not ut.checkpath(join(workdir, 'NAUT_test'), verbose=True):
         ibeis.ensure_nauts()
-    if not ut.checkpath(join(workdir, 'wd_peter2'), verbose=True):
-        ibeis.ensure_wilddogs()
+    # if not ut.checkpath(join(workdir, 'wd_peter2'), verbose=True):
+    #     ibeis.ensure_wilddogs()
     if not ut.checkpath(join(workdir, 'testdb2'), verbose=True):
         ibeis.init.sysres.ensure_testdb2()
 
