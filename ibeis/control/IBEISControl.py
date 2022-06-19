@@ -123,8 +123,9 @@ for modname in ut.ProgIter(AUTOLOAD_PLUGIN_MODNAMES, 'loading plugins',
         ub.import_module_from_name(modname)
     except ImportError:
         if 'ibeis_cnn' in modname:
-            import warnings
-            warnings.warn('Unable to load plugin: {!r}'.format(modname))
+            pass
+            # import warnings
+            # warnings.warn('Unable to load plugin: {!r}'.format(modname))
         else:
             raise
 

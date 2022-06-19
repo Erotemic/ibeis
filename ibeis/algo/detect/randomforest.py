@@ -15,9 +15,10 @@ import random
 if not ut.get_argflag('--no-pyrf'):
     try:
         import pyrf
-    except ImportError as ex:
-        print('WARNING Failed to import pyrf. '
-              'Randomforest detection is unavailable')
+    except ImportError:
+        if 0:
+            print('WARNING Failed to import pyrf. '
+                  'Randomforest detection is unavailable')
         if ut.SUPER_STRICT:
             raise
 
