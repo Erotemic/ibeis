@@ -384,7 +384,7 @@ class DummyEdges(object):
         Ignore:
             label = 'name_label'
 
-        Doctest:
+        Example:
             >>> from ibeis.algo.graph.mixin_dynamic import *  # NOQA
             >>> from ibeis.algo.graph import demo
             >>> infr = demo.demodata_infr(num_pccs=3, size=4)
@@ -395,6 +395,7 @@ class DummyEdges(object):
             >>> assert infr.status()['nCCs'] == 3
 
         Example:
+            >>> # xdoctest: +SKIP
             >>> from ibeis.algo.graph.mixin_dynamic import *  # NOQA
             >>> import ibeis
             >>> infr = ibeis.AnnotInference('PZ_MTEST', 'all', autoinit=True)
@@ -438,7 +439,7 @@ class DummyEdges(object):
         CommandLine:
             python -m ibeis.algo.graph.mixin_helpers ensure_cliques
 
-        Doctest:
+        Example:
             >>> from ibeis.algo.graph.mixin_helpers import *  # NOQA
             >>> from ibeis.algo.graph import demo
             >>> label = 'name_label'
@@ -684,8 +685,13 @@ class AssertInvariants(object):
         assert neg_weight == n_neg_edges
 
         # Self loops should correspond to the number of inconsistent components
-        neg_self_loop_nids = sorted([
-            ne[0] for ne in list(infr.neg_metagraph.selfloop_edges())])
+        try:
+            neg_self_loop_nids = sorted([
+                ne[0] for ne in list(infr.neg_metagraph.selfloop_edges())])
+        except AttributeError:
+            neg_self_loop_nids = sorted([
+                ne[0] for ne in list(nx.selfloop_edges(infr.neg_metagraph))])
+
         incon_nids = sorted(infr.nid_to_errors.keys())
         assert neg_self_loop_nids == incon_nids
 

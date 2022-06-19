@@ -262,7 +262,8 @@ class InfrLoops(object):
 
         Searches for decisions that would commplete positive redundancy
 
-        Doctest:
+        Example:
+            >>> # xdoctest: +SKIP
             >>> from ibeis.algo.graph.mixin_loops import *
             >>> import ibeis
             >>> infr = ibeis.AnnotInference('PZ_MTEST', aids='all',
