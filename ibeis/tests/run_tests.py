@@ -103,7 +103,6 @@ def static_doctest_modnames():
         'ibeis.other.dbinfo', 'ibeis.other.ibsfuncs',
         'ibeis.other.detectfuncs',
         'ibeis.other.detectcore',
-        'ibeis.other.detectgrave',
         'ibeis.other.detecttrain',
         'ibeis.init.main_helpers', 'ibeis.init.filter_annots',
         'ibeis.init.sysres',

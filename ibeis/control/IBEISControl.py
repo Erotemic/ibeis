@@ -61,7 +61,6 @@ AUTOLOAD_PLUGIN_MODNAMES = [
     'ibeis.other.ibsfuncs',
     'ibeis.other.detectfuncs',
     'ibeis.other.detectcore',
-    'ibeis.other.detectgrave',
     'ibeis.other.detecttrain',
     'ibeis.init.filter_annots',
     'ibeis.control.manual_featweight_funcs',
