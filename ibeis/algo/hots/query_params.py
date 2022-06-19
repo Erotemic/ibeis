@@ -1,14 +1,18 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
-import collections
 import utool as ut
 from ibeis.algo.hots import hstypes
 from ibeis.algo import Config
 (print, rrr, profile) = ut.inject2(__name__)
 
+try:
+    from collections import Mapping
+except Exception:
+    from collections.abc import Mapping
+
 
 # This object will behave like a dictionary with ** capability
-class QueryParams(collections.Mapping):
+class QueryParams(Mapping):
 
     @profile
     def __init__(qparams, query_cfg=None, cfgdict=None):
@@ -155,7 +159,5 @@ if __name__ == '__main__':
         python -m ibeis.algo.hots.query_params --allexamples
         python -m ibeis.algo.hots.query_params --allexamples --noface --nosrc
     """
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    import xdoctest
+    xdoctest.doctest_module(__file__)

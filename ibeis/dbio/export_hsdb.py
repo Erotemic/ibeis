@@ -66,6 +66,7 @@ def get_hots_table_strings(ibs):
         >>> # hack so hashtag is at the end of each line
         >>> result = '\n'.join(csvtup).replace('\n', '#\n') + '#'
         >>> # verify results
+        ...
         >>> print(result)
         # image table#
         # num_rows=13#

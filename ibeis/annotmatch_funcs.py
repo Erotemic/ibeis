@@ -560,7 +560,9 @@ def set_annot_pair_as_negative_match(ibs, aid1, aid2, dryrun=False,
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid1, aid2 = ibs.get_valid_aids()[0:2]
         >>> dryrun = True
-        >>> result = set_annot_pair_as_negative_match(ibs, aid1, aid2, dryrun)
+        >>> import ubelt as ub
+        >>> on_nontrivial_split = ub.identity
+        >>> result = set_annot_pair_as_negative_match(ibs, aid1, aid2, dryrun, on_nontrivial_split)
         >>> print(result)
     """
     def _set_annot_name_rowids(aid_list, nid_list):
@@ -590,6 +592,7 @@ def set_annot_pair_as_negative_match(ibs, aid1, aid2, dryrun=False,
             next_nids = ibs.make_next_nids(num=1)
             status =  _set_annot_name_rowids([aid1], next_nids)
         else:
+            status = None
             if on_nontrivial_split is None:
                 raise Exception('no function is set up to handle nontrivial splits!')
             else:

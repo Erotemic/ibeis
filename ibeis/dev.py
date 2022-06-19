@@ -36,7 +36,7 @@ CommandLine:
 """
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
-import multiprocessing
+# import multiprocessing
 import sys
 import numpy as np
 from ibeis._devscript import devcmd,  DEVCMD_FUNCTIONS, DEVPRECMD_FUNCTIONS
@@ -129,15 +129,6 @@ def tune_flann(ibs, qaid_list, daid_list=None):
         python dev.py -t tune --db GZ_ALL
         python dev.py -t tune --db GIR_Tanya
         python dev.py -t tune --db PZ_Master0
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis._devscript import *  # NOQA
-        >>> # build test data
-        >>> # execute function
-        >>> result = func_wrapper()
-        >>> # verify results
-        >>> print(result)
     """
     all_aids = ibs.get_valid_aids()
     vecs = np.vstack(ibs.get_annot_vecs(all_aids))

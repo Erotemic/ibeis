@@ -827,7 +827,8 @@ def postprocess_mask(mask, thresh=20, kernel_size=20):
         config = full_config
         rowid_kw = dict(config=config)
 
-    Doctest:
+    Example:
+        >>> # xdoctest: +SKIP
         >>> from ibeis.core_annots import *  # NOQA
         >>> import plottool_ibeis as pt
         >>> ibs, depc, aid_list = testdata_core()
@@ -1202,7 +1203,8 @@ def compute_fgweights(depc, fid_list, pcid_list, config=None):
     CommandLine:
         python -m ibeis.core_annots compute_fgweights
 
-    Doctest:
+    Example:
+        >>> # xdoctest: +SKIP
         >>> from ibeis.core_annots import *  # NOQA
         >>> ibs, depc, aid_list = testdata_core()
         >>> full_config = {}
@@ -1247,11 +1249,12 @@ def gen_featweight_worker(kpts, probchip, chipsize):
         chipsize:
 
     CommandLine:
-        python -m ibeis.core_annots --test-gen_featweight_worker --show
-        python -m ibeis.core_annots --test-gen_featweight_worker --show --dpath figures --save ~/latex/crall-candidacy-2015/figures/gen_featweight.jpg
-        python -m ibeis.core_annots --test-gen_featweight_worker --show --db PZ_MTEST --qaid_list=1,2,3,4,5,6,7,8,9
+        xdoctest -m ibeis.core_annots gen_featweight_worker --show
+        xdoctest -m ibeis.core_annots gen_featweight_worker --show --dpath figures --save ~/latex/crall-candidacy-2015/figures/gen_featweight.jpg
+        xdoctest -m ibeis.core_annots gen_featweight_worker --show --db PZ_MTEST --qaid_list=1,2,3,4,5,6,7,8,9
 
-    Doctest:
+    Example:
+        >>> # xdoctest: +SKIP
         >>> from ibeis.core_annots import *  # NOQA
         >>> #test_featweight_worker()
         >>> ibs, depc, aid_list = testdata_core()
