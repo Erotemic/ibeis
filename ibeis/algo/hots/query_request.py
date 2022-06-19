@@ -76,6 +76,7 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         >>> assert qreq_.qparams.sv_on is False, (
         ...     'qreq_.qparams.sv_on = %r ' % qreq_.qparams.sv_on)
         >>> result = ibs.get_dbname() + qreq_.get_data_hashid()
+        ...
         >>> print(result)
         PZ_MTEST_DPCC_UUIDS-a5-n2-vpkyggtpzbqbecuq
 
@@ -93,8 +94,9 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         >>> assert qreq_.qparams.sv_on is True, (
         ...     'qreq_.qparams.sv_on = %r ' % qreq_.qparams.sv_on)
         >>> result = ibs.get_dbname() + qreq_.get_data_hashid()
+        ...
         >>> print(result)
-        NAUT_test_DPCC_UUIDS-a5-n3-rtuyggvzpczvmjcw
+        NAUT_test_DPCC_UUIDS-a5-n3-gvqnxsrkewuruoeu
 
     Example2:
         >>> # ENABLE_DOCTEST
@@ -109,6 +111,7 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         >>> assert qreq_.qparams.sv_on is False, (
         ...     'qreq_.qparams.sv_on = %r ' % qreq_.qparams.sv_on)
         >>> result = ibs.get_dbname() + qreq_.get_data_hashid()
+        ...
         >>> print(result)
         PZ_MTEST_DPCC_UUIDS-a5-n2-vpkyggtpzbqbecuq
 

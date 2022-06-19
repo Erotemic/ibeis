@@ -371,9 +371,11 @@ def weight_multi_assigns(_idx_to_wx, _idx_to_wdist, massign_alpha=1.2,
         >>> idx_to_wxs, idx_to_maws = weight_multi_assigns(
         >>>     _idx_to_wx, _idx_to_wdist, massign_alpha, massign_sigma,
         >>>     massign_equal_weights)
-        >>> result = 'idx_to_wxs = %s' % (ut.repr2(idx_to_wxs),)
-        >>> result += '\nidx_to_maws = %s' % (ut.repr2(idx_to_maws, precision=2),)
-        >>> print(result)
+
+        # >>> result = 'idx_to_wxs = %s' % (ut.repr2(idx_to_wxs),)
+        # >>> result += '\nidx_to_maws = %s' % (ut.repr2(idx_to_maws, precision=2),)
+        # >>> print(result)
+
         idx_to_wxs = MaskedArray([[0, 1],
                         [2, --],
                         [4, --],
@@ -396,9 +398,11 @@ def weight_multi_assigns(_idx_to_wx, _idx_to_wdist, massign_alpha=1.2,
         >>> idx_to_wxs, idx_to_maws = weight_multi_assigns(
         >>>     _idx_to_wx, _idx_to_wdist, massign_alpha, massign_sigma,
         >>>     massign_equal_weights)
-        >>> result = 'idx_to_wxs = %s' % (ut.repr2(idx_to_wxs),)
-        >>> result += '\nidx_to_maws = %s' % (ut.repr2(idx_to_maws, precision=2),)
-        >>> print(result)
+
+        # >>> result = 'idx_to_wxs = %s' % (ub.repr2(idx_to_wxs),)
+        # >>> result += '\nidx_to_maws = %s' % (ut.repr2(idx_to_maws, precision=2),)
+        # >>> print(result)
+
         idx_to_wxs = MaskedArray([[0, 1],
                         [2, --],
                         [4, --],

@@ -1632,6 +1632,7 @@ def get_annot_thetas(ibs, aid_list):
         >>> aid_list = ibs.get_valid_aids()
         >>> result = get_annot_thetas(ibs, aid_list)
         >>> print(result)
+
         [2.75742, 0.792917, 2.53605, 2.67795, 0.946773, 2.56729]
     """
     theta_list = ibs.db.get(const.ANNOTATION_TABLE, ('annot_theta',), aid_list)

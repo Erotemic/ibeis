@@ -562,6 +562,7 @@ def testdata_vn_dists(nfeats=5, K=3):
         >>> vdist, ndist = testdata_vn_dists()
         >>> result = (ut.hz_str('vdist = ', ut.repr2(vdist))) + '\n'
         >>> result += (ut.hz_str('ndist = ', ut.repr2(ndist)))
+        >>> print(result)
         vdist = np.array([[0.  , 0.4 , 0.59],
                           [0.17, 0.3 , 0.51],
                           [0.13, 0.42, 0.73],

@@ -51,11 +51,16 @@ class Groundtruth(object):
         aid_pairs = vt.ensure_shape(aid_pairs, (None, 2))
         is_same = infr.is_same(aid_pairs)
         is_comp = infr.is_comparable(aid_pairs)
-        match_state_df = pd.DataFrame.from_items([
+        import ubelt as ub
+        items = [
             (NEGTV, ~is_same & is_comp),
             (POSTV,  is_same & is_comp),
             (INCMP, ~is_comp),
-        ])
+        ]
+        try:
+            match_state_df = pd.DataFrame.from_items(items)
+        except Exception:
+            match_state_df = pd.DataFrame.from_dict(ub.odict(items))
         match_state_df.index = index
         return match_state_df
 

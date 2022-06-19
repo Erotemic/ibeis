@@ -299,9 +299,11 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
     @classmethod
     def from_empty(OneVsOneProblem, defaultdb=None, **params):
         """
-        >>> from ibeis.algo.verif.vsone import *  # NOQA
-        >>> defaultdb = 'GIRM_Master1'
-        >>> pblm = OneVsOneProblem.from_empty(defaultdb)
+        Ignore:
+            >>> # xdoctest: +SKIP
+            >>> from ibeis.algo.verif.vsone import *  # NOQA
+            >>> defaultdb = 'GIRM_Master1'
+            >>> pblm = OneVsOneProblem.from_empty(defaultdb)
         """
         if defaultdb is None:
             defaultdb = 'PZ_PB_RF_TRAIN'
@@ -1201,6 +1203,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
     def evaluate_simple_scores(pblm, task_keys=None):
         """
+        Ignore:
+            >>> # xdoctest: +SKIP
             >>> from ibeis.algo.verif.vsone import *  # NOQA
             >>> pblm = OneVsOneProblem.from_empty()
             >>> pblm.set_pandas_options()

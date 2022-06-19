@@ -380,10 +380,12 @@ class WhaleSharkInjuryModel(AbstractCategoricalModel):
 
 def get_shark_dataset(target_type='binary', data_type='chip'):
     """
-    >>> from ibeis.scripts.classify_shark import *  # NOQA
-    >>> target_type = 'binary'
-    >>> data_type = 'hog'
-    >>> dataset = get_shark_dataset(target_type)
+    Ignore:
+        >>> # xdoctest: +SKIP
+        >>> from ibeis.scripts.classify_shark import *  # NOQA
+        >>> target_type = 'binary'
+        >>> data_type = 'hog'
+        >>> dataset = get_shark_dataset(target_type)
     """
     from ibeis_cnn.dataset import DataSet
     from ibeis.scripts import classify_shark
@@ -489,9 +491,11 @@ def get_shark_dataset(target_type='binary', data_type='chip'):
 
 def get_shark_labels_and_metadata(target_type=None, ibs=None, config=None):
     """
-    >>> from ibeis.scripts.classify_shark import *  # NOQA
-    >>> target_type = 'multiclass3'
-    >>> data_type = 'hog'
+    Ignore:
+        >>> # xdoctest: +SKIP
+        >>> from ibeis.scripts.classify_shark import *  # NOQA
+        >>> target_type = 'multiclass3'
+        >>> data_type = 'hog'
     """
     import ibeis
     if ibs is None:
@@ -1343,7 +1347,5 @@ if __name__ == '__main__':
         python -m ibeis.scripts.classify_shark
         python -m ibeis.scripts.classify_shark --allexamples
     """
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    import xdoctest
+    xdoctest.doctest_module(__file__)

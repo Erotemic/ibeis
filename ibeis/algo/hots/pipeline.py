@@ -264,11 +264,12 @@ def build_impossible_daids_list(qreq_, verbose=VERB_PIPELINE):
         >>> impossible_daids_list = [x.tolist() for x in impossible_daids_list]
         >>> vals = ut.dict_subset(locals(), ['impossible_daids_list', 'Kpad_list'])
         >>> result = ut.repr2(vals, nl=1, explicit=True, nobr=True, strvals=True)
+        ...
         >>> print(result)
-        >>> assert np.all(qreq_.qaids == [1, 4, 5, 6])
-        >>> assert np.all(qreq_.daids == [1, 2, 3, 4, 5, 6])
         impossible_daids_list=[[1], [4], [5, 6], [5, 6]],
         Kpad_list=[1, 1, 2, 2],
+        >>> assert np.all(qreq_.qaids == [1, 4, 5, 6])
+        >>> assert np.all(qreq_.daids == [1, 2, 3, 4, 5, 6])
     """
     if verbose:
         print('[hs] Step 0) Build impossible matches')
@@ -455,8 +456,10 @@ def cachemiss_nn_compute_fn(flags_list, qreq_, Kpad_list,
     """
     Logic for computing neighbors if there is a cache miss
 
-    >>> flags_list = [True] * len(Kpad_list)
-    >>> flags_list = [True, False, True]
+    Ignore:
+        >>> # xdoctest: +SKIP
+        >>> flags_list = [True] * len(Kpad_list)
+        >>> flags_list = [True, False, True]
     """
     # Cant do this here because of get_nn_aids. bleh
     # Could make this slightly more efficient

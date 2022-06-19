@@ -50,6 +50,7 @@ class Chap5(DBInputs):
             python -m ibeis Chap5.draw error_graph_analysis PZ_Master1
 
         Ignore:
+            >>> # xdoctest: +SKIP
             >>> from ibeis.scripts.thesis import *
             >>> self = Chap4('GZ_Master1')
         """
@@ -2726,6 +2727,8 @@ class Chap4(DBInputs):
 class Chap3Measures(object):
     def measure_baseline(self):
         """
+        Ignore:
+            >>> # xdoctest: +SKIP
             >>> from ibeis.scripts.thesis import *
             >>> self = Chap3('GZ_Master1')
             >>> self._precollect()
@@ -3193,6 +3196,7 @@ class Chap3Draw(object):
         ibeis Chap3.draw nsum --dbs=GZ_Master1,PZ_Master1
 
         Ignore:
+            >>> # xdoctest: +SKIP
             >>> from ibeis.scripts.thesis import *  # NOQA
             >>> self = Chap3('PZ_Master1')
         """
@@ -3583,6 +3587,8 @@ class Sampler(object):
     @staticmethod
     def _same_occur_split(ibs, aids):
         """
+        Example
+            >>> # xdoctest: +SKIP
             >>> from ibeis.scripts.thesis import *
             >>> self = Chap3('PZ_Master1')
             >>> self._precollect()
@@ -3686,6 +3692,8 @@ class Sampler(object):
     @staticmethod
     def _same_enc_split(ibs, aids):
         """
+        Example:
+            >>> # xdoctest: +SKIP
             >>> from ibeis.scripts.thesis import *
             >>> self = Chap3('PZ_Master1')
             >>> self._precollect()
