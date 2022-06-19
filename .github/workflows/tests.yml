@@ -55,6 +55,8 @@ jobs:
         ls -al
         MOD_DPATH=$(python -c "import ibeis, os; print(os.path.dirname(ibeis.__file__))")
         echo "MOD_DPATH = $MOD_DPATH"
+        ibeis --set-workdir "./work" --nogui
+        python ./dev/reset_dbs.py
         python -m pytest -p pytester -p no:doctest --xdoctest --cov=ibeis $MOD_DPATH ./tests
     - name: Test full loose sdist
       run: |-
@@ -69,6 +71,8 @@ jobs:
         cd $WORKSPACE_DNAME
         MOD_DPATH=$(python -c "import ibeis, os; print(os.path.dirname(ibeis.__file__))")
         echo "MOD_DPATH = $MOD_DPATH"
+        ibeis --set-workdir "./work" --nogui
+        python ./dev/reset_dbs.py
         python -m pytest -p pytester -p no:doctest --xdoctest $MOD_DPATH ../tests
         cd ..
     - name: Upload sdist artifact
@@ -126,6 +130,8 @@ jobs:
         cd $WORKSPACE_DNAME
         MOD_DPATH=$(python -c "import ibeis, os; print(os.path.dirname(ibeis.__file__))")
         echo "MOD_DPATH = $MOD_DPATH"
+        ibeis --set-workdir "./work" --nogui
+        python ./dev/reset_dbs.py
         python -m pytest -p pytester -p no:doctest --xdoctest --cov-config ../pyproject.toml --cov-report term --cov=ibeis $MOD_DPATH ../tests
         mv .coverage "../.coverage.$WORKSPACE_DNAME"
         cd ..
