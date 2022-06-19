@@ -313,9 +313,14 @@ WILDBOOK_TARGET = ut.get_argval('--wildbook-target', type_=str, default=_DEFAULT
                                 help_='specify the Wildbook target deployment')
 
 
+# IPFS_GATEWAY = 'https://gateway.ipfs.io/ipfs/'
+IPFS_GATEWAY = 'https://cloudflare-ipfs.com/ipfs/'
+
+
 class ZIPPED_URLS(object):
-    PZ_MTEST       = 'https://ipfs.io/ipfs/bafybeig4eil5ugon3ahusukhi7bghpujfkanh2zmhcshqtv2fkfgklae5i/PZ_MTEST.zip'
-    NAUTS          = 'https://ipfs.io/ipfs/bafybeig4eil5ugon3ahusukhi7bghpujfkanh2zmhcshqtv2fkfgklae5i/NAUT_test.zip'
+
+    PZ_MTEST       = IPFS_GATEWAY + 'bafybeig4eil5ugon3ahusukhi7bghpujfkanh2zmhcshqtv2fkfgklae5i/PZ_MTEST.zip'
+    NAUTS          = IPFS_GATEWAY + 'bafybeig4eil5ugon3ahusukhi7bghpujfkanh2zmhcshqtv2fkfgklae5i/NAUT_test.zip'
     # PZ_MTEST       = 'https://lev.cs.rpi.edu/public/databases/PZ_MTEST.zip'
     # NAUTS          = 'https://lev.cs.rpi.edu/public/databases/NAUT_test.zip'
     WDS            = 'https://lev.cs.rpi.edu/public/databases/wd_peter2.zip'
