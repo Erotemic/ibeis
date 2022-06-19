@@ -102,7 +102,7 @@ class Feedback(object):
         CommandLine:
             python -m ibeis.algo.graph.core edge_decision
 
-        Doctest:
+        Example:
             >>> from ibeis.algo.graph.core import *  # NOQA
             >>> from ibeis.algo.graph import demo
             >>> infr = demo.demodata_infr(num_pccs=1, p_incon=1)
@@ -147,7 +147,7 @@ class Feedback(object):
                      timestamp_c1=None, timestamp_c2=None, timestamp_s1=None,
                      timestamp=None, verbose=None, priority=None):
         r"""
-        Doctest:
+        Example:
             >>> from ibeis.algo.graph.core import *  # NOQA
             >>> infr = testdata_infr('testdb1')
             >>> infr.add_feedback((5, 6), POSTV)
@@ -302,7 +302,7 @@ class Feedback(object):
         CommandLine:
             python -m ibeis.algo.graph.core apply_feedback_edges
 
-        Doctest:
+        Example:
             >>> from ibeis.algo.graph.core import *  # NOQA
             >>> infr = testdata_infr('testdb1')
             >>> infr.reset_feedback()
@@ -743,7 +743,7 @@ class MiscHelpers(object):
         CommandLine:
             python -m ibeis.algo.graph.core add_aids --show
 
-        Doctest:
+        Example:
             >>> from ibeis.algo.graph.core import *  # NOQA
             >>> aids_ = [1, 2, 3, 4, 5, 6, 7, 9]
             >>> infr = AnnotInference(ibs=None, aids=aids_, autoinit=True)
@@ -751,6 +751,7 @@ class MiscHelpers(object):
             >>> nids = None
             >>> infr.add_aids(aids, nids)
             >>> result = infr.aids
+            ...
             >>> print(result)
             >>> assert len(infr.graph) == len(infr.aids)
             [1, 2, 3, 4, 5, 6, 7, 9, 22, 8]
@@ -1029,7 +1030,7 @@ class AnnotInference(ut.NiceRepr,
 
         ibeis AnnotInference:0 --loginfr
 
-    Doctest:
+    Example:
         >>> from ibeis.algo.graph.core import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
@@ -1349,13 +1350,14 @@ class AnnotInference(ut.NiceRepr,
         Returns dict of params prefixed with <prefix>.
         The returned dict does not contain the prefix
 
-        Doctest:
+        Example:
             >>> from ibeis.algo.graph.core import *
             >>> import ibeis
             >>> infr = ibeis.AnnotInference(None)
             >>> result = ut.repr2(infr.subparams('refresh'))
+            ...
             >>> print(result)
-            {'method': 'binomial', 'patience': 72, 'thresh': 0.1, 'window': 20}
+            {'method': 'binomial', 'patience': 72, 'thresh': 0.052, 'window': 20}
         """
         prefix_ = prefix + '.'
         subparams = {k[len(prefix_):]: v for k, v in infr.params.items()

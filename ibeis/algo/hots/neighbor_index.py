@@ -39,7 +39,8 @@ def get_support_data(qreq_, daid_list):
         >>> daid_list = qreq_.daids
         >>> tup  = get_support_data(qreq_, daid_list)
         >>> vecs_list, fgws_list, fxs_list = tup
-        >>> assert all([np.all(fgws > .9) for fgws in fgws_list])
+        >>> if fgws_list is not None:
+        >>>     assert all([np.all(fgws > .9) for fgws in fgws_list])
         >>> result = ('depth_profile = %r' % (ut.depth_profile(tup),))
         >>> print(result)
 

@@ -20,6 +20,7 @@ import dtool_ibeis
 import six
 import utool as ut
 import numpy as np
+import ubelt as ub
 from ibeis.algo.smk import match_chips5 as mc5
 from ibeis.algo.smk import vocab_indexer
 from ibeis.algo.smk import inverted_index
@@ -137,7 +138,7 @@ class SMKRequest(mc5.EstimatorRequest):
             dict(qreq_.stack_config.parse_items())
         ])
         #    # TODO: add vocab, inva, features
-        qreq_.cachedir = ut.ensuredir((ibs.cachedir, 'smk'))
+        qreq_.cachedir = ub.ensuredir((ibs.cachedir, 'smk'))
 
     def dump_vectors(qreq_):
         """
@@ -171,7 +172,7 @@ class SMKRequest(mc5.EstimatorRequest):
         vlads.shape = (n_annots, n_words * n_dims)
         ut.print_object_size(vlads)
         fname = 'vlad_%d_d%d_%s' % (n_annots, n_words * n_dims, qreq_.ibs.get_dbname())
-        fpath = ut.truepath('~/' + fname + '.mat')
+        fpath = ub.expandpath('~/' + fname + '.mat')
         import scipy.io
         mdict = {
             'vlads': vlads,
@@ -194,18 +195,11 @@ class SMKRequest(mc5.EstimatorRequest):
         def make_cacher(name, cfgstr=None):
             if cfgstr is None:
                 cfgstr = ut.hashstr27(qreq_.get_cfgstr())
-            if False and ut.is_developer():
-                return ut.Cacher(
-                    fname=name + '_' + qreq_.ibs.get_dbname(),
-                    cfgstr=cfgstr,
-                    cache_dir=ut.ensuredir(ut.truepath('~/Desktop/smkcache'))
-                )
-            else:
-                wrp = ut.DynStruct()
-                def ensure(func):
-                    return func()
-                wrp.ensure = ensure
-                return wrp
+            wrp = ut.DynStruct()
+            def ensure(func):
+                return func()
+            wrp.ensure = ensure
+            return wrp
 
         import copy
         dconfig = copy.deepcopy(qreq_.qparams)
@@ -305,8 +299,8 @@ class SMKRequest(mc5.EstimatorRequest):
             qaids, config2_=qreq_.extern_query_config2)
 
     def get_qreq_dannot_kpts(qreq_, daids):
-        didx_list = ut.take(qreq_.daid_to_didx, daids)
-        return ut.take(qreq_.data_kpts, didx_list)
+        didx_list = list(ub.take(qreq_.daid_to_didx, daids))
+        return list(ub.take(qreq_.data_kpts, didx_list))
         #return qreq_.ibs.get_annot_kpts(
         #    daids, config2_=qreq_.extern_data_config2)
 
@@ -386,12 +380,10 @@ class SMK(ut.NiceRepr):
         X = qreq_.qinva.get_annot(qaid)
 
         # Determine which database annotations need to be checked
-        #with ut.Timer('searching qaid=%r' % (qaid,), verbose=verbose):
-        hit_inva_wxs = ut.take(qreq_.dinva.wx_to_aids, X.wx_list)
-        hit_daids = np.array(list(set(ut.iflatten(hit_inva_wxs))))
+        hit_inva_wxs = list(ub.take(qreq_.dinva.wx_to_aids, X.wx_list))
+        hit_daids = np.array(list(set(ub.flatten(hit_inva_wxs))))
 
         # Mark impossible daids
-        #with ut.Timer('checking impossible daids=%r' % (qaid,), verbose=verbose):
         valid_flags = check_can_match(qaid, hit_daids, qreq_)
         valid_daids = hit_daids.compress(valid_flags)
 
@@ -432,12 +424,12 @@ class SMK(ut.NiceRepr):
                                enabled=verbose, bs=True, adjust=True)
         for item in _prog(shortlist):
             (score, score_list, Y, X_idx, Y_idx) = item
-            X_fxs = ut.take(X.fxs_list, X_idx)
-            Y_fxs = ut.take(Y.fxs_list, Y_idx)
+            X_fxs = list(ub.take(X.fxs_list, X_idx))
+            Y_fxs = list(ub.take(Y.fxs_list, Y_idx))
             # Only build matches for those that sver will use
             if agg:
-                X_maws = ut.take(X.maws_list, X_idx)
-                Y_maws = ut.take(Y.maws_list, Y_idx)
+                X_maws = list(ub.take(X.maws_list, X_idx))
+                Y_maws = list(ub.take(Y.maws_list, Y_idx))
                 fm, fs = smk_funcs.build_matches_agg(X_fxs, Y_fxs, X_maws,
                                                      Y_maws, score_list)
             else:
@@ -465,28 +457,26 @@ class SMK(ut.NiceRepr):
 
 def word_isect(X, Y, wx_to_weight):
     isect_words = sorted(X.words.intersection(Y.words))
-    X_idx = ut.take(X.wx_to_idx, isect_words)
-    Y_idx = ut.take(Y.wx_to_idx, isect_words)
-    weights = np.array(ut.take(wx_to_weight, isect_words))
+    X_idx = list(ub.take(X.wx_to_idx, isect_words))
+    Y_idx = list(ub.take(Y.wx_to_idx, isect_words))
+    weights = np.array(list(ub.take(wx_to_weight, isect_words)))
     return X_idx, Y_idx, weights
 
 
 def match_kernel_agg(X, Y, wx_to_weight, alpha, thresh):
-    import utool
-    with utool.embed_on_exception_context:
-        gammaXY = X.gamma * Y.gamma
-        # Words in common define matches
-        X_idx, Y_idx, weights = word_isect(X, Y, wx_to_weight)
+    gammaXY = X.gamma * Y.gamma
+    # Words in common define matches
+    X_idx, Y_idx, weights = word_isect(X, Y, wx_to_weight)
 
-        PhisX, flagsX = X.Phis_flags(X_idx)
-        PhisY, flagsY = Y.Phis_flags(Y_idx)
-        score_list = smk_funcs.match_scores_agg(
-            PhisX, PhisY, flagsX, flagsY, alpha, thresh)
+    PhisX, flagsX = X.Phis_flags(X_idx)
+    PhisY, flagsY = Y.Phis_flags(Y_idx)
+    score_list = smk_funcs.match_scores_agg(
+        PhisX, PhisY, flagsX, flagsY, alpha, thresh)
 
-        norm_weights = (weights * gammaXY)
-        score_list *= norm_weights
-        score = score_list.sum()
-        item = (score, score_list, Y, X_idx, Y_idx)
+    norm_weights = (weights * gammaXY)
+    score_list *= norm_weights
+    score = score_list.sum()
+    item = (score, score_list, Y, X_idx, Y_idx)
     return item
 
 
@@ -536,17 +526,27 @@ def testdata_smk(*args, **kwargs):
     """
     import ibeis
     import sklearn
-    import sklearn.cross_validation
-    # import sklearn.model_selection
     ibs, aid_list = ibeis.testdata_aids(defaultdb='PZ_MTEST')
     nid_list = np.array(ibs.annots(aid_list).nids)
     rng = ut.ensure_rng(0)
-    xvalkw = dict(n_folds=4, shuffle=False, random_state=rng)
+    try:
+        # Modern
+        from sklearn.model_selection import StratifiedKFold
+    except Exception:
+        # Original
+        import sklearn.cross_validation
+        StratifiedKFold = sklearn.cross_validation.StratifiedKFold
+        xvalkw = dict(n_folds=4, shuffle=False, random_state=rng)
+        skf = StratifiedKFold(nid_list, **xvalkw)
+        split_iter = skf
+    else:
+        xvalkw = dict(n_splits=4, shuffle=False)
+        skf = StratifiedKFold(**xvalkw)
+        split_iter = skf.split(nid_list, nid_list)
 
-    skf = sklearn.cross_validation.StratifiedKFold(nid_list, **xvalkw)
-    train_idx, test_idx = six.next(iter(skf))
-    daids = ut.take(aid_list, train_idx)
-    qaids = ut.take(aid_list, test_idx)
+    train_idx, test_idx = six.next(iter(split_iter))
+    daids = list(ub.take(aid_list, train_idx))
+    qaids = list(ub.take(aid_list, test_idx))
 
     config = {
         'num_words': 1000,
@@ -566,7 +566,5 @@ if __name__ == '__main__':
         python ~/code/ibeis/ibeis/algo/smk/smk_pipeline.py
         python ~/code/ibeis/ibeis/algo/smk/smk_pipeline.py --allexamples
     """
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    import xdoctest
+    xdoctest.doctest_module(__file__)

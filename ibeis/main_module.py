@@ -468,13 +468,12 @@ def opendb_bg_web(*args, **kwargs):
 def opendb_fg_web(*args, **kwargs):
     """
     Ignore:
+        >>> # xdoctest: +SKIP
         >>> from ibeis.main_module import *  # NOQA
         >>> kwargs = {'db': 'testdb1'}
         >>> args = tuple()
-
         >>> import ibeis
         >>> ibs = ibeis.opendb_fg_web()
-
     """
     # Gives you context inside the web app for testing
     kwargs['start_web_loop'] = False

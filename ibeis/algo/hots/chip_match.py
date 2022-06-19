@@ -2312,6 +2312,7 @@ class ChipMatch(_ChipMatchVisualization,
         """
         Example:
             >>> # ENABLE_DOCTEST
+            >>> # xdoctest: +SKIP
             >>> from ibeis.core_annots import *  # NOQA
             >>> ibs, depc, aid_list = testdata_core(size=4)
             >>> request = depc.new_request('vsone', [1], [2, 3, 4], {'dim_size': 450})

@@ -855,6 +855,7 @@ def query_chips_graph_v2(ibs, annot_uuid_list=None,
 
     Example:
         >>> # DEBUG_SCRIPT
+        >>> # xdoctest: +SKIP
         >>> from ibeis.web.apis_query import *
         >>> # Hack a flask context
         >>> current_app = ut.DynStruct()

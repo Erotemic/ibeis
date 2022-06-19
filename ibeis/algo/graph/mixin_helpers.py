@@ -130,7 +130,10 @@ class AttrAccess(object):
 
         part = ['evidence_decision', 'meta_decision', 'tags', 'user_id']
         neworder = ut.partial_order(edge_df.columns, part)
-        edge_df = edge_df.reindex_axis(neworder, axis=1)
+        try:
+            edge_df = edge_df.reindex(neworder, axis=1)
+        except Exception:
+            edge_df = edge_df.reindex_axis(neworder, axis=1)
         if not all:
             edge_df = edge_df.drop(['review_id', 'timestamp', 'timestamp_s1',
                                     'timestamp_c2', 'timestamp_c1'], axis=1)
@@ -215,6 +218,7 @@ class Convenience(object):
         Helps debugging when ibs.nids has info that annotmatch/staging do not
 
         Examples:
+            >>> # xdoctest: +SKIP
             >>> from ibeis.algo.graph.mixin_helpers import *  # NOQA
             >>> import ibeis
             >>> ibs = ibeis.opendb(defaultdb='GZ_Master1')
@@ -224,8 +228,6 @@ class Convenience(object):
             >>> aid1, aid2 = 1349, 3087
             >>> aid1, aid2 = 1535, 2549
             >>> infr.pair_connection_info(aid1, aid2)
-
-
             >>> aid1, aid2 = 4055, 4286
             >>> aid1, aid2 = 6555, 6882
             >>> aid1, aid2 = 712, 803
@@ -250,7 +252,10 @@ class Convenience(object):
                 df = df.assign(nid1=nids.T[0], nid2=nids.T[1])
                 part = ['nid1', 'nid2', 'evidence_decision', 'tags', 'user_id']
                 neworder = ut.partial_order(df.columns, part)
-                df = df.reindex_axis(neworder, axis=1)
+                try:
+                    df = df.reindex(neworder, axis=1)
+                except Exception:
+                    df = df.reindex_axis(neworder, axis=1)
                 df = df.drop(['review_id', 'timestamp'], axis=1)
             return df
 

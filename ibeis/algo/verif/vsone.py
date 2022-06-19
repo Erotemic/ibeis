@@ -214,8 +214,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
         multi_species = infr.ibs.get_database_species(infr.aids)
         # if infr.ibs.has_species_detector(species):
-        if all(infr.ibs.has_species_detector(s) for s in multi_species):
-            print("HACKING FGWEIGHTS OFF")
+        if 0 and all(infr.ibs.has_species_detector(s) for s in multi_species):
+            print("HACKING FGWEIGHTS ON")
             hyper_params.vsone_match['weight'] = 'fgweights'
             hyper_params.pairwise_feats['sorters'] = ut.unique(
                 hyper_params.pairwise_feats['sorters'] +
@@ -225,6 +225,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                 ]
             )
         else:
+            print("HACKING FGWEIGHTS OFF")
             hyper_params.vsone_match['weight'] = None
 
         # global_keys = ['yaw', 'qual', 'gps', 'time']

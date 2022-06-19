@@ -97,6 +97,7 @@ def fg_match_weighter(nns_list, nnvalid0_list, qreq_):
 
     Example:
         >>> # ENABLE_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from ibeis.algo.hots.nn_weights import *  # NOQA
         >>> #tup = plh.testdata_pre_weight_neighbors('PZ_MTEST')
         >>> #ibs, qreq_, nns_list, nnvalid0_list = tup
