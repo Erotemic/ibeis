@@ -17,12 +17,12 @@ def get_parts(line, sub):
     if line.startswith('_'):
         print('Processing Line: %r' % (line, ))
         print('    Stripped: %r' % (line, ))
-        raw_input('SKIPPED')
+        print('SKIPPED')
         return None, None, None
     if line in BLACKLIST:
         print('Processing Line: %r' % (line, ))
         print('    Stripped: %r' % (line, ))
-        raw_input('BLACKLISTED')
+        print('BLACKLISTED')
         return None, None, None
     # Ascertain method
     if line == 'delete_%s' % (sub, ):
@@ -50,7 +50,7 @@ def get_parts(line, sub):
     else:
         print('Processing Line: %r' % (line, ))
         print('    Stripped: %r' % (line, ))
-        raw_input('FAILED')
+        print('FAILED')
         return None, None, None
     # print('    Method-less: %r' % (line, ))
     submodule = sub

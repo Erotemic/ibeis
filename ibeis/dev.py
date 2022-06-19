@@ -214,6 +214,7 @@ def get_ibslist(ibs):
 @devcmd('gv_scores')
 def compgrav_draw_score_sep(ibs, qaid_list, daid_list):
     print('[dev] compgrav_draw_score_sep')
+    from ibeis.expt.experiment_drawing import draw_annot_scoresep
     ibs_list = get_ibslist(ibs)
     for ibs_ in ibs_list:
         draw_annot_scoresep(ibs_, qaid_list)

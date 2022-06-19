@@ -442,7 +442,7 @@ def authentication_user_only(func):
 def create_key():
     hyphen_list = [8, 13, 18, 23]
     key_list = ['-' if _ in hyphen_list else random.choice(string.hexdigits)
-                for _ in xrange(36) ]
+                for _ in range(36) ]
     return ''.join(key_list).upper()
 
 
@@ -528,9 +528,9 @@ def crossdomain(origin=None, methods=None, headers=None,
                 automatic_options=True):
     if methods is not None:
         methods = ', '.join(sorted(x.upper() for x in methods))
-    if headers is not None and not isinstance(headers, basestring):
+    if headers is not None and not isinstance(headers, str):
         headers = ', '.join(x.upper() for x in headers)
-    if not isinstance(origin, basestring):
+    if not isinstance(origin, str):
         origin = ', '.join(origin)
     if isinstance(max_age, timedelta):
         max_age = max_age.total_seconds()
