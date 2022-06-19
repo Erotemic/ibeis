@@ -26,13 +26,17 @@ statsmodels>=0.6.1
 
 delorean
 ubelt >= 0.8.7
-futures_actors
+futures_actors >= 0.0.5
 
 utool >= 2.1.5
 vtool_ibeis >= 2.1.0
 dtool_ibeis >= 1.0.2
 plottool_ibeis >= 2.1.0
 guitool_ibeis >= 2.0.0
+
+pyflann_ibeis >= 2.2.0
+vtool_ibeis_ext >= 0.1.0
+pyhesaff >= 2.1.0
 
 pyqt5>= 5.11.2
 

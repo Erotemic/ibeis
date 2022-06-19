@@ -8,6 +8,7 @@ ignore_missing_imports = true
 # TODO: allow xcookie config to be specified in __init__.py
 tags = [ "erotemic", "purepy", "github", "cv2"]
 mod_name = "ibeis"
+os = [ "linux" ]
 repo_name = "ibeis"
 description = "IBEIS - Image Based Ecological Information System"
 url="https://github.com/Erotemic/ibeis"
