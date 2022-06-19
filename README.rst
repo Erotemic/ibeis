@@ -241,7 +241,6 @@ In the interest of modular code we are actively developing several different mod
 |pyhesaffGithubActions|
 |pyflann_ibeisGithubActions|
 |vtool_ibeis_extGithubActions|
-|graphidGithubActions|
 
 .. |ibeisGithubActions| image:: https://github.com/Erotemic/ibeis/actions/workflows/tests.yml/badge.svg?branch=main
     :target: https://github.com/Erotemic/ibeis/actions?query=branch%3Amain
@@ -253,14 +252,12 @@ In the interest of modular code we are actively developing several different mod
     :target: https://github.com/Erotemic/plottool_ibeis/actions?query=branch%3Amain
 .. |guitool_ibeisGithubActions| image:: https://github.com/Erotemic/guitool_ibeis/actions/workflows/tests.yml/badge.svg?branch=main
     :target: https://github.com/Erotemic/guitool_ibeis/actions?query=branch%3Amain
-.. |pyhesaffGithubActions| image:: https://github.com/Erotemic/pyhesaff/actions/workflows/tests.yml/badge.svg?branch=main
+.. |pyhesaffGithubActions| image:: https://github.com/Erotemic/pyhesaff/actions/workflows/binary_test.yml/badge.svg?branch=main
     :target: https://github.com/Erotemic/pyhesaff/actions?query=branch%3Amain
-.. |pyflann_ibeisGithubActions| image:: https://github.com/Erotemic/pyflann_ibeis/actions/workflows/tests.yml/badge.svg?branch=main
+.. |pyflann_ibeisGithubActions| image:: https://github.com/Erotemic/pyflann_ibeis/actions/workflows/binary_test.yml/badge.svg?branch=main
     :target: https://github.com/Erotemic/pyflann_ibeis/actions?query=branch%3Amain
-.. |vtool_ibeis_extGithubActions| image:: https://github.com/Erotemic/vtool_ibeis_ext/actions/workflows/tests.yml/badge.svg?branch=main
+.. |vtool_ibeis_extGithubActions| image:: https://github.com/Erotemic/vtool_ibeis_ext/actions/workflows/binary_test.yml/badge.svg?branch=main
     :target: https://github.com/Erotemic/vtool_ibeis_ext/actions?query=branch%3Amain
-.. |graphidGithubActions| image:: https://github.com/Erotemic/graphid/actions/workflows/tests.yml/badge.svg?branch=main
-    :target: https://github.com/Erotemic/graphid/actions?query=branch%3Amain
 
 
 
