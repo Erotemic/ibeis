@@ -42,3 +42,5 @@ pyqt5>= 5.11.2
 
 pynmea2>=1.5.3
 tornado>=4.2.1
+
+psutil>=5.9.0
