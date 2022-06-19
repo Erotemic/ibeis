@@ -788,7 +788,7 @@ def ensure_nauts():
 
 
 def ensure_testdb2():
-    zipped_db_url = const.ZIPPED_URLS.TEST_DB2
+    zipped_db_url = const.ZIPPED_URLS.TESTDB2
     # zipped_db_url = 'https://lev.cs.rpi.edu/public/databases/testdb2.tar.gz'
     return ensure_db_from_url(zipped_db_url)
 
