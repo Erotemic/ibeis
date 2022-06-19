@@ -325,7 +325,7 @@ def _get_models(ibs, species, modeldir='default', cfg_override=True, verbose=VER
         python -m ibeis.algo.detect.randomforest --test-_get_models
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from ibeis.algo.detect.randomforest import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')

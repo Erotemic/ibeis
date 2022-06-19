@@ -128,82 +128,82 @@ def execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose=True,
         python -m ibeis.algo.hots.match_chips4 execute_query_and_save_L1:3
 
 
-    Example0:
-        >>> # SLOW_DOCTEST
-        >>> # xdoctest: +SKIP
-        >>> from ibeis.algo.hots.match_chips4 import *  # NOQA
-        >>> cfgdict1 = dict(codename='vsmany', sv_on=True)
-        >>> p = 'default' + ut.get_cfg_lbl(cfgdict1)
-        >>> qreq_ = ibeis.main_helpers.testdata_qreq_(p=p, qaid_override=[1, 2, 3, 4)
-        >>> use_cache, save_qcache, verbose = False, False, True
-        >>> qaid2_cm = execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose)
-        >>> print(qaid2_cm)
+    # Example0:
+    #     >>> # SLOW_DOCTEST
+    #     >>> # xdoctest: +SKIP
+    #     >>> from ibeis.algo.hots.match_chips4 import *  # NOQA
+    #     >>> cfgdict1 = dict(codename='vsmany', sv_on=True)
+    #     >>> p = 'default' + ut.get_cfg_lbl(cfgdict1)
+    #     >>> qreq_ = ibeis.main_helpers.testdata_qreq_(p=p, qaid_override=[1, 2, 3, 4)
+    #     >>> use_cache, save_qcache, verbose = False, False, True
+    #     >>> qaid2_cm = execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose)
+    #     >>> print(qaid2_cm)
 
-    Example1:
-        >>> # SLOW_DOCTEST
-        >>> # xdoctest: +SKIP
-        >>> from ibeis.algo.hots.match_chips4 import *  # NOQA
-        >>> cfgdict1 = dict(codename='vsone', sv_on=True)
-        >>> p = 'default' + ut.get_cfg_lbl(cfgdict1)
-        >>> qreq_ = ibeis.main_helpers.testdata_qreq_(p=p, qaid_override=[1, 2, 3, 4)
-        >>> use_cache, save_qcache, verbose = False, False, True
-        >>> qaid2_cm = execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose)
-        >>> print(qaid2_cm)
+    # Example1:
+    #     >>> # SLOW_DOCTEST
+    #     >>> # xdoctest: +SKIP
+    #     >>> from ibeis.algo.hots.match_chips4 import *  # NOQA
+    #     >>> cfgdict1 = dict(codename='vsone', sv_on=True)
+    #     >>> p = 'default' + ut.get_cfg_lbl(cfgdict1)
+    #     >>> qreq_ = ibeis.main_helpers.testdata_qreq_(p=p, qaid_override=[1, 2, 3, 4)
+    #     >>> use_cache, save_qcache, verbose = False, False, True
+    #     >>> qaid2_cm = execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose)
+    #     >>> print(qaid2_cm)
 
-    Example1:
-        >>> # SLOW_DOCTEST
-        >>> # xdoctest: +SKIP
-        >>> # TEST SAVE
-        >>> from ibeis.algo.hots.match_chips4 import *  # NOQA
-        >>> import ibeis
-        >>> cfgdict1 = dict(codename='vsmany', sv_on=True)
-        >>> p = 'default' + ut.get_cfg_lbl(cfgdict1)
-        >>> qreq_ = ibeis.main_helpers.testdata_qreq_(p=p, qaid_override=[1, 2, 3, 4)
-        >>> use_cache, save_qcache, verbose = False, True, True
-        >>> qaid2_cm = execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose)
-        >>> print(qaid2_cm)
+    # Example1:
+    #     >>> # SLOW_DOCTEST
+    #     >>> # xdoctest: +SKIP
+    #     >>> # TEST SAVE
+    #     >>> from ibeis.algo.hots.match_chips4 import *  # NOQA
+    #     >>> import ibeis
+    #     >>> cfgdict1 = dict(codename='vsmany', sv_on=True)
+    #     >>> p = 'default' + ut.get_cfg_lbl(cfgdict1)
+    #     >>> qreq_ = ibeis.main_helpers.testdata_qreq_(p=p, qaid_override=[1, 2, 3, 4)
+    #     >>> use_cache, save_qcache, verbose = False, True, True
+    #     >>> qaid2_cm = execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose)
+    #     >>> print(qaid2_cm)
 
-    Example2:
-        >>> # SLOW_DOCTEST
-        >>> # xdoctest: +SKIP
-        >>> # TEST LOAD
-        >>> from ibeis.algo.hots.match_chips4 import *  # NOQA
-        >>> import ibeis
-        >>> cfgdict1 = dict(codename='vsmany', sv_on=True)
-        >>> p = 'default' + ut.get_cfg_lbl(cfgdict1)
-        >>> qreq_ = ibeis.main_helpers.testdata_qreq_(p=p, qaid_override=[1, 2, 3, 4)
-        >>> use_cache, save_qcache, verbose = True, True, True
-        >>> qaid2_cm = execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose)
-        >>> print(qaid2_cm)
+    # Example2:
+    #     >>> # SLOW_DOCTEST
+    #     >>> # xdoctest: +SKIP
+    #     >>> # TEST LOAD
+    #     >>> from ibeis.algo.hots.match_chips4 import *  # NOQA
+    #     >>> import ibeis
+    #     >>> cfgdict1 = dict(codename='vsmany', sv_on=True)
+    #     >>> p = 'default' + ut.get_cfg_lbl(cfgdict1)
+    #     >>> qreq_ = ibeis.main_helpers.testdata_qreq_(p=p, qaid_override=[1, 2, 3, 4)
+    #     >>> use_cache, save_qcache, verbose = True, True, True
+    #     >>> qaid2_cm = execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose)
+    #     >>> print(qaid2_cm)
 
-    Example2:
-        >>> # ENABLE_DOCTEST
-        >>> # TEST PARTIAL HIT
-        >>> from ibeis.algo.hots.match_chips4 import *  # NOQA
-        >>> import ibeis
-        >>> cfgdict1 = dict(codename='vsmany', sv_on=False, prescore_method='csum')
-        >>> p = 'default' + ut.get_cfg_lbl(cfgdict1)
-        >>> qreq_ = ibeis.main_helpers.testdata_qreq_(p=p, qaid_override=[1, 2, 3,
-        >>>                                                               4, 5, 6,
-        >>>                                                               7, 8, 9])
-        >>> use_cache, save_qcache, verbose = False, True, False
-        >>> qaid2_cm = execute_query_and_save_L1(qreq_, use_cache,
-        >>>                                      save_qcache, verbose,
-        >>>                                      batch_size=3)
-        >>> cm = qaid2_cm[1]
-        >>> ut.delete(cm.get_fpath(qreq_))
-        >>> cm = qaid2_cm[4]
-        >>> ut.delete(cm.get_fpath(qreq_))
-        >>> cm = qaid2_cm[5]
-        >>> ut.delete(cm.get_fpath(qreq_))
-        >>> cm = qaid2_cm[6]
-        >>> ut.delete(cm.get_fpath(qreq_))
-        >>> print('Re-execute')
-        >>> qaid2_cm_ = execute_query_and_save_L1(qreq_, use_cache,
-        >>>                                       save_qcache, verbose,
-        >>>                                       batch_size=3)
-        >>> assert all([qaid2_cm_[qaid] == qaid2_cm[qaid] for qaid in qreq_.qaids])
-        >>> [ut.delete(fpath) for fpath in qreq_.get_chipmatch_fpaths(qreq_.qaids)]
+    # Example2:
+    #     >>> # ENABLE_DOCTEST
+    #     >>> # TEST PARTIAL HIT
+    #     >>> from ibeis.algo.hots.match_chips4 import *  # NOQA
+    #     >>> import ibeis
+    #     >>> cfgdict1 = dict(codename='vsmany', sv_on=False, prescore_method='csum')
+    #     >>> p = 'default' + ut.get_cfg_lbl(cfgdict1)
+    #     >>> qreq_ = ibeis.main_helpers.testdata_qreq_(p=p, qaid_override=[1, 2, 3,
+    #     >>>                                                               4, 5, 6,
+    #     >>>                                                               7, 8, 9])
+    #     >>> use_cache, save_qcache, verbose = False, True, False
+    #     >>> qaid2_cm = execute_query_and_save_L1(qreq_, use_cache,
+    #     >>>                                      save_qcache, verbose,
+    #     >>>                                      batch_size=3)
+    #     >>> cm = qaid2_cm[1]
+    #     >>> ut.delete(cm.get_fpath(qreq_))
+    #     >>> cm = qaid2_cm[4]
+    #     >>> ut.delete(cm.get_fpath(qreq_))
+    #     >>> cm = qaid2_cm[5]
+    #     >>> ut.delete(cm.get_fpath(qreq_))
+    #     >>> cm = qaid2_cm[6]
+    #     >>> ut.delete(cm.get_fpath(qreq_))
+    #     >>> print('Re-execute')
+    #     >>> qaid2_cm_ = execute_query_and_save_L1(qreq_, use_cache,
+    #     >>>                                       save_qcache, verbose,
+    #     >>>                                       batch_size=3)
+    #     >>> assert all([qaid2_cm_[qaid] == qaid2_cm[qaid] for qaid in qreq_.qaids])
+    #     >>> [ut.delete(fpath) for fpath in qreq_.get_chipmatch_fpaths(qreq_.qaids)]
 
     Ignore:
         other = cm_ = qaid2_cm_[qaid]

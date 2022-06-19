@@ -131,6 +131,7 @@ class IBEISIO(object):
 
     def find_unjustified_splits(infr):
         """
+        Ignore:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.graph.mixin_helpers import *  # NOQA
             >>> import ibeis
@@ -425,6 +426,7 @@ class IBEISIO(object):
             >>> assert pccs2 == [{1}, {2, 3, 4, 5, 6}, {7, 8}, {9}]
             >>> print(list(infr.gen_node_values('name_label', infr.aids)))
             >>> name_delta_df = infr.get_ibeis_name_delta()
+            ...
             >>> result = str(name_delta_df)
             >>> print(result)
                 old_name       new_name

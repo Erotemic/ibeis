@@ -293,7 +293,8 @@ class PairwiseFeatureExtractor(object):
             >>>     'K': 1, 'Knorm': 3, 'affine_invariance': True,
             >>>     'augment_orientation': True, 'checks': 20, 'ratio_thresh': 0.8,
             >>>     'refine_method': 'homog', 'sv_on': True, 'sver_xy_thresh': 0.01,
-            >>>     'symmetric': True, 'weight': 'fgweights'
+            >>>     'symmetric': True,
+            >>>     # 'weight': 'fgweights'
             >>> }
             >>> global_keys = ['gps', 'qual', 'time']
             >>> extr = PairwiseFeatureExtractor(ibs, match_config=match_config,
