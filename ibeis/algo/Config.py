@@ -14,8 +14,6 @@ from ibeis import constants as const
 from utool._internal.meta_util_six import get_funcname
 (print, rrr, profile) = ut.inject2(__name__, '[cfg]')
 
-#ConfigBase = ut.DynStruct
-#ConfigBase = object
 ConfigBase = ut.Pref
 
 
@@ -632,7 +630,7 @@ class QueryConfig(ConfigBase):
         if codename.startswith('vsmany'):
             query_cfg.pipeline_root = 'vsmany'
         elif codename.startswith('vsone'):
-            assert False, 'no longer supporte'
+            raise AssertionError('vsone is no longer supported')
         elif codename == 'None':
             pass
 

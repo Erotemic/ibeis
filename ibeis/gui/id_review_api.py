@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 CommandLine:
-    python -m ibeis.gui.inspect_gui --test-test_review_widget --show
+    xdoctest -m ibeis.gui.inspect_gui test_review_widget --show
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 from functools import partial
@@ -818,17 +818,18 @@ def get_photobomber_map(ibs, aids, aid_to_nid=None):
 
     python -m ibeis.gui.id_review_api --test-test_review_widget --show --db PZ_MTEST -a default:qindex=0
 
-    >>> import ibeis
-    >>> dbdir = ut.truepath('~/lev/media/danger/GGR/GGR-IBEIS')
-    >>> ibs = ibeis.opendb(dbdir='/home/joncrall/lev/media/danger/GGR/GGR-IBEIS')
-    >>> filter_kw = {
-    >>>     'multiple': False,
-    >>>     'minqual': 'good',
-    >>>     'is_known': True,
-    >>>     'min_pername': 2,
-    >>>     'view': ['right'],
-    >>> }
-    >>> aids = ibs.filter_annots_general(ibs.get_valid_aids(), filter_kw=filter_kw)
+    Ignore:
+        >>> import ibeis
+        >>> dbdir = ut.truepath('~/lev/media/danger/GGR/GGR-IBEIS')
+        >>> ibs = ibeis.opendb(dbdir='/home/joncrall/lev/media/danger/GGR/GGR-IBEIS')
+        >>> filter_kw = {
+        >>>     'multiple': False,
+        >>>     'minqual': 'good',
+        >>>     'is_known': True,
+        >>>     'min_pername': 2,
+        >>>     'view': ['right'],
+        >>> }
+        >>> aids = ibs.filter_annots_general(ibs.get_valid_aids(), filter_kw=filter_kw)
     """
     ams_list = ibs.get_annotmatch_rowids_from_aid(aids)
     flags_list = ibs.unflat_map(ut.partial(ibs.get_annotmatch_prop, 'Photobomb'), ams_list)
