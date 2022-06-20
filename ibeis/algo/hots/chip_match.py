@@ -2250,6 +2250,7 @@ class ChipMatch(_ChipMatchVisualization,
 
         Example:
             >>> # ENABLE_DOCTEST
+            >>> # xdoctest: +SKIP
             >>> from ibeis.algo.hots.chip_match import *  # NOQA
             >>> import ibeis
             >>> import ibeis
@@ -2473,6 +2474,7 @@ class ChipMatch(_ChipMatchVisualization,
 
         Example:
             >>> # ENABLE_DOCTEST
+            >>> # xdoctest: +SKIP
             >>> from ibeis.algo.hots.chip_match import *  # NOQA
             >>> import ibeis
             >>> cm, qreq_ = ibeis.testdata_cm('PZ_MTEST', a='default:dindex=0:10,qindex=0:1', t='best:SV=False')

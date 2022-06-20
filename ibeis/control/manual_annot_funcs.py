@@ -1586,6 +1586,7 @@ def get_annot_hashid_semantic_uuid(ibs, aid_list, prefix=''):
 
     Example:
         >>> # ENABLE_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from ibeis.control.manual_annot_funcs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
