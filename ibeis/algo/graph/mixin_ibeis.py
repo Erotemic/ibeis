@@ -1038,9 +1038,11 @@ def _update_staging_to_annotmatch(infr):
     """
     BE VERY CAREFUL WITH THIS FUNCTION
 
-    >>> import ibeis
-    >>> ibs = ibeis.opendb('PZ_Master1')
-    >>> infr = ibeis.AnnotInference(ibs, aids=ibs.get_valid_aids())
+    Ignore:
+        >>> # xdoctest: +SKIP
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('PZ_Master1')
+        >>> infr = ibeis.AnnotInference(ibs, aids=ibs.get_valid_aids())
 
     infr.reset_feedback('annotmatch', apply=True)
     infr.status()

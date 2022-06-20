@@ -542,6 +542,7 @@ class GraphVisualization(object):
 
         Example:
             >>> # ENABLE_DOCTEST
+            >>> # xdoctest: +REQUIRES(--show)
             >>> from ibeis.algo.graph.mixin_viz import *  # NOQA
             >>> from ibeis.algo.graph import demo
             >>> import plottool_ibeis as pt

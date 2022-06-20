@@ -4029,6 +4029,8 @@ def filter_aids_to_quality(ibs, aid_list, minqual, unknown_ok=True, speedhack=Tr
     """
     DEPRICATE
 
+    Ignore:
+        >>> # xdoctest: +SKIP
         >>> import ibeis
         >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> ibs = ibeis.opendb(defaultdb='PZ_Master1')

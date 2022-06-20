@@ -96,6 +96,9 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         >>> result = ibs.get_dbname() + qreq_.get_data_hashid()
         ...
         >>> print(result)
+
+        NAUT_test_DPCC_UUIDS-a5-n3-rtuyggvzpczvmjcw
+
         NAUT_test_DPCC_UUIDS-a5-n3-gvqnxsrkewuruoeu
 
     Example2:

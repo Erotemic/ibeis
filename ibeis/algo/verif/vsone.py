@@ -883,7 +883,11 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         clf_keys = [pblm.default_clf_key]
         """
         # selected_data_keys = ut.ddict(list)
-        from utool.experimental.pandas_highlight import to_string_monkey
+        try:
+            from utool.experimental.pandas_highlight import to_string_monkey
+        except Exception:
+            to_string_monkey = None
+            pass
         clf_keys = pblm.eval_clf_keys
         data_keys = pblm.eval_data_keys
         print('data_keys = %r' % (data_keys,))
@@ -900,7 +904,10 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                 for datakey in data_keys
             ]), index=labels.one_vs_rest_task_names())
             ut.cprint('[%s] ROC-AUC(OVR) Scores' % (clf_key,), 'yellow')
-            print(to_string_monkey(df_auc_ovr, highlight_cols='all'))
+            if to_string_monkey is None:
+                print(df_auc_ovr)
+            else:
+                print(to_string_monkey(df_auc_ovr, highlight_cols='all'))
 
             if clf_key.endswith('-OVR') and labels.n_classes > 2:
                 # Report un-normalized ovr measures if they available
@@ -911,14 +918,20 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                      list(data_combo_res[datakey].roc_scores_ovr_hat()))
                     for datakey in data_keys
                 ]), index=labels.one_vs_rest_task_names())
-                print(to_string_monkey(df_auc_ovr_hat, highlight_cols='all'))
+                if to_string_monkey is None:
+                    print(df_auc_ovr_hat)
+                else:
+                    print(to_string_monkey(df_auc_ovr_hat, highlight_cols='all'))
 
             roc_scores = dict(
                 [(datakey, [data_combo_res[datakey].roc_score()])
                  for datakey in data_keys])
             df_auc = pd.DataFrame(roc_scores)
             ut.cprint('[%s] ROC-AUC(MacroAve) Scores' % (clf_key,), 'yellow')
-            print(to_string_monkey(df_auc, highlight_cols='all'))
+            if to_string_monkey is None:
+                print(df_auc)
+            else:
+                print(to_string_monkey(df_auc, highlight_cols='all'))
 
             # best_data_key = 'learn(sum,glob,3)'
             best_data_key = df_auc.columns[df_auc.values.argmax(axis=1)[0]]
