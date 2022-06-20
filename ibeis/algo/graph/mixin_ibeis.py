@@ -131,6 +131,7 @@ class IBEISIO(object):
 
     def find_unjustified_splits(infr):
         """
+        Ignore:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.graph.mixin_helpers import *  # NOQA
             >>> import ibeis
@@ -405,11 +406,13 @@ class IBEISIO(object):
         CommandLine:
             python -m ibeis.algo.graph.mixin_ibeis get_ibeis_name_delta
 
-        Doctest:
+        Example:
+            >>> # xdoctest: +SKIP
             >>> from ibeis.algo.graph.mixin_ibeis import *  # NOQA
             >>> import ibeis
             >>> infr = ibeis.AnnotInference('PZ_MTEST', aids=list(range(1, 10)),
             >>>                             autoinit='annotmatch', verbose=4)
+            >>> infr.ensure_mst()
             >>> pccs1 = list(infr.positive_components())
             >>> print('pccs1 = %r' % (pccs1,))
             >>> print('names = {}'.format(list(infr.gen_node_values('name_label', infr.aids))))
@@ -425,6 +428,7 @@ class IBEISIO(object):
             >>> assert pccs2 == [{1}, {2, 3, 4, 5, 6}, {7, 8}, {9}]
             >>> print(list(infr.gen_node_values('name_label', infr.aids)))
             >>> name_delta_df = infr.get_ibeis_name_delta()
+            ...
             >>> result = str(name_delta_df)
             >>> print(result)
                 old_name       new_name
@@ -433,7 +437,8 @@ class IBEISIO(object):
             5     07_061         06_410
             6     07_061         06_410
 
-        Doctest:
+        Example:
+            >>> # xdoctest: +SKIP
             >>> from ibeis.algo.graph.mixin_ibeis import *  # NOQA
             >>> import ibeis
             >>> infr = ibeis.AnnotInference('PZ_MTEST', aids=list(range(1, 10)),
@@ -449,7 +454,8 @@ class IBEISIO(object):
             3     06_410   07_061
             4     06_410   07_061
 
-        Doctest:
+        Example:
+            >>> # xdoctest: +SKIP
             >>> from ibeis.algo.graph.mixin_ibeis import *  # NOQA
             >>> import ibeis
             >>> infr = ibeis.AnnotInference('PZ_MTEST', aids=list(range(1, 10)),
@@ -764,7 +770,8 @@ class IBEISIO(object):
         CommandLine:
             python -m ibeis.algo.graph.core match_state_delta
 
-        Doctest:
+        Example:
+            >>> # xdoctest: +SKIP
             >>> from ibeis.algo.graph.mixin_ibeis import *  # NOQA
             >>> import ibeis
             >>> infr = ibeis.AnnotInference('PZ_MTEST', aids=list(range(1, 10)),
@@ -801,7 +808,7 @@ class IBEISIO(object):
             python -m ibeis.algo.graph.mixin_ibeis IBEISIO._make_state_delta:0
 
         Example:
-            >>> # ENABLE_DOCTEST
+            >>> # xdoctest: +SKIP
             >>> from ibeis.algo.graph.core import *  # NOQA
             >>> import pandas as pd
             >>> columns = ['evidence_decision', 'aid1', 'aid2', 'am_rowid', 'tags']
@@ -817,7 +824,7 @@ class IBEISIO(object):
             Index: []
 
         Example:
-            >>> # ENABLE_DOCTEST
+            >>> # xdoctest: +SKIP
             >>> from ibeis.algo.graph.core import *  # NOQA
             >>> import pandas as pd
             >>> columns = ['evidence_decision', 'meta_decision', 'aid1', 'aid2', 'am_rowid', 'tags']
@@ -1031,9 +1038,11 @@ def _update_staging_to_annotmatch(infr):
     """
     BE VERY CAREFUL WITH THIS FUNCTION
 
-    >>> import ibeis
-    >>> ibs = ibeis.opendb('PZ_Master1')
-    >>> infr = ibeis.AnnotInference(ibs, aids=ibs.get_valid_aids())
+    Ignore:
+        >>> # xdoctest: +SKIP
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('PZ_Master1')
+        >>> infr = ibeis.AnnotInference(ibs, aids=ibs.get_valid_aids())
 
     infr.reset_feedback('annotmatch', apply=True)
     infr.status()

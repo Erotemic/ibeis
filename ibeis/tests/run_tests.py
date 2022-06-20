@@ -16,8 +16,8 @@ def ensure_testing_data():
         ibeis.ensure_pz_mtest()
     if not ut.checkpath(join(workdir, 'NAUT_test')):
         ibeis.ensure_nauts()
-    if not ut.checkpath(join(workdir, 'wd_peter2')):
-        ibeis.ensure_wilddogs()
+    # if not ut.checkpath(join(workdir, 'wd_peter2')):
+    #     ibeis.ensure_wilddogs()
 
 
 def dynamic_doctest_modnames():
@@ -103,7 +103,6 @@ def static_doctest_modnames():
         'ibeis.other.dbinfo', 'ibeis.other.ibsfuncs',
         'ibeis.other.detectfuncs',
         'ibeis.other.detectcore',
-        'ibeis.other.detectgrave',
         'ibeis.other.detecttrain',
         'ibeis.init.main_helpers', 'ibeis.init.filter_annots',
         'ibeis.init.sysres',

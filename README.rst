@@ -1,4 +1,5 @@
-|ReadTheDocs| |Pypi| |Downloads| |Codecov| |CircleCI| |Travis| |Appveyor| 
+|ReadTheDocs| |Pypi| |Downloads| |Codecov| |GithubActions| 
+
 
 .. image:: https://i.imgur.com/L0k84xQ.png
 
@@ -230,6 +231,34 @@ Internal Modules
 ----------------
 
 In the interest of modular code we are actively developing several different modules. 
+
+
+|ibeisGithubActions|
+|utoolGithubActions|
+|vtool_ibeisGithubActions|
+|plottool_ibeisGithubActions|
+|guitool_ibeisGithubActions|
+|pyhesaffGithubActions|
+|pyflann_ibeisGithubActions|
+|vtool_ibeis_extGithubActions|
+
+.. |ibeisGithubActions| image:: https://github.com/Erotemic/ibeis/actions/workflows/tests.yml/badge.svg?branch=main
+    :target: https://github.com/Erotemic/ibeis/actions?query=branch%3Amain
+.. |utoolGithubActions| image:: https://github.com/Erotemic/utool/actions/workflows/tests.yml/badge.svg?branch=main
+    :target: https://github.com/Erotemic/utool/actions?query=branch%3Amain
+.. |vtool_ibeisGithubActions| image:: https://github.com/Erotemic/vtool_ibeis/actions/workflows/tests.yml/badge.svg?branch=main
+    :target: https://github.com/Erotemic/vtool_ibeis/actions?query=branch%3Amain
+.. |plottool_ibeisGithubActions| image:: https://github.com/Erotemic/plottool_ibeis/actions/workflows/tests.yml/badge.svg?branch=main
+    :target: https://github.com/Erotemic/plottool_ibeis/actions?query=branch%3Amain
+.. |guitool_ibeisGithubActions| image:: https://github.com/Erotemic/guitool_ibeis/actions/workflows/tests.yml/badge.svg?branch=main
+    :target: https://github.com/Erotemic/guitool_ibeis/actions?query=branch%3Amain
+.. |pyhesaffGithubActions| image:: https://github.com/Erotemic/pyhesaff/actions/workflows/binary_test.yml/badge.svg?branch=main
+    :target: https://github.com/Erotemic/pyhesaff/actions?query=branch%3Amain
+.. |pyflann_ibeisGithubActions| image:: https://github.com/Erotemic/pyflann_ibeis/actions/workflows/binary_test.yml/badge.svg?branch=main
+    :target: https://github.com/Erotemic/pyflann_ibeis/actions?query=branch%3Amain
+.. |vtool_ibeis_extGithubActions| image:: https://github.com/Erotemic/vtool_ibeis_ext/actions/workflows/binary_test.yml/badge.svg?branch=main
+    :target: https://github.com/Erotemic/vtool_ibeis_ext/actions?query=branch%3Amain
+
 
 
 Erotemic's IBEIS Image Analysis module dependencies 
@@ -562,3 +591,8 @@ Caveats / Things we are not currently doing
    :target: https://pypistats.org/packages/ibeis
 .. |ReadTheDocs| image:: https://readthedocs.org/projects/ibeis/badge/?version=latest
     :target: http://ibeis.readthedocs.io/en/latest/
+.. |GithubActions| image:: https://github.com/Erotemic/ibeis/actions/workflows/tests.yml/badge.svg?branch=main
+    :target: https://github.com/Erotemic/ibeis/actions?query=branch%3Amain
+
+.. |GithubActions| image:: https://github.com/Erotemic/ibeis/actions/workflows/tests.yml/badge.svg?branch=main
+    :target: https://github.com/Erotemic/ibeis/actions?query=branch%3Amain

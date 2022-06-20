@@ -345,6 +345,13 @@ class ClfProblem(ut.NiceRepr):
         est_kw1, est_kw2 = pblm._estimator_params(est_type)
         est_params = ut.merge_dicts(est_kw1, est_kw2)
 
+        try:
+            from sklearn.preprocessing import Imputer
+            ikw = dict(missing_values='NaN', strategy='mean', axis=0)
+        except Exception:
+            from sklearn.impute import SimpleImputer as Imputer
+            ikw = dict(missing_values=float('nan'), strategy='mean')
+
         # steps = []
         # steps.append((est_type, est_class(**est_params)))
         # if wrap_type is not None:
@@ -352,8 +359,7 @@ class ClfProblem(ut.NiceRepr):
         if est_type == 'MLP':
             def clf_partial():
                 pipe = sklearn.pipeline.Pipeline([
-                    ('inputer', sklearn.preprocessing.Imputer(
-                        missing_values='NaN', strategy='mean', axis=0)),
+                    ('inputer', Imputer(**ikw)),
                     # ('scale', sklearn.preprocessing.StandardScaler),
                     ('est', est_class(**est_params)),
                 ])
@@ -361,8 +367,7 @@ class ClfProblem(ut.NiceRepr):
         elif est_type == 'Logit':
             def clf_partial():
                 pipe = sklearn.pipeline.Pipeline([
-                    ('inputer', sklearn.preprocessing.Imputer(
-                        missing_values='NaN', strategy='mean', axis=0)),
+                    ('inputer', Imputer(**ikw)),
                     ('est', est_class(**est_params)),
                 ])
                 return multiclass_wrapper(pipe)
@@ -1413,7 +1418,8 @@ class MultiClassLabels(ut.NiceRepr):
         """
         if labels.target_type == 'binary':
             yield labels
-            raise StopIteration()
+            # raise StopIteration()
+            return
         task_names_1vR = labels.one_vs_rest_task_names()
         for k in range(labels.n_classes):
             class_name = labels.class_names[k]

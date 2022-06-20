@@ -380,10 +380,12 @@ class WhaleSharkInjuryModel(AbstractCategoricalModel):
 
 def get_shark_dataset(target_type='binary', data_type='chip'):
     """
-    >>> from ibeis.scripts.classify_shark import *  # NOQA
-    >>> target_type = 'binary'
-    >>> data_type = 'hog'
-    >>> dataset = get_shark_dataset(target_type)
+    Ignore:
+        >>> # xdoctest: +SKIP
+        >>> from ibeis.scripts.classify_shark import *  # NOQA
+        >>> target_type = 'binary'
+        >>> data_type = 'hog'
+        >>> dataset = get_shark_dataset(target_type)
     """
     from ibeis_cnn.dataset import DataSet
     from ibeis.scripts import classify_shark
@@ -489,9 +491,11 @@ def get_shark_dataset(target_type='binary', data_type='chip'):
 
 def get_shark_labels_and_metadata(target_type=None, ibs=None, config=None):
     """
-    >>> from ibeis.scripts.classify_shark import *  # NOQA
-    >>> target_type = 'multiclass3'
-    >>> data_type = 'hog'
+    Ignore:
+        >>> # xdoctest: +SKIP
+        >>> from ibeis.scripts.classify_shark import *  # NOQA
+        >>> target_type = 'multiclass3'
+        >>> data_type = 'hog'
     """
     import ibeis
     if ibs is None:
@@ -1233,6 +1237,8 @@ def inspect_results(ds, result_list):
     pd.set_option("display.max_rows", 20)
     pt.qt4ensure()
 
+    result = result_list[0]
+
     isect_sets = [set(s1).intersection(set(s2)) for s1, s2 in ut.combinations([
         result.df.index for result in result_list], 2)]
     assert all([len(s) == 0 for s in isect_sets]), ('cv sets should not intersect')
@@ -1276,21 +1282,21 @@ def inspect_results(ds, result_list):
             df_chunk.nice = place_name
         return df_chunk
 
-    def grab_subchunk2(df_chunk, frac, n):
-        sl = ut.snapped_slice(len(df_chunk), frac, n)
-        print('sl = %r' % (sl,))
-        idx = df_chunk.index[sl]
-        df_chunk = df_chunk.loc[idx]
-        min_frac = sl.start / len(df_chunk)
-        max_frac = sl.stop / len(df_chunk)
-        min_frac = sl.start
-        max_frac = sl.stop
-        place_name = 'hardness=%.2f (%d-%d)' % (frac, min_frac, max_frac)
-        if target is not None:
-            df_chunk.nice = place_name + ' ' + ds.target_names[target]
-        else:
-            df_chunk.nice = place_name
-        return df_chunk
+    # def grab_subchunk2(df_chunk, frac, n):
+    #     sl = ut.snapped_slice(len(df_chunk), frac, n)
+    #     print('sl = %r' % (sl,))
+    #     idx = df_chunk.index[sl]
+    #     df_chunk = df_chunk.loc[idx]
+    #     min_frac = sl.start / len(df_chunk)
+    #     max_frac = sl.stop / len(df_chunk)
+    #     min_frac = sl.start
+    #     max_frac = sl.stop
+    #     place_name = 'hardness=%.2f (%d-%d)' % (frac, min_frac, max_frac)
+    #     if target is not None:
+    #         df_chunk.nice = place_name + ' ' + ds.target_names[target]
+    #     else:
+    #         df_chunk.nice = place_name
+    #     return df_chunk
 
     # Look at hardest train cases
 
@@ -1312,18 +1318,18 @@ def inspect_results(ds, result_list):
         fracs = [0.3, .4, .67, .77, .87, .92]
         n = 8 // len(view_targets)
 
-    if False:
-        view_targets = [ut.listfind(ds.target_names.tolist(), 'healthy')]
-        target_dfs = [target_partition(target) for target in view_targets]
-        critical_points = [np.where(_df['failed'])[0][0] for _df in target_dfs]
-        critical_fracs = [_pt / len(_df) for _pt, _df in zip(critical_points, target_dfs)]
-        n = 8 * 5
-        frac = critical_fracs[0]
-        frac += .1
-        _df = target_dfs[0]
-        df_part = grab_subchunk2(_df, frac, n)
-        df_chunks = [df_part.iloc[x] for x in ut.ichunks(range(len(df_part)), 8)]
-    else:
+    # if False:
+    #     view_targets = [ut.listfind(ds.target_names.tolist(), 'healthy')]
+    #     target_dfs = [target_partition(target) for target in view_targets]
+    #     critical_points = [np.where(_df['failed'])[0][0] for _df in target_dfs]
+    #     critical_fracs = [_pt / len(_df) for _pt, _df in zip(critical_points, target_dfs)]
+    #     n = 8 * 5
+    #     frac = critical_fracs[0]
+    #     frac += .1
+    #     _df = target_dfs[0]
+    #     df_part = grab_subchunk2(_df, frac, n)
+    #     df_chunks = [df_part.iloc[x] for x in ut.ichunks(range(len(df_part)), 8)]
+    # else:
         df_chunks = [grab_subchunk(frac, n, target)
                      for frac in fracs for target in view_targets]
 
@@ -1341,7 +1347,5 @@ if __name__ == '__main__':
         python -m ibeis.scripts.classify_shark
         python -m ibeis.scripts.classify_shark --allexamples
     """
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    import xdoctest
+    xdoctest.doctest_module(__file__)

@@ -852,7 +852,7 @@ def update_imageset_info(ibs, imageset_rowid_list, **kwargs):
         URL:    /api/imageset/info/
 
     Example:
-        >>> # DOCTEST_DISABLE
+        >>> # xdoctest: +SKIP
         >>> imageset_rowid_list = ibs.get_valid_imgsetids()
     """
     gids_list_ = ibs.get_imageset_gids(imageset_rowid_list)

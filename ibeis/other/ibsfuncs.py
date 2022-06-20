@@ -4029,6 +4029,8 @@ def filter_aids_to_quality(ibs, aid_list, minqual, unknown_ok=True, speedhack=Tr
     """
     DEPRICATE
 
+    Ignore:
+        >>> # xdoctest: +SKIP
         >>> import ibeis
         >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> ibs = ibeis.opendb(defaultdb='PZ_Master1')
@@ -4458,8 +4460,6 @@ def group_annots_by_prop(ibs, aids, getter_func):
 @register_ibs_method
 def get_annot_intermediate_viewpoint_stats(ibs, aids, size=2):
     """
-    >>> from ibeis.other.ibsfuncs import *  # NOQA
-    >>> aids = available_aids
     """
     getter_func = ibs.get_annot_viewpoints
     prop_basis = list(const.VIEW.CODE_TO_INT.keys())

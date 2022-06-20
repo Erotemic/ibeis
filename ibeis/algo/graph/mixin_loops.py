@@ -25,7 +25,8 @@ class InfrLoops(object):
         algorithm main loop as automatically as possible, but if user input is
         needed, it will pause and yield the decision it needs help with. Once
         feedback is given for this item, you can continue the main loop by
-        calling next. StopIteration is raised once the algorithm is complete.
+        calling next. RuntimeError (or StopIteration) is raised once the
+        algorithm is complete.
 
         Args:
             max_loops(int): maximum number of times to run the outer loop,
@@ -38,7 +39,7 @@ class InfrLoops(object):
         CommandLine:
             python -m ibeis.algo.graph.mixin_loops main_gen
 
-        Doctest:
+        Example:
             >>> from ibeis.algo.graph.mixin_loops import *
             >>> from ibeis.algo.graph.mixin_simulation import UserOracle
             >>> import ibeis
@@ -57,7 +58,7 @@ class InfrLoops(object):
             >>>         edge, priority, data = reviews[0]
             >>>         feedback = infr.request_oracle_review(edge)
             >>>         infr.add_feedback(edge, **feedback)
-            >>>     except StopIteration:
+            >>>     except (RuntimeError, StopIteration):
             >>>         break
         """
         infr.print('Starting main loop', 1)
@@ -261,7 +262,8 @@ class InfrLoops(object):
 
         Searches for decisions that would commplete positive redundancy
 
-        Doctest:
+        Example:
+            >>> # xdoctest: +SKIP
             >>> from ibeis.algo.graph.mixin_loops import *
             >>> import ibeis
             >>> infr = ibeis.AnnotInference('PZ_MTEST', aids='all',
@@ -460,7 +462,7 @@ class InfrLoops(object):
         try:
             result = next(infr._gen)
             assert result is None, 'need user interaction. cannot auto loop'
-        except StopIteration:
+        except (StopIteration, RuntimeError):
             pass
         infr._gen = None
 
@@ -609,7 +611,7 @@ class InfrReviewers(object):
             return None
         try:
             user_request = next(infr._gen)
-        except StopIteration:
+        except (StopIteration, RuntimeError):
             review_finished = infr.callbacks.get('review_finished', None)
             if review_finished is not None:
                 review_finished()

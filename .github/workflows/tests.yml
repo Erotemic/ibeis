@@ -1,0 +1,264 @@
+# This workflow will install Python dependencies, run tests and lint with a variety of Python versions
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+# Based on ~/code/xcookie/xcookie/rc/tests.yml.in
+# Now based on ~/code/xcookie/xcookie/builders/github_actions.py
+
+name: Tests
+
+on:
+  push:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  lint_job:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
+      name: Set up Python 3.8
+      with:
+        python-version: 3.8
+    - name: Install dependencies
+      run: |-
+        python -m pip install --upgrade pip
+        python -m pip install flake8
+    - name: Lint with flake8
+      run: |-
+        # stop the build if there are Python syntax errors or undefined names
+        flake8 ibeis --count --select=E9,F63,F7,F82 --show-source --statistics
+  build_and_test_sdist:
+    name: Test sdist Python 3.8
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
+      name: Set up Python 3.8
+      with:
+        python-version: 3.8
+    - name: Upgrade pip
+      run: |-
+        python -m pip install --upgrade pip
+        python -m pip install -r requirements/tests.txt
+        python -m pip install -r requirements/runtime.txt
+        python -m pip install -r requirements/headless.txt
+    - name: Build sdist
+      run: |-
+        python setup.py sdist
+    - name: Install sdist
+      run: |-
+        ls -al ./dist
+        pip install dist/ibeis*.tar.gz -v
+    - name: Test minimal loose sdist
+      run: |-
+        pwd
+        ls -al
+        MOD_DPATH=$(python -c "import ibeis, os; print(os.path.dirname(ibeis.__file__))")
+        echo "MOD_DPATH = $MOD_DPATH"
+        mkdir -p ./work
+        ibeis --set-workdir "./work" --nogui
+        python ./dev/reset_dbs.py > /dev/null
+        xdoctest -m ibeis
+        #python -m pytest -p pytester -p no:doctest --xdoctest --cov=ibeis $MOD_DPATH ./tests
+    - name: Test full loose sdist
+      run: |-
+        pwd
+        ls -al
+        python -m pip install -r requirements/optional.txt
+        python -m pip install -r requirements/headless.txt
+        MOD_DPATH=$(python -c "import ibeis, os; print(os.path.dirname(ibeis.__file__))")
+        echo "MOD_DPATH = $MOD_DPATH"
+        WORKSPACE_DNAME="testsrcdir_${CI_PYTHON_VERSION}_${GITHUB_RUN_ID}_${RUNNER_OS}"
+        mkdir -p $WORKSPACE_DNAME
+        cd $WORKSPACE_DNAME
+        MOD_DPATH=$(python -c "import ibeis, os; print(os.path.dirname(ibeis.__file__))")
+        echo "MOD_DPATH = $MOD_DPATH"
+        mkdir -p ./work
+        ibeis --set-workdir "./work" --nogui
+        python ../dev/reset_dbs.py > /dev/null
+        xdoctest -m ibeis
+        #python -m pytest -p pytester -p no:doctest --xdoctest $MOD_DPATH ../tests
+        cd ..
+    - name: Upload sdist artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: wheels
+        path: ./dist/*.tar.gz
+  build_and_test_wheels:
+    name: ${{ matrix.python-version }} on ${{ matrix.os }}, arch=${{ matrix.arch }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:
+        - ubuntu-latest
+        python-version:
+        - '3.7'
+        - '3.8'
+        - '3.9'
+        - '3.10'
+        arch:
+        - auto
+    steps:
+    - uses: actions/checkout@v3
+    - name: Enable MSVC 64bit
+      if: matrix.os == 'windows-latest' && matrix.cibw_build != 'cp3*-win32'
+      uses: ilammy/msvc-dev-cmd@v1
+    - name: Enable MSVC 32bit
+      if: matrix.os == 'windows-latest' && matrix.cibw_build == 'cp3*-win32'
+      uses: ilammy/msvc-dev-cmd@v1
+      with:
+        arch: x86
+    - name: Set up QEMU
+      if: runner.os == 'Linux' && matrix.arch != 'auto'
+      uses: docker/setup-qemu-action@v2
+      with:
+        platforms: all
+    - uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Build pure wheel
+      shell: bash
+      run: |-
+        python -m pip install setuptools>=0.8 wheel
+        python -m pip wheel --wheel-dir wheelhouse .
+    - name: Test minimal loose pure wheel
+      shell: bash
+      env:
+        CI_PYTHON_VERSION: py${{ matrix.python-version }}
+      run: |-
+        python -m pip install wheelhouse/ibeis*.whl
+        python -m pip install -r requirements/tests.txt
+        python -m pip install -r requirements/headless.txt
+        WORKSPACE_DNAME="testdir_${CI_PYTHON_VERSION}_${GITHUB_RUN_ID}_${RUNNER_OS}"
+        mkdir -p $WORKSPACE_DNAME
+        cd $WORKSPACE_DNAME
+        MOD_DPATH=$(python -c "import ibeis, os; print(os.path.dirname(ibeis.__file__))")
+        echo "MOD_DPATH = $MOD_DPATH"
+        mkdir -p ./work
+        ibeis --set-workdir "./work" --nogui
+        python ../dev/reset_dbs.py  > /dev/null
+        xdoctest -m ibeis
+        #python -m pytest -p pytester -p no:doctest --xdoctest --cov-config ../pyproject.toml --cov-report term --cov=ibeis $MOD_DPATH ../tests
+        #mv .coverage "../.coverage.$WORKSPACE_DNAME"
+        cd ..
+    - name: Show built files
+      shell: bash
+      run: ls -la wheelhouse
+    #- uses: actions/setup-python@v4
+    #  name: Set up Python 3.8 to combine coverage Linux
+    #  if: runner.os == 'Linux'
+    #  with:
+    #    python-version: 3.8
+    #- name: Combine coverage Linux
+    #  if: runner.os == 'Linux'
+    #  run: |-
+    #    echo '############ PWD'
+    #    pwd
+    #    ls -al
+    #    python -m pip install coverage[toml]
+    #    echo '############ combine'
+    #    coverage combine .
+    #    echo '############ XML'
+    #    coverage xml -o ./tests/coverage.xml
+    #    echo '############ FIND'
+    #    find . -name .coverage.*
+    #    find . -name coverage.xml
+    #- uses: codecov/codecov-action@v3
+    #  name: Codecov Upload
+    #  with:
+    #    file: ./tests/coverage.xml
+    - uses: actions/upload-artifact@v3
+      name: Upload wheels artifact
+      with:
+        name: wheels
+        path: ./wheelhouse/ibeis*.whl
+  test_deploy:
+    name: Uploading Test to PyPi
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && ! startsWith(github.event.ref, 'refs/tags')
+      && ! startsWith(github.event.ref, 'refs/heads/release')
+    needs:
+    - build_and_test_wheels
+    - build_and_test_sdist
+    steps:
+    - name: Checkout source
+      uses: actions/checkout@v3
+    - uses: actions/download-artifact@v3
+      name: Download wheels and sdist
+      with:
+        name: wheels
+        path: dist
+    - name: Show files to upload
+      shell: bash
+      run: ls -la dist
+    - name: Sign and Publish
+      env:
+        TWINE_REPOSITORY_URL: https://test.pypi.org/legacy/
+        TWINE_USERNAME: ${{ secrets.TEST_TWINE_USERNAME }}
+        TWINE_PASSWORD: ${{ secrets.TEST_TWINE_PASSWORD }}
+        EROTEMIC_CI_SECRET: ${{ secrets.EROTEMIC_CI_SECRET }}
+      run: |-
+        GPG_EXECUTABLE=gpg
+        $GPG_EXECUTABLE --version
+        openssl version
+        $GPG_EXECUTABLE --list-keys
+        echo "Decrypting Keys"
+        GLKWS=$EROTEMIC_CI_SECRET openssl enc -aes-256-cbc -pbkdf2 -md SHA512 -pass env:GLKWS -d -a -in dev/ci_public_gpg_key.pgp.enc | $GPG_EXECUTABLE --import
+        GLKWS=$EROTEMIC_CI_SECRET openssl enc -aes-256-cbc -pbkdf2 -md SHA512 -pass env:GLKWS -d -a -in dev/gpg_owner_trust.enc | $GPG_EXECUTABLE --import-ownertrust
+        GLKWS=$EROTEMIC_CI_SECRET openssl enc -aes-256-cbc -pbkdf2 -md SHA512 -pass env:GLKWS -d -a -in dev/ci_secret_gpg_subkeys.pgp.enc | $GPG_EXECUTABLE --import
+        echo "Finish Decrypt Keys"
+        $GPG_EXECUTABLE --list-keys || true
+        $GPG_EXECUTABLE --list-keys  || echo "first invocation of gpg creates directories and returns 1"
+        $GPG_EXECUTABLE --list-keys
+        VERSION=$(python -c "import setup; print(setup.VERSION)")
+        pip install twine
+        pip install six pyopenssl ndg-httpsclient pyasn1 -U --user
+        pip install requests[security] twine --user
+        GPG_KEYID=$(cat dev/public_gpg_key)
+        echo "GPG_KEYID = '$GPG_KEYID'"
+        DO_GPG=True GPG_KEYID=$GPG_KEYID TWINE_REPOSITORY_URL=${TWINE_REPOSITORY_URL} TWINE_PASSWORD=$TWINE_PASSWORD TWINE_USERNAME=$TWINE_USERNAME GPG_EXECUTABLE=$GPG_EXECUTABLE DO_UPLOAD=True DO_TAG=False ./publish.sh
+  live_deploy:
+    name: Uploading Live to PyPi
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && (startsWith(github.event.ref, 'refs/tags')
+      || startsWith(github.event.ref, 'refs/heads/release'))
+    needs:
+    - build_and_test_wheels
+    - build_and_test_sdist
+    steps:
+    - name: Checkout source
+      uses: actions/checkout@v3
+    - uses: actions/download-artifact@v3
+      name: Download wheels and sdist
+      with:
+        name: wheels
+        path: dist
+    - name: Show files to upload
+      shell: bash
+      run: ls -la dist
+    - name: Sign and Publish
+      env:
+        TWINE_REPOSITORY_URL: https://upload.pypi.org/legacy/
+        TWINE_USERNAME: ${{ secrets.TWINE_USERNAME }}
+        TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
+        EROTEMIC_CI_SECRET: ${{ secrets.EROTEMIC_CI_SECRET }}
+      run: |-
+        GPG_EXECUTABLE=gpg
+        $GPG_EXECUTABLE --version
+        openssl version
+        $GPG_EXECUTABLE --list-keys
+        echo "Decrypting Keys"
+        GLKWS=$EROTEMIC_CI_SECRET openssl enc -aes-256-cbc -pbkdf2 -md SHA512 -pass env:GLKWS -d -a -in dev/ci_public_gpg_key.pgp.enc | $GPG_EXECUTABLE --import
+        GLKWS=$EROTEMIC_CI_SECRET openssl enc -aes-256-cbc -pbkdf2 -md SHA512 -pass env:GLKWS -d -a -in dev/gpg_owner_trust.enc | $GPG_EXECUTABLE --import-ownertrust
+        GLKWS=$EROTEMIC_CI_SECRET openssl enc -aes-256-cbc -pbkdf2 -md SHA512 -pass env:GLKWS -d -a -in dev/ci_secret_gpg_subkeys.pgp.enc | $GPG_EXECUTABLE --import
+        echo "Finish Decrypt Keys"
+        $GPG_EXECUTABLE --list-keys || true
+        $GPG_EXECUTABLE --list-keys  || echo "first invocation of gpg creates directories and returns 1"
+        $GPG_EXECUTABLE --list-keys
+        VERSION=$(python -c "import setup; print(setup.VERSION)")
+        pip install twine
+        pip install six pyopenssl ndg-httpsclient pyasn1 -U --user
+        pip install requests[security] twine --user
+        GPG_KEYID=$(cat dev/public_gpg_key)
+        echo "GPG_KEYID = '$GPG_KEYID'"
+        DO_GPG=True GPG_KEYID=$GPG_KEYID TWINE_REPOSITORY_URL=${TWINE_REPOSITORY_URL} TWINE_PASSWORD=$TWINE_PASSWORD TWINE_USERNAME=$TWINE_USERNAME GPG_EXECUTABLE=$GPG_EXECUTABLE DO_UPLOAD=True DO_TAG=False ./publish.sh

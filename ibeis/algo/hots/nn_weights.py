@@ -97,6 +97,7 @@ def fg_match_weighter(nns_list, nnvalid0_list, qreq_):
 
     Example:
         >>> # ENABLE_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from ibeis.algo.hots.nn_weights import *  # NOQA
         >>> #tup = plh.testdata_pre_weight_neighbors('PZ_MTEST')
         >>> #ibs, qreq_, nns_list, nnvalid0_list = tup
@@ -561,6 +562,7 @@ def testdata_vn_dists(nfeats=5, K=3):
         >>> vdist, ndist = testdata_vn_dists()
         >>> result = (ut.hz_str('vdist = ', ut.repr2(vdist))) + '\n'
         >>> result += (ut.hz_str('ndist = ', ut.repr2(ndist)))
+        >>> print(result)
         vdist = np.array([[0.  , 0.4 , 0.59],
                           [0.17, 0.3 , 0.51],
                           [0.13, 0.42, 0.73],

@@ -1439,10 +1439,11 @@ def parse_shark_fname_tags(orig_fname_list, dev=False):
     Parses potential tags from the filename. If dev mode is on, then it prints
     out other potential tags you might add.
 
-    >>> orig_fname_list = parsed['orig_fname']
-    >>> dev = True
-    >>> tags = parse_shark_fname_tags(orig_fname_list, dev=dev)
-
+    Ignore:
+        >>> # xdocest: +SKIP
+        >>> orig_fname_list = parsed['orig_fname']
+        >>> dev = True
+        >>> tags = parse_shark_fname_tags(orig_fname_list, dev=dev)
     """
     import re
 

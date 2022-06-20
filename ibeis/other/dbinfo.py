@@ -971,6 +971,7 @@ def get_short_infostr(ibs):
 
     Example:
         >>> # ENABLE_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from ibeis.other.dbinfo import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')

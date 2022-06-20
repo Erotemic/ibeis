@@ -27,15 +27,15 @@ if not ut.get_argflag('--no-ssd'):
         add_path(pycaffe_path)
 
         import caffe
-        reload(caffe)
+        # reload(caffe)
         from google.protobuf import text_format
         from caffe.proto import caffe_pb2
-    except AssertionError as ex:
+    except AssertionError:
         print('WARNING Failed to find ssd. '
               'SSD is unavailable')
         # if ut.SUPER_STRICT:
         #     raise
-    except ImportError as ex:
+    except ImportError:
         print('WARNING Failed to import caffe. '
               'SSD is unavailable')
         # if ut.SUPER_STRICT:
@@ -216,7 +216,7 @@ def detect(gpath_list, config_filepath, weight_filepath, class_filepath, sensiti
     # load class labels
     with open(class_filepath, 'r') as class_file:
         class_labelmap = caffe_pb2.LabelMap()
-        class_str = str(file.read(class_file))
+        class_str = str(class_file.read())
         text_format.Merge(class_str, class_labelmap)
 
     # Need to convert unicode strings to Python strings to support Boost Python

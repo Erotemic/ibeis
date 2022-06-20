@@ -855,6 +855,7 @@ def query_chips_graph_v2(ibs, annot_uuid_list=None,
 
     Example:
         >>> # DEBUG_SCRIPT
+        >>> # xdoctest: +SKIP
         >>> from ibeis.web.apis_query import *
         >>> # Hack a flask context
         >>> current_app = ut.DynStruct()
@@ -1343,7 +1344,7 @@ def query_graph_v2_latest_logs(future):
         print('--- <LOG DUMP> ---')
         for msg, color in logs:
             ut.cprint('[web.infr] ' + msg, color)
-        print('--- <\LOG DUMP> ---')
+        print(r'--- <\LOG DUMP> ---')
 
 
 def query_graph_v2_on_request_review(future):

@@ -89,6 +89,7 @@ class VisualVocab(ut.NiceRepr):
 
     def nn_index(vocab, idx_to_vec, nAssign, checks=None):
         """
+        Ignore:
             >>> idx_to_vec = depc.d.get_feat_vecs(aid_list)[0]
             >>> vocab = vocab
             >>> nAssign = 1

@@ -14,8 +14,6 @@ from ibeis import constants as const
 from utool._internal.meta_util_six import get_funcname
 (print, rrr, profile) = ut.inject2(__name__, '[cfg]')
 
-#ConfigBase = ut.DynStruct
-#ConfigBase = object
 ConfigBase = ut.Pref
 
 
@@ -574,7 +572,7 @@ class QueryConfig(ConfigBase):
                 cfgstr_list += query_cfg.flann_cfg.get_cfgstr_list(**kwargs)
         else:
             raise AssertionError('bad pipeline root: ' + six.text_type(query_cfg.pipeline_root))
-        if kwargs.get('use_featweight', True):
+        if kwargs.get('use_featweight', False):
             cfgstr_list += query_cfg._featweight_cfg.get_cfgstr_list(**kwargs)
             # HACK: featweight_cfg used to include chip and feat
             # but they arent working now due to new structures, so they are hacked in here
@@ -632,7 +630,7 @@ class QueryConfig(ConfigBase):
         if codename.startswith('vsmany'):
             query_cfg.pipeline_root = 'vsmany'
         elif codename.startswith('vsone'):
-            assert False, 'no longer supporte'
+            raise AssertionError('vsone is no longer supported')
         elif codename == 'None':
             pass
 

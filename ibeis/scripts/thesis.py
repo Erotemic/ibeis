@@ -50,6 +50,7 @@ class Chap5(DBInputs):
             python -m ibeis Chap5.draw error_graph_analysis PZ_Master1
 
         Ignore:
+            >>> # xdoctest: +SKIP
             >>> from ibeis.scripts.thesis import *
             >>> self = Chap4('GZ_Master1')
         """
@@ -1620,6 +1621,8 @@ class Chap4(DBInputs):
 
     def measure_rerank(self):
         """
+        Example:
+            >>> # xdoctest: +SKIP
             >>> from ibeis.scripts.thesis import *
             >>> defaultdb = 'PZ_Master1'
             >>> defaultdb = 'GZ_Master1'
@@ -1893,8 +1896,8 @@ class Chap4(DBInputs):
         python -m ibeis Chap4.draw hard_cases PZ_Master1 photobomb_state
         python -m ibeis Chap4.draw hard_cases GZ_Master1 photobomb_state
 
-
-
+        Ignore:
+            >>> # xdoctest: +SKIP
             >>> from ibeis.scripts.thesis import *
             >>> self = Chap4('PZ_MTEST')
             >>> task_key = 'match_state'
@@ -2726,6 +2729,8 @@ class Chap4(DBInputs):
 class Chap3Measures(object):
     def measure_baseline(self):
         """
+        Ignore:
+            >>> # xdoctest: +SKIP
             >>> from ibeis.scripts.thesis import *
             >>> self = Chap3('GZ_Master1')
             >>> self._precollect()
@@ -3193,6 +3198,7 @@ class Chap3Draw(object):
         ibeis Chap3.draw nsum --dbs=GZ_Master1,PZ_Master1
 
         Ignore:
+            >>> # xdoctest: +SKIP
             >>> from ibeis.scripts.thesis import *  # NOQA
             >>> self = Chap3('PZ_Master1')
         """
@@ -3583,6 +3589,8 @@ class Sampler(object):
     @staticmethod
     def _same_occur_split(ibs, aids):
         """
+        Example
+            >>> # xdoctest: +SKIP
             >>> from ibeis.scripts.thesis import *
             >>> self = Chap3('PZ_Master1')
             >>> self._precollect()
@@ -3686,6 +3694,8 @@ class Sampler(object):
     @staticmethod
     def _same_enc_split(ibs, aids):
         """
+        Example:
+            >>> # xdoctest: +SKIP
             >>> from ibeis.scripts.thesis import *
             >>> self = Chap3('PZ_Master1')
             >>> self._precollect()
@@ -4124,7 +4134,5 @@ if __name__ == '__main__':
         python -m ibeis.scripts.thesis
         python -m ibeis.scripts.thesis --allexamples
     """
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    import xdoctest
+    xdoctest.doctest_module(__file__)

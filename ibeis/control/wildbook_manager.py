@@ -26,8 +26,6 @@ print, rrr, profile = ut.inject2(__name__)
 #PREFERED_BROWSER = 'chrome'
 #webbrowser._tryorder
 PREFERED_BROWSER = None
-if ut.get_computer_name() == 'hyrule':
-    PREFERED_BROWSER = 'firefox'
 
 
 # FIXME add as controller config
@@ -451,6 +449,7 @@ def update_wildbook_install_config(webapps_dpath, unpacked_war_dpath):
         python -m ibeis update_wildbook_install_config --show
 
     Example:
+        >>> # xdoctest: +SKIP
         >>> from ibeis.control.wildbook_manager import *  # NOQA
         >>> import ibeis
         >>> tomcat_dpath = find_installed_tomcat()

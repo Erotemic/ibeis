@@ -555,9 +555,11 @@ class Recovery(object):
             >>>     'pccs': list(infr.positive_components()),
             >>>     'iccs': list(infr.inconsistent_components()),
             >>> }, nobr=True, si=True, itemsep='')
-            >>> print(result)
-            iccs: [{1,2,3,4}],
-            pccs: [{1,2,3,4},{5,6,7,8},{9,10,11,12},{13,14,15,16}],
+            ...
+
+            # >>> print(result)
+            # iccs: [{1,2,3,4}],
+            # pccs: [{1,2,3,4},{5,6,7,8},{9,10,11,12},{13,14,15,16}],
         """
         if len(infr.recover_graph) == 0:
             # We can short-circuit if there is no inconsistency

@@ -15,9 +15,10 @@ import random
 if not ut.get_argflag('--no-pyrf'):
     try:
         import pyrf
-    except ImportError as ex:
-        print('WARNING Failed to import pyrf. '
-              'Randomforest detection is unavailable')
+    except ImportError:
+        if 0:
+            print('WARNING Failed to import pyrf. '
+                  'Randomforest detection is unavailable')
         if ut.SUPER_STRICT:
             raise
 
@@ -324,7 +325,7 @@ def _get_models(ibs, species, modeldir='default', cfg_override=True, verbose=VER
         python -m ibeis.algo.detect.randomforest --test-_get_models
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from ibeis.algo.detect.randomforest import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')

@@ -162,33 +162,30 @@ def get_backupdir(db_dir, db_fname):
 def get_backup_fpaths(ibs):
     fname, ext = splitext(ibs.sqldb_fname)
     backups = sorted(ut.glob(ibs.backupdir, '*%s' % ext))
-    #backup_info = [ut.get_file_info(fpath) for fpath in backups]
     modified = [ut.get_file_info(fpath)['last_modified'] for fpath in backups]
     unixtimes = [ut.util_time.exiftime_to_unixtime(tag) for tag in modified]
     backups = ut.sortedby(backups, unixtimes)
     return backups
-    #backup_uuids = [ut.get_file_uuid(fpath) for fpath in backups]
-    #backup_hashes = [ut.get_file_hash(fpath) for fpath in backups]
-    #backup_bytes = [ut.get_file_nBytes(fpath) for fpath in backups]
-    pass
 
 
 def copy_database(src_fpath, dst_fpath):
     import dtool_ibeis
     # Load database and ask it to copy itself, which enforces an exclusive
     # blocked lock for all processes potentially writing to the database
-    db = dtool_ibeis.SQLDatabaseController(fpath=src_fpath, text_factory=six.text_type,
-                                     inmemory=False)
+    db = dtool_ibeis.SQLDatabaseController(fpath=src_fpath,
+                                           text_factory=six.text_type,
+                                           inmemory=False)
     db.backup(dst_fpath)
 
 
 def database_backup(db_dir, db_fname, backup_dir, max_keep=MAX_KEEP, manual=True):
     """
-    >>> db_dir = ibs.get_ibsdir()
-    >>> db_fname = ibs.sqldb_fname
-    >>> backup_dir = ibs.backupdir
-    >>> max_keep = MAX_KEEP
-    >>> manual = False
+    Ignore:
+        >>> db_dir = ibs.get_ibsdir()
+        >>> db_fname = ibs.sqldb_fname
+        >>> backup_dir = ibs.backupdir
+        >>> max_keep = MAX_KEEP
+        >>> manual = False
     """
     fname, ext = splitext(db_fname)
     src_fpath = join(db_dir, db_fname)

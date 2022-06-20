@@ -45,14 +45,14 @@ def demodata_infr2(defaultdb='PZ_MTEST'):
         phi = phi / phi.sum()
         phi = np.diff(phi)
         return phi
-    phis = {
-        c: dummy_phi(c, 30)
-        for c in range(1, 4)
-    }
+    # phis = {
+    #     c: dummy_phi(c, 30)
+    #     for c in range(1, 4)
+    # }
     aids = ut.flatten(names)
     infr = ibeis.AnnotInference(ibs, aids, autoinit=True)
-    infr.init_termination_criteria(phis)
-    infr.init_refresh_criteria()
+    # infr.init_termination_criteria(phis)
+    infr.init_refresh()
 
     # Partially review
     n1, n2, n3, n4 = names[0:4]

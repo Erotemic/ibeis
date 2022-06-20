@@ -162,8 +162,8 @@ def reset_testdbs(**kwargs):
         ibeis.ensure_pz_mtest()
     if not ut.checkpath(join(workdir, 'NAUT_test'), verbose=True):
         ibeis.ensure_nauts()
-    if not ut.checkpath(join(workdir, 'wd_peter2'), verbose=True):
-        ibeis.ensure_wilddogs()
+    # if not ut.checkpath(join(workdir, 'wd_peter2'), verbose=True):
+    #     ibeis.ensure_wilddogs()
     if not ut.checkpath(join(workdir, 'testdb2'), verbose=True):
         ibeis.init.sysres.ensure_testdb2()
 
@@ -179,7 +179,7 @@ def reset_mtest():
         python -m ibeis --tf reset_mtest
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from ibeis.tests.reset_testdbs import *  # NOQA
         >>> result = reset_mtest()
     """
@@ -191,13 +191,6 @@ if __name__ == '__main__':
     r"""
     CommandLine:
         python -m ibeis.tests.reset_testdbs
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.tests.reset_testdbs import *  # NOQA
-        >>> result = reset_testdbs()
-        >>> # verify results
-        >>> print(result)
     """
     import multiprocessing
     multiprocessing.freeze_support()  # For windows

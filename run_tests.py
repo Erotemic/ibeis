@@ -1,11 +1,17 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function
-import sys
-
 if __name__ == '__main__':
-    from ibeis.tests import run_tests
-    import multiprocessing
-    multiprocessing.freeze_support()
-    retcode = run_tests.run_tests()
-    sys.exit(retcode)
+    import pytest
+    import sys
+    package_name = 'ibeis'
+    mod_dpath = package_name
+    test_dpath = 'tests'
+    pytest_args = [
+        '--cov-config', '.coveragerc',
+        '--cov-report', 'html',
+        '--cov-report', 'term',
+        '--xdoctest',
+        '--cov=' + package_name,
+        mod_dpath, test_dpath
+    ]
+    pytest_args = pytest_args + sys.argv[1:]
+    sys.exit(pytest.main(pytest_args))

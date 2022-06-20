@@ -193,6 +193,7 @@ class _ChipMatchVisualization(object):
 
         Example:
             >>> # ENABLE_DOCTEST
+            >>> # xdoctest: +REQUIRES(--show)
             >>> from ibeis.algo.hots.chip_match import *  # NOQA
             >>> import ibeis
             >>> cm, qreq_ = ibeis.testdata_cm('PZ_MTEST', default_qaids=[18])
@@ -202,10 +203,13 @@ class _ChipMatchVisualization(object):
             >>>     mpl.rcParams.update(TMP_RC)
             >>> from ibeis.viz import viz_matches
             >>> defaultkw = dict(ut.recursive_parse_kwargs(viz_matches.show_name_matches))
-            >>> kwargs = ut.argparse_dict(defaultkw, only_specified=True)
+            >>> #kwargs = ut.argparse_dict(defaultkw, only_specified=True)
+            >>> kwargs = defaultkw.copy()
             >>> kwargs.pop('qaid', None)
-            >>> _nid = ut.get_argval('--dnid', default=cm.qnid)
-            >>> rank = ut.get_argval('--rank', default=None)
+            >>> #_nid = ut.get_argval('--dnid', default=cm.qnid)
+            >>> #rank = ut.get_argval('--rank', default=None)
+            >>> _nid = cm.qnid
+            >>> rank = None
             >>> dnid = None if rank is not None else _nid
             >>> cm.show_single_namematch(qreq_, dnid=dnid, rank=rank, **kwargs)
             >>> ut.quit_if_noshow()
@@ -226,7 +230,7 @@ class _ChipMatchVisualization(object):
             #    raise
         except KeyError:
             #def extend():
-                #pass
+            #   #pass
             #cm.daid_list
             #cm.print_inspect_str(qreq_)
             #cm_orig = cm  # NOQA
@@ -298,6 +302,7 @@ class _ChipMatchVisualization(object):
 
         Example:
             >>> # ENABLE_DOCTEST
+            >>> # xdoctest: +REQUIRES(--show)
             >>> from ibeis.algo.hots.chip_match import *  # NOQA
             >>> ibs, qreq_, cm_list = plh.testdata_post_sver('PZ_MTEST', qaid_list=[18])
             >>> cm = cm_list[0]
@@ -309,6 +314,7 @@ class _ChipMatchVisualization(object):
 
         Example:
             >>> # ENABLE_DOCTEST
+            >>> # xdoctest: +REQUIRES(--show)
             >>> from ibeis.algo.hots.chip_match import *  # NOQA
             >>> # Make sure we can show results against an aid that wasn't matched
             >>> ibs, qreq_, cm_list = plh.testdata_post_sver('PZ_MTEST', qaid_list=[18])
@@ -366,6 +372,7 @@ class _ChipMatchVisualization(object):
 
         Example:
             >>> # DISABLE_DOCTEST
+            >>> # xdoctest: +REQUIRES(--show)
             >>> from ibeis.algo.hots.chip_match import *  # NOQA
             >>> from ibeis.viz import viz_matches
             >>> import ibeis
@@ -387,6 +394,7 @@ class _ChipMatchVisualization(object):
 
         Example:
             >>> # DISABLE_DOCTEST
+            >>> # xdoctest: +REQUIRES(--show)
             >>> from ibeis.algo.hots.chip_match import *  # NOQA
             >>> from ibeis.viz import viz_matches
             >>> defaultkw = dict(ut.recursive_parse_kwargs(viz_matches.show_name_matches))
@@ -457,6 +465,7 @@ class _ChipMatchVisualization(object):
 
         Example:
             >>> # DISABLE_DOCTEST
+            >>> # xdoctest: +REQUIRES(--show)
             >>> from ibeis.algo.hots.chip_match import *  # NOQA
             >>> ibs, qreq_, cm_list = plh.testdata_post_sver('PZ_MTEST', qaid_list=[1])
             >>> cm = cm_list[0]
@@ -498,6 +507,7 @@ class _ChipMatchVisualization(object):
 
         Example:
             >>> # ENABLE_DOCTEST
+            >>> # xdoctest: +REQUIRES(--show)
             >>> from ibeis.algo.hots.chip_match import *  # NOQA
             >>> qaid = 18
             >>> ibs, qreq_, cm_list = plh.testdata_pre_sver('PZ_MTEST', qaid_list=[qaid])
@@ -531,6 +541,7 @@ class _ChipMatchVisualization(object):
 
         Example:
             >>> # DISABLE_DOCTEST
+            >>> # xdoctest: +REQUIRES(--show)
             >>> from ibeis.algo.hots.chip_match import *  # NOQA
             >>> import ibeis
             >>> kwargs = {}
@@ -2239,6 +2250,7 @@ class ChipMatch(_ChipMatchVisualization,
 
         Example:
             >>> # ENABLE_DOCTEST
+            >>> # xdoctest: +SKIP
             >>> from ibeis.algo.hots.chip_match import *  # NOQA
             >>> import ibeis
             >>> import ibeis
@@ -2312,6 +2324,7 @@ class ChipMatch(_ChipMatchVisualization,
         """
         Example:
             >>> # ENABLE_DOCTEST
+            >>> # xdoctest: +SKIP
             >>> from ibeis.core_annots import *  # NOQA
             >>> ibs, depc, aid_list = testdata_core(size=4)
             >>> request = depc.new_request('vsone', [1], [2, 3, 4], {'dim_size': 450})
@@ -2461,6 +2474,7 @@ class ChipMatch(_ChipMatchVisualization,
 
         Example:
             >>> # ENABLE_DOCTEST
+            >>> # xdoctest: +SKIP
             >>> from ibeis.algo.hots.chip_match import *  # NOQA
             >>> import ibeis
             >>> cm, qreq_ = ibeis.testdata_cm('PZ_MTEST', a='default:dindex=0:10,qindex=0:1', t='best:SV=False')

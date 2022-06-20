@@ -671,6 +671,10 @@ def make_netharn_registry():
             remotes={'Erotemic': 'git@github.com:Erotemic/ibeis.git'},
         ),
     ]
+    """
+    git clone git@github.com:Erotemic/pyhesaff.git
+    git clone git@github.com:Erotemic/pyflann_ibeis.git
+    """
     registery = RepoRegistry(repos)
     return registery
 

@@ -421,6 +421,7 @@ def localize_images(ibs, gid_list_=None):
         >>> print(result)
         >>> # Clean things up
         >>> ibs.delete_images(gid_list_)
+
         testdb1/_ibsdb/images/f498fa6f-6b24-b4fa-7932-2612144fedd5.jpg
 
     Ignore:

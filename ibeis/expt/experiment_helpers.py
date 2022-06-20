@@ -220,6 +220,7 @@ def parse_acfg_combo_list(acfg_name_list):
         >>> printkw = dict()
         >>> annotation_configs.print_acfg_list(acfg_list, **printkw)
         >>> result = ut.repr2(sorted(acfg_list[0].keys()))
+        ...
         >>> print(result)
         ['dcfg', 'qcfg']
 
@@ -360,7 +361,7 @@ def get_annotcfg_list(ibs, acfg_name_list, filter_dups=True,
         ibeis get_annotcfg_list:0 --db Oxford -a :qhas_any=query --ainfo --nocache-aid
         ibeis get_annotcfg_list:0 --db Oxford -a :qhas_any=query,dhas_any=distractor --ainfo --nocache-aid
 
-    Example0:
+    Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.expt.experiment_helpers import *  # NOQA
         >>> import ibeis

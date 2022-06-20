@@ -22,6 +22,7 @@ def get_annot_fgweights(ibs, aid_list, config2_=None, ensure=True):
 
     Example:
         >>> # ENABLE_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from ibeis.control.manual_featweight_funcs import *  # NOQA
         >>> import ibeis
         >>> import numpy as np

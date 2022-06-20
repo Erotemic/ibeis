@@ -1,4 +1,27 @@
 # -*- coding: utf-8 -*-
+"""
+Quick example showing how to do a simple pairwise vsone scoring
+
+Example:
+    >>> from ibeis.algo.verif.pairfeat import PairwiseFeatureExtractor
+    >>> import ibeis
+    >>> ibs = ibeis.opendb('testdb1')
+    >>> extr = PairwiseFeatureExtractor(ibs)
+    >>> import itertools as it
+    >>> # Enumerate all possible pairs of annotation ids
+    >>> all_edges = list(it.permutations(list(ibs.annots()), 2))
+    >>> all_edges = all_edges[0:4]
+    >>> # Extract pairwise features for every requested pair of annotations
+    >>> matches = extr._exec_pairwise_match(all_edges)
+    >>> results = {}
+    >>> for match in matches:
+    ...     aid1 = match.annot1['aid']
+    ...     aid2 = match.annot2['aid']
+    ...     # Sum the fs (feature score) to get a simplified scalar score for each pair
+    ...     score = match.fs.sum()
+    ...     if score > 0:
+    ...         results[(aid1, aid2)] = score
+"""
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import vtool_ibeis as vt
@@ -78,9 +101,10 @@ class PairwiseFeatureExtractor(object):
         >>> from ibeis.algo.verif.pairfeat import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
-        >>> extr = PairwiseFeatureExtractor(ibs)
+        >>> extr = PairwiseFeatureExtractor(ibs, use_cache=False)
         >>> edges = [(1, 2), (2, 3)]
-        >>> X = extr.transform(edges)
+        >>> matches = extr._exec_pairwise_match(edges)
+        >>> _matches, X = extr.transform(edges)
         >>> featinfo = vt.AnnotPairFeatInfo(X.columns)
         >>> print(featinfo.get_infostr())
     """
@@ -151,7 +175,7 @@ class PairwiseFeatureExtractor(object):
             >>> from ibeis.algo.verif.pairfeat import *  # NOQA
             >>> import ibeis
             >>> ibs = ibeis.opendb('testdb1')
-            >>> match_config = dict(histeq=True)
+            >>> match_config = dict(histeq=False)
             >>> extr = PairwiseFeatureExtractor(ibs, match_config=match_config)
             >>> edges = [(1, 2), (2, 3)]
             >>> prog_hook = None
@@ -159,8 +183,9 @@ class PairwiseFeatureExtractor(object):
             >>> match1, match2 = match_list
             >>> assert match1.annot2 is match2.annot1
             >>> assert match1.annot1 is not match2.annot2
+            >>> # xdoctest: +REQUIRES(--show)
             >>> ut.quit_if_noshow()
-            >>> match2.show()
+            >>> match1.show()
             >>> ut.show_if_requested()
         """
         if extr.verbose:
@@ -236,8 +261,8 @@ class PairwiseFeatureExtractor(object):
         idxs, dists = indexer.batch_knn(vecs, num, chunksize=8192,
                                         label='lnbnn scoring')
 
-        idx_list = [idxs[l:r] for l, r in ut.itertwo(offset_list)]
-        dist_list = [dists[l:r] for l, r in ut.itertwo(offset_list)]
+        idx_list = [idxs[lo:hi] for lo, hi in ut.itertwo(offset_list)]
+        dist_list = [dists[lo:hi] for lo, hi in ut.itertwo(offset_list)]
         iter_ = zip(matches_, idx_list, dist_list)
         prog = ut.ProgIter(iter_, length=len(matches_), label='lnbnn scoring')
         for match_, neighb_idx, neighb_dist in prog:
@@ -268,7 +293,8 @@ class PairwiseFeatureExtractor(object):
             >>>     'K': 1, 'Knorm': 3, 'affine_invariance': True,
             >>>     'augment_orientation': True, 'checks': 20, 'ratio_thresh': 0.8,
             >>>     'refine_method': 'homog', 'sv_on': True, 'sver_xy_thresh': 0.01,
-            >>>     'symmetric': True, 'weight': 'fgweights'
+            >>>     'symmetric': True,
+            >>>     # 'weight': 'fgweights'
             >>> }
             >>> global_keys = ['gps', 'qual', 'time']
             >>> extr = PairwiseFeatureExtractor(ibs, match_config=match_config,
@@ -319,12 +345,16 @@ class PairwiseFeatureExtractor(object):
             >>>           'augment_orientation': True, 'checks': 20,
             >>>           'ratio_thresh': 0.8, 'refine_method': 'homog',
             >>>           'sv_on': True, 'sver_xy_thresh': 0.01,
-            >>>           'symmetric': True, 'weight': 'fgweights'}
+            >>>           'symmetric': True, }
+            >>> # 'weight': 'fgweights'}
             >>> local_keys =  [
-            >>>     'fgweights', 'match_dist', 'norm_dist', 'norm_x1', 'norm_x2',
+            >>>     #'fgweights',
+            >>>     'match_dist', 'norm_dist', 'norm_x1', 'norm_x2',
             >>>     'norm_y1', 'norm_y2', 'ratio_score', 'scale1', 'scale2',
             >>>     'sver_err_ori', 'sver_err_scale', 'sver_err_xy',
-            >>>     'weighted_norm_dist', 'weighted_ratio_score']
+            >>>     # 'weighted_norm_dist',
+            >>>     # 'weighted_ratio_score'
+            >>> ]
             >>> pairfeat_cfg = {
             >>>     'bin_key': 'ratio',
             >>>     'bins': [0.6, 0.7, 0.8],
@@ -370,7 +400,10 @@ class PairwiseFeatureExtractor(object):
         X[pd.isnull(X)] = np.nan
         X[np.isinf(X)] = np.nan
         # Re-order column names to ensure dimensions are consistent
-        X = X.reindex_axis(sorted(X.columns), axis=1)
+        try:
+            X = X.reindex_axis(sorted(X.columns), axis=1)
+        except Exception:
+            X = X.reindex(sorted(X.columns), axis=1)
 
         # hack to fix feature validity
         if 'global(speed)' in X.columns:

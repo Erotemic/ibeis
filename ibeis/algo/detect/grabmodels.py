@@ -81,8 +81,11 @@ def ensure_models(modeldir='default', verbose=True):
     CommandLine:
         python -m ibeis.algo.detect.grabmodels --test-ensure_models
 
+    Note:
+        Dead links
+
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from ibeis.algo.detect.grabmodels import *  # NOQA
         >>> modeldir = 'default'
         >>> result = ensure_models(modeldir)
@@ -104,8 +107,11 @@ def redownload_models(modeldir='default', verbose=True):
     CommandLine:
         python -m ibeis.algo.detect.grabmodels --test-redownload_models
 
+    Note:
+        Dead links
+
     Example:
-        >>> # SCRIPT
+        >>> # xdoctest: +SKIP
         >>> from ibeis.algo.detect.grabmodels import *  # NOQA
         >>> result = redownload_models()
     """

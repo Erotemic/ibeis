@@ -7,7 +7,8 @@ import pandas as pd
 
 from sklearn.utils.validation import check_array
 # from sklearn.utils import check_random_state
-from sklearn.externals.six.moves import zip
+from six.moves import zip
+# from sklearn.externals.six.moves import zip
 # from sklearn.model_selection._split import (_BaseKFold, KFold)
 from sklearn.model_selection._split import (_BaseKFold,)
 print, rrr, profile = ut.inject2(__name__)
@@ -35,7 +36,7 @@ class StratifiedGroupKFold(_BaseKFold):
     """
 
     def __init__(self, n_splits=3, shuffle=False, random_state=None):
-        super(StratifiedGroupKFold, self).__init__(n_splits, shuffle, random_state)
+        super().__init__(n_splits, shuffle=shuffle, random_state=random_state)
 
     def _make_test_folds(self, X, y=None, groups=None):
         """
@@ -498,8 +499,15 @@ def classification_report2(y_true, y_pred, target_names=None,
     # and BM * MK MCC?
 
     def matthews_corrcoef(y_true, y_pred, sample_weight=None):
-        from sklearn.metrics.classification import (
-            _check_targets, LabelEncoder, confusion_matrix)
+        try:
+            # Original
+            from sklearn.metrics.classification import (
+                _check_targets, LabelEncoder, confusion_matrix)
+        except Exception:
+            from sklearn.metrics import confusion_matrix
+            from sklearn.preprocessing import LabelEncoder
+            from sklearn.metrics._classification import _check_targets
+
         y_type, y_true, y_pred = _check_targets(y_true, y_pred)
         if y_type not in {"binary", "multiclass"}:
             raise ValueError("%s is not supported" % y_type)

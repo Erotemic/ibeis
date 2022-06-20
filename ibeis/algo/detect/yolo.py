@@ -11,9 +11,10 @@ from six.moves import zip
 if not ut.get_argflag('--no-pydarknet'):
     try:
         import pydarknet
-    except ImportError as ex:
-        print('WARNING Failed to import pydarknet. '
-              'PyDarknet YOLO detection is unavailable')
+    except ImportError:
+        if 0:
+            print('WARNING Failed to import pydarknet. '
+                  'PyDarknet YOLO detection is unavailable')
         if ut.SUPER_STRICT:
             raise
 

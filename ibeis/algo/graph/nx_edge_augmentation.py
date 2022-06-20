@@ -1020,7 +1020,9 @@ def greedy_k_edge_augmentation(G, k, avail=None, weight=None, seed=None):
 
     done = is_k_edge_connected(G, k)
     if done:
-        raise StopIteration()
+        # raise StopIteration()
+        return
+        # raise RuntimeError()
     if avail is None:
         # all edges are available
         avail_uv = list(complement_edges(G))

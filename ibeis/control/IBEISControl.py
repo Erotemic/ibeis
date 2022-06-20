@@ -61,7 +61,6 @@ AUTOLOAD_PLUGIN_MODNAMES = [
     'ibeis.other.ibsfuncs',
     'ibeis.other.detectfuncs',
     'ibeis.other.detectcore',
-    'ibeis.other.detectgrave',
     'ibeis.other.detecttrain',
     'ibeis.init.filter_annots',
     'ibeis.control.manual_featweight_funcs',
@@ -124,8 +123,9 @@ for modname in ut.ProgIter(AUTOLOAD_PLUGIN_MODNAMES, 'loading plugins',
         ub.import_module_from_name(modname)
     except ImportError:
         if 'ibeis_cnn' in modname:
-            import warnings
-            warnings.warn('Unable to load plugin: {!r}'.format(modname))
+            pass
+            # import warnings
+            # warnings.warn('Unable to load plugin: {!r}'.format(modname))
         else:
             raise
 

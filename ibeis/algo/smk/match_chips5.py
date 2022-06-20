@@ -42,6 +42,7 @@ class EstimatorRequest(ut.NiceRepr):
         Example:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.smk.match_chips5 import *  # NOQA
+            >>> from ibeis.algo.smk.smk_pipeline import testdata_smk
             >>> import ibeis
             >>> ibeis, smk, qreq_ = testdata_smk()
             >>> qreq2_ = qreq_.shallowcopy(qaids=1)

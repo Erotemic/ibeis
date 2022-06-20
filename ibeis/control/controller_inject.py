@@ -66,13 +66,13 @@ try:
 except Exception:
     HAS_FLASK_CAS = False
     login_required_cas = ut.identity
-    msg = ('Missing flask.ext.cas.\n'
-           'To install try pip install git+https://github.com/cameronbwhite/Flask-CAS.git')
-    warnings.warn(msg)
-    # sudo
-    print('')
-    if ut.SUPER_STRICT:
-        raise
+    if 0:
+        msg = ('Missing flask.ext.cas.\n'
+               'To install try pip install git+https://github.com/cameronbwhite/Flask-CAS.git')
+        warnings.warn(msg)
+        print('')
+        if ut.SUPER_STRICT:
+            raise
 # </flask>
 print, rrr, profile = ut.inject2(__name__)
 
@@ -271,10 +271,10 @@ def translate_ibeis_webreturn(rawreturn, success=True, code=None, message=None,
         },
         'response' : rawreturn
     }
-    try:
-        response = ut.to_json(template)
-    except:
-        ut.embed()
+    # try:
+    response = ut.to_json(template)
+    # except Exception:
+    #     ut.embed()
 
     if jQuery_callback is not None and isinstance(jQuery_callback, six.string_types):
         print('[web] Including jQuery callback function: %r' % (jQuery_callback, ))
@@ -442,7 +442,7 @@ def authentication_user_only(func):
 def create_key():
     hyphen_list = [8, 13, 18, 23]
     key_list = ['-' if _ in hyphen_list else random.choice(string.hexdigits)
-                for _ in xrange(36) ]
+                for _ in range(36) ]
     return ''.join(key_list).upper()
 
 
@@ -528,9 +528,9 @@ def crossdomain(origin=None, methods=None, headers=None,
                 automatic_options=True):
     if methods is not None:
         methods = ', '.join(sorted(x.upper() for x in methods))
-    if headers is not None and not isinstance(headers, basestring):
+    if headers is not None and not isinstance(headers, str):
         headers = ', '.join(x.upper() for x in headers)
-    if not isinstance(origin, basestring):
+    if not isinstance(origin, str):
         origin = ', '.join(origin)
     if isinstance(max_age, timedelta):
         max_age = max_age.total_seconds()
@@ -623,7 +623,7 @@ def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=True):
                 ]
                 for check in check_list:
                     assert '/api/%s/' % (check, ) not in rule, 'failed check=%r' % (check,)
-            except:
+            except Exception:
                 iswarning = not ut.SUPER_STRICT
                 ut.printex('CONSIDER RENAMING API RULE: %r' % (rule, ),
                            iswarning=iswarning, tb=True)
@@ -657,7 +657,7 @@ def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=True):
                         try:
                             # kwargs4 = _process_input(flask.request.get_json())
                             kwargs4 = ut.from_json(flask.request.data)
-                        except:
+                        except Exception:
                             kwargs4 = {}
                         kwargs.update(kwargs2)
                         kwargs.update(kwargs3)

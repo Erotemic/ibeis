@@ -8,7 +8,32 @@ TODO: LAZY IMPORTS?
 # flake8: noqa
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-__version__ = '2.2.5'
+__version__ = '2.3.0'
+
+try:
+    import cv2  # NOQA
+except ImportError as ex:
+    msg = ub.paragraph(
+        '''
+        The ibeis module failed to import the cv2 module.  This may be due to
+        an issue https://github.com/opencv/opencv-python/issues/467 which
+        prevents us from marking cv2 as package dependency.
+        To work around this we require that the user install this package with
+        one of the following extras tags:
+        `pip install ibeis[graphics]` xor
+        `pip install ibeis[headless]`.
+
+        Alternatively, the user can directly install the cv2 package as a post
+        processing step via:
+        `pip install opencv-python-headless` xor
+        `pip install opencv-python`.
+
+        We appologize for this issue and hope this documentation is sufficient.
+
+        orig_ex={!r}
+        ''').format(ex)
+    raise ImportError(msg)
+
 
 try:
     import utool as ut

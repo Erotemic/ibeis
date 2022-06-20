@@ -1193,6 +1193,7 @@ def intraoccurrence_connected():
     aids_list = ibs.group_annots_by_name(aids)[0]
 
     ensure_edges = 'all' if True or not postcut else None
+    infr = ibeis.AnnotInference(ibs=ibs, aids='all')
     unlabeled_graph = infr.graph
     unlabeled_graph = viz_graph.make_netx_graph_from_aid_groups(
         ibs, aids_list,

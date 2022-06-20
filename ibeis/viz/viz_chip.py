@@ -135,6 +135,7 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='',
 
     Example:
         >>> # VIZ_TEST
+        >>> # xdoctest: +REQUIRES(--show)
         >>> from ibeis.viz.viz_chip import *  # NOQA
         >>> import numpy as np
         >>> import vtool_ibeis as vt

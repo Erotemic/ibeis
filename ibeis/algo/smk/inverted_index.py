@@ -114,9 +114,6 @@ class InvertedAnnotsExtras(object):
     def get_patches(inva, wx, ibs, verbose=True):
         """
         Loads the patches assigned to a particular word in this stack
-
-        >>> inva.wx_to_aids = inva.compute_inverted_list()
-        >>> verbose=True
         """
         config = inva.config
         aid_list = inva.wx_to_aids[wx]

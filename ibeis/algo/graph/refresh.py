@@ -124,8 +124,9 @@ class RefreshCriteria(object):
             >>> pt.multi_plot(xdata, [n_pred_list, n_real_list], marker='',
             >>>               label_list=['pred', 'real'], xlabel='review num',
             >>>               ylabel='pred remaining merges')
-            >>> stop_point = xdata[np.where(y_remainsum[10:] == 0)[0][0]]
-            >>> pt.gca().plot([stop_point, stop_point], [0, int(max(n_pred_list))], 'g-')
+            >>> #idx = np.where(y_remainsum[10:] == 0)[0][0]
+            >>> #stop_point = xdata[idx]
+            >>> #pt.gca().plot([stop_point, stop_point], [0, int(max(n_pred_list))], 'g-')
         """
         # variance and mean are the same
         mu = refresh._ewma
@@ -155,6 +156,7 @@ class RefreshCriteria(object):
 
     def ave(refresh, method='exp'):
         """
+        Example:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.graph.refresh import *  # NOQA
             >>> from ibeis.algo.graph import demo

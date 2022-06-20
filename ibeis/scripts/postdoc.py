@@ -47,7 +47,7 @@ def turk_pz():
 
 @ut.reloadable_class
 class GraphExpt(DBInputs):
-    """
+    r"""
 
     TODO:
         - [ ] Experimental analysis of duration of each phase and state of
@@ -691,6 +691,7 @@ def _find_good_match_states(infr, ibs, edges):
 
     if infr.incomp_graph.number_of_edges() > 0:
         incmp_edges = list(infr.incomp_graph.edges())
+        incmp_edges
         if False:
             ibs = infr.ibs
             # a1, a2 = map(ibs.annots, zip(*incmp_edges))
@@ -720,10 +721,11 @@ def _find_good_match_states(infr, ibs, edges):
 
             edges = list(ut.random_product((rights, lefts), num=10, rng=0))
             wgt = infr.qt_edge_reviewer(edges)
+            wgt
 
-        for edge in incmp_edges:
-            match = infr._make_matches_from([edge])[0]
-            # infr._debug_edge_gt(edge)
+        # for edge in incmp_edges:
+        #     match = infr._make_matches_from([edge])[0]
+        #     # infr._debug_edge_gt(edge)
 
 
 def prepare_cdfs(cdfs, labels):
@@ -1144,7 +1146,7 @@ class VerifierExpt(DBInputs):
 
             # HACKS
             import re
-            num_pat = ut.named_field('num', '[0-9]*\.?[0-9]*')
+            num_pat = ut.named_field('num', r'[0-9]*\.?[0-9]*')
             tex_text = re.sub(re.escape('\\mathbf{$') + num_pat + re.escape('$}'),
                               '$\\mathbf{' + ut.bref_field('num') + '}$',
                               tex_text)
@@ -1196,7 +1198,7 @@ class VerifierExpt(DBInputs):
 
             # HACKS
             import re
-            num_pat = ut.named_field('num', '[0-9]*\.?[0-9]*')
+            num_pat = ut.named_field('num', r'[0-9]*\.?[0-9]*')
             tex_text = re.sub(re.escape('\\mathbf{$') + num_pat + re.escape('$}'),
                               '$\\mathbf{' + ut.bref_field('num') + '}$',
                               tex_text)
@@ -1588,7 +1590,6 @@ class VerifierExpt(DBInputs):
         print('Average AUC:\n{}'.format(rank1_auc_table.mean(axis=0)))
 
         print('Average TPR:\n{}'.format(rank1_tpr_table.mean(axis=0)))
-
 
         old_tpr = rank1_tpr_table[LNBNN]
         new_tpr = rank1_tpr_table[CLF]
@@ -2010,6 +2011,8 @@ class VerifierExpt(DBInputs):
 
     def measure_rerank(self):
         """
+        Example:
+            >>> # xdoctest: +SKIP
             >>> from ibeis.scripts.postdoc import *
             >>> defaultdb = 'PZ_Master1'
             >>> defaultdb = 'GZ_Master1'
@@ -2460,6 +2463,8 @@ class VerifierExpt(DBInputs):
 
         python -m ibeis VerifierExpt.draw hard_cases RotanTurtles match_state
 
+        Ignore:
+            >>> # xdoctest: SKIP
             >>> from ibeis.scripts.postdoc import *
             >>> self = VerifierExpt('PZ_MTEST')
             >>> task_key = 'match_state'

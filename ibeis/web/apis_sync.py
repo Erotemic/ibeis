@@ -273,10 +273,7 @@ def detect_remote_sync_images(ibs, gid_list=None,
     print('Only do this action if you are confident in the detection accuracy of the images, annotations, annotation metadata, parts and part metadata.')
     print('In order to continue, please type exactly the confirmation string %r' % (confirm_str, ))
 
-    if six.PY2:
-        input_func = raw_input
-    else:
-        input_func = input
+    input_func = input
     response_str = input_func('Confirmation string [Empty to abort]: ')
     response_str = response_str.lower()
     assert confirm_str == response_str, 'Confirmation string mismatch, aborting...'

@@ -5,7 +5,7 @@ to display the results from a query in a qt window.
 
 
 CommandLine:
-    python -m ibeis.gui.inspect_gui --test-QueryResultsWidget --show
+    xdoctest -m ibeis.gui.inspect_gui QueryResultsWidget --show
 
 
 TODO:
@@ -114,8 +114,6 @@ class QueryResultsWidget(gt.APIItemWidget):
         >>> #qres_wgt._on_doubleclick(qres_wgt.model.index(2, 0))
         >>> # TODO: add in qwin to main loop
         >>> gt.qtapp_loop(qwin=qres_wgt)
-        >>> print(main_execstr)
-        >>> exec(main_execstr)
     """
 
     def __init__(qres_wgt, ibs, cm_list, parent=None, callback=None,

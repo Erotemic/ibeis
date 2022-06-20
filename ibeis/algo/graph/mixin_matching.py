@@ -2,6 +2,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import six
 import numpy as np
+import ubelt as ub
 import utool as ut
 import pandas as pd
 import itertools as it
@@ -410,11 +411,12 @@ class InfrLearning(object):
         CommandLine:
             python -m ibeis.algo.graph.mixin_matching learn_evaluation_verifiers
 
-        Doctest:
+        Example:
             >>> import ibeis
             >>> infr = ibeis.AnnotInference(
             >>>     'PZ_MTEST', aids='all', autoinit='annotmatch',
             >>>     verbose=4)
+            >>> infr.ensure_mst()
             >>> verifiers = infr.learn_evaluation_verifiers()
             >>> edges = list(infr.edges())
             >>> verif = verifiers['match_state']
@@ -607,17 +609,21 @@ class _RedundancyAugmentation(object):
         r"""
         Searches for augmenting edges that would make PCCs k-positive redundant
 
-        Doctest:
+        Example:
             >>> from ibeis.algo.graph.mixin_matching import *  # NOQA
             >>> from ibeis.algo.graph import demo
-            >>> infr = demo.demodata_infr(ccs=[(1, 2, 3, 4, 5), (7, 8, 9, 10)])
-            >>> infr.add_feedback((2, 5), 'match')
-            >>> infr.add_feedback((1, 5), 'notcomp')
+            >>> infr = demo.demodata_infr(ccs=[(1, 2, 3, 4, 5), (7, 8, 9, 10)], pos_redun=1)
+            >>> #infr.add_feedback((2, 5), 'match')
+            >>> #infr.add_feedback((1, 5), 'notcomp')
             >>> infr.params['redun.pos'] = 2
             >>> candidate_edges = list(infr.find_pos_redun_candidate_edges())
             >>> result = ('candidate_edges = ' + ut.repr2(candidate_edges))
             >>> print(result)
-            candidate_edges = [(1, 3), (7, 10)]
+            candidate_edges = [(4, 5), (7, 10)]
+
+        Ignore:
+            from cmd_queue.util import graph_str
+            print(graph_str(infr.pos_graph))
         """
         # Add random edges between exisiting non-redundant PCCs
         if k is None:
@@ -735,7 +741,8 @@ class CandidateSearch(_RedundancyAugmentation):
         CommandLine:
             python -m ibeis.algo.graph.mixin_matching ensure_task_probs
 
-        Doctest:
+        Example:
+            >>> # xdoctest: +SKIP
             >>> from ibeis.algo.graph.mixin_matching import *
             >>> import ibeis
             >>> infr = ibeis.AnnotInference('PZ_MTEST', aids='all',
@@ -748,7 +755,7 @@ class CandidateSearch(_RedundancyAugmentation):
             >>> infr.ensure_task_probs(edges)
             >>> assert len(infr.task_probs['match_state']) == 3
 
-        Doctest:
+        Example:
             >>> from ibeis.algo.graph.mixin_matching import *
             >>> from ibeis.algo.graph import demo
             >>> infr = demo.demodata_infr(num_pccs=6, p_incon=.5, size_std=2)
@@ -791,7 +798,7 @@ class CandidateSearch(_RedundancyAugmentation):
         Ensures that priority attributes are assigned to the edges.
         This does not change the state of the queue.
 
-        Doctest:
+        Example:
             >>> import ibeis
             >>> ibs = ibeis.opendb('PZ_MTEST')
             >>> infr = ibeis.AnnotInference(ibs, aids='all')
@@ -799,7 +806,8 @@ class CandidateSearch(_RedundancyAugmentation):
             >>> priority_edges = list(infr.edges())[0:1]
             >>> infr.ensure_priority_scores(priority_edges)
 
-        Doctest:
+        Example:
+            >>> # xdoctest: +SKIP
             >>> import ibeis
             >>> ibs = ibeis.opendb('PZ_MTEST')
             >>> infr = ibeis.AnnotInference(ibs, aids='all')
@@ -808,11 +816,12 @@ class CandidateSearch(_RedundancyAugmentation):
             >>> priority_edges = list(infr.edges())
             >>> infr.ensure_priority_scores(priority_edges)
 
-        Doctest:
+        Example:
             >>> from ibeis.algo.graph import demo
             >>> infr = demo.demodata_infr(num_pccs=6, p_incon=.5, size_std=2)
-            >>> edges = list(infr.edges())
-            >>> infr.ensure_priority_scores(edges)
+            >>> priority_edges = list(infr.edges())
+            >>> infr.task_thresh = {'match_state': {'match': float('inf'), 'nomatch': float('inf'), 'notcomp': float('inf')}}
+            >>> infr.ensure_priority_scores(priority_edges)
         """
         infr.print('Checking for verifiers: %r' % (infr.verifiers, ))
 
@@ -827,11 +836,16 @@ class CandidateSearch(_RedundancyAugmentation):
 
             primary_task = 'match_state'
             match_probs = infr.task_probs[primary_task]
-            primary_thresh = infr.task_thresh[primary_task]
+            if infr.task_thresh is None:
+                # Default to infinite threshold if one isn't specified
+                # (i.e. no automatic reviews)
+                primary_thresh = ub.ddict(lambda: float('inf'))
+            else:
+                primary_thresh = infr.task_thresh[primary_task]
 
             # Read match_probs into a DataFrame
             primary_probs = pd.DataFrame(
-                ut.take(match_probs, priority_edges),
+                list(ub.take(match_probs, priority_edges)),
                 index=nxu.ensure_multi_index(priority_edges, ('aid1', 'aid2'))
             )
 
@@ -876,9 +890,8 @@ class CandidateSearch(_RedundancyAugmentation):
             metric = 'default_priority'
             priority = default_priority
         elif infr.cm_list is not None:
-            infr.print(
-                'Prioritizing {} edges with one-vs-vsmany scores'.format(
-                    len(priority_edges), 1))
+            infr.print('Prioritizing {} edges with one-vs-vsmany scores'.format(
+                len(priority_edges)), 1)
             # Not given any deploy classifier, this is the best we can do
             scores = infr._make_lnbnn_scores(priority_edges)
             metric = 'normscore'
