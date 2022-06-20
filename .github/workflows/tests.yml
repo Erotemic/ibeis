@@ -75,7 +75,7 @@ jobs:
         echo "MOD_DPATH = $MOD_DPATH"
         mkdir -p ./work
         ibeis --set-workdir "./work" --nogui
-        python ./dev/reset_dbs.py > /dev/null
+        python ../dev/reset_dbs.py > /dev/null
         xdoctest -m ibeis
         #python -m pytest -p pytester -p no:doctest --xdoctest $MOD_DPATH ../tests
         cd ..
@@ -136,7 +136,7 @@ jobs:
         echo "MOD_DPATH = $MOD_DPATH"
         mkdir -p ./work
         ibeis --set-workdir "./work" --nogui
-        python ./dev/reset_dbs.py  > /dev/null
+        python ../dev/reset_dbs.py  > /dev/null
         xdoctest -m ibeis
         #python -m pytest -p pytester -p no:doctest --xdoctest --cov-config ../pyproject.toml --cov-report term --cov=ibeis $MOD_DPATH ../tests
         #mv .coverage "../.coverage.$WORKSPACE_DNAME"
