@@ -593,6 +593,3 @@ Caveats / Things we are not currently doing
     :target: http://ibeis.readthedocs.io/en/latest/
 .. |GithubActions| image:: https://github.com/Erotemic/ibeis/actions/workflows/tests.yml/badge.svg?branch=main
     :target: https://github.com/Erotemic/ibeis/actions?query=branch%3Amain
-
-.. |GithubActions| image:: https://github.com/Erotemic/ibeis/actions/workflows/tests.yml/badge.svg?branch=main
-    :target: https://github.com/Erotemic/ibeis/actions?query=branch%3Amain
