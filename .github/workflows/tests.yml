@@ -57,8 +57,9 @@ jobs:
         echo "MOD_DPATH = $MOD_DPATH"
         mkdir -p ./work
         ibeis --set-workdir "./work" --nogui
-        python ./dev/reset_dbs.py
-        python -m pytest -p pytester -p no:doctest --xdoctest --cov=ibeis $MOD_DPATH ./tests
+        python ./dev/reset_dbs.py > /dev/null
+        xdoctest -m ibeis
+        #python -m pytest -p pytester -p no:doctest --xdoctest --cov=ibeis $MOD_DPATH ./tests
     - name: Test full loose sdist
       run: |-
         pwd
@@ -74,8 +75,9 @@ jobs:
         echo "MOD_DPATH = $MOD_DPATH"
         mkdir -p ./work
         ibeis --set-workdir "./work" --nogui
-        python ./dev/reset_dbs.py
-        python -m pytest -p pytester -p no:doctest --xdoctest $MOD_DPATH ../tests
+        python ./dev/reset_dbs.py > /dev/null
+        xdoctest -m ibeis
+        #python -m pytest -p pytester -p no:doctest --xdoctest $MOD_DPATH ../tests
         cd ..
     - name: Upload sdist artifact
       uses: actions/upload-artifact@v3
@@ -134,36 +136,37 @@ jobs:
         echo "MOD_DPATH = $MOD_DPATH"
         mkdir -p ./work
         ibeis --set-workdir "./work" --nogui
-        python ./dev/reset_dbs.py
-        python -m pytest -p pytester -p no:doctest --xdoctest --cov-config ../pyproject.toml --cov-report term --cov=ibeis $MOD_DPATH ../tests
-        mv .coverage "../.coverage.$WORKSPACE_DNAME"
+        python ./dev/reset_dbs.py  > /dev/null
+        xdoctest -m ibeis
+        #python -m pytest -p pytester -p no:doctest --xdoctest --cov-config ../pyproject.toml --cov-report term --cov=ibeis $MOD_DPATH ../tests
+        #mv .coverage "../.coverage.$WORKSPACE_DNAME"
         cd ..
     - name: Show built files
       shell: bash
       run: ls -la wheelhouse
-    - uses: actions/setup-python@v4
-      name: Set up Python 3.8 to combine coverage Linux
-      if: runner.os == 'Linux'
-      with:
-        python-version: 3.8
-    - name: Combine coverage Linux
-      if: runner.os == 'Linux'
-      run: |-
-        echo '############ PWD'
-        pwd
-        ls -al
-        python -m pip install coverage[toml]
-        echo '############ combine'
-        coverage combine .
-        echo '############ XML'
-        coverage xml -o ./tests/coverage.xml
-        echo '############ FIND'
-        find . -name .coverage.*
-        find . -name coverage.xml
-    - uses: codecov/codecov-action@v3
-      name: Codecov Upload
-      with:
-        file: ./tests/coverage.xml
+    #- uses: actions/setup-python@v4
+    #  name: Set up Python 3.8 to combine coverage Linux
+    #  if: runner.os == 'Linux'
+    #  with:
+    #    python-version: 3.8
+    #- name: Combine coverage Linux
+    #  if: runner.os == 'Linux'
+    #  run: |-
+    #    echo '############ PWD'
+    #    pwd
+    #    ls -al
+    #    python -m pip install coverage[toml]
+    #    echo '############ combine'
+    #    coverage combine .
+    #    echo '############ XML'
+    #    coverage xml -o ./tests/coverage.xml
+    #    echo '############ FIND'
+    #    find . -name .coverage.*
+    #    find . -name coverage.xml
+    #- uses: codecov/codecov-action@v3
+    #  name: Codecov Upload
+    #  with:
+    #    file: ./tests/coverage.xml
     - uses: actions/upload-artifact@v3
       name: Upload wheels artifact
       with:
