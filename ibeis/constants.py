@@ -313,8 +313,8 @@ WILDBOOK_TARGET = ut.get_argval('--wildbook-target', type_=str, default=_DEFAULT
                                 help_='specify the Wildbook target deployment')
 
 
-# IPFS_GATEWAY = 'https://gateway.ipfs.io/ipfs/'
-IPFS_GATEWAY = 'https://cloudflare-ipfs.com/ipfs/'
+IPFS_GATEWAY = 'https://gateway.ipfs.io/ipfs/'
+# IPFS_GATEWAY = 'https://cloudflare-ipfs.com/ipfs/'
 
 
 class ZIPPED_URLS(object):

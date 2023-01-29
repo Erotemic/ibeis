@@ -48,7 +48,8 @@ pyhesaff >= 2.1.0
 pyqt5>=5.15.5
 
 pynmea2>=1.5.3
-tornado>=4.2.1
+#tornado>=4.2.1
+tornado>=6.2
 
 psutil>=5.9.4     ; python_version < '4.0'  and python_version >= '3.11'    # Python 3.11+
 psutil>=5.9.4     ; python_version < '3.11' and python_version >= '3.10'    # Python 3.10
