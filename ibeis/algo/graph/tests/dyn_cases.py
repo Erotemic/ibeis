@@ -1,4 +1,3 @@
-from __future__ import absolute_import, division, print_function, unicode_literals
 from ibeis.algo.graph import demo
 import utool as ut
 from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV  # NOQA
@@ -643,7 +642,5 @@ if __name__ == '__main__':
         python -m ibeis.algo.graph.tests.dyn_cases
         python -m ibeis.algo.graph.tests.dyn_cases --allexamples
     """
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    import xdoctest
+    xdoctest.doctest_module(__file__)
