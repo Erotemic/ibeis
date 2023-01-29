@@ -6,7 +6,7 @@ ansi2html>=1.6.0     ; python_version < '3.8'  and python_version >= '3.7'     #
 ansi2html>=1.6.0     ; python_version < '3.7'  and python_version >= '3.6'     # Python 3.6
 
 autopep8>=2.0.1
-pyfiglet>=0.8.0
+pyfiglet>=0.7.2
 
 flask-cors>=3.0.10
 pydot>=1.3.0
