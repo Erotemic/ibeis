@@ -21,6 +21,13 @@ license = "Apache 2"
 dev_status = "beta"
 autostage = true
 
+
+[tool.xcookie.entry_points]
+# the console_scripts entry point creates the xdoctest executable
+console_scripts = [
+    "ibeis = ibeis.__main__:run_ibeis",
+]
+
 [tool.pytest.ini_options]
 addopts = "-p no:doctest --xdoctest --xdoctest-style=google --ignore-glob=setup.py --ignore-glob=super_setup.py"
 norecursedirs = ".git ignore build __pycache__ dev _skbuild"

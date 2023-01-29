@@ -194,12 +194,12 @@ def parse_requirements(fname="requirements.txt", versions=False):
 
 NAME = "ibeis"
 INIT_PATH = "ibeis/__init__.py"
-VERSION = parse_version("ibeis/__init__.py")
+VERSION = parse_version(INIT_PATH)
 
 if __name__ == "__main__":
     setupkw = {}
 
-    setupkw["install_requires"] = parse_requirements("requirements/runtime.txt", versions=True)
+    setupkw["install_requires"] = parse_requirements("requirements/runtime.txt")
     setupkw["extras_require"] = {
         "all": parse_requirements("requirements.txt"),
         "tests": parse_requirements("requirements/tests.txt"),
@@ -246,4 +246,9 @@ if __name__ == "__main__":
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
     ]
+    setupkw["entry_points"] = {
+        "console_scripts": [
+            "ibeis = ibeis.__main__:run_ibeis",
+        ],
+    }
     setup(**setupkw)

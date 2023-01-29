@@ -1,20 +1,12 @@
-# -*- coding: utf-8 -*-
 """
 This module defines the entry point into the IBEIS system
 ibeis.opendb and ibeis.main are the main entry points
 """
-from __future__ import absolute_import, division, print_function
-#from six.moves import builtins
 import sys
 import multiprocessing
 
-#try:
 import utool as ut
 profile = ut.profile
-#profile = getattr(builtins, 'profile')
-#except AttributeError:
-#def profile(func):
-#    return func
 
 QUIET = '--quiet' in sys.argv
 NOT_QUIET = not QUIET

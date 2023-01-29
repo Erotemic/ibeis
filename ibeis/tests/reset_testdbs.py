@@ -1,17 +1,11 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 downloads standard test datasets. can delete them as well
 """
-# TODO: ADD COPYRIGHT TAG
-from __future__ import absolute_import, division, print_function, unicode_literals
-from ibeis.init import sysres
-from ibeis.dbio import ingest_database
-from os.path import join
-import ibeis
 import six
-from itertools import cycle
 import utool as ut
+from os.path import join
+from itertools import cycle
 
 __test__ = False  # This is not a test
 
@@ -71,13 +65,15 @@ TEST_DBNAMES_MAP = {
 
 
 def delete_dbdir(dbname):
-    ut.delete(join(ibeis.sysres.get_workdir(), dbname), ignore_errors=False)
+    from ibeis.init import sysres
+    ut.delete(join(sysres.get_workdir(), dbname), ignore_errors=False)
 
 
 def ensure_smaller_testingdbs():
     """
     Makes the smaller test databases
     """
+    from ibeis.init import sysres
     def make_testdb0():
         """ makes testdb0 """
         def get_test_gpaths(ndata=None, names=None, **kwargs):
@@ -100,9 +96,11 @@ def ensure_smaller_testingdbs():
                 else:
                     gpath_list  = [next(gpath_cycle) for _ in range(ndata)]
             return gpath_list
-        workdir = ibeis.sysres.get_workdir()
+        workdir = sysres.get_workdir()
         TESTDB0 = join(workdir, 'testdb0')
-        main_locals = ibeis.main(dbdir=TESTDB0, gui=False, allow_newdir=True)
+        # import ibeis
+        from ibeis.main_module import main as ibeis_main
+        main_locals = ibeis_main(dbdir=TESTDB0, gui=False, allow_newdir=True)
         ibs = main_locals['ibs']
         assert ibs is not None, str(main_locals)
         gpath_list = list(map(ut.unixpath, get_test_gpaths()))
@@ -127,17 +125,19 @@ def ensure_smaller_testingdbs():
             raise
 
     get_testdata_dir(True)
-    if not ut.checkpath(join(ibeis.sysres.get_workdir(), 'testdb0'), verbose=True):
+    if not ut.checkpath(join(sysres.get_workdir(), 'testdb0'), verbose=True):
         print("\n\nMAKE TESTDB0\n\n")
         make_testdb0()
-    if not ut.checkpath(join(ibeis.sysres.get_workdir(), 'testdb1'), verbose=True):
+    if not ut.checkpath(join(sysres.get_workdir(), 'testdb1'), verbose=True):
         print("\n\nMAKE TESTDB1\n\n")
+        from ibeis.dbio import ingest_database
         ingest_database.ingest_standard_database('testdb1')
 
 
 def reset_testdbs(**kwargs):
     # Step 0) Parse Args
     import ibeis
+    from ibeis.init import sysres
     ibeis.ENABLE_WILDBOOK_SIGNAL = False
     default_args = {'reset_' + key: False
                     for key in six.iterkeys(TEST_DBNAMES_MAP)}
@@ -157,7 +157,7 @@ def reset_testdbs(**kwargs):
 
     # Step 3) Ensure DBs that dont exist
     ensure_smaller_testingdbs()
-    workdir = ibeis.sysres.get_workdir()
+    workdir = sysres.get_workdir()
     if not ut.checkpath(join(workdir, 'PZ_MTEST'), verbose=True):
         ibeis.ensure_pz_mtest()
     if not ut.checkpath(join(workdir, 'NAUT_test'), verbose=True):
@@ -165,10 +165,10 @@ def reset_testdbs(**kwargs):
     # if not ut.checkpath(join(workdir, 'wd_peter2'), verbose=True):
     #     ibeis.ensure_wilddogs()
     if not ut.checkpath(join(workdir, 'testdb2'), verbose=True):
-        ibeis.init.sysres.ensure_testdb2()
+        sysres.ensure_testdb2()
 
     # Step 4) testdb1 becomes the main database
-    workdir = ibeis.sysres.get_workdir()
+    workdir = sysres.get_workdir()
     TESTDB1 = join(workdir, 'testdb1')
     sysres.set_default_dbdir(TESTDB1)
 
