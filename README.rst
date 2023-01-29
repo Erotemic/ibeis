@@ -326,7 +326,10 @@ done via:
    python dev/reset_dbs.py
 
 Which will ensure that the test datasets are downloaded and in a clean state.
-
+If you don't have a "workdir" set, it will ask you for one. A workdir is where
+IBEIS will store your databases by default. Also note that it downloads the
+data from an IPFS gateway, which may be slow and require several attempts
+before it works.
 
 Once you have the test data you can use the ``run_doctests.sh`` or
 ``run_tests.py`` script to execute the system tests.
