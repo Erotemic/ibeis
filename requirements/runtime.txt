@@ -5,9 +5,10 @@ boto>=2.49.0
 colorama>=0.3.2
 dateutils>=0.6.6
 IPython >= 7.16.2
-lockfile>=0.10.2
-parse>=1.6.6
-pyasn1>=0.1.7
+parse>=1.19.0
+#parse>=1.6.6
+#pyasn1>=0.1.7
+pyasn1>=1.6.1
 pyparsing>=2.1.5
 # pyzmq>=14.7.0
 pyzmq>=25.0.0
@@ -15,6 +16,9 @@ requests>=2.7.9
 setuptools>=34.1.0
 simplejson>=3.6.5
 six>=1.10.0
+
+# TODO: this should be deprecated and removed in favor of fasteners
+lockfile>=0.10.2
 
 statsmodels>=0.13.3    ; python_version < '4.0'  and python_version >= '3.11'    # Python 3.11+
 statsmodels>=0.13.1    ; python_version < '3.11' and python_version >= '3.10'    # Python 3.10
