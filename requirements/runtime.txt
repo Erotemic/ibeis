@@ -1,7 +1,7 @@
 flask>=0.10.1
 pygments>=2.1.3
 packaging>=21.3      ; python_version >= '3.6'
-boto>=2.20.1
+boto>=2.49.0
 colorama>=0.3.2
 dateutils>=0.6.6
 IPython >= 7.16.2
@@ -41,7 +41,12 @@ pyqt5>=5.15.5
 pynmea2>=1.5.3
 tornado>=4.2.1
 
-psutil>=5.9.0
+psutil>=5.9.4     ; python_version < '4.0'  and python_version >= '3.11'    # Python 3.11+
+psutil>=5.9.4     ; python_version < '3.11' and python_version >= '3.10'    # Python 3.10
+psutil>=5.9.4     ; python_version < '3.10' and python_version >= '3.9'     # Python 3.9
+psutil>=5.9.4     ; python_version < '3.9'  and python_version >= '3.8'     # Python 3.8
+psutil>=5.9.4     ; python_version < '3.8'  and python_version >= '3.7'     # Python 3.7
+psutil>=5.9.4     ; python_version < '3.7'  and python_version >= '3.6'     # Python 3.6
 
 matplotlib>=3.5.0     ; python_version < '4.0'  and python_version >= '3.11'    # Python 3.11+
 matplotlib>=3.5.0     ; python_version < '3.11' and python_version >= '3.10'    # Python 3.10
@@ -71,14 +76,13 @@ scikit-learn>=0.24.1    ; python_version < '3.8' and python_version >= '3.7'    
 scikit-learn>=0.24.1    ; python_version < '3.7' and python_version >= '3.6'    # Python 3.6
 
 # python ~/local/tools/supported_python_versions_pip.py scipy
-scipy>=1.8.0     ;                            python_version >= '3.10'    # Python 3.10+
-scipy>=1.8.0     ; python_version < '3.10' and python_version >= '3.9'    # Python 3.9
-scipy>=1.8.0     ; python_version < '3.9' and python_version >= '3.8'    # Python 3.8
-scipy>=1.6.0     ; python_version < '3.8' and python_version >= '3.7'    # Python 3.7
-scipy>=1.5.4     ; python_version < '3.7' and python_version >= '3.6'    # Python 3.6
-scipy>=1.3.0     ; python_version < '3.6' and python_version >= '3.5'    # Python 3.5
-scipy>=1.0.0     ; python_version < '3.5' and python_version >= '3.4'    # Python 3.4
-scipy>=1.0.0     ; python_version < '3.4' and python_version >= '2.7'    # Python 2.7
+shapely>=1.8.5 ; python_version < '4.0'  and python_version >= '3.11'  # Python 3.11+
+shapely>=1.8.2 ; python_version < '3.11' and python_version >= '3.10'  # Python 3.10
+shapely>=1.7.1 ; python_version < '3.10' and python_version >= '3.9'   # Python 3.9
+shapely>=1.7.1 ; python_version < '3.9' and python_version >= '3.8'    # Python 3.8
+shapely>=1.7.1 ; python_version < '3.8' and python_version >= '3.7'    # Python 3.7
+shapely>=1.7.1 ; python_version < '3.7' and python_version >= '3.6'    # Python 3.6
+
 
 networkx>=2.7           ;                            python_version >= '3.8'    # Python 3.8+
 networkx>=2.6.2         ; python_version < '3.8' and python_version >= '3.7'    # Python 3.7
@@ -95,10 +99,7 @@ pandas>=1.1.4     ; python_version < '3.6.1' and python_version >= '3.6'    # Py
 
 Pillow>=9.2.0     ; python_version < '4.0'  and python_version >= '3.11'  # Python 3.11+
 Pillow>=9.1.0     ; python_version < '3.11' and python_version >= '3.10'  # Python 3.10
-Pillow>=8.3.2     ; python_version < '3.10' and python_version >= '3.9'    # Python 3.9
-Pillow>=8.3.2     ; python_version < '3.9' and python_version >= '3.8'    # Python 3.8
-Pillow>=9.0.0     ; python_version < '3.8' and python_version >= '3.7'    # Python 3.7
-Pillow>=8.3.2     ; python_version < '3.7' and python_version >= '3.6'    # Python 3.6
+Pillow>=8.0.0     ; python_version < '3.10' and python_version >= '3.6'    # Python 3.6-3.9
 
 cachetools>=5.0.0     ; python_version < '4.0'  and python_version >= '3.11'    # Python 3.11+
 cachetools>=5.0.0     ; python_version < '3.11' and python_version >= '3.10'    # Python 3.10
