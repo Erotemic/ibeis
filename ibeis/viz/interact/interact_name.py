@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Matplotlib interface for name interactions. Allows for relatively fine grained
 control of splitting and merging.
@@ -12,10 +11,8 @@ CommandLine:
 
 
 """
-from __future__ import absolute_import, division, print_function
 import numpy as np
 import utool as ut
-from six.moves import zip
 from plottool_ibeis import interact_helpers as ih
 import functools
 import plottool_ibeis as pt
@@ -125,6 +122,7 @@ def testsdata_match_verification(defaultdb='testdb1', aid1=1, aid2=2):
 
     Example:
         >>> # ENABLE_DOCTEST
+        >>> # xdoctest: +REQUIRES(env:DISPLAY)
         >>> from ibeis.viz.interact.interact_name import *  # NOQA
         >>> self = testsdata_match_verification()
         >>> # verify results

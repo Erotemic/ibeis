@@ -34,6 +34,7 @@ def testdata_match_interact(**kwargs):
 
     Example:
         >>> # VIZ_DOCTEST
+        >>> # xdoctest: +REQUIRES(env:DISPLAY)
         >>> from ibeis.viz.interact.interact_matches import *  # NOQA
         >>> import plottool_ibeis as pt
         >>> kwargs = {}

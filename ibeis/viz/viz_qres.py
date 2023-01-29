@@ -56,6 +56,7 @@ def show_qres_analysis(ibs, cm, qreq_=None, **kwargs):
 
     Example:
         >>> # ENABLE_DOCTEST
+        >>> # xdoctest: +REQUIRES(env:DISPLAY)
         >>> # xdoctest: +REQUIRES(--show)
         >>> from ibeis.viz.viz_qres import *  # NOQA
         >>> import ibeis
@@ -70,6 +71,7 @@ def show_qres_analysis(ibs, cm, qreq_=None, **kwargs):
 
     Example:
         >>> # ENABLE_DOCTEST
+        >>> # xdoctest: +REQUIRES(env:DISPLAY)
         >>> from ibeis.viz.viz_qres import *  # NOQA
         >>> import ibeis
         >>> cm, qreq_ = ibeis.testdata_cm(

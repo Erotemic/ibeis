@@ -352,16 +352,17 @@ def find_consistent_labeling(grouped_oldnames, extra_prefix='_extra_name',
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.scripts.name_recitifer import *  # NOQA
+        >>> import timerit
         >>> ydata = []
         >>> xdata = list(range(10, 150, 50))
         >>> for x in xdata:
         >>>     print('x = %r' % (x,))
         >>>     grouped_oldnames = testdata_oldnames(x, 15,  5, n_per_incon=5)
-        >>>     t = ut.Timerit(3, verbose=1)
+        >>>     t = timerit.Timerit(3, verbose=1)
         >>>     for timer in t:
         >>>         with timer:
         >>>             new_names = find_consistent_labeling(grouped_oldnames)
-        >>>     ydata.append(t.ave_secs)
+        >>>     ydata.append(t.mean())
         >>> ut.quit_if_noshow()
         >>> import plottool_ibeis as pt
         >>> pt.qtensure()

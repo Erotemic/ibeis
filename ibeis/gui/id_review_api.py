@@ -549,6 +549,7 @@ def ensure_match_img(ibs, cm, daid, qreq_=None, match_thumbtup_cache={}):
 
     Example:
         >>> # ENABLE_DOCTEST
+        >>> # xdoctest: +REQUIRES(env:DISPLAY)
         >>> from ibeis.gui.id_review_api import *  # NOQA
         >>> import ibeis
         >>> # build test data
@@ -614,6 +615,7 @@ def make_ensure_match_img_nosql_func(qreq_, cm, daid):
 
     Example:
         >>> # ENABLE_DOCTEST
+        >>> # xdoctest: +REQUIRES(env:DISPLAY)
         >>> from ibeis.gui.id_review_api import *  # NOQA
         >>> import ibeis
         >>> # build test data
