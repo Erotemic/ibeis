@@ -313,8 +313,23 @@ inside the repo process.
 Given a Python environment where each of the dependency modules is installed
 this repo can be installed with ``pip install -e .`` as well. 
 
-Given an installed version of IBEIS the tests can be run via the
-"run_doctests.sh" script.
+
+Running Tests
+-------------
+
+If you have a source install of the dataset you can run tests. But first you
+must ensure you have test (~400MB) data downloaded and available. This can be
+done via:
+
+.. code:: python
+
+   python dev/reset_dbs.py
+
+Which will ensure that the test datasets are downloaded and in a clean state.
+
+
+Once you have the test data you can use the ``run_doctests.sh`` or
+``run_tests.py`` script to execute the system tests.
 
 Caveats / Things we are not currently doing
 -------------------------------------------
