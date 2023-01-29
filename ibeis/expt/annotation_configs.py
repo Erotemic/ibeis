@@ -1,10 +1,8 @@
-# -* coding: utf-8 -*-
 """
 Definitions for common aid configurations
 
 Rename to annot_cfgdef
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import numpy as np  # NOQA
 print, rrr, profile = ut.inject2(__name__)
@@ -814,7 +812,7 @@ ibeis -e print_acfg -a viewdiff_td --db PZ_Master1 --verbtd --nocache --per_vp=T
 viewdiff_td = apply_timecontrol(viewdiff)
 viewdiff_td1h = apply_timecontrol(viewdiff, '1h')
 
-"""
+r"""
 ibeis get_annotcfg_list --db Oxford -a default:qhas_any=\(query,\),dpername=2,exclude_reference=True --acfginfo --verbtd  --veryverbtd
 ibeis get_annotcfg_list --db Oxford -a oxford --acfginfo
 ('_QSUUIDS((55)qxlgljvomqpdvlny)', '_DSUUIDS((4240)vhtqsdkrwetbftis)'),

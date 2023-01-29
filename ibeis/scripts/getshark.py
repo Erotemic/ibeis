@@ -1,6 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function, unicode_literals
 from os.path import splitext, join, exists, commonprefix
 import utool as ut
 import re
@@ -498,9 +496,9 @@ def check_annot_disagree(single_info, single_annots, key1, prop2, repl2,
     # Pull info from wildbook
     sub_info.compress(ia_empty).print()
     if is_set:
-        print('IA \subset WB (can give)')
+        print(r'IA \subset WB (can give)')
         sub_info.compress(ia_is_subset).print()
-        print('WB \subset IA (updates on IA side?)')
+        print(r'WB \subset IA (updates on IA side?)')
         sub_info.compress(wb_is_subset).print()
         print('SOME OVERLAP')
         # Have to manually fix
@@ -816,6 +814,7 @@ def add_new_images(ibs, miss_info, species):
                               theta_list=annot_thetas, name_list=annot_names,
                               species_list=annot_species)
     print('Finished adding new info')
+    print(f'aid_list={aid_list}')
 
 
 def _needs_redownload(fpath, seconds_thresh):
@@ -1348,6 +1347,7 @@ def postprocess_corrupted(parsed_dl):
     import vtool_ibeis as vt
     print('Checking for corrupted images')
     gpaths = fpaths = parsed_dl['new_fpath']
+    print(f'gpaths={gpaths}')
     valid_flags = vt.filterflags_valid_images(fpaths, verbose=2)
     parsed_dl = parsed_dl.compress(valid_flags)
     return parsed_dl

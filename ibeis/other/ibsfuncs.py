@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 developer convenience functions for ibs
 
@@ -12,7 +11,6 @@ TODO: need to split up into sub modules:
     then there are also convineience functions that need to be ordered at least
     within this file
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import six
 import types
 import functools
@@ -717,7 +715,7 @@ def check_annot_corrupt_uuids(ibs, aid_list=None):
         for aid in aid_list:
             try:
                 ibs.get_annot_uuids(aid)
-            except Exception as ex:
+            except Exception:
                 failed_aids.append(aid)
         print('failed_aids = %r' % (failed_aids,))
         return failed_aids
@@ -3255,13 +3253,13 @@ def get_annot_quality_viewpoint_subset(ibs, aid_list=None, annots_per_view=2,
 
 
 def _split_car_contributor_tag(contributor_tag, distinguish_invalids=True):
-        if contributor_tag is not None and 'NNP GZC Car' in contributor_tag:
-            contributor_tag_split = contributor_tag.strip().split(',')
-            if len(contributor_tag_split) == 2:
-                contributor_tag = contributor_tag_split[0].strip()
-        elif distinguish_invalids:
-            contributor_tag = None
-        return contributor_tag
+    if contributor_tag is not None and 'NNP GZC Car' in contributor_tag:
+        contributor_tag_split = contributor_tag.strip().split(',')
+        if len(contributor_tag_split) == 2:
+            contributor_tag = contributor_tag_split[0].strip()
+    elif distinguish_invalids:
+        contributor_tag = None
+    return contributor_tag
 
 
 @register_ibs_method
@@ -5992,6 +5990,7 @@ def compute_ggr_imagesets(ibs, gid_list=None, min_diff=86400, individual=False,
         'GGR2,231,B' : None,
         'GGR2,232,B' : None,
     }
+    special_zone_map
 
     skipped_gid_list = []
     skipped_note_list = []
@@ -6048,7 +6047,7 @@ def compute_ggr_imagesets(ibs, gid_list=None, min_diff=86400, individual=False,
         for zone in sorted(path_dict.keys()):
             path = path_dict[zone]
             if path.contains_point(point):
-                found = True
+                found = True  # NOQA
                 imageset_dict[zone].append(gid)
         # if not found:
         #     imageset_dict['Zone 7'].append(gid)
@@ -6121,7 +6120,7 @@ def compute_ggr_fix_gps_names(ibs, min_diff=1800):  # 86,400 = 60 sec x 60 min X
             print('FOUND LOCATION FOR AID %d' % (aid, ))
             print('\tDIFF   : %d H, %d M, %d S' % (h, m, s, ))
             print('\tNEW GPS: %s' % (closest_gps, ))
-    print('%d \ %d \ %d \ %d' % (num_all, num_bad, num_known, num_found, ))
+    print(r'%d \ %d \ %d \ %d' % (num_all, num_bad, num_known, num_found, ))
     return recovered_aid_list, recovered_gps_list, recovered_dist_list
 
 
@@ -6146,7 +6145,7 @@ def parse_ggr_name(ibs, imageset_text, verbose=False, allow_short=False, require
 
     try:
         dataset, number, letter = imageset_text_
-    except:
+    except Exception:
         assert allow_short or require_short
         dataset, number = imageset_text_
         letter = None
@@ -6208,7 +6207,7 @@ def search_ggr_qr_codes_worker(imageset_rowid, imageset_text, values, gid_list, 
 
                 match = True
                 print('\t\tPassed!')
-            except:
+            except Exception:
                 pass
                 print('\t\tFailed!')
 
@@ -6909,7 +6908,7 @@ def compute_ggr_fix_gps_contributors_gids(ibs, min_diff=600, individual=False):
                 not_found.add(note)
         else:
             not_found.add(note)
-    print('%d \ %d \ %d \ %d' % (num_all, num_bad, num_unrecovered, num_found, ))
+    print(r'%d \ %d \ %d \ %d' % (num_all, num_bad, num_unrecovered, num_found, ))
     num_recovered = len(recovered_gid_list)
     num_unrecovered = num_bad - len(recovered_gid_list)
     print('Missing GPS: %d' % (num_bad, ))
@@ -6992,7 +6991,7 @@ def compute_ggr_fix_gps_contributors_aids(ibs, min_diff=600, individual=False):
                 not_found.add(note)
         else:
             not_found.add(note)
-    print('%d \ %d \ %d \ %d' % (num_all, num_bad, num_unrecovered, num_found, ))
+    print(r'%d \ %d \ %d \ %d' % (num_all, num_bad, num_unrecovered, num_found, ))
     num_recovered = len(recovered_aid_list)
     num_unrecovered = num_bad - len(recovered_aid_list)
     print('Missing GPS: %d' % (num_bad, ))
@@ -7253,7 +7252,7 @@ def merge_ggr_staged_annots(ibs, min_overlap=0.25, reviews_required=3, liberal_a
                 segment_list = merge_ggr_staged_annots_marriage(ibs, user_id_list, user_dict,
                                                                 aid_list, index_list,
                                                                 min_overlap=min_overlap)
-        except:
+        except Exception:
             print('\tInvalid GID')
             broken_gid_list.append(gid)
             continue

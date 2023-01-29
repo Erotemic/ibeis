@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
+r"""
 CommandLine:
     # Generate and start an IPython notebook
     python -m ibeis --tf autogen_ipynb --ipynb --db <dbname> [-a <acfg>] [-t <pcfg>]
