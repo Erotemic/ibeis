@@ -143,7 +143,7 @@ def get_review_edges(cm_list, ibs=None, review_cfg={}):
     if automatch_kw['filter_reviewed']:
         _is_reviewed = ibs.get_annot_pair_is_reviewed(qaid_arr.tolist(),
                                                       daid_arr.tolist())
-        is_unreviewed = ~np.array(_is_reviewed, dtype=np.bool)
+        is_unreviewed = ~np.array(_is_reviewed, dtype=bool)
         qaid_arr  = qaid_arr.compress(is_unreviewed)
         daid_arr   = daid_arr.compress(is_unreviewed)
         score_arr = score_arr.compress(is_unreviewed)

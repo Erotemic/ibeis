@@ -83,7 +83,7 @@ class TempResults(ut.NiceRepr):
         if DEBUG_REQUERY:
             assert all(ut.issorted(groupx) for groupx in groupxs)
             assert all([len(group) == num_neighbs for group in first_k_groupxs])
-        chosen_xs = np.array(ut.flatten(first_k_groupxs), dtype=np.int)
+        chosen_xs = np.array(ut.flatten(first_k_groupxs), dtype=int)
         # chosen_xs = np.hstack(first_k_groupxs)
         # then convert these to multi-indices
         done_rows = rowxs.take(chosen_xs)
@@ -156,7 +156,7 @@ def requery_knn(get_neighbors, get_axs, qfx2_vec, num_neighbs, invalid_axs=[],
         >>> tx2_idx_full = rng.randint(0, 10, size=(n_pts, max_k))
         >>> tx2_idx_full[:, 0] = 0
         >>> tx2_dist_full = np.meshgrid(np.arange(max_k), np.arange(n_pts))[0] / 10
-        >>> tx2_dist_full += (rng.rand(n_pts, max_k) * 10).astype(np.int) / 100
+        >>> tx2_dist_full += (rng.rand(n_pts, max_k) * 10).astype(int) / 100
         >>> qfx2_vec = np.arange(n_pts)[:, None]
         >>> vecs = qfx2_vec
         >>> #

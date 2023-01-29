@@ -255,7 +255,7 @@ def simple_munkres(part_oldnames):
     # rows are new-names and cols are old-names.
     # Initially the profit of any assignment is effectively -inf
     # This effectively marks all assignments as invalid
-    profit_matrix = np.full(shape, -2 * total, dtype=np.int)
+    profit_matrix = np.full(shape, -2 * total, dtype=int)
     # Overwrite valid assignments with positive profits
     oldname2_idx = ut.make_index_lookup(unique_old_names)
     name_freq_list = [ut.dict_hist(names) for names in part_oldnames]
@@ -573,7 +573,7 @@ def find_consistent_labeling_old(grouped_oldnames, extra_prefix='_extra_name',
         # Allocate assignment matrix
         # Start with a large negative value indicating
         # that you must select from your assignments only
-        profit_matrix = -np.ones((total, total), dtype=np.int) * (2 * total)
+        profit_matrix = -np.ones((total, total), dtype=int) * (2 * total)
         # Populate assignment profit matrix
         oldname2_idx = ut.make_index_lookup(assignable_names)
         name_freq_list = [ut.dict_hist(names) for names in grouped_oldnames_]

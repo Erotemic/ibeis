@@ -2606,7 +2606,7 @@ def get_annot_image_unixtimes_asfloat(ibs, aid_list):
         >>> import plottool_ibeis as pt
         >>> ut.show_if_requested()
     """
-    unixtime_list = np.array(ibs.get_annot_image_unixtimes(aid_list), dtype=np.float)
+    unixtime_list = np.array(ibs.get_annot_image_unixtimes(aid_list), dtype=float)
     unixtime_list[unixtime_list == -1] = np.nan
     return unixtime_list
 

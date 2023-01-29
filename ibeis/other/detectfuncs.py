@@ -459,7 +459,7 @@ def general_parse_gt_annots(ibs, aid_list, include_parts=True, species_mapping={
         # Rotate and transform vertices
         xyz_pts = vt.add_homogenous_coordinate(np.array(verts).T)
         trans_pts = vt.remove_homogenous_coordinate(R.dot(xyz_pts))
-        new_verts = np.round(trans_pts).astype(np.int).T.tolist()
+        new_verts = np.round(trans_pts).astype(int).T.tolist()
         x_points = [pt[0] for pt in new_verts]
         y_points = [pt[1] for pt in new_verts]
         xtl = int(min(x_points))
@@ -501,7 +501,7 @@ def general_parse_gt_annots(ibs, aid_list, include_parts=True, species_mapping={
                 # Rotate and transform vertices
                 xyz_pts = vt.add_homogenous_coordinate(np.array(verts).T)
                 trans_pts = vt.remove_homogenous_coordinate(R.dot(xyz_pts))
-                new_verts = np.round(trans_pts).astype(np.int).T.tolist()
+                new_verts = np.round(trans_pts).astype(int).T.tolist()
                 x_points = [pt[0] for pt in new_verts]
                 y_points = [pt[1] for pt in new_verts]
                 xtl = int(min(x_points))

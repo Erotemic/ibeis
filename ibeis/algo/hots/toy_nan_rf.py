@@ -125,7 +125,7 @@ def toydata1(rng):
     ]
     X_blobs = [Xy[1] for Xy in Xy_blobs]
     X_true = np.vstack(X_blobs)
-    y_blobs = [np.full(len(X), y_, dtype=np.int) for y_, X in Xy_blobs]
+    y_blobs = [np.full(len(X), y_, dtype=int) for y_, X in Xy_blobs]
 
     # nanify some values
     if True:

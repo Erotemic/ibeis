@@ -214,7 +214,7 @@ def get_annot_tag_filterflags(ibs, aid_list, filter_kw,
                                                       annotmatch_tags_list))))
 
     # Filter Data
-    flags = np.ones(len(aid_list), dtype=np.bool)
+    flags = np.ones(len(aid_list), dtype=bool)
     if need_annot_tags:
         flags_ = tag_funcs.filterflags_general_tags(
             annot_tags_list, **annot_filterkw)

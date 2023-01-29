@@ -296,7 +296,7 @@ def get_dbinfo(ibs, verbose=True,
     multiton_aids_list = ut.take(nx2_aids, multiton_nxs)
     assert len(set(multiton_nxs)) == len(multiton_nxs)
     if len(multiton_aids_list) == 0:
-        multiton_aids = np.array([], dtype=np.int)
+        multiton_aids = np.array([], dtype=int)
     else:
         multiton_aids = np.hstack(multiton_aids_list)
         assert len(set(multiton_aids)) == len(multiton_aids), 'duplicate annot'
@@ -694,7 +694,7 @@ def show_image_time_distributions(ibs, gid_list):
         >>> ut.show_if_requested()
     """
     unixtime_list = ibs.get_image_unixtime(gid_list)
-    unixtime_list = np.array(unixtime_list, dtype=np.float)
+    unixtime_list = np.array(unixtime_list, dtype=float)
     unixtime_list = ut.list_replace(unixtime_list, -1, float('nan'))
     show_time_distributions(ibs, unixtime_list)
 

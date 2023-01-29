@@ -110,7 +110,7 @@ def compute_occurrence_groups(ibs, gid_list, config={}, use_gps=False,
         labels = occurrence_blackbox.cluster_timespace_sec(
             latlons, posixtimes, thresh_sec, km_per_sec=km_per_sec)
         if labels is None:
-            labels = np.zeros(len(gids), dtype=np.int)
+            labels = np.zeros(len(gids), dtype=int)
         all_gids.append(gids)
         all_labels.append(labels)
 

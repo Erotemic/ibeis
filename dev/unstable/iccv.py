@@ -132,7 +132,7 @@ def gt_review():
         len(match_probs)
         len(want_edges)
 
-        real_probs = infr.match_state_df(want_edges).astype(np.float)
+        real_probs = infr.match_state_df(want_edges).astype(float)
         real_probs, pred_probs = real_probs.align(match_probs)
 
         pred_probs['hardness'] = np.nan

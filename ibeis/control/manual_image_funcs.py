@@ -1458,7 +1458,7 @@ def get_image_unixtime_asfloat(ibs, gid_list, **kwargs):
         list_ (list): np.nan if no timedata exists for a given gid
     """
     unixtime_list = ibs.get_image_unixtime(gid_list, **kwargs)
-    unixtime_list = np.array(unixtime_list, dtype=np.float)
+    unixtime_list = np.array(unixtime_list, dtype=float)
     # Fix problem in sql and make -1 be nans or nulls
     unixtime_list[unixtime_list == -1] = np.nan
     return unixtime_list

@@ -503,7 +503,7 @@ class ExpandingSample(ut.NiceRepr):
         if extra_dbsize_fracs is None:
             extra_dbsize_fracs = [1.]
         extra_fracs = np.array(extra_dbsize_fracs)
-        n_extra_list = np.unique(extra_fracs * n_extra_avail).astype(np.int)
+        n_extra_list = np.unique(extra_fracs * n_extra_avail).astype(int)
         daids_list = []
         info_list = []
         for n in n_extra_list:

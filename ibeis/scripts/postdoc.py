@@ -1553,7 +1553,7 @@ class VerifierExpt(DBInputs):
             df = df.drop(['markedness', 'bookmaker', 'fpr'], axis=1)
             df.index.name = None
             df.columns.name = None
-            df['support'] = df['support'].astype(np.int)
+            df['support'] = df['support'].astype(int)
             df.columns = ut.emap(upper_one, df.columns)
 
             import re
@@ -2613,7 +2613,7 @@ class VerifierExpt(DBInputs):
         df = df.drop(['markedness', 'bookmaker', 'fpr'], axis=1)
         df.index.name = None
         df.columns.name = None
-        df['support'] = df['support'].astype(np.int)
+        df['support'] = df['support'].astype(int)
         df.columns = ut.emap(upper_one, df.columns)
 
         import re

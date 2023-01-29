@@ -44,7 +44,7 @@ def get_annot_kpts_baseline_weights(ibs, aid_list, config2_=None, config={}):
         qfgweight_list = ibs.get_annot_fgweights(aid_list, ensure=True, config2_=config2_)
         weight_lists.append(qfgweight_list)
     if len(weight_lists) == 0:
-        baseline_weights_list = [np.ones(num, np.float) for num in ibs.get_annot_num_feats(aid_list, config2_=config2_)]
+        baseline_weights_list = [np.ones(num, float) for num in ibs.get_annot_num_feats(aid_list, config2_=config2_)]
         #baseline_weights_list = [None] * len(aid_list)
     else:
         # geometric mean of the selected weights
@@ -394,7 +394,7 @@ def show_annot_weights(qreq_, aid, config={}):
 # TODO: qreq_
 
 
-def sift_selectivity_score(vecs1_m, vecs2_m, cos_power=3.0, dtype=np.float):
+def sift_selectivity_score(vecs1_m, vecs2_m, cos_power=3.0, dtype=float):
     """
     applies selectivity score from SMK paper
     Take componentwise dot produt and divide by 512**2 because of the
@@ -493,7 +493,7 @@ def borda_match_weighter(nns_list, nnvalid0_list, qreq_):
     bordavote_weight_list = []
     # FIXME: K
     K = qreq_.qparams.K
-    _branks = np.arange(1, K + 1, dtype=np.float)[::-1]
+    _branks = np.arange(1, K + 1, dtype=float)[::-1]
     bordavote_weight_list = [
         np.tile(_branks, (len(neighb_idx), 1))
         for (neighb_idx, neighb_dist) in nns_list

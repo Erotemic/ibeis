@@ -82,7 +82,7 @@ def const_match_weighter(nns_list, nnvalid0_list, qreq_):
 
     for nns in nns_list:
         (neighb_idx, neighb_dist) = nns
-        neighb_constvote = np.ones((len(neighb_idx), len(neighb_idx.T) - Knorm), dtype=np.float)
+        neighb_constvote = np.ones((len(neighb_idx), len(neighb_idx.T) - Knorm), dtype=float)
         constvote_weight_list.append(neighb_constvote)
     return constvote_weight_list
 

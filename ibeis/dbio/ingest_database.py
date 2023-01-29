@@ -1153,8 +1153,8 @@ def ingest_oxford_style_db(dbdir, dryrun=False):
         qannots4 = qannots.take(sortx2)
         query_df4 = query_df3.take(sortx2)
 
-        old_bboxes = np.array(qannots4.bboxes, dtype=np.float)
-        new_bboxes = np.array(query_df4['bbox'].values.tolist(), dtype=np.float)
+        old_bboxes = np.array(qannots4.bboxes, dtype=float)
+        new_bboxes = np.array(query_df4['bbox'].values.tolist(), dtype=float)
         new_ar = new_bboxes.T[2] / new_bboxes.T[3]
         old_ar = old_bboxes.T[2] / old_bboxes.T[3]
         print(new_ar == old_ar)

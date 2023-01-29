@@ -1118,7 +1118,7 @@ def check_database_overlap(ibs1, ibs2):
         # Show change in viewpoints
         if len(colx2_rowids[yawx]) > 0:
             vp_category_diff = ibsfuncs.viewpoint_diff(
-                sinfo1_arr[yawx], sinfo2_arr[yawx]).astype(np.float)
+                sinfo1_arr[yawx], sinfo2_arr[yawx]).astype(float)
             # Look for category changes
             #any_diff = np.floor(vp_category_diff) > 0
             #_xs    = np.nonzero(any_diff)[0]

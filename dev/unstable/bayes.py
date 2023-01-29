@@ -355,7 +355,7 @@ def collapse_labels(model, evidence, reduced_variables, reduced_row_idxs,
         re_colxs = ttype2_re_indices[label_ttype]
 
         ev_state_idxs = ut.take(evidence_state_idxs, ev_colxs)
-        ev_state_idxs_tile = np.tile(ev_state_idxs, (len(reduced_values), 1)).astype(np.int)
+        ev_state_idxs_tile = np.tile(ev_state_idxs, (len(reduced_values), 1)).astype(int)
         num_ev_ = len(ev_colxs)
 
         aug_colxs = list(range(num_ev_)) + (np.array(re_colxs) + num_ev_).tolist()

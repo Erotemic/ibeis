@@ -1512,7 +1512,7 @@ class TestResult(ut.NiceRepr):
         ibs = testres.ibs
 
         # Initialize isvalid flags to all true
-        # np.ones(prop2_mat['is_success'].shape, dtype=np.bool)
+        # np.ones(prop2_mat['is_success'].shape, dtype=bool)
         participates = prop2_mat['participates']
         is_valid = participates.copy()
 
@@ -1858,7 +1858,7 @@ class TestResult(ut.NiceRepr):
             rank_mat = truth2_prop[truth]['rank']
             flags = np.logical_and(np.isnan(rank_mat), participates)
             rank_mat[flags] = testres.get_worst_possible_rank()
-            # truth2_prop[truth]['rank'] = rank_mat.astype(np.int)
+            # truth2_prop[truth]['rank'] = rank_mat.astype(int)
 
         is_success = truth2_prop['gt']['rank'] == 0
         is_failure = np.logical_not(is_success)
@@ -2399,7 +2399,7 @@ class TestResult(ut.NiceRepr):
                 assert np.all(flags)
                 daid_list = cm.daid_list
                 dnid_list = cm.dnid_list
-                y_true  = (cm.qnid == dnid_list).compress(flags).astype(np.int)
+                y_true  = (cm.qnid == dnid_list).compress(flags).astype(int)
                 y_score = cm.annot_score_list.compress(flags)
 
                 y_score[~np.isfinite(y_score)] = 0

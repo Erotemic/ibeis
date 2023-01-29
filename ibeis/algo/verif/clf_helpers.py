@@ -751,7 +751,7 @@ class ClfResult(ut.NiceRepr):
             conf_df = pd.DataFrame.from_dict(conf_dict, orient='index')
             conf_df = conf_df[0].map(ibs.const.CONFIDENCE.CODE_TO_INT)
             meta = meta.assign(real_conf=conf_df)
-            meta['real_conf'] = np.nan_to_num(meta['real_conf']).astype(np.int)
+            meta['real_conf'] = np.nan_to_num(meta['real_conf']).astype(int)
 
         meta = meta.sort_values('hardness', ascending=False)
         res.meta = meta
@@ -959,7 +959,7 @@ class ClfResult(ut.NiceRepr):
             force=False, multi=False, return_flags=True)
         can_autodecide[res.sample_weight == 0] = False
 
-        auto_pred = y_pred[can_autodecide].astype(np.int)
+        auto_pred = y_pred[can_autodecide].astype(int)
         auto_true = y_true[can_autodecide].ravel()
         auto_probs = res.clf_probs[can_autodecide]
 
@@ -1001,7 +1001,7 @@ class ClfResult(ut.NiceRepr):
 
         report = sklearn_utils.classification_report2(
             y_true, y_pred, target_names=target_names,
-            sample_weight=can_autodecide.astype(np.float), verbose=False)
+            sample_weight=can_autodecide.astype(float), verbose=False)
         print_(' * Auto-Decide Confusion')
         print_(ut.indent(str(report['confusion'])))
         print_(' * Auto-Decide Metrics')
@@ -1223,7 +1223,7 @@ class MultiTaskSamples(ut.NiceRepr):
     def class_idx_basis_1d(samples):
         """ 1d-index version of class_name_basis """
         n_states = np.prod([v.n_classes for k, v in samples.items()])
-        class_idx_basis_1d = np.arange(n_states, dtype=np.int)
+        class_idx_basis_1d = np.arange(n_states, dtype=int)
         return class_idx_basis_1d
 
     # @ut.memoize

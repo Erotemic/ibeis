@@ -577,7 +577,7 @@ def vsone_(qreq_, query_aids, data_aids, qannot_cfg, dannot_cfg,
             return mcc
 
         def mcc_hack():
-            sample_weight = np.ones(len(self.samples), dtype=np.int)
+            sample_weight = np.ones(len(self.samples), dtype=int)
             task_mccs = ut.ddict(dict)
             # Determine threshold levels per score type
             score_to_order = {}
@@ -590,7 +590,7 @@ def vsone_(qreq_, query_aids, data_aids, qannot_cfg, dannot_cfg,
                 thresh = y_score[threshold_idxs]
                 score_to_order[scoretype] = (sortx, y_score, thresh)
 
-            classes_ = np.array([0, 1], dtype=np.int)
+            classes_ = np.array([0, 1], dtype=int)
             for task in task_list:
                 labels = self.samples.subtasks[task]
                 for sublabels in labels.gen_one_vs_rest_labels():
@@ -599,7 +599,7 @@ def vsone_(qreq_, query_aids, data_aids, qannot_cfg, dannot_cfg,
                         y_true = sublabels.y_enc[sortx]
                         mcc = -np.inf
                         for t in thresh:
-                            y_pred = (y_score > t).astype(np.int)
+                            y_pred = (y_score > t).astype(int)
                             C1 = quick_cm(y_true, y_pred, classes_, sample_weight)
                             mcc1 = quick_mcc(C1)
                             if mcc1 < 0:

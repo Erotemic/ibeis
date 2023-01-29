@@ -107,7 +107,7 @@ class InvertedAnnotsExtras(object):
             assigned_patches = inva.get_patches(wx, ibs, verbose=False)
             #print('assigned_patches = %r' % (len(assigned_patches),))
             average_patch = np.mean(assigned_patches, axis=0)
-            average_patch = average_patch.astype(np.float)
+            average_patch = average_patch.astype(float)
             inva._word_patches[wx] = average_patch
         return inva._word_patches[wx]
 
@@ -675,8 +675,8 @@ def residual_worker(argtup):
     if int_rvec:
         agg_rvecs = np.empty((len(wx_list), fx_to_vecs.shape[1]), dtype=np.int8)
     else:
-        agg_rvecs = np.empty((len(wx_list), fx_to_vecs.shape[1]), dtype=np.float)
-    agg_flags = np.empty((len(wx_list), 1), dtype=np.bool)
+        agg_rvecs = np.empty((len(wx_list), fx_to_vecs.shape[1]), dtype=float)
+    agg_flags = np.empty((len(wx_list), 1), dtype=bool)
 
     #for idx, wx in enumerate(wx_list):
     for idx in range(len(wx_list)):

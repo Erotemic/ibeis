@@ -1460,7 +1460,7 @@ def scalespace():
         pts2 = np.array([(x_adjust, 0), (0, 1 - y_adjust), (1, 1 - y_adjust), (1 - x_adjust, 0)]) * size
         H = cv2.findHomography(pts1, pts2)[0]
 
-        dsize = np.array(vt.bbox_from_verts(pts2)[2:4]).astype(np.int)
+        dsize = np.array(vt.bbox_from_verts(pts2)[2:4]).astype(int)
         warpkw = dict(flags=cv2.INTER_LANCZOS4, borderMode=cv2.BORDER_CONSTANT)
         imgBGRA_warped = cv2.warpPerspective(imgBGRA, H, tuple(dsize), **warpkw)
         return imgBGRA_warped

@@ -7140,7 +7140,7 @@ def merge_ggr_staged_annots_cluster(ibs, user_id_list, user_dict, aid_list, inde
     X = np.vstack(bbox_list)
     algorithm.fit(X)
     if hasattr(algorithm, 'labels_'):
-        prediction_list = algorithm.labels_.astype(np.int)
+        prediction_list = algorithm.labels_.astype(int)
     else:
         prediction_list = algorithm.predict(X)
 

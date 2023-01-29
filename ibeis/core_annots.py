@@ -756,7 +756,7 @@ def empty_probchips(inputchip_fpaths):
     # HACK for unknown species
     for fpath in inputchip_fpaths:
         size = vt.open_image_size(fpath)
-        probchip = np.ones(size[::-1], dtype=np.float)
+        probchip = np.ones(size[::-1], dtype=float)
         yield probchip
 
 

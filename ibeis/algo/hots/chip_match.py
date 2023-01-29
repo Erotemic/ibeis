@@ -1049,7 +1049,7 @@ class _AnnotMatchConvenienceGetter(object):
             'dnid': cm.dnid_list,
             'score': cm.annot_score_list,
             'rank': cm.annot_score_list.argsort()[::-1].argsort(),
-            'truth': (cm.dnid_list == cm.qnid).astype(np.int),
+            'truth': (cm.dnid_list == cm.qnid).astype(int),
         }
         annot_df = pd.DataFrame(data)
         annot_df.sort_values(by='rank', inplace=True)
@@ -1062,7 +1062,7 @@ class _AnnotMatchConvenienceGetter(object):
             'dnid': cm.unique_nids,
             'score': cm.name_score_list,
             'rank': cm.name_score_list.argsort()[::-1].argsort(),
-            'truth': (cm.unique_nids == cm.qnid).astype(np.int),
+            'truth': (cm.unique_nids == cm.qnid).astype(int),
         }
         name_df = pd.DataFrame(data)
         name_df.sort_values(by='rank', inplace=True)
@@ -1675,7 +1675,7 @@ class _ChipMatchDebugger(object):
 
         top_stack = np.vstack(top_list)
         #top_stack = np.array(top_stack, dtype=object)
-        top_stack = np.array(top_stack, dtype=np.float)
+        top_stack = np.array(top_stack, dtype=float)
         #np.int32)
         top_str = np.array_str(top_stack, precision=3, suppress_small=True,
                                max_line_width=200)
@@ -2187,7 +2187,7 @@ class ChipMatch(_ChipMatchVisualization,
 
     def _empty_hack(cm):
         if cm.daid_list is None:
-            cm.daid_list = np.empty(0, dtype=np.int)
+            cm.daid_list = np.empty(0, dtype=int)
         assert len(cm.daid_list) == 0
         cm.fsv_col_lbls = []
         cm.fm_list = []
@@ -2225,7 +2225,7 @@ class ChipMatch(_ChipMatchVisualization,
     # Modification / Evaluation Functions
     #------------------
 
-    def _cast_scores(cm, dtype=np.float):
+    def _cast_scores(cm, dtype=float):
         cm.fsv_list = [fsv.astype(dtype) for fsv in cm.fsv_list]
 
     def compress_results(cm, inplace=False):

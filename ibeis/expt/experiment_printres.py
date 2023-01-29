@@ -29,7 +29,7 @@ def get_diffmat_str(rank_mat, qaids, nConfig):
     # Find columns that ore strictly better than other columns
     #def find_strictly_better_columns(diff_rank):
     #    colmat = diff_rank.T
-    #    pairwise_betterness_ranks = np.array([np.sum(col <= colmat, axis=1) / len(col) for col in colmat], dtype=np.float).T
+    #    pairwise_betterness_ranks = np.array([np.sum(col <= colmat, axis=1) / len(col) for col in colmat], dtype=float).T
     diff_mat = np.vstack((diff_aids, diff_rank.T)).T
     col_lbls = list(chain(['qaid'], map(lambda x: 'cfg%d_rank' % x, range(nConfig))))
     col_type  = list(chain([int], [int] * nConfig))
