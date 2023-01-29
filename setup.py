@@ -199,7 +199,7 @@ VERSION = parse_version("ibeis/__init__.py")
 if __name__ == "__main__":
     setupkw = {}
 
-    setupkw["install_requires"] = parse_requirements("requirements/runtime.txt")
+    setupkw["install_requires"] = parse_requirements("requirements/runtime.txt", versions=True)
     setupkw["extras_require"] = {
         "all": parse_requirements("requirements.txt"),
         "tests": parse_requirements("requirements/tests.txt"),
