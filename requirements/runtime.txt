@@ -14,8 +14,10 @@ pyhesaff>=2.1.1
 
 # Other packages
 
-flask>=0.10.1
-pygments>=2.1.3
+#flask>=0.10.1
+flask>=2.1.3
+pygments>=2.12.0
+#pygments>=2.1.3
 packaging>=21.3      ; python_version >= '3.6'
 boto>=2.49.0
 colorama>=0.3.2
