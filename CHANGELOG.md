@@ -9,6 +9,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Fixed
 * Fix np.float, np.bool, and np.int issue
+* Fixed distutils version issue
 
 ## [Version 2.2.5]  - Released 2020-July-4
 

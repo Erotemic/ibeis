@@ -3,9 +3,13 @@ from __future__ import absolute_import, division, print_function
 from os.path import split, splitext, join, exists
 import six
 import datetime
-import distutils
 import utool as ut
+try:
+    from packaging.version import parse as LooseVersion
+except ImportError:
+    from distutils.version import LooseVersion
 (print, rrr, profile) = ut.inject2(__name__)
+
 
 VERBOSE_SQL = ut.get_argflag(('--print-sql', '--verbose-sql', '--verb-sql', '--verbsql'))
 NOT_QUIET = not (ut.QUIET or ut.get_argflag('--quiet-sql'))
@@ -25,8 +29,8 @@ def compare_string_versions(a, b):
         >>> print(result)
         1, -1, 0
     """
-    va = distutils.version.LooseVersion(a)
-    vb = distutils.version.LooseVersion(b)
+    va = LooseVersion(a)
+    vb = LooseVersion(b)
     if va > vb:
         return 1
     elif va < vb:

@@ -27,6 +27,10 @@ import utool as ut
 import vtool_ibeis as vt
 from ibeis.web import routes_ajax
 import six
+try:
+    from packaging.version import parse as LooseVersion
+except ImportError:
+    from distutils.version import LooseVersion
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -345,8 +349,6 @@ def add_images(ibs, gpath_list, params_list=None, as_annots=False,
     # </DEBUG>
 
     # Execute SQL Add
-    from distutils.version import LooseVersion
-
     if LooseVersion(ibs.db.get_db_version()) >= LooseVersion('1.3.4'):
         colnames = IMAGE_COLNAMES + ('image_original_path', 'image_location_code')
         params_list = [tuple(params) + (gpath, location_for_names)
@@ -841,8 +843,9 @@ def _set_image_orientation(ibs, gid_list, orientation_list):
 
 
 def update_image_rotate_90(ibs, gid_list, direction):
-    from vtool_ibeis.exif import (ORIENTATION_DICT_INVERSE, ORIENTATION_ORDER_LIST,
-                            ORIENTATION_UNDEFINED, ORIENTATION_000)
+    from vtool_ibeis.exif import (ORIENTATION_DICT_INVERSE,
+                                  ORIENTATION_ORDER_LIST,
+                                  ORIENTATION_UNDEFINED, ORIENTATION_000)
 
     def _update_bounding_boxes(gid, val):
         full_w, full_h = ibs.get_image_sizes(gid)
