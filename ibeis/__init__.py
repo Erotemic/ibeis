@@ -15,15 +15,20 @@ except ImportError as ex:
         prevents us from marking cv2 as package dependency.
         To work around this we require that the user install this package with
         one of the following extras tags:
-        `pip install ibeis[graphics]` xor
-        `pip install ibeis[headless]`.
+        `pip install ibeis[headless]` xor
+        `pip install ibeis[graphics]`.
+
+        IT IS STRONGLY RECOMMENDED THAT YOU USE THE "headless" version of
+        opencv. The only reason you should choose "graphics" is if you have
+        another program in your stack that requires `opencv-python` and does
+        not work with `opencv-python-headless`.
 
         Alternatively, the user can directly install the cv2 package as a post
         processing step via:
         `pip install opencv-python-headless` xor
         `pip install opencv-python`.
 
-        We appologize for this issue and hope this documentation is sufficient.
+        We apologize for this issue and hope this documentation is sufficient.
 
         orig_ex={!r}
         ''').format(ex)
