@@ -27,7 +27,7 @@ ubelt >= 1.2.3
 futures_actors >= 0.0.5
 
 utool >= 2.1.7
-vtool_ibeis >= 2.1.0
+vtool_ibeis >= 2.2.0
 dtool_ibeis >= 1.1.1
 plottool_ibeis >= 2.2.1
 guitool_ibeis >= 2.1.2
