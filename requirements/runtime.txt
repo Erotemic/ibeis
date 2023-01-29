@@ -23,7 +23,7 @@ statsmodels>=0.12.2     ; python_version < '3.8' and python_version >= '3.7'    
 
 
 delorean >= 1.0.0
-ubelt >= 1.2.2
+ubelt >= 1.2.3
 futures_actors >= 0.0.5
 
 utool >= 2.1.7
