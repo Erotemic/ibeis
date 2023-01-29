@@ -8,6 +8,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Fixed
 * Numpy dtype issues
+* Fixed 3.11 change with random.Random
 
 ### Changed
 * Added 3.11 support

@@ -631,7 +631,7 @@ def crossval_helper(nid_to_sample_pool, perquery, perdatab, n_need,
         while len(splits) < n_combos:
             # combo = tuple(sorted(rng.choice(items, size, replace=False)))
             qcombo = tuple(sorted(rng.sample(pool, perquery)))
-            remain = poolset - set(qcombo)
+            remain = sorted(poolset - set(qcombo))
             dcombo = tuple(sorted(rng.sample(remain, perdatab)))
             # TODO: try not to use queries / databases that we've used before
             # until we've exhauseted those possibilities.

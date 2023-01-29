@@ -232,6 +232,7 @@ def make_review_api(ibs, cm_list, review_cfg, qreq_=None):
 
     Example:
         >>> # ENABLE_DOCTEST
+        >>> # xdoctest: +REQUIRES(env:DISPLAY)
         >>> from ibeis.gui.id_review_api import *  # NOQA
         >>> import ibeis
         >>> import guitool_ibeis as gt
