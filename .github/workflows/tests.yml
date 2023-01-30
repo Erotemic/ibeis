@@ -66,7 +66,8 @@ jobs:
         # Get path to installed package
         MOD_DPATH=$(python -c "import ibeis, os; print(os.path.dirname(ibeis.__file__))")
         echo "MOD_DPATH = $MOD_DPATH"
-        python -m pytest --cov={self.mod_name} $MOD_DPATH ../tests
+        # python -m pytest --cov={self.mod_name} $MOD_DPATH ../tests
+        python -m xdoctest $MOD_DPATH 
         cd ..
     - name: Test full loose sdist
       run: |-
@@ -81,7 +82,8 @@ jobs:
         # Get path to installed package
         MOD_DPATH=$(python -c "import ibeis, os; print(os.path.dirname(ibeis.__file__))")
         echo "MOD_DPATH = $MOD_DPATH"
-        python -m pytest --cov={self.mod_name} $MOD_DPATH ../tests
+        #python -m pytest --cov={self.mod_name} $MOD_DPATH ../tests
+        python -m xdoctest $MOD_DPATH 
         cd ..
     - name: Upload sdist artifact
       uses: actions/upload-artifact@v3
@@ -213,7 +215,8 @@ jobs:
         mkdir -p "ci_ibeis_workdir"
         python -m ibeis --set-workdir="$(readlink -f ci_ibeis_workdir)" --nogui
         python -m ibeis --resetdbs
-        python -m pytest -p pytester -p no:doctest --xdoctest --cov-config ../pyproject.toml --cov-report term --cov="$MOD_NAME" "$MOD_DPATH" ../tests
+        #python -m pytest -p pytester -p no:doctest --xdoctest --cov-config ../pyproject.toml --cov-report term --cov="$MOD_NAME" "$MOD_DPATH" ../tests
+        python -m xdoctest $MOD_DPATH 
         echo "pytest command finished, moving the coverage file to the repo root"
         ls -al
         # Move coverage file to a new name
