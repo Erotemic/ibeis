@@ -66,6 +66,12 @@ jobs:
         # Get path to installed package
         MOD_DPATH=$(python -c "import ibeis, os; print(os.path.dirname(ibeis.__file__))")
         echo "MOD_DPATH = $MOD_DPATH"
+        mkdir -p "ci_ibeis_workdir"
+        echo "About to set the workdir"
+        python -m ibeis --set-workdir="$(readlink -f ci_ibeis_workdir)" --nogui
+        echo "About to reset the dbs"
+        python -m ibeis --resetdbs
+        #python -m pytest -p pytester -p no:doctest --xdoctest --cov-config ../pyproject.toml --cov-report term --cov="$MOD_NAME" "$MOD_DPATH" ../tests
         # python -m pytest --cov={self.mod_name} $MOD_DPATH ../tests
         python -m xdoctest $MOD_DPATH 
         cd ..
@@ -82,6 +88,12 @@ jobs:
         # Get path to installed package
         MOD_DPATH=$(python -c "import ibeis, os; print(os.path.dirname(ibeis.__file__))")
         echo "MOD_DPATH = $MOD_DPATH"
+        mkdir -p "ci_ibeis_workdir"
+        echo "About to set the workdir"
+        python -m ibeis --set-workdir="$(readlink -f ci_ibeis_workdir)" --nogui
+        echo "About to reset the dbs"
+        python -m ibeis --resetdbs
+        #python -m pytest -p pytester -p no:doctest --xdoctest --cov-config ../pyproject.toml --cov-report term --cov="$MOD_NAME" "$MOD_DPATH" ../tests
         #python -m pytest --cov={self.mod_name} $MOD_DPATH ../tests
         python -m xdoctest $MOD_DPATH 
         cd ..
@@ -213,7 +225,9 @@ jobs:
         echo "MOD_DPATH = $MOD_DPATH"
         echo "running the pytest command inside the workspace"
         mkdir -p "ci_ibeis_workdir"
+        echo "About to set the workdir"
         python -m ibeis --set-workdir="$(readlink -f ci_ibeis_workdir)" --nogui
+        echo "About to reset the dbs"
         python -m ibeis --resetdbs
         #python -m pytest -p pytester -p no:doctest --xdoctest --cov-config ../pyproject.toml --cov-report term --cov="$MOD_NAME" "$MOD_DPATH" ../tests
         python -m xdoctest $MOD_DPATH 
