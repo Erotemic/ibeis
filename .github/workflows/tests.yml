@@ -107,8 +107,10 @@ jobs:
       with:
         name: wheels
         path: wheelhouse
-    - name: Find wheel
+    - name: Install wheel ${{ matrix.install-extras }}
       shell: bash
+      env:
+        INSTALL_EXTRAS: ${{ matrix.install-extras }}
       run: |-
         echo "Finding the path to the wheel"
         ls -al wheelhouse
@@ -120,11 +122,6 @@ jobs:
         echo "WHEEL_FPATH=$WHEEL_FPATH"
         export MOD_VERSION=$(python -c "from pkginfo import Wheel; print(Wheel('$WHEEL_FPATH').version)")
         echo "MOD_VERSION=$MOD_VERSION"
-    - name: Install wheel ${{ matrix.install-extras }}
-      shell: bash
-      env:
-        INSTALL_EXTRAS: ${{ matrix.install-extras }}
-      run: |-
         echo "Install the wheel (ensureing we are using the version we just built)"
         # NOTE: THE VERSION MUST BE NEWER THAN AN EXISTING PYPI VERSION OR THIS MAY FAIL
         pip install --prefer-binary "$MOD_NAME[$INSTALL_EXTRAS]==$MOD_VERSION" -f wheelhouse
