@@ -64,7 +64,7 @@ def autogen_ipynb(ibs, launch=None, run=None):
         python -m ibeis autogen_ipynb --ipynb --db Oxford -a default:qhas_any=\(query,\),dpername=1,exclude_reference=True,dminqual=good
         python -m ibeis autogen_ipynb --ipynb --db PZ_MTEST -a default -t best:lnbnn_normalizer=[None,normlnbnn-test]
 
-        python -m ibeis.templates.generate_notebook --exec-autogen_ipynb --db wd_peter_blinston --ipynb
+        python -m ibeis.templates.generate_notebook autogen_ipynb --db wd_peter_blinston --ipynb
 
         python -m ibeis autogen_ipynb --db PZ_Master1 --ipynb
         python -m ibeis autogen_ipynb --db PZ_Master1 -a timectrl:qindex=0:100 -t best best:normsum=True --ipynb --noexample
@@ -204,8 +204,8 @@ def make_ibeis_notebook(ibs):
         ibs (ibeis.IBEISController):  ibeis controller object
 
     CommandLine:
-        python -m ibeis.templates.generate_notebook --exec-make_ibeis_notebook --db wd_peter_blinston --asreport
-        python -m ibeis --tf --exec-make_ibeis_notebook
+        python -m ibeis.templates.generate_notebook make_ibeis_notebook --db wd_peter_blinston --asreport
+        python -m ibeis --tf make_ibeis_notebook
         python -m ibeis --tf make_ibeis_notebook --db lynx
         jupyter-notebook tmp.ipynb
         runipy tmp.ipynb --html report.html

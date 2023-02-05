@@ -103,7 +103,7 @@ def initialize_job_manager(ibs):
     Run from the webserver
 
     CommandLine:
-        python -m ibeis.web.job_engine --exec-initialize_job_manager:0
+        python -m ibeis.web.job_engine initialize_job_manager:0
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -190,7 +190,7 @@ def get_job_id_list(ibs):
 
     CommandLine:
         # Run Everything together
-        python -m ibeis.web.job_engine --exec-get_job_status
+        python -m ibeis.web.job_engine get_job_status
 
         # Start job queue in its own process
         python -m ibeis.web.job_engine job_engine_tester --bg
@@ -198,7 +198,7 @@ def get_job_id_list(ibs):
         ./main.py --web --fg
         pass
         # Run foreground process
-        python -m ibeis.web.job_engine --exec-get_job_status:0 --fg
+        python -m ibeis.web.job_engine get_job_status:0 --fg
 
     Example:
         >>> # xdoctest: +REQUIRES(--web)
@@ -223,7 +223,7 @@ def get_job_status(ibs, jobid):
 
     CommandLine:
         # Run Everything together
-        python -m ibeis.web.job_engine --exec-get_job_status
+        python -m ibeis.web.job_engine get_job_status
 
         # Start job queue in its own process
         python -m ibeis.web.job_engine job_engine_tester --bg
@@ -231,7 +231,7 @@ def get_job_status(ibs, jobid):
         ./main.py --web --fg
         pass
         # Run foreground process
-        python -m ibeis.web.job_engine --exec-get_job_status:0 --fg
+        python -m ibeis.web.job_engine get_job_status:0 --fg
 
     Example:
         >>> # xdoctest: +REQUIRES(--web)
@@ -276,8 +276,8 @@ def _get_random_open_port():
 def job_engine_tester():
     """
     CommandLine:
-        python -m ibeis.web.job_engine --exec-job_engine_tester
-        python -b -m ibeis.web.job_engine --exec-job_engine_tester
+        python -m ibeis.web.job_engine job_engine_tester
+        python -b -m ibeis.web.job_engine job_engine_tester
 
         python -m ibeis.web.job_engine job_engine_tester
         python -m ibeis.web.job_engine job_engine_tester --bg

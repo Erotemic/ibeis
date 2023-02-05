@@ -187,7 +187,7 @@ def compress_aidcfg(acfg, filter_nones=False, filter_empty=False, force_noncommo
 
     CommandLine:
         #python -m ibeis --tf compress_aidcfg
-        python -m ibeis.expt.annotation_configs --exec-compress_aidcfg --show
+        python -m ibeis.expt.annotation_configs compress_aidcfg --show
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -356,7 +356,7 @@ def print_acfg_list(acfg_list, expanded_aids_list=None, ibs=None,
         combined (bool): (default = False)
 
     CommandLine:
-        python -m ibeis.expt.annotation_configs --exec-print_acfg_list
+        python -m ibeis.expt.annotation_configs print_acfg_list
 
     Example:
         >>> # DISABLE_DOCTEST

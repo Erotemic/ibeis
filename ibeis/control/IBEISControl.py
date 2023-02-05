@@ -1043,8 +1043,8 @@ class IBEISController(BASE_CLASS):
     def get_current_log_text(ibs):
         r"""
         CommandLine:
-            python -m ibeis.control.IBEISControl --exec-get_current_log_text
-            python -m ibeis.control.IBEISControl --exec-get_current_log_text --domain http://52.33.105.88
+            python -m ibeis.control.IBEISControl get_current_log_text
+            python -m ibeis.control.IBEISControl get_current_log_text --domain http://52.33.105.88
 
         Example:
             >>> # xdoctest: +REQUIRES(--web)
@@ -1105,8 +1105,8 @@ class IBEISController(BASE_CLASS):
             None: None
 
         CommandLine:
-            python -m ibeis.control.IBEISControl --exec-get_database_icon --show
-            python -m ibeis.control.IBEISControl --exec-get_database_icon --show --db Oxford
+            python -m ibeis.control.IBEISControl get_database_icon --show
+            python -m ibeis.control.IBEISControl get_database_icon --show --db Oxford
 
         Example:
             >>> # DISABLE_DOCTEST

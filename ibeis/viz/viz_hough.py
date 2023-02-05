@@ -48,9 +48,9 @@ def show_probability_chip(ibs, aid, species=None, fnum=None, config2_=None,
     TODO: allow species override in controller
 
     CommandLine:
-        python -m ibeis.viz.viz_hough --exec-show_probability_chip --cnn --show
-        python -m ibeis.viz.viz_hough --exec-show_probability_chip --cnn --show --db PZ_Master1
-        python -m ibeis.viz.viz_hough --exec-show_probability_chip --cnn --show --db PZ_Master1 --aid 9970
+        python -m ibeis.viz.viz_hough show_probability_chip --cnn --show
+        python -m ibeis.viz.viz_hough show_probability_chip --cnn --show --db PZ_Master1
+        python -m ibeis.viz.viz_hough show_probability_chip --cnn --show --db PZ_Master1 --aid 9970
 
     Example:
         >>> # SCRIPT

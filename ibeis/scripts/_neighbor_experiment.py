@@ -427,7 +427,7 @@ def trytest_incremental_add(ibs):
 def trytest_multiple_add_removes():
     r"""
     CommandLine:
-        python -m ibeis.algo.hots._neighbor_experiment --exec-test_multiple_add_removes
+        python -m ibeis.algo.hots._neighbor_experiment test_multiple_add_removes
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -632,7 +632,7 @@ def trytest_multiple_add_removes():
 def pyflann_test_remove_add():
     r"""
     CommandLine:
-        python -m ibeis.algo.hots._neighbor_experiment --exec-pyflann_test_remove_add
+        python -m ibeis.algo.hots._neighbor_experiment pyflann_test_remove_add
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -677,7 +677,7 @@ def pyflann_test_remove_add():
 def pyflann_test_remove_add2():
     r"""
     CommandLine:
-        python -m ibeis.algo.hots._neighbor_experiment --exec-pyflann_test_remove_add2
+        python -m ibeis.algo.hots._neighbor_experiment pyflann_test_remove_add2
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -750,7 +750,7 @@ def pyflann_remove_and_save():
         grep -ER removed_points_ *
 
     CommandLine:
-        python -m ibeis.algo.hots._neighbor_experiment --exec-pyflann_remove_and_save
+        python -m ibeis.algo.hots._neighbor_experiment pyflann_remove_and_save
 
     Example:
         >>> # DISABLE_DOCTEST

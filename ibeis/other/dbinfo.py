@@ -62,27 +62,27 @@ def get_dbinfo(ibs, verbose=True,
         dict:
 
     SeeAlso:
-        python -m ibeis.other.ibsfuncs --exec-get_annot_stats_dict --db PZ_PB_RF_TRAIN --use-hist=True --old=False --per_name_vpedge=False
-        python -m ibeis.other.ibsfuncs --exec-get_annot_stats_dict --db PZ_PB_RF_TRAIN --all
+        python -m ibeis.other.ibsfuncs get_annot_stats_dict --db PZ_PB_RF_TRAIN --use-hist=True --old=False --per_name_vpedge=False
+        python -m ibeis.other.ibsfuncs get_annot_stats_dict --db PZ_PB_RF_TRAIN --all
 
     CommandLine:
-        python -m ibeis.other.dbinfo --exec-get_dbinfo:0
+        python -m ibeis.other.dbinfo get_dbinfo:0
         python -m ibeis.other.dbinfo get_dbinfo:1
         python -m ibeis.other.dbinfo get_dbinfo:0 --db NNP_Master3
         python -m ibeis.other.dbinfo get_dbinfo:0 --db PZ_Master1
         python -m ibeis.other.dbinfo get_dbinfo:0 --db GZ_ALL
-        python -m ibeis.other.dbinfo --exec-get_dbinfo:0 --db PZ_ViewPoints
-        python -m ibeis.other.dbinfo --exec-get_dbinfo:0 --db GZ_Master1
+        python -m ibeis.other.dbinfo get_dbinfo:0 --db PZ_ViewPoints
+        python -m ibeis.other.dbinfo get_dbinfo:0 --db GZ_Master1
 
-        python -m ibeis.other.dbinfo --exec-get_dbinfo:0 --db LF_Bajo_bonito -a default
-        python -m ibeis.other.dbinfo --exec-get_dbinfo:0 --db DETECT_SEATURTLES -a default --readonly
+        python -m ibeis.other.dbinfo get_dbinfo:0 --db LF_Bajo_bonito -a default
+        python -m ibeis.other.dbinfo get_dbinfo:0 --db DETECT_SEATURTLES -a default --readonly
 
-        python -m ibeis.other.dbinfo --exec-get_dbinfo:0 -a ctrl
-        python -m ibeis.other.dbinfo --exec-get_dbinfo:0 -a default:minqual=ok,require_timestamp=True --dbdir ~/lev/media/danger/LEWA
-        python -m ibeis.other.dbinfo --exec-get_dbinfo:0 -a default:minqual=ok,require_timestamp=True --dbdir ~/lev/media/danger/LEWA --loadbackup=0
+        python -m ibeis.other.dbinfo get_dbinfo:0 -a ctrl
+        python -m ibeis.other.dbinfo get_dbinfo:0 -a default:minqual=ok,require_timestamp=True --dbdir ~/lev/media/danger/LEWA
+        python -m ibeis.other.dbinfo get_dbinfo:0 -a default:minqual=ok,require_timestamp=True --dbdir ~/lev/media/danger/LEWA --loadbackup=0
 
-        python -m ibeis.other.dbinfo --exec-get_dbinfo:0 -a default: --dbdir ~/lev/media/danger/LEWA
-        python -m ibeis.other.dbinfo --exec-get_dbinfo:0 -a default: --dbdir ~/lev/media/danger/LEWA --loadbackup=0
+        python -m ibeis.other.dbinfo get_dbinfo:0 -a default: --dbdir ~/lev/media/danger/LEWA
+        python -m ibeis.other.dbinfo get_dbinfo:0 -a default: --dbdir ~/lev/media/danger/LEWA --loadbackup=0
 
     Example1:
         >>> # SCRIPT
@@ -614,8 +614,8 @@ def hackshow_names(ibs, aid_list, fnum=None):
         aid_list (list):
 
     CommandLine:
-        python -m ibeis.other.dbinfo --exec-hackshow_names --show
-        python -m ibeis.other.dbinfo --exec-hackshow_names --show --db PZ_Master1
+        python -m ibeis.other.dbinfo hackshow_names --show
+        python -m ibeis.other.dbinfo hackshow_names --show --db PZ_Master1
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -781,10 +781,10 @@ def latex_dbstats(ibs_list, **kwargs):
         ibs (IBEISController):  ibeis controller object
 
     CommandLine:
-        python -m ibeis.other.dbinfo --exec-latex_dbstats --dblist testdb1
-        python -m ibeis.other.dbinfo --exec-latex_dbstats --dblist testdb1 --show
-        python -m ibeis.other.dbinfo --exec-latex_dbstats --dblist PZ_Master0 testdb1 --show
-        python -m ibeis.other.dbinfo --exec-latex_dbstats --dblist PZ_Master0 PZ_MTEST GZ_ALL --show
+        python -m ibeis.other.dbinfo latex_dbstats --dblist testdb1
+        python -m ibeis.other.dbinfo latex_dbstats --dblist testdb1 --show
+        python -m ibeis.other.dbinfo latex_dbstats --dblist PZ_Master0 testdb1 --show
+        python -m ibeis.other.dbinfo latex_dbstats --dblist PZ_Master0 PZ_MTEST GZ_ALL --show
         python -m ibeis.other.dbinfo latex_dbstats --dblist GZ_ALL NNP_MasterGIRM_core --show
 
     Example:

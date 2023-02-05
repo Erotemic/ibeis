@@ -200,7 +200,7 @@ def get_hots_flat_table(ibs):
         str: flat_table_str
 
     CommandLine:
-        python -m ibeis.dbio.export_hsdb --exec-get_hots_flat_table
+        python -m ibeis.dbio.export_hsdb get_hots_flat_table
 
     Example:
         >>> # ENABLE_DOCTEST

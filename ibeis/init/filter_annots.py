@@ -934,7 +934,7 @@ def expand_acfgs(ibs, aidcfg, verbose=None, use_cache=None,
         python -m ibeis --tf get_annotcfg_list  --db Oxford -a default:qhas_any=\(query,\),dpername=2,exclude_reference=True --acfginfo --verbtd  --veryverbtd --nocache-aid
 
     CommandLine:
-        python -m ibeis.init.filter_annots --exec-expand_acfgs --show
+        python -m ibeis.init.filter_annots expand_acfgs --show
 
     Example:
         >>> # ENABLE_DOCTEST

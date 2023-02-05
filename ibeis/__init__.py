@@ -130,7 +130,7 @@ def run_experiment(e='print', db='PZ_MTEST', dbdir=None, a=['unctrl'], t=['defau
         function: func -  live python function
 
     CommandLine:
-        python -m ibeis.__init__ --exec-run_experiment --show
+        python -m ibeis.__init__ run_experiment --show
 
     Example:
         >>> # DISABLE_DOCTEST

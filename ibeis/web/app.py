@@ -20,7 +20,7 @@ def tst_html_error():
     This test will show what our current errors look like
 
     CommandLine:
-        python -m ibeis.web.app --exec-tst_html_error
+        python -m ibeis.web.app tst_html_error
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -174,9 +174,9 @@ def start_web_annot_groupreview(ibs, aid_list):
         aid_list (list):  list of annotation rowids
 
     CommandLine:
-        python -m ibeis.tag_funcs --exec-start_web_annot_groupreview --db PZ_Master1
-        python -m ibeis.tag_funcs --exec-start_web_annot_groupreview --db GZ_Master1
-        python -m ibeis.tag_funcs --exec-start_web_annot_groupreview --db GIRM_Master1
+        python -m ibeis.tag_funcs start_web_annot_groupreview --db PZ_Master1
+        python -m ibeis.tag_funcs start_web_annot_groupreview --db GZ_Master1
+        python -m ibeis.tag_funcs start_web_annot_groupreview --db GIRM_Master1
 
     Example:
         >>> # SCRIPT

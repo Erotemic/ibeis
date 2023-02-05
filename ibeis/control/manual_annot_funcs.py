@@ -1412,7 +1412,7 @@ def get_annot_groundtruth(ibs, aid_list, is_exemplar=None, noself=True,
         python -m ibeis.control.manual_annot_funcs get_annot_groundtruth:0
         python -m ibeis.control.manual_annot_funcs get_annot_groundtruth:1
         python -m ibeis.control.manual_annot_funcs get_annot_groundtruth:2
-        python -m --tf get_annot_groundtruth:0 --db=PZ_Master0 --aids=97 --exec-mode
+        python -m --tf get_annot_groundtruth:0 --db=PZ_Master0 --aids=97 mode
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -2304,7 +2304,7 @@ def get_annot_name_rowids(ibs, aid_list, distinguish_unknowns=True, assume_uniqu
         list_ (list): the name id of each annotation.
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --exec-get_annot_name_rowids
+        python -m ibeis.control.manual_annot_funcs get_annot_name_rowids
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -2588,7 +2588,7 @@ def get_annot_image_unixtimes_asfloat(ibs, aid_list):
         list: unixtime_list
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --exec-get_annot_image_unixtimes_asfloat --show --db PZ_MTEST
+        python -m ibeis.control.manual_annot_funcs get_annot_image_unixtimes_asfloat --show --db PZ_MTEST
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -3206,7 +3206,7 @@ def get_annot_probchip_fpath(ibs, aid_list, config2_=None):
         list: probchip_fpath_list
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --exec-get_annot_probchip_fpath --show
+        python -m ibeis.control.manual_annot_funcs get_annot_probchip_fpath --show
 
     Example:
         >>> # DISABLE_DOCTEST

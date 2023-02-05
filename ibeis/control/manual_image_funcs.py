@@ -176,7 +176,7 @@ def get_image_gid(ibs, gid_list, eager=True, nInput=None):
     """ self verifier
 
     CommandLine:
-        python -m ibeis.control.manual_image_funcs --exec-get_image_gid
+        python -m ibeis.control.manual_image_funcs get_image_gid
 
     Example:
         >>> # ENABLE_DOCTEST

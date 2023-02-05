@@ -45,9 +45,9 @@ print, rrr, profile = ut.inject2(__name__)
 def compare_score_pdfs(testres):
     """
     CommandLine:
-        python -m ibeis.expt.test_result --exec-compare_score_pdfs --show --present
-        python -m ibeis.expt.test_result --exec-compare_score_pdfs --show --present --nocache
-        python -m ibeis.expt.test_result --exec-compare_score_pdfs --show --present -a timectrl:qindex=0:50
+        python -m ibeis.expt.test_result compare_score_pdfs --show --present
+        python -m ibeis.expt.test_result compare_score_pdfs --show --present --nocache
+        python -m ibeis.expt.test_result compare_score_pdfs --show --present -a timectrl:qindex=0:50
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -473,9 +473,9 @@ def load_featscore_normalizer(normer_cfgstr):
         normer_cfgstr (?):
 
     CommandLine:
-        python -m ibeis.algo.hots.scorenorm --exec-load_featscore_normalizer --show
-        python -m ibeis.algo.hots.scorenorm --exec-load_featscore_normalizer --show --cfgstr=featscore
-        python -m ibeis.algo.hots.scorenorm --exec-load_featscore_normalizer --show --cfgstr=lovb
+        python -m ibeis.algo.hots.scorenorm load_featscore_normalizer --show
+        python -m ibeis.algo.hots.scorenorm load_featscore_normalizer --show --cfgstr=featscore
+        python -m ibeis.algo.hots.scorenorm load_featscore_normalizer --show --cfgstr=lovb
 
     Example:
         >>> # SCRIPT
@@ -692,7 +692,7 @@ def get_training_featscores(qreq_, cm_list, disttype=None, namemode=True,
         tuple: (tp_scores, tn_scores, scorecfg)
 
     CommandLine:
-        python -m ibeis.algo.hots.scorenorm --exec-get_training_featscores
+        python -m ibeis.algo.hots.scorenorm get_training_featscores
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -784,7 +784,7 @@ def get_topannot_training_idxs(cm, num=2):
         num (int): number of top annots per TP/TN (default = 2)
 
     CommandLine:
-        python -m ibeis.algo.hots.scorenorm --exec-get_topannot_training_idxs --show
+        python -m ibeis.algo.hots.scorenorm get_topannot_training_idxs --show
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -889,7 +889,7 @@ def get_topname_training_idxs(cm, num=5):
 def get_training_fsv(cm, namemode=True, num=None, top_percent=None):
     """
     CommandLine:
-        python -m ibeis.algo.hots.scorenorm --exec-get_training_fsv --show
+        python -m ibeis.algo.hots.scorenorm get_training_fsv --show
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -947,8 +947,8 @@ def get_training_desc_dist(cm, qreq_, fsv_col_lbls=[], namemode=True,
         python -m ibeis --tf compare_featscores --show --disttype=L2_sift,normdist -a timectrl -t default:K=1 --db GZ_ALL
 
     CommandLine:
-        python -m ibeis.algo.hots.scorenorm --exec-get_training_desc_dist
-        python -m ibeis.algo.hots.scorenorm --exec-get_training_desc_dist:1
+        python -m ibeis.algo.hots.scorenorm get_training_desc_dist
+        python -m ibeis.algo.hots.scorenorm get_training_desc_dist:1
 
     Example:
         >>> # ENABLE_DOCTEST

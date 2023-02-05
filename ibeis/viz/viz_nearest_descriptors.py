@@ -89,7 +89,7 @@ def show_top_featmatches(qreq_, cm_list):
 
 
     CommandLine:
-        python -m ibeis.viz.viz_nearest_descriptors --exec-show_top_featmatches --show
+        python -m ibeis.viz.viz_nearest_descriptors show_top_featmatches --show
 
     Example:
         >>> # DISABLE_DOCTEST

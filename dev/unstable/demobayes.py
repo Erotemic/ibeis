@@ -32,7 +32,7 @@ def demo_bayesnet(cfg={}):
         python -m ibeis --tf demo_bayesnet --ev :nA=5,nS=5,Na=fred,rand_scores=True --show --verbose
         python -m ibeis --tf demo_bayesnet --ev :nA=4,nS=2,Na=fred,rand_scores=True --show --verbose
 
-        python -m ibeis.unstable.demobayes --exec-demo_bayesnet \
+        python -m ibeis.unstable.demobayes demo_bayesnet \
                 --ev =:nA=4,Sab=0,Sac=0,Sbc=1 \
                 :Sbd=1 :Scd=1 :Sbd=1,Scd=1 :Sbd=1,Scd=1,Sad=0 \
                 --show --present
@@ -87,10 +87,10 @@ def demo_bayesnet(cfg={}):
 def classify_k(cfg={}):
     """
     CommandLine:
-        python -m ibeis.unstable.demobayes --exec-classify_k --show --ev :nA=3
-        python -m ibeis.unstable.demobayes --exec-classify_k --show --ev :nA=3,k=1
-        python -m ibeis.unstable.demobayes --exec-classify_k --show --ev :nA=3,k=0 --method=approx
-        python -m ibeis.unstable.demobayes --exec-classify_k --show --ev :nA=10,k=1 --method=approx
+        python -m ibeis.unstable.demobayes classify_k --show --ev :nA=3
+        python -m ibeis.unstable.demobayes classify_k --show --ev :nA=3,k=1
+        python -m ibeis.unstable.demobayes classify_k --show --ev :nA=3,k=0 --method=approx
+        python -m ibeis.unstable.demobayes classify_k --show --ev :nA=10,k=1 --method=approx
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -229,7 +229,7 @@ def get_toy_data_1vM(num_annots, num_names=None, **kwargs):
         tuple: (pair_list, feat_list)
 
     CommandLine:
-        python -m ibeis.unstable.demobayes --exec-get_toy_data_1vM --show
+        python -m ibeis.unstable.demobayes get_toy_data_1vM --show
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -368,7 +368,7 @@ def get_toy_annots(num_annots, num_names=None, initial_aids=None, initial_nids=N
         tuple: (aids, nids, aids1, nids1, all_aids, all_nids)
 
     CommandLine:
-        python -m ibeis.unstable.demobayes --exec-get_toy_annots
+        python -m ibeis.unstable.demobayes get_toy_annots
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -442,7 +442,7 @@ toy_params = {
 def get_toy_data_1v1(num_annots=5, num_names=None, **kwargs):
     r"""
     CommandLine:
-        python -m ibeis.unstable.demobayes --exec-get_toy_data_1v1 --show
+        python -m ibeis.unstable.demobayes get_toy_data_1v1 --show
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -538,7 +538,7 @@ def learn_prob_score(num_scores=5, pad=55, ret_enc=False, use_cache=None):
         tuple: (discr_domain, discr_p_same)
 
     CommandLine:
-        python -m ibeis.unstable.demobayes --exec-learn_prob_score --show
+        python -m ibeis.unstable.demobayes learn_prob_score --show
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -597,10 +597,10 @@ def classify_one_new_unknown():
     Make a model that knows who the previous annots are and tries to classify a new annot
 
     CommandLine:
-        python -m ibeis.unstable.demobayes --exec-classify_one_new_unknown --verbose
-        python -m ibeis.unstable.demobayes --exec-classify_one_new_unknown --show --verbose --present
-        python3 -m ibeis.unstable.demobayes --exec-classify_one_new_unknown --verbose
-        python3 -m ibeis.unstable.demobayes --exec-classify_one_new_unknown --verbose --diskshow --verbose --present --save demo5.png --dpath . --figsize=20,10 --dpi=128 --clipwhite
+        python -m ibeis.unstable.demobayes classify_one_new_unknown --verbose
+        python -m ibeis.unstable.demobayes classify_one_new_unknown --show --verbose --present
+        python3 -m ibeis.unstable.demobayes classify_one_new_unknown --verbose
+        python3 -m ibeis.unstable.demobayes classify_one_new_unknown --verbose --diskshow --verbose --present --save demo5.png --dpath . --figsize=20,10 --dpi=128 --clipwhite
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -635,7 +635,7 @@ def classify_one_new_unknown():
 def tst_triangle_property():
     r"""
     CommandLine:
-        python -m ibeis.unstable.demobayes --exec-test_triangle_property --show
+        python -m ibeis.unstable.demobayes test_triangle_property --show
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -661,7 +661,7 @@ def tst_triangle_property():
 def demo_structure():
     r"""
     CommandLine:
-        python -m ibeis.unstable.demobayes --exec-demo_structure --show
+        python -m ibeis.unstable.demobayes demo_structure --show
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -677,7 +677,7 @@ def demo_structure():
 def make_bayes_notebook():
     r"""
     CommandLine:
-        python -m ibeis.unstable.demobayes --exec-make_bayes_notebook
+        python -m ibeis.unstable.demobayes make_bayes_notebook
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -732,7 +732,7 @@ def make_bayes_notebook():
 def show_model_templates():
     r"""
     CommandLine:
-        python -m ibeis.unstable.demobayes --exec-show_model_templates
+        python -m ibeis.unstable.demobayes show_model_templates
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -750,7 +750,7 @@ def demo_single_add():
     This demo shows how a name is assigned to a new annotation.
 
     CommandLine:
-        python -m ibeis.unstable.demobayes --exec-demo_single_add --show --present --mode=1
+        python -m ibeis.unstable.demobayes demo_single_add --show --present --mode=1
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -796,7 +796,7 @@ def demo_ambiguity():
     names
 
     CommandLine:
-        python -m ibeis.unstable.demobayes --exec-demo_ambiguity --show --verbose --present
+        python -m ibeis.unstable.demobayes demo_ambiguity --show --verbose --present
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -872,7 +872,7 @@ def demo_annot_idependence_overlap():
 
 
     CommandLine:
-        python -m ibeis.unstable.demobayes --exec-demo_annot_idependence_overlap --verbose --present --show
+        python -m ibeis.unstable.demobayes demo_annot_idependence_overlap --verbose --present --show
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -926,7 +926,7 @@ def demo_name_annot_complexity():
     and names are added.
 
     CommandLine:
-        python -m ibeis.unstable.demobayes --exec-demo_name_annot_complexity --show
+        python -m ibeis.unstable.demobayes demo_name_annot_complexity --show
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -959,8 +959,8 @@ def demo_model_idependencies():
     Independences of the 3 annot 3 name model
 
     CommandLine:
-        python -m ibeis.unstable.demobayes --exec-demo_model_idependencies --mode=1 --num-names=2 --show
-        python -m ibeis.unstable.demobayes --exec-demo_model_idependencies --mode=2
+        python -m ibeis.unstable.demobayes demo_model_idependencies --mode=1 --num-names=2 --show
+        python -m ibeis.unstable.demobayes demo_model_idependencies --mode=2
 
     Example:
         >>> # DISABLE_DOCTEST

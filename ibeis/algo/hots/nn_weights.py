@@ -93,7 +93,7 @@ def fg_match_weighter(nns_list, nnvalid0_list, qreq_):
     foreground feature match weighting
 
     CommandLine:
-        python -m ibeis.algo.hots.nn_weights --exec-fg_match_weighter
+        python -m ibeis.algo.hots.nn_weights fg_match_weighter
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -347,7 +347,7 @@ def mark_name_valid_normalizers(qnid, neighb_topnid, neighb_normnid):
         neighb_selnorm - index of the selected normalizer for each query feature
 
     CommandLine:
-        python -m ibeis.algo.hots.nn_weights --exec-mark_name_valid_normalizers
+        python -m ibeis.algo.hots.nn_weights mark_name_valid_normalizers
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -616,7 +616,7 @@ def gravity_match_weighter(nns_list, nnvalid0_list, qreq_):
 def all_normalized_weights_test():
     r"""
     CommandLine:
-        python -m ibeis.algo.hots.nn_weights --exec-all_normalized_weights_test
+        python -m ibeis.algo.hots.nn_weights all_normalized_weights_test
 
     Example:
         >>> # ENABLE_DOCTEST

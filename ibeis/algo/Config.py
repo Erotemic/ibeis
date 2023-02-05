@@ -201,7 +201,7 @@ class GenericConfig(ConfigBase):
 class NNConfig(ConfigBase):
     r"""
     CommandLine:
-        python -m ibeis.algo.Config --exec-NNConfig
+        python -m ibeis.algo.Config NNConfig
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -473,7 +473,7 @@ class FeatureWeightConfig(ConfigBase):
     """
 
     CommandLine:
-        python -m ibeis.algo.Config --exec-FeatureWeightConfig
+        python -m ibeis.algo.Config FeatureWeightConfig
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -793,7 +793,7 @@ class OccurrenceConfig(ConfigBase):
     """ OccurrenceConfig
 
     CommandLine:
-        python -m ibeis.algo.Config --exec-OccurrenceConfig --show
+        python -m ibeis.algo.Config OccurrenceConfig --show
 
     Example:
         >>> # DISABLE_DOCTEST

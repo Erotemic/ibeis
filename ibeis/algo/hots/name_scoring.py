@@ -176,7 +176,7 @@ def get_chipmatch_namescore_nonvoting_feature_flags(cm, qreq_=None):
     Computes flags to desribe which features can or can not vote
 
     CommandLine:
-        python -m ibeis.algo.hots.name_scoring --exec-get_chipmatch_namescore_nonvoting_feature_flags
+        python -m ibeis.algo.hots.name_scoring get_chipmatch_namescore_nonvoting_feature_flags
 
     Example:
         >>> # ENABLE_DOCTEST

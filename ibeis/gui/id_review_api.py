@@ -520,7 +520,7 @@ def get_match_thumb_fname(cm, daid, qreq_, view_orientation='vertical',
                           draw_matches=True):
     """
     CommandLine:
-        python -m ibeis.gui.id_review_api --exec-get_match_thumb_fname
+        python -m ibeis.gui.id_review_api get_match_thumb_fname
 
     Example:
         >>> # DISABLE_DOCTEST

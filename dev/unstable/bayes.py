@@ -106,9 +106,9 @@ def make_name_model(num_annots, num_names=None, verbose=True, mode=1,
                     special_names=None):
     r"""
     CommandLine:
-        python -m ibeis.algo.hots.bayes --exec-make_name_model --no-cnn
-        python -m ibeis.algo.hots.bayes --exec-make_name_model --show --no-cnn
-        python -m ibeis.algo.hots.bayes --exec-make_name_model --num-annots=3
+        python -m ibeis.algo.hots.bayes make_name_model --no-cnn
+        python -m ibeis.algo.hots.bayes make_name_model --show --no-cnn
+        python -m ibeis.algo.hots.bayes make_name_model --num-annots=3
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -224,7 +224,7 @@ def update_model_evidence(model, name_evidence, score_evidence, other_evidence):
     r"""
 
     CommandLine:
-        python -m ibeis.algo.hots.bayes --exec-update_model_evidence
+        python -m ibeis.algo.hots.bayes update_model_evidence
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -613,7 +613,7 @@ def cluster_query(model, query_vars=None, evidence=None, soft_evidence=None,
                   method=None, operation='maximize'):
     """
     CommandLine:
-        python -m ibeis.algo.hots.bayes --exec-cluster_query --show
+        python -m ibeis.algo.hots.bayes cluster_query --show
 
     GridParams:
         >>> param_grid = dict(
@@ -828,7 +828,7 @@ def show_model(model, evidence={}, soft_evidence={}, **kwargs):
         python3 -c "import pygraphviz; print(pygraphviz.__file__)"
 
     CommandLine:
-        python -m ibeis.algo.hots.bayes --exec-show_model --show
+        python -m ibeis.algo.hots.bayes show_model --show
 
     Example:
         >>> # DISABLE_DOCTEST

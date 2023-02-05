@@ -1661,7 +1661,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         """
 
         CommandLine:
-            python -m ibeis.gui.newgui --exec-edit_image_time --show
+            python -m ibeis.gui.newgui edit_image_time --show
 
         Example:
             >>> # DISABLE_DOCTEST

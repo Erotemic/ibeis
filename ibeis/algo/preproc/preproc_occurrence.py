@@ -219,7 +219,7 @@ def agglomerative_cluster_occurrences(X_data, thresh_sec):
         ndarray: (label_arr) - Length N array of cluster indexes
 
     CommandLine:
-        python -m ibeis.algo.preproc.preproc_occurrence --exec-agglomerative_cluster_occurrences
+        python -m ibeis.algo.preproc.preproc_occurrence agglomerative_cluster_occurrences
 
     References:
         https://docs.scipy.org/doc/scipy-0.9.0/reference/generated/scipy.cluster.hierarchy.fclusterdata.html#scipy.cluster.hierarchy.fclusterdata
@@ -251,7 +251,7 @@ def meanshift_cluster_occurrences(X_data, quantile):
         ndarray : Length N array of labels
 
     CommandLine:
-        python -m ibeis.algo.preproc.preproc_occurrence --exec-meanshift_cluster_occurrences
+        python -m ibeis.algo.preproc.preproc_occurrence meanshift_cluster_occurrences
 
     Example:
         >>> # DISABLE_DOCTEST

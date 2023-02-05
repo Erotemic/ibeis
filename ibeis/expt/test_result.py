@@ -1815,7 +1815,7 @@ class TestResult(ut.NiceRepr):
             tuple: (truth2_prop, prop2_mat)
 
         CommandLine:
-            python -m ibeis.expt.test_result --exec-get_truth2_prop --show
+            python -m ibeis.expt.test_result get_truth2_prop --show
 
         Example:
             >>> # ENABLE_DOCTEST

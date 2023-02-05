@@ -52,7 +52,7 @@ def show_qres_analysis(ibs, cm, qreq_=None, **kwargs):
         N, show_gt, show_query, aid_list, figtitle, viz_name_score, viz_name_score
 
     CommandLine:
-        python -m ibeis.viz.viz_qres --exec-show_qres_analysis --show
+        python -m ibeis.viz.viz_qres show_qres_analysis --show
 
     Example:
         >>> # ENABLE_DOCTEST

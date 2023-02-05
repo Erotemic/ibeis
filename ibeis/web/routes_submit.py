@@ -1115,7 +1115,7 @@ def submit_identification_v2(graph_uuid, **kwargs):
 def group_review_submit(**kwargs):
     """
     CommandLine:
-        python -m ibeis.web.app --exec-group_review_submit
+        python -m ibeis.web.app group_review_submit
 
     Example:
         >>> # UNSTABLE_DOCTEST

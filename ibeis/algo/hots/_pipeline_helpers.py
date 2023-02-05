@@ -102,7 +102,7 @@ def testdata_pre(stopnode, defaultdb='testdb1', p=['default'],
         tuple: (ibs, qreq_, args)
 
     CommandLine:
-        python -m ibeis.algo.hots._pipeline_helpers --exec-testdata_pre --show
+        python -m ibeis.algo.hots._pipeline_helpers testdata_pre --show
 
     Example:
         >>> # DISABLE_DOCTEST

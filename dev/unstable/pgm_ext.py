@@ -76,7 +76,7 @@ class ApproximateFactor(object):
     Maybe rename to sparse factor?
 
     CommandLine:
-        python -m ibeis.algo.hots.pgm_ext --exec-ApproximateFactor --show
+        python -m ibeis.algo.hots.pgm_ext ApproximateFactor --show
 
     Example:
         >>> # UNSTABLE_DOCTEST
@@ -246,7 +246,7 @@ class ApproximateFactor(object):
             inplace (bool): (default = True)
 
         CommandLine:
-            python -m ibeis.algo.hots.pgm_ext --exec-normalize
+            python -m ibeis.algo.hots.pgm_ext normalize
 
         Example:
             >>> # UNSTABLE_DOCTEST
@@ -278,7 +278,7 @@ class ApproximateFactor(object):
         Changes internal variable ordering
 
         CommandLine:
-            python -m ibeis.algo.hots.pgm_ext --exec-reorder
+            python -m ibeis.algo.hots.pgm_ext reorder
 
         Example:
             >>> # UNSTABLE_DOCTEST
@@ -561,7 +561,7 @@ def mustbe_example():
     Simple example where observing F0 forces N0 to take on a value.
 
     CommandLine:
-        python -m ibeis.algo.hots.pgm_ext --exec-mustbe_example --show
+        python -m ibeis.algo.hots.pgm_ext mustbe_example --show
 
     Example:
         >>> # UNSTABLE_DOCTEST
@@ -626,7 +626,7 @@ def mustbe_example():
 def map_example():
     """
     CommandLine:
-        python -m ibeis.algo.hots.pgm_ext --exec-map_example --show
+        python -m ibeis.algo.hots.pgm_ext map_example --show
 
     References:
         https://class.coursera.org/pgm-003/lecture/44
@@ -678,9 +678,9 @@ def coin_example():
           on the second toss will increase.
 
     CommandLine:
-        python -m ibeis.algo.hots.pgm_ext --exec-coin_example
-        python -m ibeis.algo.hots.pgm_ext --exec-coin_example --show
-        python -m ibeis.algo.hots.pgm_ext --exec-coin_example --show --cmd
+        python -m ibeis.algo.hots.pgm_ext coin_example
+        python -m ibeis.algo.hots.pgm_ext coin_example --show
+        python -m ibeis.algo.hots.pgm_ext coin_example --show --cmd
 
     Example:
         >>> # UNSTABLE_DOCTEST

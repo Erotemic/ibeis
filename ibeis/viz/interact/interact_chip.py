@@ -26,7 +26,7 @@ def interact_multichips(ibs, aid_list, config2_=None, **kwargs):
         MultiImageInteraction: iteract_obj
 
     CommandLine:
-        python -m ibeis.viz.interact.interact_chip --exec-interact_multichips --show
+        python -m ibeis.viz.interact.interact_chip interact_multichips --show
 
     Example:
         >>> # SLOW_DOCTEST
@@ -97,7 +97,7 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
         list: callback_list
 
     CommandLine:
-        python -m ibeis.viz.interact.interact_chip --exec-build_annot_context_options
+        python -m ibeis.viz.interact.interact_chip build_annot_context_options
 
     Example:
         >>> # DISABLE_DOCTEST

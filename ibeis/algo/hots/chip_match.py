@@ -461,7 +461,7 @@ class _ChipMatchVisualization(object):
             aid2 (int):  annotation id(default = None)
 
         CommandLine:
-            python -m ibeis.algo.hots.chip_match --exec-ishow_single_annotmatch --show
+            python -m ibeis.algo.hots.chip_match ishow_single_annotmatch --show
 
         Example:
             >>> # DISABLE_DOCTEST
@@ -503,7 +503,7 @@ class _ChipMatchVisualization(object):
     def ishow_analysis(cm, qreq_, **kwargs):
         """
         CommandLine:
-            python -m ibeis.algo.hots.chip_match --exec-_ChipMatchVisualization.ishow_analysis --show
+            python -m ibeis.algo.hots.chip_match _ChipMatchVisualization.ishow_analysis --show
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -537,7 +537,7 @@ class _ChipMatchVisualization(object):
     def imwrite_single_annotmatch(cm, qreq_, aid, **kwargs):
         """
         CommandLine:
-            python -m ibeis.algo.hots.chip_match --exec-ChipMatch.imwrite_single_annotmatch --show
+            python -m ibeis.algo.hots.chip_match ChipMatch.imwrite_single_annotmatch --show
 
         Example:
             >>> # DISABLE_DOCTEST
@@ -637,9 +637,9 @@ class _ChipMatchVisualization(object):
     def render_single_annotmatch(cm, qreq_, aid, **kwargs):
         """
         CommandLine:
-            python -m ibeis.algo.hots.chip_match --exec-_ChipMatchVisualization.render_single_annotmatch --show
-            utprof.py -m ibeis.algo.hots.chip_match --exec-_ChipMatchVisualization.render_single_annotmatch --show
-            utprof.py -m ibeis.algo.hots.chip_match --exec-_ChipMatchVisualization.render_single_annotmatch --show
+            python -m ibeis.algo.hots.chip_match _ChipMatchVisualization.render_single_annotmatch --show
+            utprof.py -m ibeis.algo.hots.chip_match _ChipMatchVisualization.render_single_annotmatch --show
+            utprof.py -m ibeis.algo.hots.chip_match _ChipMatchVisualization.render_single_annotmatch --show
 
         Example:
             >>> # DISABLE_DOCTEST
@@ -713,7 +713,7 @@ class _ChipMatchVisualization(object):
             QueryResult: qres_wgt -  object of feature correspondences and scores
 
         CommandLine:
-            python -m ibeis.algo.hots.chip_match --exec-qt_inspect_gui --show
+            python -m ibeis.algo.hots.chip_match qt_inspect_gui --show
 
         Example:
             >>> # DISABLE_DOCTEST
@@ -1533,7 +1533,7 @@ class _ChipMatchConvenienceGetter(object):
             dict: info_
 
         CommandLine:
-            python -m ibeis.algo.hots.chip_match --exec-get_flat_fm_info --show
+            python -m ibeis.algo.hots.chip_match get_flat_fm_info --show
 
         Example:
             >>> # DISABLE_DOCTEST
@@ -1643,7 +1643,7 @@ class _ChipMatchDebugger(object):
             str: varinfo
 
         CommandLine:
-            python -m ibeis.algo.hots.chip_match --exec-get_inspect_str
+            python -m ibeis.algo.hots.chip_match get_inspect_str
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -2246,7 +2246,7 @@ class ChipMatch(_ChipMatchVisualization,
             ibeis.ChipMatch: out
 
         CommandLine:
-            python -m ibeis.algo.hots.chip_match --exec-extend_results --show
+            python -m ibeis.algo.hots.chip_match extend_results --show
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -2470,7 +2470,7 @@ class ChipMatch(_ChipMatchVisualization,
             ibeis.ChipMatch: out
 
         CommandLine:
-            python -m ibeis.algo.hots.chip_match --exec-take_feature_matches --show
+            python -m ibeis.algo.hots.chip_match take_feature_matches --show
 
         Example:
             >>> # ENABLE_DOCTEST

@@ -92,8 +92,8 @@ def get_annotmatch_rowids_from_aid(ibs, aid_list, eager=True, nInput=None,
     aid_list = ibs.get_valid_aids()
 
     CommandLine:
-        python -m ibeis.annotmatch_funcs --exec-get_annotmatch_rowids_from_aid
-        python -m ibeis.annotmatch_funcs --exec-get_annotmatch_rowids_from_aid:1 --show
+        python -m ibeis.annotmatch_funcs get_annotmatch_rowids_from_aid
+        python -m ibeis.annotmatch_funcs get_annotmatch_rowids_from_aid:1 --show
 
     Example:
         >>> # DISABLE_DOCTEST

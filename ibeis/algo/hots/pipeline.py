@@ -354,8 +354,8 @@ def nearest_neighbor_cacheid2(qreq_, Kpad_list):
         tuple: (nn_mid_cacheid_list, nn_cachedir)
 
     CommandLine:
-        python -m ibeis.algo.hots.pipeline --exec-nearest_neighbor_cacheid2
-        python -m ibeis.algo.hots.pipeline --exec-nearest_neighbor_cacheid2 --superstrict
+        python -m ibeis.algo.hots.pipeline nearest_neighbor_cacheid2
+        python -m ibeis.algo.hots.pipeline nearest_neighbor_cacheid2 --superstrict
 
     Example:
         >>> # ENABLE_DOCTEST

@@ -45,8 +45,8 @@ def print_latexsum(ibs, testres, verbose=True):
         testres (?):
 
     CommandLine:
-        python -m ibeis.expt.experiment_printres --exec-print_latexsum
-        python -m ibeis.scripts.gen_cand_expts --exec-gen_script
+        python -m ibeis.expt.experiment_printres print_latexsum
+        python -m ibeis.scripts.gen_cand_expts gen_script
 
         python -m ibeis --tf print_latexsum -t candidacy --db PZ_Master0 -a controlled --rank-lt-list=1,5,10,100
         python -m ibeis --tf print_latexsum -t candidacy --db PZ_MTEST -a controlled --rank-lt-list=1,5,10,100

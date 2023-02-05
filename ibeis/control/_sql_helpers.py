@@ -101,7 +101,7 @@ def revert_to_backup(ibs):
         db_dir (?):
 
     CommandLine:
-        python -m ibeis.control._sql_helpers --exec-revert_to_backup
+        python -m ibeis.control._sql_helpers revert_to_backup
 
     Example:
         >>> # SCRIPT

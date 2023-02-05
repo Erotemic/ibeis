@@ -358,7 +358,7 @@ def get_missing_gids(ibs, gid_list=None):
         gid_list (list): (default = None)
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --exec-get_missing_gids --db GZ_Master1
+        python -m ibeis.other.ibsfuncs get_missing_gids --db GZ_Master1
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -535,7 +535,7 @@ def check_image_consistency(ibs, gid_list=None):
         gid_list (list): (default = None)
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --exec-check_image_consistency  --db=GZ_Master1
+        python -m ibeis.other.ibsfuncs check_image_consistency  --db=GZ_Master1
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -965,7 +965,7 @@ def fix_exif_data(ibs, gid_list):
         gid_list (list): list of image ids
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --exec-fix_exif_data
+        python -m ibeis.other.ibsfuncs fix_exif_data
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -1521,7 +1521,7 @@ def get_annot_info(ibs, aid_list, default=False, reference_aid=None, **kwargs):
         list: infodict_list
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --exec-get_annot_info --tb
+        python -m ibeis.other.ibsfuncs get_annot_info --tb
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -1959,8 +1959,8 @@ def print_annotmatch_table(ibs):
         ibs (IBEISController):  ibeis controller object
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --exec-print_annotmatch_table
-        python -m ibeis.other.ibsfuncs --exec-print_annotmatch_table --db PZ_Master1
+        python -m ibeis.other.ibsfuncs print_annotmatch_table
+        python -m ibeis.other.ibsfuncs print_annotmatch_table --db PZ_Master1
 
     Example:
         >>> # SCRIPT
@@ -2480,7 +2480,7 @@ def get_primary_species_viewpoint(species, plus=0):
         str: primary_viewpoint
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --exec-get_primary_species_viewpoint
+        python -m ibeis.other.ibsfuncs get_primary_species_viewpoint
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -2639,8 +2639,8 @@ def get_num_annots_per_name(ibs, aid_list):
         aid_list (int):  list of annotation ids
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --exec-get_num_annots_per_name
-        python -m ibeis.other.ibsfuncs --exec-get_num_annots_per_name --db PZ_Master1
+        python -m ibeis.other.ibsfuncs get_num_annots_per_name
+        python -m ibeis.other.ibsfuncs get_num_annots_per_name --db PZ_Master1
 
     Example:
         >>> # UNSTABLE_DOCTEST
@@ -3121,7 +3121,7 @@ def get_annot_quality_viewpoint_subset(ibs, aid_list=None, annots_per_view=2,
                                        prog_hook=None, allow_unknown=False):
     """
     CommandLine:
-        python -m ibeis.other.ibsfuncs --exec-get_annot_quality_viewpoint_subset --show
+        python -m ibeis.other.ibsfuncs get_annot_quality_viewpoint_subset --show
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -3438,7 +3438,7 @@ def get_quality_filterflags(ibs, aid_list, minqual, unknown_ok=True):
         iter: qual_flags
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --exec-get_quality_filterflags
+        python -m ibeis.other.ibsfuncs get_quality_filterflags
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -3483,8 +3483,8 @@ def get_viewpoint_filterflags(ibs, aid_list, valid_yaws, unknown_ok=True, assume
         int: aid_list -  list of annotation ids
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --exec-get_viewpoint_filterflags
-        python -m ibeis.other.ibsfuncs --exec-get_viewpoint_filterflags --db NNP_Master3
+        python -m ibeis.other.ibsfuncs get_viewpoint_filterflags
+        python -m ibeis.other.ibsfuncs get_viewpoint_filterflags --db NNP_Master3
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -4132,8 +4132,8 @@ def filter_annots_using_minimum_timedelta(ibs, aid_list, min_timedelta):
         min_timedelta (?):
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --exec-filter_annots_using_minimum_timedelta
-        python -m ibeis.other.ibsfuncs --exec-filter_annots_using_minimum_timedelta --db PZ_Master1
+        python -m ibeis.other.ibsfuncs filter_annots_using_minimum_timedelta
+        python -m ibeis.other.ibsfuncs filter_annots_using_minimum_timedelta --db PZ_Master1
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -4223,7 +4223,7 @@ def filter_aids_to_species(ibs, aid_list, species, speedhack=True):
         list: aid_list_
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --exec-filter_aids_to_species
+        python -m ibeis.other.ibsfuncs filter_aids_to_species
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -4278,7 +4278,7 @@ def partition_annots_into_corresponding_groups(ibs, aid_list1, aid_list2):
             the other list.
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --exec-partition_annots_into_corresponding_groups
+        python -m ibeis.other.ibsfuncs partition_annots_into_corresponding_groups
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -4506,8 +4506,8 @@ def group_annots_by_multi_prop(ibs, aids, getter_list):
         dict: multiprop2_aids
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --exec-group_annots_by_multi_prop --db PZ_Master1 --props=viewpoint_code,name_rowids --keys1 frontleft
-        python -m ibeis.other.ibsfuncs --exec-group_annots_by_multi_prop
+        python -m ibeis.other.ibsfuncs group_annots_by_multi_prop --db PZ_Master1 --props=viewpoint_code,name_rowids --keys1 frontleft
+        python -m ibeis.other.ibsfuncs group_annots_by_multi_prop
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -4598,19 +4598,19 @@ def get_annot_stats_dict(ibs, aids, prefix='', forceall=False, old=True,
         python -m ibeis get_annot_stats_dict --db PZ_PB_RF_TRAIN --all
         python -m ibeis get_annot_stats_dict --db PZ_Master1 --all
 
-        python -m ibeis.other.ibsfuncs --exec-get_annot_stats_dict
-        python -m ibeis.other.ibsfuncs --exec-get_annot_stats_dict --db PZ_PB_RF_TRAIN --use-hist=True --old=False --per_name_vpedge=False
-        python -m ibeis.other.ibsfuncs --exec-get_annot_stats_dict --db PZ_PB_RF_TRAIN --use-hist=False --old=False --per_name_vpedge=False
+        python -m ibeis.other.ibsfuncs get_annot_stats_dict
+        python -m ibeis.other.ibsfuncs get_annot_stats_dict --db PZ_PB_RF_TRAIN --use-hist=True --old=False --per_name_vpedge=False
+        python -m ibeis.other.ibsfuncs get_annot_stats_dict --db PZ_PB_RF_TRAIN --use-hist=False --old=False --per_name_vpedge=False
 
-        python -m ibeis.other.ibsfuncs --exec-get_annot_stats_dict --db PZ_MTEST --use-hist --per_name_vpedge=False
-        python -m ibeis.other.ibsfuncs --exec-get_annot_stats_dict --db PZ_MTEST --use-hist --per_name_vpedge=False
+        python -m ibeis.other.ibsfuncs get_annot_stats_dict --db PZ_MTEST --use-hist --per_name_vpedge=False
+        python -m ibeis.other.ibsfuncs get_annot_stats_dict --db PZ_MTEST --use-hist --per_name_vpedge=False
 
-        python -m ibeis.other.ibsfuncs --exec-get_annot_stats_dict --db PZ_Master1 --per_name_vpedge=True
-        python -m ibeis.other.ibsfuncs --exec-get_annot_stats_dict --db PZ_Master1 --min_name_hourdist=True
-        python -m ibeis.other.ibsfuncs --exec-get_annot_stats_dict --db GZ_ALL --min_name_hourdist=True --all
-        python -m ibeis.other.ibsfuncs --exec-get_annot_stats_dict --db GZ_Master1 --all
-        python -m ibeis.other.ibsfuncs --exec-get_annot_stats_dict --db PZ_Master1 --min_name_hourdist=True --all
-        python -m ibeis.other.ibsfuncs --exec-get_annot_stats_dict --db NNP_MasterGIRM_core --min_name_hourdist=True --all
+        python -m ibeis.other.ibsfuncs get_annot_stats_dict --db PZ_Master1 --per_name_vpedge=True
+        python -m ibeis.other.ibsfuncs get_annot_stats_dict --db PZ_Master1 --min_name_hourdist=True
+        python -m ibeis.other.ibsfuncs get_annot_stats_dict --db GZ_ALL --min_name_hourdist=True --all
+        python -m ibeis.other.ibsfuncs get_annot_stats_dict --db GZ_Master1 --all
+        python -m ibeis.other.ibsfuncs get_annot_stats_dict --db PZ_Master1 --min_name_hourdist=True --all
+        python -m ibeis.other.ibsfuncs get_annot_stats_dict --db NNP_MasterGIRM_core --min_name_hourdist=True --all
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -4875,7 +4875,7 @@ def compare_nested_props(ibs, aids1_list,
         list of ndarrays:
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --exec-compare_nested_props --show
+        python -m ibeis.other.ibsfuncs compare_nested_props --show
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -5145,7 +5145,7 @@ def find_unlabeled_name_members(ibs, **kwargs):
         ibs (IBEISController):  ibeis controller object
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --exec-find_unlabeled_name_members --qual
+        python -m ibeis.other.ibsfuncs find_unlabeled_name_members --qual
 
     Example:
         >>> # SCRIPT
@@ -5235,7 +5235,7 @@ def get_annot_pair_lazy_dict(ibs, qaid, daid, qconfig2_=None, dconfig2_=None):
         dconfig2_ (dict): (default = None)
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --exec-get_annot_pair_lazy_dict
+        python -m ibeis.other.ibsfuncs get_annot_pair_lazy_dict
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -5267,7 +5267,7 @@ def get_annot_lazy_dict(ibs, aid, config2_=None):
         ut.LazyDict: metadata
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --exec-get_annot_lazy_dict --show
+        python -m ibeis.other.ibsfuncs get_annot_lazy_dict --show
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -5323,7 +5323,7 @@ def get_image_lazydict(ibs, gid, config=None):
         ut.LazyDict: metadata
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --exec-get_annot_lazy_dict2 --show
+        python -m ibeis.other.ibsfuncs get_annot_lazy_dict2 --show
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -5378,7 +5378,7 @@ def get_annot_lazy_dict2(ibs, aid, config=None):
         ut.LazyDict: metadata
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --exec-get_annot_lazy_dict2 --show
+        python -m ibeis.other.ibsfuncs get_annot_lazy_dict2 --show
 
     Example:
         >>> # ENABLE_DOCTEST

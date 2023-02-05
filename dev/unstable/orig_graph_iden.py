@@ -408,7 +408,7 @@ class OrigAnnotInference(object):
                 import scipy.special
                 # SUPER HACK: these are not probabilities
                 # TODO: set a and b based on dbsize and param configuration
-                # python -m plottool_ibeis.draw_func2 --exec-plot_func --show --range=0,3 --func="lambda x: scipy.special.expit(2 * x - 2)"
+                # python -m plottool_ibeis.draw_func2 plot_func --show --range=0,3 --func="lambda x: scipy.special.expit(2 * x - 2)"
                 #a = 2.0
                 a = 1.5
                 b = 2

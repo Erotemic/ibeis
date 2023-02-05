@@ -131,7 +131,7 @@ def parse_cfgstr_list2(cfgstr_list, named_defaults_dict=None, cfgtype=None,
         list: cfg_combos_list
 
     CommandLine:
-        python -m ibeis.expt.cfghelpers --exec-parse_cfgstr_list2
+        python -m ibeis.expt.cfghelpers parse_cfgstr_list2
         python -m ibeis.expt.cfghelpers parse_cfgstr_list2
 
     Example:
@@ -239,7 +239,7 @@ def parse_argv_cfg(argname, default=[''], named_defaults_dict=None,
         list: cfg_list
 
     CommandLine:
-        python -m ibeis.expt.cfghelpers --exec-parse_argv_cfg --filt :foo=bar
+        python -m ibeis.expt.cfghelpers parse_argv_cfg --filt :foo=bar
         python -m ibeis.expt.cfghelpers parse_argv_cfg
 
     Example:

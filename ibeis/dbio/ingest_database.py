@@ -230,8 +230,8 @@ def ingest_rawdata(ibs, ingestable, localize=False):
 
     CommandLine:
         python ibeis/dbio/ingest_database.py --db seals_drop2
-        python -m ibeis.dbio.ingest_database --exec-ingest_rawdata
-        python -m ibeis.dbio.ingest_database --exec-ingest_rawdata --db snow-leopards --imgdir /raid/raw_rsync/snow-leopards
+        python -m ibeis.dbio.ingest_database ingest_rawdata
+        python -m ibeis.dbio.ingest_database ingest_rawdata --db snow-leopards --imgdir /raid/raw_rsync/snow-leopards
 
         python -m ibeis --tf ingest_rawdata --db wd_peter2 --imgdir /raid/raw_rsync/african-dogs --ingest-type=named_folders --species=wild_dog --fmtkey='African Wild Dog: {name}' --force-delete
         python -m ibeis --tf ingest_rawdata --db <newdbname>  --imgdir <path-to-images> --ingest-type=named_folders --species=humpback
@@ -766,7 +766,7 @@ def ingest_polar_bears(dbname):
 def ingest_wilddog_peter(dbname):
     """
     CommandLine:
-        python -m ibeis.dbio.ingest_database --exec-injest_main --db wd_peter_blinston
+        python -m ibeis.dbio.ingest_database injest_main --db wd_peter_blinston
     """
     return Ingestable(dbname, ingest_type='unknown',
                       img_dir='/raid/raw_rsync/african-dogs',
@@ -778,7 +778,7 @@ def ingest_wilddog_peter(dbname):
 def ingest_lynx(dbname):
     """
     CommandLine:
-        python -m ibeis.dbio.ingest_database --exec-injest_main --db lynx
+        python -m ibeis.dbio.ingest_database injest_main --db lynx
     """
     return Ingestable(dbname, ingest_type='named_folders',
                       img_dir='/raid/raw_rsync/iberian-lynx/CARPETAS CATALOGO INDIVIDUOS/',
@@ -791,7 +791,7 @@ def ingest_lynx(dbname):
 def ingest_whale_sharks(dbname):
     """
     CommandLine:
-        python -m ibeis.dbio.ingest_database --exec-injest_main --db WS_ALL
+        python -m ibeis.dbio.ingest_database injest_main --db WS_ALL
     """
     return Ingestable(dbname, ingest_type='named_folders',
                       img_dir='named-left-sharkimages',
@@ -894,7 +894,7 @@ def ingest_oxford_style_db(dbdir, dryrun=False):
         dbdir (str):
 
     CommandLine:
-        python -m ibeis.dbio.ingest_database --exec-ingest_oxford_style_db --show
+        python -m ibeis.dbio.ingest_database ingest_oxford_style_db --show
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -1176,7 +1176,7 @@ def ingest_coco_style_db(dbdir, dryrun=False):
         dbdir (str):
 
     CommandLine:
-        python -m ibeis.dbio.ingest_database --exec-ingest_coco_style_db --show
+        python -m ibeis.dbio.ingest_database ingest_coco_style_db --show
 
     Example:
         >>> # DISABLE_DOCTEST

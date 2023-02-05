@@ -536,8 +536,8 @@ def compute_annotmask(depc, aid_list, config=None):
         (uri, int, int): tup
 
     CommandLine:
-        python -m ibeis.core_annots --exec-compute_annotmask --show
-        python -m ibeis.core_annots --exec-compute_annotmask --show --edit
+        python -m ibeis.core_annots compute_annotmask --show
+        python -m ibeis.core_annots compute_annotmask --show --edit
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -815,7 +815,7 @@ def postprocess_mask(mask, thresh=20, kernel_size=20):
         ndarray: mask2
 
     CommandLine:
-        python -m ibeis.core_annots --exec-postprocess_mask --cnn --show --aid=1 --db PZ_MTEST
+        python -m ibeis.core_annots postprocess_mask --cnn --show --aid=1 --db PZ_MTEST
         python -m ibeis --tf postprocess_mask --cnn --show --db PZ_MTEST --adapteq=True
 
     SeeAlso:
@@ -1134,9 +1134,9 @@ def gen_feat_worker(chip_fpath, probchip_fpath, hesaff_params):
         tuple: (None, kpts, vecs)
 
     CommandLine:
-        python -m ibeis.core_annots --exec-gen_feat_worker --show
-        python -m ibeis.core_annots --exec-gen_feat_worker --show --aid 1988 --db GZ_Master1 --affine-invariance=False --scale_max=30
-        python -m ibeis.core_annots --exec-gen_feat_worker --show --aid 1988 --db GZ_Master1 --affine-invariance=False --maskmethod=None  --scale_max=30
+        python -m ibeis.core_annots gen_feat_worker --show
+        python -m ibeis.core_annots gen_feat_worker --show --aid 1988 --db GZ_Master1 --affine-invariance=False --scale_max=30
+        python -m ibeis.core_annots gen_feat_worker --show --aid 1988 --db GZ_Master1 --affine-invariance=False --maskmethod=None  --scale_max=30
 
     Doctest:
         >>> from ibeis.core_annots import *  # NOQA
@@ -1521,7 +1521,7 @@ def compute_neighbor_index(depc, fids_list, config):
         config (dtool_ibeis.Config):
 
     CommandLine:
-        python -m ibeis.core_annots --exec-compute_neighbor_index --show
+        python -m ibeis.core_annots compute_neighbor_index --show
         python -m ibeis.control.IBEISControl show_depc_annot_table_input --show --tablename=neighbor_index
 
     Example:
@@ -1582,7 +1582,7 @@ if testmode:
             config (dtool_ibeis.Config):
 
         CommandLine:
-            python -m ibeis.core_annots --exec-compute_feature_neighbors --show
+            python -m ibeis.core_annots compute_feature_neighbors --show
             python -m ibeis.control.IBEISControl show_depc_annot_table_input --show --tablename=feat_neighbs
 
         Example:

@@ -861,7 +861,7 @@ class NeighborIndex(object):
                                 kth approximate nearest data vector
 
         CommandLine:
-            python -m ibeis.algo.hots.neighbor_index --exec-get_nn_aids
+            python -m ibeis.algo.hots.neighbor_index get_nn_aids
 
         Example:
             >>> # ENABLE_DOCTEST

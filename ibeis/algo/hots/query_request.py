@@ -581,7 +581,7 @@ class QueryRequest(ut.NiceRepr):
     def _custom_str(qreq_):
         r"""
         CommandLine:
-            python -m ibeis.algo.hots.query_request --exec-_custom_str --show
+            python -m ibeis.algo.hots.query_request _custom_str --show
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -881,7 +881,7 @@ class QueryRequest(ut.NiceRepr):
     def get_data_hashid(qreq_):
         r"""
         CommandLine:
-            python -m ibeis.algo.hots.query_request --exec-QueryRequest.get_query_hashid --show
+            python -m ibeis.algo.hots.query_request QueryRequest.get_query_hashid --show
 
         Example:
             >>> # DISABLE_DOCTEST
@@ -898,7 +898,7 @@ class QueryRequest(ut.NiceRepr):
     def get_query_hashid(qreq_):
         r"""
         CommandLine:
-            python -m ibeis.algo.hots.query_request --exec-QueryRequest.get_query_hashid --show
+            python -m ibeis.algo.hots.query_request QueryRequest.get_query_hashid --show
 
         Example:
             >>> # DISABLE_DOCTEST
@@ -940,7 +940,7 @@ class QueryRequest(ut.NiceRepr):
             str: cfgstr
 
         CommandLine:
-            python -m ibeis.algo.hots.query_request --exec-get_cfgstr
+            python -m ibeis.algo.hots.query_request get_cfgstr
 
         Example:
             >>> # ENABLE_DOCTEST
