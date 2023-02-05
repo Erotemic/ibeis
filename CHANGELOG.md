@@ -9,6 +9,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Changed
 * Ported some utool code to ibeis.util for more direct coupling with this
   library.
+* ibeis will no longer prompt you for a workdir if one is not set. It will just use `ibeis_default_workdir` in the current directory. Old behavior can be restored by setting the `LEGACY_WORKDIR_BEHAVIOR` environment variable.
 
 ### Fixed
 * Fixed issue with numpy 1.24

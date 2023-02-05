@@ -84,10 +84,13 @@ def get_workdir(allow_gui=True):
     print('[ibeis.sysres.get_workdir] work_dir = {!r}'.format(work_dir))
     if work_dir != '.' and exists(work_dir):
         return work_dir
-    if allow_gui:
-        work_dir = set_workdir()
-        return get_workdir(allow_gui=False)
-    return None
+    if os.environ.get('LEGACY_WORKDIR_BEHAVIOR', ''):
+        if allow_gui:
+            work_dir = set_workdir()
+            return get_workdir(allow_gui=False)
+        return None
+    else:
+        return 'ibeis_default_workdir'
 
 
 def set_workdir(work_dir=None, allow_gui=ALLOW_GUI):
@@ -360,7 +363,7 @@ def get_ibsdb_list(workdir=None):
         IBEISController: ibsdb_list -  ibeis controller object
 
     CommandLine:
-        python -m ibeis.init.sysres --test-get_ibsdb_list
+        python -m ibeis.init.sysres get_ibsdb_list
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -402,7 +405,7 @@ def ensure_wd_peter2():
         >>> ut.rsync(archive_name, 'joncrall@lev.cs.rpi.edu:/media/hdd/PUBLIC/databases')
 
     CommandLine:
-        python -m ibeis.init.sysres --exec-ensure_wd_peter2
+        python -m ibeis.init.sysres ensure_wd_peter2
 
     Example:
         >>> # SCRIPT
@@ -418,7 +421,7 @@ def ensure_pz_mtest():
     Ensures that you have the PZ_MTEST dataset
 
     CommandLine:
-        python -m ibeis.init.sysres --exec-ensure_pz_mtest
+        python -m ibeis.init.sysres ensure_pz_mtest
         python -m ibeis --tf ensure_pz_mtest
 
     Ignore:
@@ -590,9 +593,9 @@ def copy_ibeisdb(source_dbdir, dest_dbdir):
 def ensure_pz_mtest_batchworkflow_test():
     r"""
     CommandLine:
-        python -m ibeis.init.sysres --test-ensure_pz_mtest_batchworkflow_test
-        python -m ibeis.init.sysres --test-ensure_pz_mtest_batchworkflow_test --reset
-        python -m ibeis.init.sysres --test-ensure_pz_mtest_batchworkflow_test --reset
+        python -m ibeis.init.sysres ensure_pz_mtest_batchworkflow_test
+        python -m ibeis.init.sysres ensure_pz_mtest_batchworkflow_test --reset
+        python -m ibeis.init.sysres ensure_pz_mtest_batchworkflow_test --reset
 
     Example:
         >>> # SCRIPT
@@ -698,7 +701,7 @@ def ensure_pz_mtest_mergesplit_test():
     Make a test database for MERGE and SPLIT cases
 
     CommandLine:
-        python -m ibeis.init.sysres --test-ensure_pz_mtest_mergesplit_test
+        python -m ibeis.init.sysres ensure_pz_mtest_mergesplit_test
 
     Example:
         >>> # SCRIPT
