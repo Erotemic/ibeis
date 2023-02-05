@@ -105,16 +105,16 @@ def database_intersection_test():
 
 def generate_dbinfo_table():
     """
-    python -m ibeis.other.dbinfo --test-latex_dbstats --dblist PZ_Master0 PZ_FlankHack PZ_MTEST NNP_Master3 GZ_ALL NNP_MasterGIRM_core --show  # NOQA
+    python -m ibeis.other.dbinfo latex_dbstats --dblist PZ_Master0 PZ_FlankHack PZ_MTEST NNP_Master3 GZ_ALL NNP_MasterGIRM_core --show  # NOQA
 
     FIXME: Old database should not be converted to left
-    python -m ibeis.other.dbinfo --test-latex_dbstats --dblist PZ_Master1 --show
-    python -m ibeis.other.dbinfo --test-latex_dbstats --dblist PZ_Master0 PZ_FlankHack PZ_MTEST NNP_Master3 GZ_ALL NNP_MasterGIRM_core --show  # NOQA
-    python -m ibeis.other.dbinfo --test-latex_dbstats --dblist PZ_MTEST --show
-    python -m ibeis.other.dbinfo --test-latex_dbstats --dblist GZ_Master0 --show
-    python -m ibeis.other.dbinfo --test-latex_dbstats --dblist GIR_Tanya --show
-    python -m ibeis.other.dbinfo --test-latex_dbstats --dblist LF_WEST_POINT_OPTIMIZADAS LF_OPTIMIZADAS_NI_V_E LF_Bajo_bonito --show  # NOQA
-    python -m ibeis.other.dbinfo --test-latex_dbstats --dblist JAG_Kieryn JAG_Kelly --show
+    python -m ibeis.other.dbinfo latex_dbstats --dblist PZ_Master1 --show
+    python -m ibeis.other.dbinfo latex_dbstats --dblist PZ_Master0 PZ_FlankHack PZ_MTEST NNP_Master3 GZ_ALL NNP_MasterGIRM_core --show  # NOQA
+    python -m ibeis.other.dbinfo latex_dbstats --dblist PZ_MTEST --show
+    python -m ibeis.other.dbinfo latex_dbstats --dblist GZ_Master0 --show
+    python -m ibeis.other.dbinfo latex_dbstats --dblist GIR_Tanya --show
+    python -m ibeis.other.dbinfo latex_dbstats --dblist LF_WEST_POINT_OPTIMIZADAS LF_OPTIMIZADAS_NI_V_E LF_Bajo_bonito --show  # NOQA
+    python -m ibeis.other.dbinfo latex_dbstats --dblist JAG_Kieryn JAG_Kelly --show
     """
     pass
 

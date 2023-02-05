@@ -47,7 +47,7 @@ def postinject_func(ibs):
         ibs (IBEISController):
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-postinject_func
+        python -m ibeis.other.ibsfuncs postinject_func
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -283,7 +283,7 @@ def assert_valid_aids(ibs, aid_list, verbose=False, veryverbose=False, msg='', a
         veryverbose (bool): (default = False)
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-assert_valid_aids
+        python -m ibeis.other.ibsfuncs assert_valid_aids
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -566,10 +566,10 @@ def check_image_uuid_consistency(ibs, gid_list):
     VERY SLOW
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-check_image_uuid_consistency --db=PZ_Master0
-        python -m ibeis.other.ibsfuncs --test-check_image_uuid_consistency --db=GZ_Master1
-        python -m ibeis.other.ibsfuncs --test-check_image_uuid_consistency
-        python -m ibeis.other.ibsfuncs --test-check_image_uuid_consistency --db lynx
+        python -m ibeis.other.ibsfuncs check_image_uuid_consistency --db=PZ_Master0
+        python -m ibeis.other.ibsfuncs check_image_uuid_consistency --db=GZ_Master1
+        python -m ibeis.other.ibsfuncs check_image_uuid_consistency
+        python -m ibeis.other.ibsfuncs check_image_uuid_consistency --db lynx
 
     Example:
         >>> # SCRIPT
@@ -607,10 +607,10 @@ def check_image_corruption(ibs, gid_list):
     VERY SLOW
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-check_image_uuid_consistency --db=PZ_Master0
-        python -m ibeis.other.ibsfuncs --test-check_image_uuid_consistency --db=GZ_Master1
-        python -m ibeis.other.ibsfuncs --test-check_image_uuid_consistency
-        python -m ibeis.other.ibsfuncs --test-check_image_uuid_consistency --db lynx
+        python -m ibeis.other.ibsfuncs check_image_uuid_consistency --db=PZ_Master0
+        python -m ibeis.other.ibsfuncs check_image_uuid_consistency --db=GZ_Master1
+        python -m ibeis.other.ibsfuncs check_image_uuid_consistency
+        python -m ibeis.other.ibsfuncs check_image_uuid_consistency --db lynx
 
     Example:
         >>> # SCRIPT
@@ -650,7 +650,7 @@ def check_annot_consistency(ibs, aid_list=None):
         aid_list (list):
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-check_annot_consistency
+        python -m ibeis.other.ibsfuncs check_annot_consistency
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -729,7 +729,7 @@ def check_name_consistency(ibs, nid_list):
         nid_list (list):
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-check_name_consistency
+        python -m ibeis.other.ibsfuncs check_name_consistency
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -1070,7 +1070,7 @@ def fix_invalid_nids(ibs):
         ibs (IBEISController):  ibeis controller object
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-fix_invalid_nids
+        python -m ibeis.other.ibsfuncs fix_invalid_nids
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -1110,7 +1110,7 @@ def fix_invalid_name_texts(ibs):
         ibs (IBEISController):  ibeis controller object
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-fix_invalid_names
+        python -m ibeis.other.ibsfuncs fix_invalid_names
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -1157,7 +1157,7 @@ def copy_imagesets(ibs, imgsetid_list):
         list: new_imgsetid_list
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-copy_imagesets
+        python -m ibeis.other.ibsfuncs copy_imagesets
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -1436,7 +1436,7 @@ def unflat_map(method, unflat_rowids, **kwargs):
         list of values: unflat_vals
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-unflat_map
+        python -m ibeis.other.ibsfuncs unflat_map
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -1729,7 +1729,7 @@ def get_special_imgsetids(ibs):
 def get_ungrouped_gids(ibs):
     """
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-get_ungrouped_gids
+        python -m ibeis.other.ibsfuncs get_ungrouped_gids
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -1768,7 +1768,7 @@ def update_ungrouped_special_imageset(ibs):
         ibs (IBEISController):  ibeis controller object
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-update_ungrouped_special_imageset
+        python -m ibeis.other.ibsfuncs update_ungrouped_special_imageset
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -2173,7 +2173,7 @@ def get_consecutive_newname_list_via_species(ibs, imgsetid=None, location_text=N
         ibs (IBEISController):  ibeis controller object
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-get_consecutive_newname_list_via_species
+        python -m ibeis.other.ibsfuncs get_consecutive_newname_list_via_species
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -2308,7 +2308,7 @@ def make_next_name(ibs, num=None, str_format=2, species_text=None, location_text
         str: next_name
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-make_next_name
+        python -m ibeis.other.ibsfuncs make_next_name
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -2400,7 +2400,7 @@ def group_annots_by_name(ibs, aid_list, distinguish_unknowns=True, assume_unique
         tuple: grouped_aids, unique_nids
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-group_annots_by_name
+        python -m ibeis.other.ibsfuncs group_annots_by_name
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -2438,7 +2438,7 @@ def group_annots_by_known_names(ibs, aid_list, checks=True):
     #>>> import ibeis  # NOQA
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-group_annots_by_known_names
+        python -m ibeis.other.ibsfuncs group_annots_by_known_names
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -2577,9 +2577,9 @@ def get_two_annots_per_name_and_singletons(ibs, onlygt=False):
       * time delta restrictions
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-get_two_annots_per_name_and_singletons
-        python -m ibeis.other.ibsfuncs --test-get_two_annots_per_name_and_singletons --db GZ_ALL
-        python -m ibeis.other.ibsfuncs --test-get_two_annots_per_name_and_singletons --db PZ_Master0 --onlygt
+        python -m ibeis.other.ibsfuncs get_two_annots_per_name_and_singletons
+        python -m ibeis.other.ibsfuncs get_two_annots_per_name_and_singletons --db GZ_ALL
+        python -m ibeis.other.ibsfuncs get_two_annots_per_name_and_singletons --db PZ_Master0 --onlygt
 
     Ignore:
         sys.argv.extend(['--db', 'PZ_MTEST'])
@@ -2700,7 +2700,7 @@ def get_yaw_viewtexts(yaw_list):
         yaw_list (list of angles):
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-get_yaw_viewtexts
+        python -m ibeis.other.ibsfuncs get_yaw_viewtexts
 
     TODO:
         rhombicubeoctehedron
@@ -2810,7 +2810,7 @@ def get_database_species(ibs, aid_list=None):
     r"""
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-get_database_species
+        python -m ibeis.other.ibsfuncs get_database_species
 
     Example1:
         >>> # ENABLE_DOCTEST
@@ -2844,7 +2844,7 @@ def get_primary_database_species(ibs, aid_list=None, speedhack=True):
         aid_list (list):  list of annotation ids (default = None)
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-get_primary_database_species
+        python -m ibeis.other.ibsfuncs get_primary_database_species
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -2885,7 +2885,7 @@ def get_dominant_species(ibs, aid_list):
         aid_list (int):  list of annotation ids
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-get_dominant_species
+        python -m ibeis.other.ibsfuncs get_dominant_species
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -2909,7 +2909,7 @@ def get_database_species_count(ibs, aid_list=None):
     """
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-get_database_species_count
+        python -m ibeis.other.ibsfuncs get_database_species_count
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -2981,7 +2981,7 @@ def merge_names(ibs, merge_name, other_names):
         other_names (list):
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-merge_names
+        python -m ibeis.other.ibsfuncs merge_names
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -3036,8 +3036,8 @@ def set_exemplars_from_quality_and_viewpoint(ibs, aid_list=None,
         http://www.csbio.unc.edu/mcmillan/pubs/ICDM07_Pan.pdf
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-set_exemplars_from_quality_and_viewpoint
-        python -m ibeis.other.ibsfuncs --test-set_exemplars_from_quality_and_viewpoint:1
+        python -m ibeis.other.ibsfuncs set_exemplars_from_quality_and_viewpoint
+        python -m ibeis.other.ibsfuncs set_exemplars_from_quality_and_viewpoint:1
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -3534,7 +3534,7 @@ def flag_aids_count(ibs, aid_list):
         list:
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-flag_aids_count
+        python -m ibeis.other.ibsfuncs flag_aids_count
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -3846,7 +3846,7 @@ def make_next_imageset_text(ibs):
         ibs (IBEISController):  ibeis controller object
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-make_next_imageset_text
+        python -m ibeis.other.ibsfuncs make_next_imageset_text
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -3879,7 +3879,7 @@ def create_new_imageset_from_images(ibs, gid_list, new_imgsetid=None):
         gid_list (list):
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-create_new_imageset_from_images
+        python -m ibeis.other.ibsfuncs create_new_imageset_from_images
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -3915,7 +3915,7 @@ def create_new_imageset_from_names(ibs, nid_list):
         nid_list (list):
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-create_new_imageset_from_names
+        python -m ibeis.other.ibsfuncs create_new_imageset_from_names
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -3947,7 +3947,7 @@ def prepare_annotgroup_review(ibs, aid_list):
         tuple: (src_ag_rowid, dst_ag_rowid) - source and dest annot groups
 
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-prepare_annotgroup_review
+        python -m ibeis.other.ibsfuncs prepare_annotgroup_review
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -5744,7 +5744,7 @@ def compute_occurrences(ibs, config=None):
     Clusters ungrouped images into imagesets representing occurrences
 
     CommandLine:
-        python -m ibeis.control.IBEISControl --test-compute_occurrences
+        python -m ibeis.control.IBEISControl compute_occurrences
 
     Example:
         >>> # ENABLE_DOCTEST

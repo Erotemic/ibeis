@@ -103,7 +103,7 @@ def show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list,
 
     CommandLine:
         python -m ibeis.viz.viz_matches --exec-show_name_matches
-        python -m ibeis.viz.viz_matches --test-show_name_matches --show
+        python -m ibeis.viz.viz_matches show_name_matches --show
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -682,7 +682,7 @@ def show_multichip_match(rchip1, rchip2_list, kpts1, kpts2_list, fm_list,
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.viz.viz_matches --test-show_matches --show
+        python -m ibeis.viz.viz_matches show_matches --show
 
         python -m ibeis.viz.viz_matches
         python -m ibeis.viz.viz_matches --allexamples

@@ -245,7 +245,7 @@ def get_global_species_scorenorm_cachedir(ibs, species_text, ensure=True):
         str: species_cachedir
 
     CommandLine:
-        python -m ibeis.control.IBEISControl --test-get_global_species_scorenorm_cachedir
+        python -m ibeis.control.IBEISControl get_global_species_scorenorm_cachedir
 
     Example:
         >>> # ENABLE_DOCTEST

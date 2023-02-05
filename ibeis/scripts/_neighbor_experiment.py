@@ -19,26 +19,26 @@ def augment_nnindexer_experiment():
         http://answers.opencv.org/question/44592/flann-index-training-fails-with-segfault/
 
     CommandLine:
-        utprof.py -m ibeis.algo.hots._neighbor_experiment --test-augment_nnindexer_experiment
-        python -m ibeis.algo.hots._neighbor_experiment --test-augment_nnindexer_experiment
+        utprof.py -m ibeis.algo.hots._neighbor_experiment augment_nnindexer_experiment
+        python -m ibeis.algo.hots._neighbor_experiment augment_nnindexer_experiment
 
-        python -m ibeis.algo.hots._neighbor_experiment --test-augment_nnindexer_experiment --db PZ_MTEST --diskshow --adjust=.1 --save "augment_experiment_{db}.png" --dpath='.' --dpi=180 --figsize=9,6
-        python -m ibeis.algo.hots._neighbor_experiment --test-augment_nnindexer_experiment --db PZ_Master0 --diskshow --adjust=.1 --save "augment_experiment_{db}.png" --dpath='.' --dpi=180 --figsize=9,6 --nosave-flann --show
-        python -m ibeis.algo.hots._neighbor_experiment --test-augment_nnindexer_experiment --db PZ_Master0 --diskshow --adjust=.1 --save "augment_experiment_{db}.png" --dpath='.' --dpi=180 --figsize=9,6 --nosave-flann --show
+        python -m ibeis.algo.hots._neighbor_experiment augment_nnindexer_experiment --db PZ_MTEST --diskshow --adjust=.1 --save "augment_experiment_{db}.png" --dpath='.' --dpi=180 --figsize=9,6
+        python -m ibeis.algo.hots._neighbor_experiment augment_nnindexer_experiment --db PZ_Master0 --diskshow --adjust=.1 --save "augment_experiment_{db}.png" --dpath='.' --dpi=180 --figsize=9,6 --nosave-flann --show
+        python -m ibeis.algo.hots._neighbor_experiment augment_nnindexer_experiment --db PZ_Master0 --diskshow --adjust=.1 --save "augment_experiment_{db}.png" --dpath='.' --dpi=180 --figsize=9,6 --nosave-flann --show
 
 
-        python -m ibeis.algo.hots._neighbor_experiment --test-augment_nnindexer_experiment --db PZ_Master0 --diskshow --adjust=.1 --save "augment_experiment_{db}.png" --dpath='.' --dpi=180 --figsize=9,6 --nosave-flann --no-api-cache --nocache-uuids
+        python -m ibeis.algo.hots._neighbor_experiment augment_nnindexer_experiment --db PZ_Master0 --diskshow --adjust=.1 --save "augment_experiment_{db}.png" --dpath='.' --dpi=180 --figsize=9,6 --nosave-flann --no-api-cache --nocache-uuids
 
-        python -m ibeis.algo.hots._neighbor_experiment --test-augment_nnindexer_experiment --db PZ_MTEST --show
-        python -m ibeis.algo.hots._neighbor_experiment --test-augment_nnindexer_experiment --db PZ_Master0 --show
+        python -m ibeis.algo.hots._neighbor_experiment augment_nnindexer_experiment --db PZ_MTEST --show
+        python -m ibeis.algo.hots._neighbor_experiment augment_nnindexer_experiment --db PZ_Master0 --show
 
         # RUNS THE SEGFAULTING CASE
-        python -m ibeis.algo.hots._neighbor_experiment --test-augment_nnindexer_experiment --db PZ_Master0 --show
+        python -m ibeis.algo.hots._neighbor_experiment augment_nnindexer_experiment --db PZ_Master0 --show
         # Debug it
         gdb python
-        run -m ibeis.algo.hots._neighbor_experiment --test-augment_nnindexer_experiment --db PZ_Master0 --show
+        run -m ibeis.algo.hots._neighbor_experiment augment_nnindexer_experiment --db PZ_Master0 --show
         gdb python
-        run -m ibeis.algo.hots._neighbor_experiment --test-augment_nnindexer_experiment --db PZ_Master0 --diskshow --adjust=.1 --save "augment_experiment_{db}.png" --dpath='.' --dpi=180 --figsize=9,6
+        run -m ibeis.algo.hots._neighbor_experiment augment_nnindexer_experiment --db PZ_Master0 --diskshow --adjust=.1 --save "augment_experiment_{db}.png" --dpath='.' --dpi=180 --figsize=9,6
 
 
     Example:
@@ -203,11 +203,11 @@ def flann_add_time_experiment():
     TODO: time experiment
 
     CommandLine:
-        python -m ibeis.algo.hots._neighbor_experiment --test-flann_add_time_experiment --db PZ_MTEST --show
-        python -m ibeis.algo.hots._neighbor_experiment --test-flann_add_time_experiment --db PZ_Master0 --show
-        utprof.py -m ibeis.algo.hots._neighbor_experiment --test-flann_add_time_experiment --show
+        python -m ibeis.algo.hots._neighbor_experiment flann_add_time_experiment --db PZ_MTEST --show
+        python -m ibeis.algo.hots._neighbor_experiment flann_add_time_experiment --db PZ_Master0 --show
+        utprof.py -m ibeis.algo.hots._neighbor_experiment flann_add_time_experiment --show
 
-        valgrind --tool=memcheck --suppressions=valgrind-python.supp python -m ibeis.algo.hots._neighbor_experiment --test-flann_add_time_experiment --db PZ_MTEST --no-with-reindex
+        valgrind --tool=memcheck --suppressions=valgrind-python.supp python -m ibeis.algo.hots._neighbor_experiment flann_add_time_experiment --db PZ_MTEST --no-with-reindex
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -365,7 +365,7 @@ def trytest_incremental_add(ibs):
         ibs (IBEISController):
 
     CommandLine:
-        python -m ibeis.algo.hots._neighbor_experiment --test-test_incremental_add
+        python -m ibeis.algo.hots._neighbor_experiment test_incremental_add
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -862,7 +862,7 @@ if __name__ == '__main__':
     import multiprocessing
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
-    if ut.get_argflag('--test-augment_nnindexer_experiment'):
+    if ut.get_argflag('augment_nnindexer_experiment'):
         # See if exec has something to do with memory leaks
         augment_nnindexer_experiment()
         ut.show_if_requested()

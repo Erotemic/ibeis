@@ -10,9 +10,9 @@ print, rrr, profile = ut.inject2(__name__)
 def score_chipmatch_list(qreq_, cm_list, score_method, progkw=None):
     """
     CommandLine:
-        python -m ibeis.algo.hots.scoring --test-score_chipmatch_list
-        python -m ibeis.algo.hots.scoring --test-score_chipmatch_list:1
-        python -m ibeis.algo.hots.scoring --test-score_chipmatch_list:0 --show
+        python -m ibeis.algo.hots.scoring score_chipmatch_list
+        python -m ibeis.algo.hots.scoring score_chipmatch_list:1
+        python -m ibeis.algo.hots.scoring score_chipmatch_list:0 --show
 
     Example0:
         >>> # SLOW_DOCTEST
@@ -65,7 +65,7 @@ def get_name_shortlist_aids(daid_list, dnid_list, annot_score_list,
                             nNameShortList, nAnnotPerName):
     r"""
     CommandLine:
-        python -m ibeis.algo.hots.scoring --test-get_name_shortlist_aids
+        python -m ibeis.algo.hots.scoring get_name_shortlist_aids
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -109,7 +109,7 @@ def make_chipmatch_shortlists(qreq_, cm_list, nNameShortList, nAnnotPerName, sco
     Makes shortlists for reranking
 
     CommandLine:
-        python -m ibeis.algo.hots.scoring --test-make_chipmatch_shortlists --show
+        python -m ibeis.algo.hots.scoring make_chipmatch_shortlists --show
 
     Example:
         >>> # ENABLE_DOCTEST

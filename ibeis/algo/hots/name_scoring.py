@@ -57,11 +57,11 @@ def compute_fmech_score(cm, qreq_=None, hack_single_ori=False):
         tuple: (unique_nids, nsum_score_list)
 
     CommandLine:
-        python -m ibeis.algo.hots.name_scoring --test-compute_fmech_score
-        python -m ibeis.algo.hots.name_scoring --test-compute_fmech_score:0
-        python -m ibeis.algo.hots.name_scoring --test-compute_fmech_score:2
-        utprof.py -m ibeis.algo.hots.name_scoring --test-compute_fmech_score:2
-        utprof.py -m ibeis.algo.hots.pipeline --test-request_ibeis_query_L0:0 --db PZ_Master1 -a timectrl:qindex=0:256
+        python -m ibeis.algo.hots.name_scoring compute_fmech_score
+        python -m ibeis.algo.hots.name_scoring compute_fmech_score:0
+        python -m ibeis.algo.hots.name_scoring compute_fmech_score:2
+        utprof.py -m ibeis.algo.hots.name_scoring compute_fmech_score:2
+        utprof.py -m ibeis.algo.hots.pipeline request_ibeis_query_L0:0 --db PZ_Master1 -a timectrl:qindex=0:256
 
     Example0:
         >>> # ENABLE_DOCTEST
@@ -280,8 +280,8 @@ def align_name_scores_with_annots(annot_score_list, annot_aid_list, daid2_idx, n
         nid2_nidx (dict): mapping from nids to index in name score list
 
     CommandLine:
-        python -m ibeis.algo.hots.name_scoring --test-align_name_scores_with_annots
-        python -m ibeis.algo.hots.name_scoring --test-align_name_scores_with_annots --show
+        python -m ibeis.algo.hots.name_scoring align_name_scores_with_annots
+        python -m ibeis.algo.hots.name_scoring align_name_scores_with_annots --show
 
     Example:
         >>> # ENABLE_DOCTEST

@@ -271,7 +271,7 @@ def accepts_scalar_input(func):
         func: wrp_asi
 
     CommandLine:
-        python -m utool.util_decor --test-accepts_scalar_input
+        python -m utool.util_decor accepts_scalar_input
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -326,7 +326,7 @@ def preserve_sig(wrapper, orig_func, force=False):
         https://funcsigs.readthedocs.org/en/latest/
 
     CommandLine:
-        python -m utool.util_decor --test-preserve_sig
+        python -m utool.util_decor preserve_sig
 
     Example:
         >>> # ENABLE_DOCTEST

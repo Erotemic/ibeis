@@ -413,7 +413,7 @@ class FlannConfig(ConfigBase):
 class NNWeightConfig(ConfigBase):
     r"""
     CommandLine:
-        python -m ibeis.algo.Config --test-NNWeightConfig
+        python -m ibeis.algo.Config NNWeightConfig
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -688,7 +688,7 @@ class FeatureConfig(ConfigBase):
     TODO depcirate for core_annots.FeatConfig
 
     CommandLine:
-        python -m ibeis.algo.Config --test-FeatureConfig
+        python -m ibeis.algo.Config FeatureConfig
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -758,7 +758,7 @@ class ChipConfig(ConfigBase):
 class DetectionConfig(ConfigBase):
     """
     CommandLine:
-        python -m ibeis.algo.Config --test-DetectionConfig
+        python -m ibeis.algo.Config DetectionConfig
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -916,7 +916,7 @@ def load_named_config(cfgname, dpath, use_config_cache=False,
         Config: cfg
 
     CommandLine:
-        python -m ibeis.algo.Config --test-load_named_config
+        python -m ibeis.algo.Config load_named_config
 
     Example:
         >>> # DISABLE_DOCTEST

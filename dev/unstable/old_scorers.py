@@ -13,7 +13,7 @@ def get_annot_kpts_baseline_weights(ibs, aid_list, config2_=None, config={}):
         list: weights_list
 
     CommandLine:
-        python -m ibeis.algo.hots.scoring --test-get_annot_kpts_baseline_weights
+        python -m ibeis.algo.hots.scoring get_annot_kpts_baseline_weights
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -74,7 +74,7 @@ def get_mask_func(config):
 def compute_annot_coverage_score(qreq_, cm, config={}):
     """
     CommandLine:
-        python -m ibeis.algo.hots.scoring --test-compute_annot_coverage_score:0
+        python -m ibeis.algo.hots.scoring compute_annot_coverage_score:0
 
     Example0:
         >>> # SLOW_DOCTEST
@@ -96,7 +96,7 @@ def compute_annot_coverage_score(qreq_, cm, config={}):
 def compute_name_coverage_score(qreq_, cm, config={}):
     """
     CommandLine:
-        python -m ibeis.algo.hots.scoring --test-compute_name_coverage_score:0
+        python -m ibeis.algo.hots.scoring compute_name_coverage_score:0
 
     Example0:
         >>> # SLOW_DOCTEST
@@ -140,8 +140,8 @@ def general_annot_coverage_mask_generator(make_mask_func, qreq_, cm, config, cov
         daid, weight_mask_m, weight_mask
 
     CommandLine:
-        python -m ibeis.algo.hots.scoring --test-general_annot_coverage_mask_generator --show
-        python -m ibeis.algo.hots.scoring --test-general_annot_coverage_mask_generator --show --qaid 18
+        python -m ibeis.algo.hots.scoring general_annot_coverage_mask_generator --show
+        python -m ibeis.algo.hots.scoring general_annot_coverage_mask_generator --show --qaid 18
 
     Note:
         Evaluate output one at a time or it will get clobbered
@@ -177,8 +177,8 @@ def general_name_coverage_mask_generator(make_mask_func, qreq_, cm, config, cov_
         nid, weight_mask_m, weight_mask
 
     CommandLine:
-        python -m ibeis.algo.hots.scoring --test-general_name_coverage_mask_generator --show
-        python -m ibeis.algo.hots.scoring --test-general_name_coverage_mask_generator --show --qaid 18
+        python -m ibeis.algo.hots.scoring general_name_coverage_mask_generator --show
+        python -m ibeis.algo.hots.scoring general_name_coverage_mask_generator --show --qaid 18
 
     Note:
         Evaluate output one at a time or it will get clobbered
@@ -263,18 +263,18 @@ def get_masks(qreq_, cm, config={}):
 
     CommandLine:
         # SHOW THE BASELINE AND MATCHING MASKS
-        python -m ibeis.algo.hots.scoring --test-get_masks
-        python -m ibeis.algo.hots.scoring --test-get_masks \
+        python -m ibeis.algo.hots.scoring get_masks
+        python -m ibeis.algo.hots.scoring get_masks \
             --maskscore_mode=kpts --show --prior_coeff=.5 --unconstrained_coeff=.3 --constrained_coeff=.2
-        python -m ibeis.algo.hots.scoring --test-get_masks \
+        python -m ibeis.algo.hots.scoring get_masks \
             --maskscore_mode=grid --show --prior_coeff=.5 --unconstrained_coeff=0 --constrained_coeff=.5
-        python -m ibeis.algo.hots.scoring --test-get_masks --qaid 4\
+        python -m ibeis.algo.hots.scoring get_masks --qaid 4\
             --maskscore_mode=grid --show --prior_coeff=.5 --unconstrained_coeff=0 --constrained_coeff=.5
-        python -m ibeis.algo.hots.scoring --test-get_masks --qaid 86\
+        python -m ibeis.algo.hots.scoring get_masks --qaid 86\
             --maskscore_mode=grid --show --prior_coeff=.5 --unconstrained_coeff=0 --constrained_coeff=.5 --grid_scale_factor=.5
 
-        python -m ibeis.algo.hots.scoring --test-get_masks --show --db PZ_MTEST --qaid 18
-        python -m ibeis.algo.hots.scoring --test-get_masks --show --db PZ_MTEST --qaid 1
+        python -m ibeis.algo.hots.scoring get_masks --show --db PZ_MTEST --qaid 18
+        python -m ibeis.algo.hots.scoring get_masks --show --db PZ_MTEST --qaid 1
 
     Example:
         >>> # SLOW_DOCTEST
@@ -361,10 +361,10 @@ def show_annot_weights(qreq_, aid, config={}):
     DEPRICATE
 
     CommandLine:
-        python -m ibeis.algo.hots.scoring --test-show_annot_weights --show --db GZ_ALL --aid 1 --maskscore_mode='grid'
-        python -m ibeis.algo.hots.scoring --test-show_annot_weights --show --db GZ_ALL --aid 1 --maskscore_mode='kpts'
-        python -m ibeis.algo.hots.scoring --test-show_annot_weights --show --db PZ_Master0 --aid 1
-        python -m ibeis.algo.hots.scoring --test-show_annot_weights --show --db PZ_MTEST --aid 1
+        python -m ibeis.algo.hots.scoring show_annot_weights --show --db GZ_ALL --aid 1 --maskscore_mode='grid'
+        python -m ibeis.algo.hots.scoring show_annot_weights --show --db GZ_ALL --aid 1 --maskscore_mode='kpts'
+        python -m ibeis.algo.hots.scoring show_annot_weights --show --db PZ_Master0 --aid 1
+        python -m ibeis.algo.hots.scoring show_annot_weights --show --db PZ_MTEST --aid 1
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -418,7 +418,7 @@ def cos_match_weighter(nns_list, nnvalid0_list, qreq_):
     Uses smk-like selectivity function. Need to gridsearch for a good alpha.
 
     CommandLine:
-        python -m ibeis.algo.hots.nn_weights --test-cos_match_weighter
+        python -m ibeis.algo.hots.nn_weights cos_match_weighter
 
     Example:
         >>> # ENABLE_DOCTEST

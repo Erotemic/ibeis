@@ -36,7 +36,7 @@ def detect_random_forest(ibs, gid_list, species, commit=True, **kwargs):
             image
 
     CommandLine:
-        python -m ibeis.web.apis_detect --test-detect_random_forest --show
+        python -m ibeis.web.apis_detect detect_random_forest --show
 
     RESTful:
         Method: PUT, GET
@@ -400,7 +400,7 @@ def detect_cnn_json(ibs, gid_list, detect_func, config={}, **kwargs):
         results_dict (list): dict of detection results (not annotations)
 
     CommandLine:
-        python -m ibeis.web.apis_detect --test-detect_cnn_yolo_json
+        python -m ibeis.web.apis_detect detect_cnn_yolo_json
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -505,7 +505,7 @@ def detect_cnn_yolo(ibs, gid_list, commit=True, testing=False, model_tag=None,
             image
 
     CommandLine:
-        python -m ibeis.web.apis_detect --test-detect_cnn_yolo --show
+        python -m ibeis.web.apis_detect detect_cnn_yolo --show
 
     RESTful:
         Method: PUT, GET
@@ -581,7 +581,7 @@ def detect_cnn_yolo_exists(ibs, gid_list, testing=False):
             the image
 
     CommandLine:
-        python -m ibeis.web.apis_detect --test-detect_cnn_yolo_exists
+        python -m ibeis.web.apis_detect detect_cnn_yolo_exists
 
     RESTful:
         Method: GET
@@ -651,7 +651,7 @@ def detect_cnn_lightnet(ibs, gid_list, commit=True, testing=False, model_tag=Non
             image
 
     CommandLine:
-        python -m ibeis.web.apis_detect --test-detect_cnn_lightnet --show
+        python -m ibeis.web.apis_detect detect_cnn_lightnet --show
 
     RESTful:
         Method: PUT, GET

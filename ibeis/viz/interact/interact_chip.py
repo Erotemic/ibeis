@@ -4,7 +4,7 @@ Interaction for a single annoation.
 Also defines annotation context menu.
 
 CommandLine:
-    python -m ibeis.viz.interact.interact_chip --test-ishow_chip --show --aid 2
+    python -m ibeis.viz.interact.interact_chip ishow_chip --show --aid 2
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
@@ -65,7 +65,7 @@ def show_annot_context_menu(ibs, aid, qwin, qpoint, refresh_func=None,
     Used in other interactions like name_interaction and interact_query_decision
 
     CommandLine:
-        python -m ibeis.viz.interact.interact_chip --test-ishow_chip --show
+        python -m ibeis.viz.interact.interact_chip ishow_chip --show
 
     """
     import guitool_ibeis as gt
@@ -410,8 +410,8 @@ def ishow_chip(ibs, aid, fnum=2, fx=None, dodraw=True, config2_=None,
         fx (None):
 
     CommandLine:
-        python -m ibeis.viz.interact.interact_chip --test-ishow_chip --show
-        python -m ibeis.viz.interact.interact_chip --test-ishow_chip --show --aid 2
+        python -m ibeis.viz.interact.interact_chip ishow_chip --show
+        python -m ibeis.viz.interact.interact_chip ishow_chip --show --aid 2
 
     Example:
         >>> # DISABLE_DOCTEST

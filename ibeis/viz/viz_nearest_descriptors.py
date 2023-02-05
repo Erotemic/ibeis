@@ -169,12 +169,12 @@ def show_nearest_descriptors(ibs, qaid, qfx, fnum=None, stride=5,
 
     CommandLine:
         # Find a good match to inspect
-        python -m ibeis.viz.interact.interact_matches --test-testdata_match_interact --show --db PZ_MTEST --qaid 3
+        python -m ibeis.viz.interact.interact_matches testdata_match_interact --show --db PZ_MTEST --qaid 3
 
         # Now inspect it
-        python -m ibeis.viz.viz_nearest_descriptors --test-show_nearest_descriptors --show --db PZ_MTEST --qaid 3 --qfx 879
-        python -m ibeis.viz.viz_nearest_descriptors --test-show_nearest_descriptors --show
-        python -m ibeis.viz.viz_nearest_descriptors --test-show_nearest_descriptors --db PZ_MTEST --qaid 3 --qfx 879 --diskshow --save foo.png --dpi=256
+        python -m ibeis.viz.viz_nearest_descriptors show_nearest_descriptors --show --db PZ_MTEST --qaid 3 --qfx 879
+        python -m ibeis.viz.viz_nearest_descriptors show_nearest_descriptors --show
+        python -m ibeis.viz.viz_nearest_descriptors show_nearest_descriptors --db PZ_MTEST --qaid 3 --qfx 879 --diskshow --save foo.png --dpi=256
 
     SeeAlso:
         plottool_ibeis.viz_featrow

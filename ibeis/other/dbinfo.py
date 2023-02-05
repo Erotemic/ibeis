@@ -67,10 +67,10 @@ def get_dbinfo(ibs, verbose=True,
 
     CommandLine:
         python -m ibeis.other.dbinfo --exec-get_dbinfo:0
-        python -m ibeis.other.dbinfo --test-get_dbinfo:1
-        python -m ibeis.other.dbinfo --test-get_dbinfo:0 --db NNP_Master3
-        python -m ibeis.other.dbinfo --test-get_dbinfo:0 --db PZ_Master1
-        python -m ibeis.other.dbinfo --test-get_dbinfo:0 --db GZ_ALL
+        python -m ibeis.other.dbinfo get_dbinfo:1
+        python -m ibeis.other.dbinfo get_dbinfo:0 --db NNP_Master3
+        python -m ibeis.other.dbinfo get_dbinfo:0 --db PZ_Master1
+        python -m ibeis.other.dbinfo get_dbinfo:0 --db GZ_ALL
         python -m ibeis.other.dbinfo --exec-get_dbinfo:0 --db PZ_ViewPoints
         python -m ibeis.other.dbinfo --exec-get_dbinfo:0 --db GZ_Master1
 
@@ -785,7 +785,7 @@ def latex_dbstats(ibs_list, **kwargs):
         python -m ibeis.other.dbinfo --exec-latex_dbstats --dblist testdb1 --show
         python -m ibeis.other.dbinfo --exec-latex_dbstats --dblist PZ_Master0 testdb1 --show
         python -m ibeis.other.dbinfo --exec-latex_dbstats --dblist PZ_Master0 PZ_MTEST GZ_ALL --show
-        python -m ibeis.other.dbinfo --test-latex_dbstats --dblist GZ_ALL NNP_MasterGIRM_core --show
+        python -m ibeis.other.dbinfo latex_dbstats --dblist GZ_ALL NNP_MasterGIRM_core --show
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -967,7 +967,7 @@ def get_short_infostr(ibs):
         str: infostr
 
     CommandLine:
-        python -m ibeis.other.dbinfo --test-get_short_infostr
+        python -m ibeis.other.dbinfo get_short_infostr
 
     Example:
         >>> # ENABLE_DOCTEST

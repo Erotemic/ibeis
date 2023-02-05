@@ -197,7 +197,7 @@ def build_nnindex_cfgstr(qreq_, daid_list):
         str: nnindex_cfgstr
 
     CommandLine:
-        python -m ibeis.algo.hots.neighbor_index_cache --test-build_nnindex_cfgstr
+        python -m ibeis.algo.hots.neighbor_index_cache build_nnindex_cfgstr
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -233,7 +233,7 @@ def clear_memcache():
 def clear_uuid_cache(qreq_):
     """
     CommandLine:
-        python -m ibeis.algo.hots.neighbor_index_cache --test-clear_uuid_cache
+        python -m ibeis.algo.hots.neighbor_index_cache clear_uuid_cache
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -254,7 +254,7 @@ def clear_uuid_cache(qreq_):
 def print_uuid_cache(qreq_):
     """
     CommandLine:
-        python -m ibeis.algo.hots.neighbor_index_cache --test-print_uuid_cache
+        python -m ibeis.algo.hots.neighbor_index_cache print_uuid_cache
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -319,7 +319,7 @@ def request_augmented_ibeis_nnindexer(qreq_, daid_list, verbose=True,
         str: nnindex_cfgstr
 
     CommandLine:
-        python -m ibeis.algo.hots.neighbor_index_cache --test-request_augmented_ibeis_nnindexer
+        python -m ibeis.algo.hots.neighbor_index_cache request_augmented_ibeis_nnindexer
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -425,7 +425,7 @@ def request_memcached_ibeis_nnindexer(qreq_, daid_list, use_memcache=True,
     takes custom daid list. might not be the same as what is in qreq_
 
     CommandLine:
-        python -m ibeis.algo.hots.neighbor_index_cache --test-request_memcached_ibeis_nnindexer
+        python -m ibeis.algo.hots.neighbor_index_cache request_memcached_ibeis_nnindexer
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -496,7 +496,7 @@ def request_diskcached_ibeis_nnindexer(qreq_, daid_list, nnindex_cfgstr=None,
         NeighborIndexer: nnindexer
 
     CommandLine:
-        python -m ibeis.algo.hots.neighbor_index_cache --test-request_diskcached_ibeis_nnindexer
+        python -m ibeis.algo.hots.neighbor_index_cache request_diskcached_ibeis_nnindexer
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -555,7 +555,7 @@ def group_daids_by_cached_nnindexer(qreq_, daid_list, min_reindex_thresh,
                                     max_covers=None):
     r"""
     CommandLine:
-        python -m ibeis.algo.hots.neighbor_index_cache --test-group_daids_by_cached_nnindexer
+        python -m ibeis.algo.hots.neighbor_index_cache group_daids_by_cached_nnindexer
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -631,7 +631,7 @@ def new_neighbor_index(daid_list, vecs_list, fgws_list, fxs_list, flann_params, 
         nnindexer
 
     CommandLine:
-        python -m ibeis.algo.hots.neighbor_index_cache --test-new_neighbor_index
+        python -m ibeis.algo.hots.neighbor_index_cache new_neighbor_index
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -736,7 +736,7 @@ def request_background_nnindexer(qreq_, daid_list):
         daid_list (list):
 
     CommandLine:
-        python -m ibeis.algo.hots.neighbor_index_cache --test-request_background_nnindexer
+        python -m ibeis.algo.hots.neighbor_index_cache request_background_nnindexer
 
     Example:
         >>> # DISABLE_DOCTEST

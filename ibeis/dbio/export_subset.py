@@ -51,7 +51,7 @@ def merge_databases(ibs_src, ibs_dst, rowid_subsets=None, localize_images=True):
     FIXME: annotmatch table
 
     CommandLine:
-        python -m ibeis --test-merge_databases
+        python -m ibeis merge_databases
 
         python -m ibeis merge_databases:0 --db1 LF_OPTIMIZADAS_NI_V_E --db2 LF_ALL
         python -m ibeis merge_databases:0 --db1 LF_WEST_POINT_OPTIMIZADAS --db2 LF_ALL
@@ -150,7 +150,7 @@ def export_names(ibs, nid_list, new_dbpath=None):
         nid_list (list):
 
     CommandLine:
-        python -m ibeis.dbio.export_subset --test-export_names
+        python -m ibeis.dbio.export_subset export_names
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -351,7 +351,7 @@ def export_data(ibs, gid_list, aid_list, nid_list, new_dbpath=None):
 def slow_merge_test():
     r"""
     CommandLine:
-        python -m ibeis.dbio.export_subset --test-slow_merge_test
+        python -m ibeis.dbio.export_subset slow_merge_test
 
     Example:
         >>> # SLOW_DOCTEST
@@ -950,7 +950,7 @@ def find_overlap_annots(ibs1, ibs2, method='annots'):
 def check_database_overlap(ibs1, ibs2):
     """
     CommandLine:
-        python -m ibeis.other.dbinfo --test-get_dbinfo:1 --db PZ_MTEST
+        python -m ibeis.other.dbinfo get_dbinfo:1 --db PZ_MTEST
         dev.py -t listdbs
         python -m ibeis.dbio.export_subset check_database_overlap
         --db PZ_MTEST --db2 PZ_MOTHERS

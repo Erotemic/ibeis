@@ -122,7 +122,7 @@ def testdata_aids(defaultdb=None, a=None, adefault='default', ibs=None,
         python -m ibeis testdata_aids --verbtd --db NNP_Master3 -a is_known=True,view_pername='#primary>0&#primary1>=1'
         python -m ibeis testdata_aids --verbtd --db PZ_Master1 -a default:is_known=True,view_pername='#primary>0&#primary1>=1'
         python -m ibeis testdata_aids --verbtd --db PZ_Master1 -a default:species=primary,minqual=ok --verbtd
-        python -m ibeis.other.dbinfo --test-latex_dbstats --dblist
+        python -m ibeis.other.dbinfo latex_dbstats --dblist
         python -m ibeis testdata_aids --show
 
     Example:
@@ -415,8 +415,8 @@ def testdata_cmlist(defaultdb=None, default_qaids=None, default_daids=None,
 def testdata_cm(defaultdb=None, default_qaids=None, default_daids=None, t=None, p=None, a=None):
     r"""
     CommandLine:
-        python -m ibeis.init.main_helpers --test-testdata_cm
-        python -m ibeis.init.main_helpers --test-testdata_cm --show
+        python -m ibeis.init.main_helpers testdata_cm
+        python -m ibeis.init.main_helpers testdata_cm --show
 
     Example:
         >>> # ENABLE_DOCTEST

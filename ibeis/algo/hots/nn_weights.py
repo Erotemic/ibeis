@@ -245,7 +245,7 @@ def apply_normweight(normweight_fn, neighb_normk, neighb_idx, neighb_dist, Knorm
         ndarray: neighb_normweight
 
     CommandLine:
-        python -m ibeis.algo.hots.nn_weights --test-apply_normweight
+        python -m ibeis.algo.hots.nn_weights apply_normweight
 
     Example:
         >>> # ENABLE_DOCTEST

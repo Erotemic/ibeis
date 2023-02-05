@@ -5,9 +5,9 @@ control of splitting and merging.
 DEPRICATE
 
 CommandLine:
-    python -m ibeis.viz.interact.interact_name --test-ishow_name --show
-    python -m ibeis.viz.interact.interact_name --test-testsdata_match_verification --show --db PZ_MTEST --aid1 1 --aid2 30
-    python -m ibeis.viz.interact.interact_name --test-testsdata_match_verification --show --db PZ_MTEST --aid1 30 --aid2 32
+    python -m ibeis.viz.interact.interact_name ishow_name --show
+    python -m ibeis.viz.interact.interact_name testsdata_match_verification --show --db PZ_MTEST --aid1 1 --aid2 30
+    python -m ibeis.viz.interact.interact_name testsdata_match_verification --show --db PZ_MTEST --aid1 30 --aid2 32
 
 
 """
@@ -52,7 +52,7 @@ def ishow_name(ibs, nid, sel_aids=[], select_aid_callback=None, fnum=5, dodraw=T
         fnum (int):  figure number
 
     CommandLine:
-        python -m ibeis.viz.interact.interact_name --test-ishow_name --show
+        python -m ibeis.viz.interact.interact_name ishow_name --show
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -111,14 +111,14 @@ def testsdata_match_verification(defaultdb='testdb1', aid1=1, aid2=2):
         main.py --imgsetid 13 --db PZ_MUGU_19
 
     CommandLine:
-        python -m ibeis.viz.interact.interact_name --test-testsdata_match_verification --show
-        python -m ibeis.viz.interact.interact_name --test-testsdata_match_verification --aid1 2 --aid2 3 --show
+        python -m ibeis.viz.interact.interact_name testsdata_match_verification --show
+        python -m ibeis.viz.interact.interact_name testsdata_match_verification --aid1 2 --aid2 3 --show
 
         # Merge case
-        python -m ibeis.viz.interact.interact_name --test-testsdata_match_verification --show --db PZ_MTEST --aid1 1 --aid2 30
+        python -m ibeis.viz.interact.interact_name testsdata_match_verification --show --db PZ_MTEST --aid1 1 --aid2 30
 
         # Split case
-        python -m ibeis.viz.interact.interact_name --test-testsdata_match_verification --show --db PZ_MTEST --aid1 30 --aid2 32
+        python -m ibeis.viz.interact.interact_name testsdata_match_verification --show --db PZ_MTEST --aid1 30 --aid2 32
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -259,15 +259,15 @@ class MatchVerificationInteraction(AbstractInteraction):
             list: row_aids_list
 
         CommandLine:
-            python -m ibeis.viz.interact.interact_name --test-get_row_aids_list
+            python -m ibeis.viz.interact.interact_name get_row_aids_list
 
         CommandLine:
-            python -m ibeis.viz.interact.interact_name --test-get_row_aids_list
-            python -m ibeis.viz.interact.interact_name --test-get_row_aids_list --aid1 2 --aid2 3
+            python -m ibeis.viz.interact.interact_name get_row_aids_list
+            python -m ibeis.viz.interact.interact_name get_row_aids_list --aid1 2 --aid2 3
             # Merge case
-            python -m ibeis.viz.interact.interact_name --test-get_row_aids_list --db PZ_MTEST --aid1 1 --aid2 30
+            python -m ibeis.viz.interact.interact_name get_row_aids_list --db PZ_MTEST --aid1 1 --aid2 30
             # Split case
-            python -m ibeis.viz.interact.interact_name --test-get_row_aids_list --db PZ_MTEST --aid1 30 --aid2 32
+            python -m ibeis.viz.interact.interact_name get_row_aids_list --db PZ_MTEST --aid1 30 --aid2 32
 
         Example:
             >>> # DISABLE_DOCTEST
@@ -690,8 +690,8 @@ class MatchVerificationInteraction(AbstractInteraction):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.viz.interact.interact_name --test-ishow_name --show
-        python -m ibeis.viz.interact.interact_name --test-testsdata_match_verification --show --db PZ_MTEST --aid1 1 --aid2 30
+        python -m ibeis.viz.interact.interact_name ishow_name --show
+        python -m ibeis.viz.interact.interact_name testsdata_match_verification --show --db PZ_MTEST --aid1 1 --aid2 30
 
         python -m ibeis.viz.interact.interact_name
         python -m ibeis.viz.interact.interact_name --allexamples

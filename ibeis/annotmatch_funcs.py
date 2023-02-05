@@ -269,7 +269,7 @@ def get_annot_pair_timedelta(ibs, aid_list1, aid_list2):
         list: timedelta_list
 
     CommandLine:
-        python -m ibeis.annotmatch_funcs --test-get_annot_pair_timedelta
+        python -m ibeis.annotmatch_funcs get_annot_pair_timedelta
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -335,7 +335,7 @@ def get_annot_num_reviewed_matching_aids(ibs, aid1_list, eager=True, nInput=None
         list: num_annot_reviewed_list
 
     CommandLine:
-        python -m ibeis.annotmatch_funcs --test-get_annot_num_reviewed_matching_aids
+        python -m ibeis.annotmatch_funcs get_annot_num_reviewed_matching_aids
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -392,7 +392,7 @@ def get_annot_pair_is_reviewed(ibs, aid1_list, aid2_list):
         list: annotmatch_reviewed_list
 
     CommandLine:
-        python -m ibeis.annotmatch_funcs --test-get_annot_pair_is_reviewed
+        python -m ibeis.annotmatch_funcs get_annot_pair_is_reviewed
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -460,7 +460,7 @@ def set_annot_pair_as_positive_match(ibs, aid1, aid2, dryrun=False,
         aid2 (int):  matching annotation id
 
     CommandLine:
-        python -m ibeis.annotmatch_funcs --test-set_annot_pair_as_positive_match
+        python -m ibeis.annotmatch_funcs set_annot_pair_as_positive_match
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -551,7 +551,7 @@ def set_annot_pair_as_negative_match(ibs, aid1, aid2, dryrun=False,
         dryrun (bool):
 
     CommandLine:
-        python -m ibeis.annotmatch_funcs --test-set_annot_pair_as_negative_match
+        python -m ibeis.annotmatch_funcs set_annot_pair_as_negative_match
 
     Example:
         >>> # ENABLE_DOCTEST

@@ -7,7 +7,7 @@ and each function would use its own constant variables that are suffixed
 with the last version number that they existed in
 
 CommandLine:
-    python -m ibeis.control.STAGING_SCHEMA --test-autogen_staging_schema
+    python -m ibeis.control.STAGING_SCHEMA autogen_staging_schema
 """
 from __future__ import absolute_import, division, print_function
 from ibeis import constants as const
@@ -143,15 +143,15 @@ def autogen_staging_schema():
     autogen_staging_schema
 
     CommandLine:
-        python -m ibeis.control.STAGING_SCHEMA --test-autogen_staging_schema
-        python -m ibeis.control.STAGING_SCHEMA --test-autogen_staging_schema --diff=1
-        python -m ibeis.control.STAGING_SCHEMA --test-autogen_staging_schema -n=-1
-        python -m ibeis.control.STAGING_SCHEMA --test-autogen_staging_schema -n=0
-        python -m ibeis.control.STAGING_SCHEMA --test-autogen_staging_schema -n=1
+        python -m ibeis.control.STAGING_SCHEMA autogen_staging_schema
+        python -m ibeis.control.STAGING_SCHEMA autogen_staging_schema --diff=1
+        python -m ibeis.control.STAGING_SCHEMA autogen_staging_schema -n=-1
+        python -m ibeis.control.STAGING_SCHEMA autogen_staging_schema -n=0
+        python -m ibeis.control.STAGING_SCHEMA autogen_staging_schema -n=1
         python -m ibeis.control.STAGING_SCHEMA --force-incremental-db-update
-        python -m ibeis.control.STAGING_SCHEMA --test-autogen_staging_schema --write
-        python -m ibeis.control.STAGING_SCHEMA --test-autogen_staging_schema --force-incremental-db-update --dump-autogen-schema
-        python -m ibeis.control.STAGING_SCHEMA --test-autogen_staging_schema --force-incremental-db-update
+        python -m ibeis.control.STAGING_SCHEMA autogen_staging_schema --write
+        python -m ibeis.control.STAGING_SCHEMA autogen_staging_schema --force-incremental-db-update --dump-autogen-schema
+        python -m ibeis.control.STAGING_SCHEMA autogen_staging_schema --force-incremental-db-update
 
 
     Example:

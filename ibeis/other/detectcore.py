@@ -601,7 +601,7 @@ def visualize_pascal_voc_dataset(ibs, dataset_path, num_examples=30, randomize=F
         write (bool, optional): if to display or write the files
 
     CommandLine:
-        python -m ibeis.other.detectcore --test-visualize_pascal_voc_dataset
+        python -m ibeis.other.detectcore visualize_pascal_voc_dataset
 
     Example:
         >>> # DISABLE_DOCTEST

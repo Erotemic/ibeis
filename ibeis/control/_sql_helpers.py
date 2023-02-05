@@ -417,7 +417,7 @@ def autogenerate_nth_schema_version(schema_spec, n=-1):
         n (int):
 
     CommandLine:
-        python -m ibeis.control._sql_helpers --test-autogenerate_nth_schema_version
+        python -m ibeis.control._sql_helpers autogenerate_nth_schema_version
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -443,9 +443,9 @@ def autogenerate_nth_schema_version(schema_spec, n=-1):
     # coupled with ibeis
     autogen_cmd = ut.codeblock(
         '''
-        python -m ibeis.control.{schema_spec_fname} --test-autogen_{funcname} --force-incremental-db-update --write
-        python -m ibeis.control.{schema_spec_fname} --test-autogen_{funcname} --force-incremental-db-update --diff=1
-        python -m ibeis.control.{schema_spec_fname} --test-autogen_{funcname} --force-incremental-db-update
+        python -m ibeis.control.{schema_spec_fname} autogen_{funcname} --force-incremental-db-update --write
+        python -m ibeis.control.{schema_spec_fname} autogen_{funcname} --force-incremental-db-update --diff=1
+        python -m ibeis.control.{schema_spec_fname} autogen_{funcname} --force-incremental-db-update
         '''
     ).format(schema_spec_fname=schema_spec_fname, funcname=schema_spec_fname.lower())
     autogen_text = db.get_schema_current_autogeneration_str(autogen_cmd)

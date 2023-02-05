@@ -219,7 +219,7 @@ def ensure_contributor_rowids(ibs, user_prompt=False, autolocate=False):
         list:
 
     CommandLine:
-        python -m ibeis.control.manual_meta_funcs --test-ensure_contributor_rowids
+        python -m ibeis.control.manual_meta_funcs ensure_contributor_rowids
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -731,7 +731,7 @@ def get_valid_contributor_rowids(ibs):
         list: contributor_rowids_list
 
     CommandLine:
-        python -m ibeis.control.manual_meta_funcs --test-get_valid_contributor_rowids
+        python -m ibeis.control.manual_meta_funcs get_valid_contributor_rowids
 
     RESTful:
         Method: GET
@@ -932,7 +932,7 @@ def _default_config(ibs, cfgname=None, new=True):
         cfgname (None):
 
     CommandLine:
-        python -m ibeis.control.manual_meta_funcs --test-_default_config
+        python -m ibeis.control.manual_meta_funcs _default_config
 
     Example:
         >>> # ENABLE_DOCTEST

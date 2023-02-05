@@ -5,8 +5,8 @@ Very useful script to ensure you have all the modules you need
 
 CommandLine:
     python -m ibeis.tests.assert_modules
-    python -m ibeis.tests.assert_modules --test-assert_modules --nolibdep
-    python -m ibeis.tests.assert_modules --test-assert_modules
+    python -m ibeis.tests.assert_modules assert_modules --nolibdep
+    python -m ibeis.tests.assert_modules assert_modules
 
 
 MacFix:
@@ -356,7 +356,7 @@ def assert_modules():
     checkinfo_func
 
     CommandLine:
-        python -m ibeis.tests.assert_modules --test-assert_modules
+        python -m ibeis.tests.assert_modules assert_modules
 
     Example:
         >>> # DOCTEST_ENABLE
@@ -438,7 +438,7 @@ if __name__ == '__main__':
     import utool as ut  # NOQA
     print('in assert module main')
     #if len(sys.argv) == 1:
-    if not any(argv.startswith('--test-') or argv.startswith('--exec') for argv in sys.argv):
+    if not any(argv.startswith('') or argv.startswith('--exec') for argv in sys.argv):
         assert_modules()
     else:
         ut.doctest_funcs()

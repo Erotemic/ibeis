@@ -53,7 +53,7 @@ def get_review_edges(cm_list, ibs=None, review_cfg={}):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.gui.id_review_api import *  # NOQA
         >>> import ibeis
-        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> ibs = ibeis.opendb('testdb1')
         >>> qreq_ = ibeis.main_helpers.testdata_qreq_()
         >>> cm_list = qreq_.execute()
         >>> review_cfg = dict(ranks_top=5, directed=True, name_scoring=False,
@@ -227,8 +227,8 @@ def make_review_api(ibs, cm_list, review_cfg, qreq_=None):
     Builds columns which are displayable in a ColumnListTableWidget
 
     CommandLine:
-        python -m ibeis.gui.id_review_api --test-test_review_widget --show
-        python -m ibeis.gui.id_review_api --test-make_review_api
+        python -m ibeis.gui.id_review_api test_review_widget --show
+        python -m ibeis.gui.id_review_api make_review_api
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -545,7 +545,7 @@ def get_match_thumb_fname(cm, daid, qreq_, view_orientation='vertical',
 def ensure_match_img(ibs, cm, daid, qreq_=None, match_thumbtup_cache={}):
     r"""
     CommandLine:
-        python -m ibeis.gui.id_review_api --test-ensure_match_img --show
+        python -m ibeis.gui.id_review_api ensure_match_img --show
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -611,7 +611,7 @@ def ensure_match_img(ibs, cm, daid, qreq_=None, match_thumbtup_cache={}):
 def make_ensure_match_img_nosql_func(qreq_, cm, daid):
     r"""
     CommandLine:
-        python -m ibeis.gui.id_review_api --test-ensure_match_img --show
+        python -m ibeis.gui.id_review_api ensure_match_img --show
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -819,7 +819,7 @@ def get_photobomber_map(ibs, aids, aid_to_nid=None):
     """
     Builds map of which names that photobomb other names.
 
-    python -m ibeis.gui.id_review_api --test-test_review_widget --show --db PZ_MTEST -a default:qindex=0
+    python -m ibeis.gui.id_review_api test_review_widget --show --db PZ_MTEST -a default:qindex=0
 
     Ignore:
         >>> import ibeis

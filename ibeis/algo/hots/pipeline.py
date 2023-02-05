@@ -140,18 +140,18 @@ def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
         list: cm_list containing ``ibeis.ChipMatch`` objects
 
     CommandLine:
-        python -m ibeis.algo.hots.pipeline --test-request_ibeis_query_L0:0 --show
-        python -m ibeis.algo.hots.pipeline --test-request_ibeis_query_L0:1 --show
+        python -m ibeis.algo.hots.pipeline request_ibeis_query_L0:0 --show
+        python -m ibeis.algo.hots.pipeline request_ibeis_query_L0:1 --show
 
-        python -m ibeis.algo.hots.pipeline --test-request_ibeis_query_L0:0 --db testdb1 --qaid 325
-        python -m ibeis.algo.hots.pipeline --test-request_ibeis_query_L0:0 --db testdb3 --qaid 325
+        python -m ibeis.algo.hots.pipeline request_ibeis_query_L0:0 --db testdb1 --qaid 325
+        python -m ibeis.algo.hots.pipeline request_ibeis_query_L0:0 --db testdb3 --qaid 325
         # background match
-        python -m ibeis.algo.hots.pipeline --test-request_ibeis_query_L0:0 --db NNP_Master3 --qaid 12838
+        python -m ibeis.algo.hots.pipeline request_ibeis_query_L0:0 --db NNP_Master3 --qaid 12838
 
-        python -m ibeis.algo.hots.pipeline --test-request_ibeis_query_L0:0
-        python -m ibeis.algo.hots.pipeline --test-request_ibeis_query_L0:0 --db PZ_MTEST -a timectrl:qindex=0:256
-        python    -m ibeis.algo.hots.pipeline --test-request_ibeis_query_L0:0 --db PZ_Master1 -a timectrl:qindex=0:256
-        utprof.py -m ibeis.algo.hots.pipeline --test-request_ibeis_query_L0:0 --db PZ_Master1 -a timectrl:qindex=0:256
+        python -m ibeis.algo.hots.pipeline request_ibeis_query_L0:0
+        python -m ibeis.algo.hots.pipeline request_ibeis_query_L0:0 --db PZ_MTEST -a timectrl:qindex=0:256
+        python    -m ibeis.algo.hots.pipeline request_ibeis_query_L0:0 --db PZ_Master1 -a timectrl:qindex=0:256
+        utprof.py -m ibeis.algo.hots.pipeline request_ibeis_query_L0:0 --db PZ_Master1 -a timectrl:qindex=0:256
 
     Example1:
         >>> # ENABLE_DOCTEST
@@ -250,7 +250,7 @@ def build_impossible_daids_list(qreq_, verbose=VERB_PIPELINE):
         qreq_ (QueryRequest):  query request object with hyper-parameters
 
     CommandLine:
-        python -m ibeis.algo.hots.pipeline --test-build_impossible_daids_list
+        python -m ibeis.algo.hots.pipeline build_impossible_daids_list
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -565,9 +565,9 @@ def nearest_neighbors(qreq_, Kpad_list, impossible_daids_list=None,
     Tries to load nearest neighbors from a cache instead of recomputing them.
 
     CommandLine:
-        python -m ibeis.algo.hots.pipeline --test-nearest_neighbors
-        python -m ibeis.algo.hots.pipeline --test-nearest_neighbors --db PZ_MTEST --qaids=1:100
-        utprof.py -m ibeis.algo.hots.pipeline --test-nearest_neighbors --db PZ_MTEST --qaids=1:100
+        python -m ibeis.algo.hots.pipeline nearest_neighbors
+        python -m ibeis.algo.hots.pipeline nearest_neighbors --db PZ_MTEST --qaids=1:100
+        utprof.py -m ibeis.algo.hots.pipeline nearest_neighbors --db PZ_MTEST --qaids=1:100
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -705,7 +705,7 @@ def baseline_neighbor_filter(qreq_, nns_list, impossible_daids_list, verbose=VER
     Removes matches to self, the same image, or the same name.
 
     CommandLine:
-        python -m ibeis.algo.hots.pipeline --test-baseline_neighbor_filter
+        python -m ibeis.algo.hots.pipeline baseline_neighbor_filter
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -757,12 +757,12 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
     assigns weights to feature matches based on the active filter list
 
     CommandLine:
-        python -m ibeis.algo.hots.pipeline --test-weight_neighbors
-        python -m ibeis.algo.hots.pipeline --test-weight_neighbors:0 --verbose --verbtd --ainfo --nocache --veryverbose
-        python -m ibeis.algo.hots.pipeline --test-weight_neighbors:0 --show
-        python -m ibeis.algo.hots.pipeline --test-weight_neighbors:1 --show
+        python -m ibeis.algo.hots.pipeline weight_neighbors
+        python -m ibeis.algo.hots.pipeline weight_neighbors:0 --verbose --verbtd --ainfo --nocache --veryverbose
+        python -m ibeis.algo.hots.pipeline weight_neighbors:0 --show
+        python -m ibeis.algo.hots.pipeline weight_neighbors:1 --show
 
-        python -m ibeis.algo.hots.pipeline --test-weight_neighbors:0 --show -t default:lnbnn_normer=lnbnn_fg_0.9__featscore,lnbnn_norm_thresh=.9
+        python -m ibeis.algo.hots.pipeline weight_neighbors:0 --show -t default:lnbnn_normer=lnbnn_fg_0.9__featscore,lnbnn_norm_thresh=.9
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -1067,10 +1067,10 @@ def get_sparse_matchinfo_nonagg(qreq_, nns, neighb_valid0,
             list corresponds to a daid, dfx, scorevec, rank, norm_aid, norm_fx...
 
     CommandLine:
-        python -m ibeis.algo.hots.pipeline --test-get_sparse_matchinfo_nonagg --show
-        python -m ibeis.algo.hots.pipeline --test-get_sparse_matchinfo_nonagg:1 --show
+        python -m ibeis.algo.hots.pipeline get_sparse_matchinfo_nonagg --show
+        python -m ibeis.algo.hots.pipeline get_sparse_matchinfo_nonagg:1 --show
 
-        utprof.py -m ibeis.algo.hots.pipeline --test-get_sparse_matchinfo_nonagg
+        utprof.py -m ibeis.algo.hots.pipeline get_sparse_matchinfo_nonagg
 
     Example0:
         >>> # ENABLE_DOCTEST
@@ -1189,9 +1189,9 @@ def spatial_verification(qreq_, cm_list_FILT, verbose=VERB_PIPELINE):
         list: cm_listSVER - new list of spatially verified chipmatches
 
     CommandLine:
-        python -m ibeis.algo.hots.pipeline --test-spatial_verification --show
-        python -m ibeis.algo.hots.pipeline --test-spatial_verification --show --qaid 1
-        python -m ibeis.algo.hots.pipeline --test-spatial_verification:0
+        python -m ibeis.algo.hots.pipeline spatial_verification --show
+        python -m ibeis.algo.hots.pipeline spatial_verification --show --qaid 1
+        python -m ibeis.algo.hots.pipeline spatial_verification:0
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -1483,7 +1483,7 @@ def compute_matching_dlen_extent(qreq_, fm_list, kpts_list):
     matching chips
 
     CommandLine:
-        python -m ibeis.algo.hots.pipeline --test-compute_matching_dlen_extent
+        python -m ibeis.algo.hots.pipeline compute_matching_dlen_extent
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -1512,12 +1512,12 @@ def compute_matching_dlen_extent(qreq_, fm_list, kpts_list):
 if __name__ == '__main__':
     """
     python -m ibeis.algo.hots.pipeline --verb-test
-    python -m ibeis.algo.hots.pipeline --test-build_chipmatches
-    python -m ibeis.algo.hots.pipeline --test-spatial-verification
-    python -m ibeis.algo.hots.pipeline --test-request_ibeis_query_L0 --show
-    python -m ibeis.algo.hots.pipeline --test-request_ibeis_query_L0:0 --show
-    python -m ibeis.algo.hots.pipeline --test-request_ibeis_query_L0:1 --show --db NAUT_test
-    python -m ibeis.algo.hots.pipeline --test-request_ibeis_query_L0:1 --db NAUT_test --noindent
+    python -m ibeis.algo.hots.pipeline build_chipmatches
+    python -m ibeis.algo.hots.pipeline spatial-verification
+    python -m ibeis.algo.hots.pipeline request_ibeis_query_L0 --show
+    python -m ibeis.algo.hots.pipeline request_ibeis_query_L0:0 --show
+    python -m ibeis.algo.hots.pipeline request_ibeis_query_L0:1 --show --db NAUT_test
+    python -m ibeis.algo.hots.pipeline request_ibeis_query_L0:1 --db NAUT_test --noindent
     python -m ibeis.algo.hots.pipeline --allexamples
     """
     import multiprocessing

@@ -75,7 +75,7 @@ def post_api_result(uri, user_email=None, user_enc_pass=None, **kwargs):
 def run_test_api():
     r"""
     CommandLine:
-        python -m ibeis.web.test_api --test-run_test_api
+        python -m ibeis.web.test_api run_test_api
 
     Example:
         >>> # xdoctest: +REQUIRES(--web)

@@ -1369,10 +1369,10 @@ class MainWindowBackend(GUIBACK_BASE):
         """ Action -> Delete Annotation
 
         CommandLine:
-            python -m ibeis.gui.guiback --test-delete_annot --show
-            python -m ibeis.gui.guiback --test-delete_annot --show --no-api-cache
-            python -m ibeis.gui.guiback --test-delete_annot --show --assert-api-cache
-            python -m ibeis.gui.guiback --test-delete_annot --show --debug-api-cache --yes
+            python -m ibeis.gui.guiback delete_annot --show
+            python -m ibeis.gui.guiback delete_annot --show --no-api-cache
+            python -m ibeis.gui.guiback delete_annot --show --assert-api-cache
+            python -m ibeis.gui.guiback delete_annot --show --debug-api-cache --yes
 
         SeeAlso:
             manual_annot_funcs.delete_annots
@@ -1688,7 +1688,7 @@ class MainWindowBackend(GUIBACK_BASE):
         Group Step for computing occurrneces
 
         CommandLine:
-            python -m ibeis.gui.guiback --test-MainWindowBackend.do_group_occurrence_step --show --no-cnn
+            python -m ibeis.gui.guiback MainWindowBackend.do_group_occurrence_step --show --no-cnn
 
         Example:
             >>> # xdoctest: +REQUIRES(--gui)
@@ -2269,7 +2269,7 @@ class MainWindowBackend(GUIBACK_BASE):
                                 query_title=None):
         r"""
         CommandLine:
-            python -m ibeis.gui.guiback --test-MainWindowBackend.make_confirm_query_msg2 --show
+            python -m ibeis.gui.guiback MainWindowBackend.make_confirm_query_msg2 --show
 
         Example:
             >>> # xdoctest: +REQUIRES(--gui)
@@ -2375,7 +2375,7 @@ class MainWindowBackend(GUIBACK_BASE):
             aid_list (int):  list of annotation ids
 
         CommandLine:
-            python -m ibeis.gui.guiback --test-MainWindowBackend.run_annot_splits --show
+            python -m ibeis.gui.guiback MainWindowBackend.run_annot_splits --show
 
         Example:
             >>> # xdoctest: +REQUIRES(--gui)
@@ -2426,7 +2426,7 @@ class MainWindowBackend(GUIBACK_BASE):
         Checks for missed matches within a group of annotations
 
         CommandLine:
-            python -m ibeis.gui.guiback --test-run_merge_checks --show
+            python -m ibeis.gui.guiback run_merge_checks --show
 
         Example:
             >>> # xdoctest: +REQUIRES(--gui)
@@ -3075,7 +3075,7 @@ class MainWindowBackend(GUIBACK_BASE):
             dbdir (None): (default = None)
 
         CommandLine:
-            python -m ibeis.gui.guiback --test-open_database
+            python -m ibeis.gui.guiback open_database
 
         Example:
             >>> # xdoctest: +REQUIRES(--gui)
@@ -3244,8 +3244,8 @@ class MainWindowBackend(GUIBACK_BASE):
             list: gid_list
 
         CommandLine:
-            python -m ibeis.gui.guiback --test-import_images_from_dir_with_smart --show
-            python -m ibeis.gui.guiback --test-import_images_from_dir_with_smart --show --auto
+            python -m ibeis.gui.guiback import_images_from_dir_with_smart --show
+            python -m ibeis.gui.guiback import_images_from_dir_with_smart --show --auto
 
         Example:
             >>> # DEV_GUI_DOCTEST
@@ -3662,7 +3662,7 @@ class MainWindowBackend(GUIBACK_BASE):
     def display_dbinfo(back):
         r"""
         CommandLine:
-            python -m ibeis.gui.guiback --test-display_dbinfo
+            python -m ibeis.gui.guiback display_dbinfo
 
         Example:
             >>> # DISABLE_DOCTEST

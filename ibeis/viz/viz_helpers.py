@@ -153,7 +153,7 @@ def get_timedelta_str(ibs, aid1, aid2):
         str: timedelta_str
 
     CommandLine:
-        python -m ibeis.viz.viz_helpers --test-get_timedelta_str
+        python -m ibeis.viz.viz_helpers get_timedelta_str
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -193,7 +193,7 @@ def get_annot_texts(ibs, aid_list, **kwargs):
         list: annotation_text_list
 
     CommandLine:
-        python -m ibeis.viz.viz_helpers --test-get_annot_texts
+        python -m ibeis.viz.viz_helpers get_annot_texts
 
     Example:
         >>> # ENABLE_DOCTEST

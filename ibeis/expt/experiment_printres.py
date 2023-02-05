@@ -130,8 +130,8 @@ def print_results(ibs, testres, **kwargs):
             default:lnbnn_on=False,normonly_on=True
 
     CommandLine:
-        python -m ibeis.expt.experiment_printres --test-print_results
-        utprof.py -m ibeis.expt.experiment_printres --test-print_results
+        python -m ibeis.expt.experiment_printres print_results
+        utprof.py -m ibeis.expt.experiment_printres print_results
 
     Example:
         >>> # DISABLE_DOCTEST

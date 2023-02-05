@@ -79,10 +79,10 @@ class QueryResultsWidget(gt.APIItemWidget):
     """ Window for gui inspection
 
     CommandLine:
-        python -m ibeis.gui.inspect_gui --test-QueryResultsWidget --show
-        python -m ibeis.gui.inspect_gui --test-QueryResultsWidget --show
-        python -m ibeis.gui.inspect_gui --test-QueryResultsWidget --show --fresh-inspect
-        python -m ibeis.gui.inspect_gui --test-QueryResultsWidget --cmd
+        python -m ibeis.gui.inspect_gui QueryResultsWidget --show
+        python -m ibeis.gui.inspect_gui QueryResultsWidget --show
+        python -m ibeis.gui.inspect_gui QueryResultsWidget --show --fresh-inspect
+        python -m ibeis.gui.inspect_gui QueryResultsWidget --cmd
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -684,9 +684,9 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, cm, qreq_=None,
         list: options
 
     CommandLine:
-        python -m ibeis.gui.inspect_gui --exec-get_aidpair_context_menu_options
-        python -m ibeis.gui.inspect_gui --exec-get_aidpair_context_menu_options --verbose
-        python -m ibeis.gui.inspect_gui --exec-get_aidpair_context_menu_options --verbose -a timecontrolled -t invarbest --db PZ_Master1  --qaid 574
+        python -m ibeis.gui.inspect_gui get_aidpair_context_menu_options
+        python -m ibeis.gui.inspect_gui get_aidpair_context_menu_options --verbose
+        python -m ibeis.gui.inspect_gui get_aidpair_context_menu_options --verbose -a timecontrolled -t invarbest --db PZ_Master1  --qaid 574
 
         # Other scripts that call this one;w
         python -m ibeis.dev -e cases --db PZ_Master1  -a timectrl -t best --filt :sortdsc=gfscore,fail=True,min_gtscore=.0001 --show
@@ -697,7 +697,7 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, cm, qreq_=None,
         >>> # xdoctest: +REQUIRES(env:DISPLAY)
         >>> from ibeis.gui.inspect_gui import *  # NOQA
         >>> import ibeis
-        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> ibs = ibeis.opendb('testdb1')
         >>> qreq_ = ibeis.main_helpers.testdata_qreq_(t=['default:fg_on=False'])
         >>> cm_list = qreq_.execute()
         >>> cm = cm_list[0]
@@ -851,7 +851,7 @@ def make_vsone_tuner(ibs, edge=None, qreq_=None, autoupdate=True,
         >>> import ibeis
         >>> gt.ensure_qapp()
         >>> ut.qtensure()
-        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> edge = ut.get_argval('--aids', default=[1, 2], type_=list)
         >>> self = make_vsone_tuner(ibs, edge, autoupdate=False)
         >>> ut.quit_if_noshow()
@@ -917,7 +917,7 @@ def make_vsone_context_options(ibs, aid1, aid2, qreq_):
         >>> import ibeis
         >>> gt.ensure_qapp()
         >>> ut.qtensure()
-        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> aids = ut.get_argval('--aids', default=[1, 2], type_=list)
         >>> print('aids = %r' % (aids,))
         >>> aid1, aid2 = aids

@@ -20,7 +20,7 @@ def get_hsdb_image_gpaths(ibs, gid_list):
         list: gpath_list
 
     CommandLine:
-        python -m ibeis.dbio.export_hsdb --test-get_hsdb_image_gpaths
+        python -m ibeis.dbio.export_hsdb get_hsdb_image_gpaths
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -52,7 +52,7 @@ def get_hots_table_strings(ibs):
         ibs (IBEISController):  ibeis controller object
 
     CommandLine:
-        python -m ibeis.dbio.export_hsdb --test-get_hots_table_strings
+        python -m ibeis.dbio.export_hsdb get_hots_table_strings
 
     Example:
         >>> # ENABLE_DOCTEST

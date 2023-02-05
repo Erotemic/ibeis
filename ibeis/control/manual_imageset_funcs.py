@@ -420,7 +420,7 @@ def get_imageset_aids(ibs, imgsetid_list):
         list: aids_list
 
     CommandLine:
-        python -m ibeis.control.manual_imageset_funcs --test-get_imageset_aids
+        python -m ibeis.control.manual_imageset_funcs get_imageset_aids
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -462,7 +462,7 @@ def get_imageset_uuids(ibs, imgsetid_list):
         URL:    /api/imageset/annot/uuid/
 
     CommandLine:
-        python -m ibeis.control.manual_imageset_funcs --test-get_imageset_aids
+        python -m ibeis.control.manual_imageset_funcs get_imageset_aids
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -577,7 +577,7 @@ def get_imageset_nids(ibs, imgsetid_list):
         list_ (list):  a list of list of known nids in each imageset
 
     CommandLine:
-        python -m ibeis.control.manual_imageset_funcs --test-get_imageset_nids
+        python -m ibeis.control.manual_imageset_funcs get_imageset_nids
 
     RESTful:
         Method: GET
@@ -621,7 +621,7 @@ def get_imageset_name_uuids(ibs, imgsetid_list):
         name_uuid_list (list):  a list of list of known name uuids in each imageset
 
     CommandLine:
-        python -m ibeis.control.manual_imageset_funcs --test-get_imageset_name_uuids
+        python -m ibeis.control.manual_imageset_funcs get_imageset_name_uuids
 
     RESTful:
         Method: GET

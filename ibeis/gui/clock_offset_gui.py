@@ -265,7 +265,7 @@ class ClockOffsetWidget(QtWidgets.QWidget):
 def clock_offset_test():
     r"""
     CommandLine:
-        python -m ibeis.gui.clock_offset_gui --test-clock_offset_test
+        python -m ibeis.gui.clock_offset_gui clock_offset_test
 
     Example:
         >>> # DISABLE_DOCTEST

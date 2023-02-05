@@ -315,7 +315,7 @@ class NeighborIndex(object):
     def remove_support(nnindexer, remove_daid_list, verbose=ut.NOT_QUIET):
         r"""
         CommandLine:
-            python -m ibeis.algo.hots.neighbor_index --test-remove_support
+            python -m ibeis.algo.hots.neighbor_index remove_support
 
         SeeAlso:
             ~/code/flann/src/python/pyflann/index.py
@@ -384,7 +384,7 @@ class NeighborIndex(object):
             verbose (bool):  verbosity flag(default = True)
 
         CommandLine:
-            python -m ibeis.algo.hots.neighbor_index --test-add_support
+            python -m ibeis.algo.hots.neighbor_index add_support
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -560,7 +560,7 @@ class NeighborIndex(object):
             str: flann_cfgstr
 
         CommandLine:
-            python -m ibeis.algo.hots.neighbor_index --test-get_cfgstr
+            python -m ibeis.algo.hots.neighbor_index get_cfgstr
 
         Example:
             >>> # DISABLE_DOCTEST

@@ -103,7 +103,7 @@ def add_images_json(ibs, image_uri_list, image_uuid_list, image_width_list,
         **kwargs : key-value pairs passed to the ibs.add_images() function.
 
     CommandLine:
-        python -m ibeis.web.apis_json --test-add_images_json
+        python -m ibeis.web.apis_json add_images_json
 
 
         ,"bucket":"flukebook-prod-asset-store","key":""
@@ -244,7 +244,7 @@ def add_annots_json(ibs, image_uuid_list, annot_uuid_list, annot_bbox_list,
         **kwargs : key-value pairs passed to the ibs.add_annots() function.
 
     CommandLine:
-        python -m ibeis.web.app --test-add_annots_json
+        python -m ibeis.web.app add_annots_json
 
     Example:
         >>> # DISABLE_DOCTEST

@@ -18,7 +18,7 @@ def ishow_image2(ibs, gid, fnum=None, dodraw=True):
         dodraw (bool):
 
     CommandLine:
-        python -m ibeis.viz.interact.interact_annotations2 --test-ishow_image2 --show
+        python -m ibeis.viz.interact.interact_annotations2 ishow_image2 --show
 
     Example:
         >>> # DISABLE_DOCTEST

@@ -75,9 +75,9 @@ def testdata_showchip():
 def show_many_chips(ibs, aid_list, config2_=None, fnum=None, pnum=None, vert=True):
     r"""
     CommandLine:
-        python -m ibeis.viz.viz_chip --test-show_many_chips
-        python -m ibeis.viz.viz_chip --test-show_many_chips --show
-        python -m ibeis.viz.viz_chip --test-show_many_chips --show --db NNP_Master3 --aids=13276,14047,14489,14906,10194,10201,12656,10150,11002,15315,7191,13127,15591,12838,13970,14123,14167 --no-annote --dpath figures --save ~/latex/crall-candidacy-2015/figures/challengechips.jpg '--caption=challenging images'
+        python -m ibeis.viz.viz_chip show_many_chips
+        python -m ibeis.viz.viz_chip show_many_chips --show
+        python -m ibeis.viz.viz_chip show_many_chips --show --db NNP_Master3 --aids=13276,14047,14489,14906,10194,10201,12656,10150,11002,15315,7191,13127,15591,12838,13970,14123,14167 --no-annote --dpath figures --save ~/latex/crall-candidacy-2015/figures/challengechips.jpg '--caption=challenging images'
 
     Example:
         >>> # ENABLE_DOCTEST

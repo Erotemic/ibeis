@@ -57,28 +57,28 @@ def show_multiple_chips(ibs, aid_list, in_image=True, fnum=0, sel_aids=[],
                         subtitle='', annote=False, **kwargs):
     """
     CommandLine:
-        python -m ibeis.viz.viz_name --test-show_multiple_chips --show --no-inimage
-        python -m ibeis.viz.viz_name --test-show_multiple_chips --show --db NNP_Master3 --aids=6435,9861,137,6563,9167,12547,9332,12598,13285 --no-inimage --notitle
-        python -m ibeis.viz.viz_name --test-show_multiple_chips --show --db NNP_Master3 --aids=137,6563,12547,9332,12598,13285 --no-inimage --notitle --adjust=.05
-        python -m ibeis.viz.viz_name --test-show_multiple_chips --show --db NNP_Master3 --aids=6563,9332,13285,12598 --no-inimage --notitle --adjust=.05 --rc=1,4
-        python -m ibeis.viz.viz_name --test-show_multiple_chips --show --db PZ_Master0 --aids=1288 --no-inimage --notitle --adjust=.05
-        python -m ibeis.viz.viz_name --test-show_multiple_chips --show --db PZ_Master0 --aids=4020,4839 --no-inimage --notitle --adjust=.05
+        python -m ibeis.viz.viz_name show_multiple_chips --show --no-inimage
+        python -m ibeis.viz.viz_name show_multiple_chips --show --db NNP_Master3 --aids=6435,9861,137,6563,9167,12547,9332,12598,13285 --no-inimage --notitle
+        python -m ibeis.viz.viz_name show_multiple_chips --show --db NNP_Master3 --aids=137,6563,12547,9332,12598,13285 --no-inimage --notitle --adjust=.05
+        python -m ibeis.viz.viz_name show_multiple_chips --show --db NNP_Master3 --aids=6563,9332,13285,12598 --no-inimage --notitle --adjust=.05 --rc=1,4
+        python -m ibeis.viz.viz_name show_multiple_chips --show --db PZ_Master0 --aids=1288 --no-inimage --notitle --adjust=.05
+        python -m ibeis.viz.viz_name show_multiple_chips --show --db PZ_Master0 --aids=4020,4839 --no-inimage --notitle --adjust=.05
 
-        python -m ibeis.viz.viz_name --test-show_multiple_chips --db NNP_Master3 --aids=6524,6540,6571,6751 --no-inimage --notitle --adjust=.05 --diskshow
+        python -m ibeis.viz.viz_name show_multiple_chips --db NNP_Master3 --aids=6524,6540,6571,6751 --no-inimage --notitle --adjust=.05 --diskshow
 
-        python -m ibeis.viz.viz_name --test-show_multiple_chips --db PZ_MTEST -a default:index=0:4 --show
+        python -m ibeis.viz.viz_name show_multiple_chips --db PZ_MTEST -a default:index=0:4 --show
         --aids=1 --doboth --show --no-inimage
 
-        python -m ibeis.viz.viz_name --test-show_multiple_chips --db PZ_MTEST --aids=1 --doboth --show --no-inimage
-        python -m ibeis.viz.viz_name --test-show_multiple_chips --db PZ_MTEST --aids=1 --doboth --rc=2,1 --show --no-inimage
-        python -m ibeis.viz.viz_name --test-show_multiple_chips --db PZ_MTEST --aids=1 --doboth --rc=2,1 --show --notitle --trydrawline --no-draw_lbls
-        python -m ibeis.viz.viz_name --test-show_multiple_chips --db PZ_MTEST --aids=1,2 --doboth  --show --notitle --trydrawline
+        python -m ibeis.viz.viz_name show_multiple_chips --db PZ_MTEST --aids=1 --doboth --show --no-inimage
+        python -m ibeis.viz.viz_name show_multiple_chips --db PZ_MTEST --aids=1 --doboth --rc=2,1 --show --no-inimage
+        python -m ibeis.viz.viz_name show_multiple_chips --db PZ_MTEST --aids=1 --doboth --rc=2,1 --show --notitle --trydrawline --no-draw_lbls
+        python -m ibeis.viz.viz_name show_multiple_chips --db PZ_MTEST --aids=1,2 --doboth  --show --notitle --trydrawline
 
-        python -m ibeis.viz.viz_name --test-show_multiple_chips --db PZ_MTEST --aids=1,2,3,4,5 --doboth --rc=2,5 --show --chrlbl --trydrawline --qualtitle --no-figtitle --notitle
+        python -m ibeis.viz.viz_name show_multiple_chips --db PZ_MTEST --aids=1,2,3,4,5 --doboth --rc=2,5 --show --chrlbl --trydrawline --qualtitle --no-figtitle --notitle
         --doboth
         --doboth --show
 
-        python -m ibeis.viz.viz_name --test-show_multiple_chips --db NNP_Master3 --aids=15419 --doboth --rc=2,1 --show --notitle --trydrawline --no-draw_lbls
+        python -m ibeis.viz.viz_name show_multiple_chips --db NNP_Master3 --aids=15419 --doboth --rc=2,1 --show --notitle --trydrawline --no-draw_lbls
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -319,11 +319,11 @@ def show_name(ibs, nid, in_image=True, fnum=0, sel_aids=[], subtitle='',
 
     CommandLine:
 
-        python -m ibeis.viz.viz_name --test-show_name --dpath ~/latex/crall-candidacy-2015 --save 'figures/{name}.jpg' --no-figtitle --notitle --db NNP_Master3 --figsize=9,4 --clipwhite --dpi=180 --adjust=.05 --index_list=[0,1,2,3] --rc=2,4 --append temp_out_figure.tex --name=IBEIS_PZ_0739 --no-draw_lbls --doboth --no-inimage  --diskshow
+        python -m ibeis.viz.viz_name show_name --dpath ~/latex/crall-candidacy-2015 --save 'figures/{name}.jpg' --no-figtitle --notitle --db NNP_Master3 --figsize=9,4 --clipwhite --dpi=180 --adjust=.05 --index_list=[0,1,2,3] --rc=2,4 --append temp_out_figure.tex --name=IBEIS_PZ_0739 --no-draw_lbls --doboth --no-inimage  --diskshow
 
-        python -m ibeis.viz.viz_name --test-show_name --no-figtitle --notitle --db NNP_Master3 --figsize=9,4 --clipwhite --dpi=180 --adjust=.05 --index_list=[0,1,2,3] --rc=2,4 --append temp_out_figure.tex --name=IBEIS_PZ_0739 --no-draw_lbls --doboth --no-inimage  --show
+        python -m ibeis.viz.viz_name show_name --no-figtitle --notitle --db NNP_Master3 --figsize=9,4 --clipwhite --dpi=180 --adjust=.05 --index_list=[0,1,2,3] --rc=2,4 --append temp_out_figure.tex --name=IBEIS_PZ_0739 --no-draw_lbls --doboth --no-inimage  --show
 
-        python -m ibeis.viz.viz_name --test-show_name --show
+        python -m ibeis.viz.viz_name show_name --show
 
     Example:
         >>> # DISABLE_DOCTEST

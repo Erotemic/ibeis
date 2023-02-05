@@ -185,7 +185,7 @@ def set_newfile_permissions():
     sets this processes default permission bits when creating new files
 
     CommandLine:
-        python -m ibeis.main_module --test-set_newfile_permissions
+        python -m ibeis.main_module set_newfile_permissions
 
     Example:
         >>> # ENABLE_DOCTEST

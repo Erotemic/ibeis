@@ -48,7 +48,7 @@ def show_sver(ibs, aid1, aid2, chipmatch_FILT=None, aid2_svtup=None, config2_=No
     Compiles IBEIS information and sends it to plottool_ibeis
 
     CommandLine:
-        python -m ibeis.viz.viz_sver --test-show_sver --show
+        python -m ibeis.viz.viz_sver show_sver --show
 
     Example:
         >>> # SLOW_DOCTEST

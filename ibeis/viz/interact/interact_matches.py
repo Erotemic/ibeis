@@ -8,7 +8,7 @@ Interaction for looking at matches between a single query and database annotatio
 Main development file
 
 CommandLine:
-    python -m ibeis.viz.interact.interact_matches --test-show_coverage --show
+    python -m ibeis.viz.interact.interact_matches show_coverage --show
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
@@ -30,7 +30,7 @@ from ibeis.viz.interact.interact_chip import ishow_chip
 def testdata_match_interact(**kwargs):
     """
     CommandLine:
-        python -m ibeis.viz.interact.interact_matches --test-testdata_match_interact --show --db PZ_MTEST --qaid 3
+        python -m ibeis.viz.interact.interact_matches testdata_match_interact --show --db PZ_MTEST --qaid 3
 
     Example:
         >>> # VIZ_DOCTEST
@@ -63,7 +63,7 @@ class MatchInteraction(interact_matches.MatchInteraction2):
         plottool_ibeis.interact_matches.MatchInteraction2
 
     CommandLine:
-        python -m ibeis.viz.interact.interact_matches --test-testdata_match_interact --show --db PZ_MTEST --qaid 3
+        python -m ibeis.viz.interact.interact_matches testdata_match_interact --show --db PZ_MTEST --qaid 3
     """
     def __init__(self, ibs, cm, aid2=None, fnum=None,
                  qreq_=None, figtitle='Match Interaction',
@@ -135,7 +135,7 @@ class MatchInteraction(interact_matches.MatchInteraction2):
         just visualizes the matches using some type of lines
 
         CommandLine:
-            python -m ibeis.viz.interact.interact_matches --test-chipmatch_view --show
+            python -m ibeis.viz.interact.interact_matches chipmatch_view --show
 
         Example:
             >>> # DISABLE_DOCTEST
@@ -198,8 +198,8 @@ class MatchInteraction(interact_matches.MatchInteraction2):
     def show_coverage(self, dodraw=True):
         """
         CommandLine:
-            python -m ibeis.viz.interact.interact_matches --test-show_coverage --show
-            python -m ibeis.viz.interact.interact_matches --test-show_coverage
+            python -m ibeis.viz.interact.interact_matches show_coverage --show
+            python -m ibeis.viz.interact.interact_matches show_coverage
 
         Example:
             >>> # DISABLE_DOCTEST
@@ -231,7 +231,7 @@ class MatchInteraction(interact_matches.MatchInteraction2):
     def show_each_dstncvs_chip(self, dodraw=True):
         """
         CommandLine:
-            python -m ibeis.viz.interact.interact_matches --test-show_each_dstncvs_chip --show
+            python -m ibeis.viz.interact.interact_matches show_each_dstncvs_chip --show
 
         Example:
             >>> # DISABLE_DOCTEST

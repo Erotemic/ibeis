@@ -137,7 +137,7 @@ def add_review(ibs, aid_1_list, aid_2_list, evidence_decision_list,
         URL:    /api/review/
 
     CommandLine:
-        python -m ibeis.control.manual_review_funcs --test-add_review
+        python -m ibeis.control.manual_review_funcs add_review
 
     Doctest:
         >>> import ibeis

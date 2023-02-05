@@ -36,7 +36,7 @@ Needed Tables:
 
 
 CommandLine:
-    python -m ibeis.control.IBEISControl --test-show_depc_annot_graph --show
+    python -m ibeis.control.IBEISControl show_depc_annot_graph --show
 
 Setup:
     >>> from ibeis.core_annots import *  # NOQA
@@ -633,9 +633,9 @@ def compute_probchip(depc, aid_list, config=None):
     """ Computes probability chips using pyrf
 
     CommandLine:
-        python -m ibeis.core_annots --test-compute_probchip --nocnn --show --db PZ_MTEST
-        python -m ibeis.core_annots --test-compute_probchip --show --fw_detector=cnn
-        python -m ibeis.core_annots --test-compute_probchip --show --fw_detector=rf --smooth_thresh=None
+        python -m ibeis.core_annots compute_probchip --nocnn --show --db PZ_MTEST
+        python -m ibeis.core_annots compute_probchip --show --fw_detector=cnn
+        python -m ibeis.core_annots compute_probchip --show --fw_detector=rf --smooth_thresh=None
 
     Example1:
         >>> # DISABLE_DOCTEST
@@ -1027,8 +1027,8 @@ def compute_feats(depc, cid_list, config=None):
         ~/code/ibeis_cnn/ibeis_cnn/_plugin.py
 
     CommandLine:
-        python -m ibeis.core_annots --test-compute_feats:0 --show
-        python -m ibeis.core_annots --test-compute_feats:1
+        python -m ibeis.core_annots compute_feats:0 --show
+        python -m ibeis.core_annots compute_feats:1
 
     Doctest:
         >>> # DISABLE_DOCTEST
@@ -1522,7 +1522,7 @@ def compute_neighbor_index(depc, fids_list, config):
 
     CommandLine:
         python -m ibeis.core_annots --exec-compute_neighbor_index --show
-        python -m ibeis.control.IBEISControl --test-show_depc_annot_table_input --show --tablename=neighbor_index
+        python -m ibeis.control.IBEISControl show_depc_annot_table_input --show --tablename=neighbor_index
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -1583,7 +1583,7 @@ if testmode:
 
         CommandLine:
             python -m ibeis.core_annots --exec-compute_feature_neighbors --show
-            python -m ibeis.control.IBEISControl --test-show_depc_annot_table_input --show --tablename=feat_neighbs
+            python -m ibeis.control.IBEISControl show_depc_annot_table_input --show --tablename=feat_neighbs
 
         Example:
             >>> # DISABLE_DOCTEST

@@ -21,7 +21,7 @@ NUM_TOP = 3
 class QueryVerificationInteraction(AbstractInteraction):
     """
     CommandLine:
-        python -m ibeis.viz.interact.interact_query_decision --test-QueryVerificationInteraction --show
+        python -m ibeis.viz.interact.interact_query_decision QueryVerificationInteraction --show
         python -m ibeis --imgsetid 2 --inc-query --yes
 
     Example:
@@ -304,7 +304,7 @@ class QueryVerificationInteraction(AbstractInteraction):
         """
 
         CommandLine:
-            python -m ibeis.viz.interact.interact_query_decision --test-confirm
+            python -m ibeis.viz.interact.interact_query_decision confirm
 
         Example:
             >>> # DISABLE_DOCTEST

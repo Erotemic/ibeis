@@ -807,8 +807,8 @@ class _ChipMatchScorers(object):
     def score_annot_csum(cm, qreq_):
         """
         CommandLine:
-            python -m ibeis.algo.hots.chip_match --test-score_annot_csum --show
-            python -m ibeis.algo.hots.chip_match --test-score_annot_csum --show --qaid 18
+            python -m ibeis.algo.hots.chip_match score_annot_csum --show
+            python -m ibeis.algo.hots.chip_match score_annot_csum --show --qaid 18
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -840,8 +840,8 @@ class _ChipMatchScorers(object):
         This is fmech from the thesis
 
         CommandLine:
-            python -m ibeis.algo.hots.chip_match --test-score_name_nsum --show --qaid 1
-            python -m ibeis.algo.hots.chip_match --test-score_name_nsum --show --qaid 18 -t default:normsum=True
+            python -m ibeis.algo.hots.chip_match score_name_nsum --show --qaid 1
+            python -m ibeis.algo.hots.chip_match score_name_nsum --show --qaid 18 -t default:normsum=True
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -1813,7 +1813,7 @@ class _ChipMatchDebugger(object):
             makes very little sense
 
         CommandLine:
-            python -m ibeis.algo.hots.chip_match --test-get_cvs_str --force-serial
+            python -m ibeis.algo.hots.chip_match get_cvs_str --force-serial
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -2582,7 +2582,7 @@ class ChipMatch(_ChipMatchVisualization,
 
         CommandLine:
             # FIXME: util_test is broken with classmethods
-            python -m ibeis.algo.hots.chip_match --test-from_json --show
+            python -m ibeis.algo.hots.chip_match from_json --show
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -2636,9 +2636,9 @@ class ChipMatch(_ChipMatchVisualization,
         Serialize ChipMatch object as JSON string
 
         CommandLine:
-            python -m ibeis.algo.hots.chip_match --test-ChipMatch.to_json:0
-            python -m ibeis.algo.hots.chip_match --test-ChipMatch.to_json
-            python -m ibeis.algo.hots.chip_match --test-ChipMatch.to_json:1 --show
+            python -m ibeis.algo.hots.chip_match ChipMatch.to_json:0
+            python -m ibeis.algo.hots.chip_match ChipMatch.to_json
+            python -m ibeis.algo.hots.chip_match ChipMatch.to_json:1 --show
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -2785,7 +2785,7 @@ def get_chipmatch_fname(qaid, qreq_, qauuid=None, cfgstr=None,
                         MAX_FNAME_LEN=MAX_FNAME_LEN):
     r"""
     CommandLine:
-        python -m ibeis.algo.hots.chip_match --test-get_chipmatch_fname
+        python -m ibeis.algo.hots.chip_match get_chipmatch_fname
 
     Example:
         >>> # ENABLE_DOCTEST

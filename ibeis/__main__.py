@@ -110,12 +110,12 @@ def run_ibeis():
         """
         Allow any doctest to be run the main ibeis script
 
-        python -m ibeis --tmod utool.util_str --test-align:0
-        python -m ibeis --tmod ibeis.algo.hots.pipeline --test-request_ibeis_query_L0:0 --show
+        python -m ibeis --tmod utool.util_str align:0
+        python -m ibeis --tmod ibeis.algo.hots.pipeline request_ibeis_query_L0:0 --show
         python -m ibeis --tf request_ibeis_query_L0:0 --show
-        ./dist/ibeis/IBEISApp --tmod ibeis.algo.hots.pipeline --test-request_ibeis_query_L0:0 --show  # NOQA
-        ./dist/ibeis/IBEISApp --tmod utool.util_str --test-align:0
-        ./dist/IBEIS.app/Contents/MacOS/IBEISApp --tmod utool.util_str --test-align:0
+        ./dist/ibeis/IBEISApp --tmod ibeis.algo.hots.pipeline request_ibeis_query_L0:0 --show  # NOQA
+        ./dist/ibeis/IBEISApp --tmod utool.util_str align:0
+        ./dist/IBEIS.app/Contents/MacOS/IBEISApp --tmod utool.util_str align:0
         ./dist/IBEIS.app/Contents/MacOS/IBEISApp --run-utool-tests
         ./dist/IBEIS.app/Contents/MacOS/IBEISApp --run-vtool_ibeis-tests
         """

@@ -188,7 +188,7 @@ Spatial Verification
 
 .. code:: bash
 
-    python -m vtool.spatial_verification --test-spatially_verify_kpts --show
+    python -m vtool.spatial_verification spatially_verify_kpts --show
 
 Name Scoring
 ------------

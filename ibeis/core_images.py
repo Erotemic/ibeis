@@ -8,8 +8,8 @@ automatically
 
 
 Ex
-    python -m ibeis.control.IBEISControl --test-show_depc_image_graph --show
-    python -m ibeis.control.IBEISControl --test-show_depc_image_graph --show --reduced
+    python -m ibeis.control.IBEISControl show_depc_image_graph --show
+    python -m ibeis.control.IBEISControl show_depc_image_graph --show --reduced
 
 
 TODO:

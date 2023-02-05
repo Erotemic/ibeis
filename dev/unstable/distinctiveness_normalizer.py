@@ -114,7 +114,7 @@ class DistinctivnessNormalizer(ut.Cachable):
             cachedir (str):
 
         CommandLine:
-            python -m ibeis.algo.hots.distinctiveness_normalizer --test-publish
+            python -m ibeis.algo.hots.distinctiveness_normalizer publish
 
         Example:
             >>> # DISABLE_DOCTEST
@@ -159,7 +159,7 @@ class DistinctivnessNormalizer(ut.Cachable):
             flag: load_success
 
         CommandLine:
-            python -m ibeis.algo.hots.distinctiveness_normalizer --test-exists
+            python -m ibeis.algo.hots.distinctiveness_normalizer exists
 
         Example:
             >>> # SLOW_DOCTEST
@@ -253,14 +253,14 @@ class DistinctivnessNormalizer(ut.Cachable):
             qfx2_vec (ndarray):  mapping from query feature index to vec
 
         CommandLine:
-            python -m ibeis.algo.hots.distinctiveness_normalizer --test-get_distinctiveness --show
-            python -m ibeis.algo.hots.distinctiveness_normalizer --test-get_distinctiveness --db GZ_ALL --show
-            python -m ibeis.algo.hots.distinctiveness_normalizer --test-get_distinctiveness --show --dcvs_power .25
-            python -m ibeis.algo.hots.distinctiveness_normalizer --test-get_distinctiveness --show --dcvs_power .5
-            python -m ibeis.algo.hots.distinctiveness_normalizer --test-get_distinctiveness --show --dcvs_power .1
-            python -m ibeis.algo.hots.distinctiveness_normalizer --test-get_distinctiveness --show --dcvs_K 1&
-            python -m ibeis.algo.hots.distinctiveness_normalizer --test-get_distinctiveness --show --dcvs_K 2&
-            python -m ibeis.algo.hots.distinctiveness_normalizer --test-get_distinctiveness --show --dcvs_K 3&
+            python -m ibeis.algo.hots.distinctiveness_normalizer get_distinctiveness --show
+            python -m ibeis.algo.hots.distinctiveness_normalizer get_distinctiveness --db GZ_ALL --show
+            python -m ibeis.algo.hots.distinctiveness_normalizer get_distinctiveness --show --dcvs_power .25
+            python -m ibeis.algo.hots.distinctiveness_normalizer get_distinctiveness --show --dcvs_power .5
+            python -m ibeis.algo.hots.distinctiveness_normalizer get_distinctiveness --show --dcvs_power .1
+            python -m ibeis.algo.hots.distinctiveness_normalizer get_distinctiveness --show --dcvs_K 1&
+            python -m ibeis.algo.hots.distinctiveness_normalizer get_distinctiveness --show --dcvs_K 2&
+            python -m ibeis.algo.hots.distinctiveness_normalizer get_distinctiveness --show --dcvs_K 3&
 
         Example:
             >>> # SLOW_DOCTEST
@@ -393,7 +393,7 @@ def request_ibeis_distinctiveness_normalizer(qreq_, verbose=True):
         qreq_ (QueryRequest):  query request object with hyper-parameters
 
     CommandLine:
-        python -m ibeis.algo.hots.distinctiveness_normalizer --test-request_ibeis_distinctiveness_normalizer
+        python -m ibeis.algo.hots.distinctiveness_normalizer request_ibeis_distinctiveness_normalizer
 
     Example:
         >>> # SLOW_DOCTEST
@@ -457,7 +457,7 @@ def list_distinctivness_cache():
 def list_published_distinctivness():
     r"""
     CommandLine:
-        python -m ibeis.algo.hots.distinctiveness_normalizer --test-list_published_distinctivness
+        python -m ibeis.algo.hots.distinctiveness_normalizer list_published_distinctivness
 
     Example:
         >>> # SLOW_DOCTEST
@@ -472,7 +472,7 @@ def list_published_distinctivness():
 def view_distinctiveness_model_dir():
     r"""
     CommandLine:
-        python -m ibeis.algo.hots.distinctiveness_normalizer --test-view_distinctiveness_model_dir
+        python -m ibeis.algo.hots.distinctiveness_normalizer view_distinctiveness_model_dir
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -486,7 +486,7 @@ def view_distinctiveness_model_dir():
 def view_publish_dir():
     r"""
     CommandLine:
-        python -m ibeis.algo.hots.distinctiveness_normalizer --test-view_publish_dir
+        python -m ibeis.algo.hots.distinctiveness_normalizer view_publish_dir
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -500,8 +500,8 @@ def tst_single_annot_distinctiveness_params(ibs, aid):
     r"""
 
     CommandLine:
-        python -m ibeis.algo.hots.distinctiveness_normalizer --test-test_single_annot_distinctiveness_params --show
-        python -m ibeis.algo.hots.distinctiveness_normalizer --test-test_single_annot_distinctiveness_params --show --db GZ_ALL
+        python -m ibeis.algo.hots.distinctiveness_normalizer test_single_annot_distinctiveness_params --show
+        python -m ibeis.algo.hots.distinctiveness_normalizer test_single_annot_distinctiveness_params --show --db GZ_ALL
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -577,9 +577,9 @@ def dev_train_distinctiveness(species=None):
         species (None):
 
     CommandLine:
-        python -m ibeis.algo.hots.distinctiveness_normalizer --test-dev_train_distinctiveness
+        python -m ibeis.algo.hots.distinctiveness_normalizer dev_train_distinctiveness
 
-        alias dev_train_distinctiveness='python -m ibeis.algo.hots.distinctiveness_normalizer --test-dev_train_distinctiveness'
+        alias dev_train_distinctiveness='python -m ibeis.algo.hots.distinctiveness_normalizer dev_train_distinctiveness'
         # Publishing (uses cached normalizers if available)
         dev_train_distinctiveness --species GZ --publish
         dev_train_distinctiveness --species PZ --publish
