@@ -16,10 +16,10 @@ jobs:
     steps:
     - name: Checkout source
       uses: actions/checkout@v3
-    - name: Set up Python 3.11 for linting
+    - name: Set up Python 3.10 for linting
       uses: actions/setup-python@v4.5.0
       with:
-        python-version: '3.11'
+        python-version: '3.10'
     - name: Install dependencies
       run: |-
         python -m pip install --upgrade pip
@@ -28,80 +28,6 @@ jobs:
       run: |-
         # stop the build if there are Python syntax errors or undefined names
         flake8 ./ibeis --count --select=E9,F63,F7,F82 --show-source --statistics
-  build_and_test_sdist:
-    name: Build sdist
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout source
-      uses: actions/checkout@v3
-    - name: Set up Python 3.11
-      uses: actions/setup-python@v4.5.0
-      with:
-        python-version: '3.11'
-    - name: Upgrade pip
-      run: |-
-        python -m pip install --upgrade pip
-        python -m pip install -r requirements/tests.txt
-        python -m pip install -r requirements/runtime.txt
-        python -m pip install -r requirements/headless.txt
-    - name: Build sdist
-      shell: bash
-      run: |-
-        python -m pip install pip -U
-        python -m pip install setuptools>=0.8 wheel build
-        python -m build --sdist --outdir wheelhouse
-    - name: Install sdist
-      run: |-
-        ls -al ./wheelhouse
-        pip install --prefer-binary wheelhouse/ibeis*.tar.gz -v
-    - name: Test minimal loose sdist
-      run: |-
-        pwd
-        ls -al
-        # Run in a sandboxed directory
-        WORKSPACE_DNAME="testsrcdir_minimal_${CI_PYTHON_VERSION}_${GITHUB_RUN_ID}_${RUNNER_OS}"
-        mkdir -p $WORKSPACE_DNAME
-        cd $WORKSPACE_DNAME
-        # Run the tests
-        # Get path to installed package
-        MOD_DPATH=$(python -c "import ibeis, os; print(os.path.dirname(ibeis.__file__))")
-        echo "MOD_DPATH = $MOD_DPATH"
-        mkdir -p "ci_ibeis_workdir"
-        echo "About to set the workdir"
-        python -m ibeis --set-workdir="$(readlink -f ci_ibeis_workdir)" --nogui
-        echo "About to reset the dbs"
-        python -m ibeis --resetdbs
-        #python -m pytest -p pytester -p no:doctest --xdoctest --cov-config ../pyproject.toml --cov-report term --cov="$MOD_NAME" "$MOD_DPATH" ../tests
-        # python -m pytest --cov={self.mod_name} $MOD_DPATH ../tests
-        python -m xdoctest $MOD_DPATH 
-        cd ..
-    - name: Test full loose sdist
-      run: |-
-        pwd
-        ls -al
-        python -m pip install --prefer-binary -r requirements/headless.txt
-        # Run in a sandboxed directory
-        WORKSPACE_DNAME="testsrcdir_full_${CI_PYTHON_VERSION}_${GITHUB_RUN_ID}_${RUNNER_OS}"
-        mkdir -p $WORKSPACE_DNAME
-        cd $WORKSPACE_DNAME
-        # Run the tests
-        # Get path to installed package
-        MOD_DPATH=$(python -c "import ibeis, os; print(os.path.dirname(ibeis.__file__))")
-        echo "MOD_DPATH = $MOD_DPATH"
-        mkdir -p "ci_ibeis_workdir"
-        echo "About to set the workdir"
-        python -m ibeis --set-workdir="$(readlink -f ci_ibeis_workdir)" --nogui
-        echo "About to reset the dbs"
-        python -m ibeis --resetdbs
-        #python -m pytest -p pytester -p no:doctest --xdoctest --cov-config ../pyproject.toml --cov-report term --cov="$MOD_NAME" "$MOD_DPATH" ../tests
-        #python -m pytest --cov={self.mod_name} $MOD_DPATH ../tests
-        python -m xdoctest $MOD_DPATH 
-        cd ..
-    - name: Upload sdist artifact
-      uses: actions/upload-artifact@v3
-      with:
-        name: wheels
-        path: ./wheelhouse/*.tar.gz
   build_purepy_wheels:
     name: ${{ matrix.python-version }} on ${{ matrix.os }}, arch=${{ matrix.arch }} with ${{ matrix.install-extras }}
     runs-on: ${{ matrix.os }}
@@ -110,7 +36,7 @@ jobs:
         os:
         - ubuntu-latest
         python-version:
-        - '3.11'
+        - '3.10'
         arch:
         - auto
     steps:
@@ -147,37 +73,26 @@ jobs:
     strategy:
       matrix:
         include:
-        #- python-version: '3.7'
-        #  os: ubuntu-latest
-        #  install-extras: tests-strict,runtime-strict,headless-strict
-        #  arch: auto
-        #- python-version: '3.11'
-        #  os: ubuntu-latest
-        #  install-extras: tests-strict,runtime-strict,optional-strict,headless-strict
-        #  arch: auto
-        #- python-version: '3.7'
-        #  os: ubuntu-latest
-        #  install-extras: tests,optional,headless
-        #  arch: auto
-        #- python-version: '3.8'
-        #  os: ubuntu-latest
-        #  install-extras: tests,optional,headless
-        #  arch: auto
-        - python-version: '3.9'
+        - python-version: '3.10'
+          os: ubuntu-latest
+          install-extras: tests-strict,runtime-strict,headless-strict
+          arch: auto
+        - python-version: '3.10'
+          os: ubuntu-latest
+          install-extras: tests-strict,runtime-strict,optional-strict,headless-strict
+          arch: auto
+        - python-version: '3.10'
           os: ubuntu-latest
           install-extras: tests,optional,headless
           arch: auto
-        #- python-version: '3.10'
-        #  os: ubuntu-latest
-        #  install-extras: tests,optional,headless
-        #  arch: auto
-        #- python-version: '3.11'
-        #  os: ubuntu-latest
-        #  install-extras: tests,optional,headless
-        #  arch: auto
     steps:
     - name: Checkout source
       uses: actions/checkout@v3
+    - name: Set up IPFS
+      uses: ibnesayeed/setup-ipfs@master
+      with:
+        ipfs_version: 0.14.0
+        run_daemon: true
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v2
       if: runner.os == 'Linux' && matrix.arch != 'auto'
@@ -225,13 +140,11 @@ jobs:
         echo "MOD_DPATH = $MOD_DPATH"
         echo "running the pytest command inside the workspace"
         mkdir -p "ci_ibeis_workdir"
-        echo "About to set the workdir"
+        echo "About to reset workdirs"
         python -m ibeis --set-workdir="$(readlink -f ci_ibeis_workdir)" --nogui
-        echo "About to reset the dbs"
         python -m ibeis --resetdbs
-        #python -m pytest -p pytester -p no:doctest --xdoctest --cov-config ../pyproject.toml --cov-report term --cov="$MOD_NAME" "$MOD_DPATH" ../tests
-        python -m xdoctest $MOD_DPATH 
-        echo "pytest command finished, moving the coverage file to the repo root"
+        python -m xdoctest $MOD_DPATH
+        echo "xdoctest command finished
         ls -al
         # Move coverage file to a new name
         mv .coverage "../.coverage.$WORKSPACE_DNAME"
@@ -261,7 +174,6 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && ! startsWith(github.event.ref, 'refs/tags') && ! startsWith(github.event.ref, 'refs/heads/release')
     needs:
-    - build_and_test_sdist
     - build_purepy_wheels
     - test_purepy_wheels
     steps:
@@ -305,7 +217,6 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && (startsWith(github.event.ref, 'refs/tags') || startsWith(github.event.ref, 'refs/heads/release'))
     needs:
-    - build_and_test_sdist
     - build_purepy_wheels
     - test_purepy_wheels
     steps:
