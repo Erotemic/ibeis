@@ -1,9 +1,8 @@
-from __future__ import absolute_import, division, print_function
 import utool
 import six
 from os.path import join, realpath
 from itertools import cycle
-from six.moves import range
+from ibeis.util.util_grabdata import grab_zipped_url
 print, rrr, profile = utool.inject2(__name__)
 
 
@@ -15,7 +14,7 @@ def get_testdata_dir(ensure=True, key='testdb1'):
         'testdb1': 'https://cthulhu.dyn.wildme.io/public/data/testdata.zip'
     }
     zipped_testdata_url = testdata_map[key]
-    testdata_dir = utool.grab_zipped_url(zipped_testdata_url, ensure=ensure)
+    testdata_dir = grab_zipped_url(zipped_testdata_url, ensure=ensure)
     return testdata_dir
 
 

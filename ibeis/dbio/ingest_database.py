@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 This module lists known raw databases and how to ingest them.
 
@@ -30,14 +29,13 @@ Example:
     >>> ibs.set_image_imagesettext(gid_list_, occur_text_list)
     >>> ibs.append_annot_case_tags(aid_list, '<annotation tags>')
 """
-from __future__ import absolute_import, division, print_function
-from six.moves import zip, map, range
 import ibeis
 import os
 from os.path import relpath, dirname, exists, join, realpath, basename, abspath
 from ibeis.other import ibsfuncs
 from ibeis import constants as const
 import utool as ut
+import ubelt as ub
 import vtool_ibeis as vt
 import parse
 
@@ -485,7 +483,7 @@ def get_name_texts_from_gnames(gpath_list, img_dir, fmtkey='{name:*}[aid:d].{ext
         list: name_list - based on the parent folder of each image
 
     CommandLine:
-        python -m ibeis.dbio.ingest_database --test-get_name_texts_from_gnames
+        python -m ibeis.dbio.ingest_database get_name_texts_from_gnames
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -925,7 +923,7 @@ def ingest_oxford_style_db(dbdir, dryrun=False):
         name, num, quality = parse.parse(gt_format, gt_fname)
         return (name, num, quality)
 
-    @ut.memoize
+    @ub.memoize
     def _tmpread(gt_fpath):
         return ut.readfrom(gt_fpath)
 
@@ -1534,8 +1532,8 @@ def ingest_serengeti_mamal_cameratrap(species):
         species (?):
 
     CommandLine:
-        python -m ibeis.dbio.ingest_database --test-ingest_serengeti_mamal_cameratrap --species zebra_plains
-        python -m ibeis.dbio.ingest_database --test-ingest_serengeti_mamal_cameratrap --species cheetah
+        python -m ibeis.dbio.ingest_database ingest_serengeti_mamal_cameratrap --species zebra_plains
+        python -m ibeis.dbio.ingest_database ingest_serengeti_mamal_cameratrap --species cheetah
 
     Example:
         >>> # SCRIPT
@@ -1631,9 +1629,8 @@ def ingest_serengeti_mamal_cameratrap(species):
 
     # Find the zebra events
     serengeti_sepcies_set = sorted(list(set(species_class_species_list)))
-    print('serengeti_sepcies_hist = %s' %
+    print('serengeti_species_hist = %s' %
           ut.repr2(ut.dict_hist(species_class_species_list), key_order_metric='val'))
-    #print('serengeti_sepcies_set = %s' % (ut.repr2(serengeti_sepcies_set),))
 
     assert serengeti_sepcies in serengeti_sepcies_set, 'not a known  seregeti species'
     species_class_chosen_idx_list = ut.list_where(
@@ -1674,8 +1671,8 @@ def ingest_serengeti_mamal_cameratrap(species):
 def injest_main():
     r"""
     CommandLine:
-        python -m ibeis.dbio.ingest_database --test-injest_main
-        python -m ibeis.dbio.ingest_database --test-injest_main --db snow-leopards
+        python -m ibeis.dbio.ingest_database injest_main
+        python -m ibeis.dbio.ingest_database injest_main --db snow-leopards
 
     Example:
         >>> # DISABLE_DOCTEST

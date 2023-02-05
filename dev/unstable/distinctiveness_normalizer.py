@@ -382,7 +382,8 @@ def show_chip_distinctiveness_plot(chip, kpts, dstncvs, fnum=1, pnum=None):
 
 def download_baseline_distinctiveness_normalizer(cachedir, species):
     zipped_url = BASELINE_DISTINCTIVNESS_URLS[species]
-    ut.grab_zipped_url(zipped_url, ensure=True, download_dir=cachedir)
+    from ibeis.util.util_grabdata import grab_zipped_url
+    grab_zipped_url(zipped_url, ensure=True, download_dir=cachedir)
     #ut.assert_eq(ut.unixpath(cachedir), dir_)
 
 

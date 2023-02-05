@@ -822,8 +822,6 @@ def tryout_web_graphs(self, infr):
     ut.editfile('graph.json')
 
     ut.startfile('d3_example.html')
-    # d3_location = ut.grab_zipped_url('https://github.com/d3/d3/releases/download/v3.5.17/d3.zip')
-    # python -m SimpleHTTPServer 8000
 
 
 def tryout_with_qt():

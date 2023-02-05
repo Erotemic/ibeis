@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # TODO: find unused functions and kill them
-from __future__ import absolute_import, division, print_function, unicode_literals
+import ubelt as ub
 import six
 import copy
 import operator
@@ -9,8 +9,7 @@ import vtool_ibeis as vt
 import numpy as np
 import itertools as it
 from functools import partial
-from six import next
-from six.moves import zip, range, map, reduce
+from six.moves import reduce
 from ibeis.expt import cfghelpers
 from ibeis.expt import experiment_helpers
 print, rrr, profile = ut.inject2(__name__)
@@ -396,7 +395,7 @@ class TestResult(ut.NiceRepr):
         infoprop_mat = np.vstack(cfgx2_infoprop).T
         return infoprop_mat
 
-    @ut.memoize
+    @ub.memoize
     def get_rank_mat(testres, qaids=None):
         # Ranks of Best Results
         rank_mat = testres.get_infoprop_mat(key='qx2_gt_rank', qaids=qaids)
@@ -728,7 +727,7 @@ class TestResult(ut.NiceRepr):
         full_cfgstr = testres.cfgx2_qreq_[cfgx].get_full_cfgstr()
         return full_cfgstr
 
-    @ut.memoize
+    @ub.memoize
     def get_cfgstr(testres, cfgx):
         """ just dannots and config_str """
         cfgstr = testres.cfgx2_qreq_[cfgx].get_cfgstr()
@@ -758,7 +757,7 @@ class TestResult(ut.NiceRepr):
             ('bar_l2_on=True', 'dist'),
             ('bar_l2_on=False,?', ''),
 
-            ('joinme=\d+,?', ''),
+            (r'joinme=\d+,?', ''),
             ('dcrossval_enc', 'denc_per_name'),
 
             ('sv_on', 'SV'),
@@ -786,7 +785,7 @@ class TestResult(ut.NiceRepr):
             (r'[dq]?_true_size=\d+,?', ''),
             (r'[dq]?_orig_size=[^,]+,?', ''),
             # Hack
-            ('[qd]?exclude_reference=' + ut.regex_or(['True', 'False', 'None']) + '\,?', ''),
+            ('[qd]?exclude_reference=' + ut.regex_or(['True', 'False', 'None']) + r'\,?', ''),
             #('=True', '=On'),
             #('=False', '=Off'),
             ('=True', '=T'),

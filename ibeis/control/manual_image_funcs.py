@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Functions for images and encoutners that will be injected into an
 IBEISController instance.
@@ -16,16 +15,14 @@ CommandLine:
     image_timedelta_posix
 
 """
-from __future__ import absolute_import, division, print_function
 from ibeis import constants as const
 from ibeis.control import accessor_decors, controller_inject
 from ibeis.control.controller_inject import make_ibs_register_decorator
-#from os.path import join, exists, abspath, normpath, isabs
+from ibeis.util import util_decor
 from os.path import join, exists, isabs
 import numpy as np
 import utool as ut
 import vtool_ibeis as vt
-from ibeis.web import routes_ajax
 import six
 try:
     from packaging.version import parse as LooseVersion
@@ -86,7 +83,7 @@ def _get_all_image_rowids(ibs):
         tbl = image
 
     CommandLine:
-        python -m ibeis.control.manual_image_funcs --test-_get_all_image_rowids
+        python -m ibeis.control.manual_image_funcs _get_all_image_rowids
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -117,7 +114,7 @@ def get_valid_gids(ibs, imgsetid=None, require_unixtime=False,
         list: gid_list
 
     CommandLine:
-        python -m ibeis.control.manual_image_funcs --test-get_valid_gids
+        python -m ibeis.control.manual_image_funcs get_valid_gids
 
     RESTful:
         Method: GET
@@ -169,6 +166,7 @@ def image_base64_api(rowid=None, thumbnail=False, fresh=False, **kwargs):
         Method: GET
         URL:    /api/image/<rowid>/
     """
+    from ibeis.web import routes_ajax
     return routes_ajax.image_src(rowid, thumbnail=thumbnail, fresh=fresh, **kwargs)
 
 
@@ -295,7 +293,7 @@ def add_images(ibs, gpath_list, params_list=None, as_annots=False,
         URL:    /api/image/
 
     CommandLine:
-        python -m ibeis.control.manual_image_funcs --test-add_images
+        python -m ibeis.control.manual_image_funcs add_images
 
     Doctest:
         >>> # Test returns None on fail to add
@@ -401,7 +399,7 @@ def localize_images(ibs, gid_list_=None):
         gid_list_ (list):
 
     CommandLine:
-        python -m ibeis.control.manual_image_funcs --test-localize_images
+        python -m ibeis.control.manual_image_funcs localize_images
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -431,13 +429,8 @@ def localize_images(ibs, gid_list_=None):
 
     """
     #from os.path import isabs
-    import six
-    if six.PY2:
-        import urlparse
-        urlsplit = urlparse.urlsplit
-    else:
-        import urllib
-        urlsplit = urllib.parse.urlsplit
+    import urllib
+    urlsplit = urllib.parse.urlsplit
     if gid_list_ is None:
         print('WARNING: you are localizing all gids')
         gid_list_  = ibs.get_valid_gids()
@@ -639,7 +632,7 @@ def set_image_metadata(ibs, gid_list, metadata_dict_list):
         URL:    /api/image/metadata/
 
     CommandLine:
-        python -m ibeis.control.manual_image_funcs --test-set_image_metadata
+        python -m ibeis.control.manual_image_funcs set_image_metadata
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -865,7 +858,7 @@ def update_image_rotate_90(ibs, gid_list, direction):
             bbox_list_.append(bbox_)
         ibs.set_annot_bboxes(aid_list, bbox_list_)
 
-    if isinstance(direction, six.string_types):
+    if isinstance(direction, str):
         direction = direction.lower()
 
     if direction in ['left', 'l', -1]:
@@ -946,7 +939,7 @@ def get_images(ibs, gid_list, force_orient=True, **kwargs):
         list: image_list
 
     CommandLine:
-        python -m ibeis.control.manual_image_funcs --test-get_images
+        python -m ibeis.control.manual_image_funcs get_images
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -1070,7 +1063,7 @@ def get_image_uuids(ibs, gid_list):
         list: image_uuid_list
 
     CommandLine:
-        python -m ibeis.control.manual_image_funcs --test-get_image_uuids
+        python -m ibeis.control.manual_image_funcs get_image_uuids
 
     RESTful:
         Method: GET
@@ -1123,7 +1116,7 @@ def get_valid_image_uuids(ibs):
         list: image_uuid_list
 
     CommandLine:
-        python -m ibeis.control.manual_image_funcs --test-get_image_uuids
+        python -m ibeis.control.manual_image_funcs get_image_uuids
     """
     gid_list = ibs.get_valid_gids()
     image_uuid_list = ibs.get_image_uuids(gid_list)
@@ -1256,7 +1249,7 @@ def get_image_paths(ibs, gid_list):
         list: gpath_list
 
     CommandLine:
-        python -m ibeis.control.manual_image_funcs --test-get_image_paths
+        python -m ibeis.control.manual_image_funcs get_image_paths
 
     RESTful:
         Method: GET
@@ -1328,7 +1321,7 @@ def get_image_gnames(ibs, gid_list):
         list: gname_list - a list of original image names
 
     CommandLine:
-        python -m ibeis.control.manual_image_funcs --test-get_image_gnames
+        python -m ibeis.control.manual_image_funcs get_image_gnames
 
     RESTful:
         Method: GET
@@ -1415,7 +1408,7 @@ def get_image_heights(ibs, gid_list):
 
 
 @register_ibs_method
-@ut.accepts_numpy
+@util_decor.accepts_numpy
 @accessor_decors.getter_1to1
 @register_api('/api/image/unixtime/', methods=['GET'])
 def get_image_unixtime(ibs, gid_list, timedelta_correction=True):
@@ -1450,7 +1443,7 @@ def get_image_unixtime(ibs, gid_list, timedelta_correction=True):
 
 
 @register_ibs_method
-@ut.accepts_numpy
+@util_decor.accepts_numpy
 @accessor_decors.getter_1to1
 def get_image_unixtime_asfloat(ibs, gid_list, **kwargs):
     r"""
@@ -1468,7 +1461,7 @@ def get_image_unixtime_asfloat(ibs, gid_list, **kwargs):
 
 
 @register_ibs_method
-@ut.accepts_numpy
+@util_decor.accepts_numpy
 @accessor_decors.getter_1to1
 @register_api('/api/image/unixtime2/', methods=['GET'])
 def get_image_unixtime2(ibs, gid_list, **kwargs):
@@ -1705,7 +1698,7 @@ def get_image_nids(ibs, gid_list):
         list: nids_list - the name ids associated with an image id
 
     CommandLine:
-        python -m ibeis.control.manual_image_funcs --test-get_image_nids
+        python -m ibeis.control.manual_image_funcs get_image_nids
 
     RESTful:
         Method: GET
@@ -1744,7 +1737,7 @@ def get_image_name_uuids(ibs, gid_list):
         list: name_uuids_list - the name uuids associated with an image id
 
     CommandLine:
-        python -m ibeis.control.manual_image_funcs --test-get_image_nids
+        python -m ibeis.control.manual_image_funcs get_image_nids
 
     RESTful:
         Method: GET
@@ -1869,7 +1862,7 @@ def get_image_aids(ibs, gid_list, is_staged=False):
         list: aids_list
 
     CommandLine:
-        python -m ibeis.control.manual_image_funcs --test-get_image_aids
+        python -m ibeis.control.manual_image_funcs get_image_aids
 
     RESTful:
         Method: GET
@@ -2499,5 +2492,5 @@ if __name__ == '__main__':
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    import xdoctest
+    xdoctest.doctest_module(__file__)

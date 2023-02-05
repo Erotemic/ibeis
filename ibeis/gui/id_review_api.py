@@ -62,7 +62,7 @@ def get_review_edges(cm_list, ibs=None, review_cfg={}):
         >>> print(review_edges)
 
     Example1:
-        >>> # UNSTABLE_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from ibeis.gui.id_review_api import *  # NOQA
         >>> import ibeis
         >>> cm_list, qreq_ = ibeis.testdata_cmlist('PZ_MTEST', a='default:qsize=5,dsize=20')
@@ -72,7 +72,7 @@ def get_review_edges(cm_list, ibs=None, review_cfg={}):
         >>> print(review_edges)
 
     Example3:
-        >>> # UNSTABLE_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from ibeis.gui.id_review_api import *  # NOQA
         >>> import ibeis
         >>> cm_list, qreq_ = ibeis.testdata_cmlist('PZ_MTEST', a='default:qsize=1,dsize=100')
@@ -82,7 +82,7 @@ def get_review_edges(cm_list, ibs=None, review_cfg={}):
         >>> print(review_edges)
 
     Example4:
-        >>> # UNSTABLE_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from ibeis.gui.id_review_api import *  # NOQA
         >>> import ibeis
         >>> cm_list, qreq_ = ibeis.testdata_cmlist('PZ_MTEST', a='default:qsize=10,dsize=10')

@@ -6,7 +6,12 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Version 2.3.1]  - Released 2023-01-29
 
+### Changed
+* Ported some utool code to ibeis.util for more direct coupling with this
+  library.
+
 ### Fixed
+* Fixed issue with numpy 1.24
 * Numpy dtype issues
 * Fixed 3.11 change with random.Random
 

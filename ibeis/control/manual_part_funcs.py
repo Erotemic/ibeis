@@ -6,15 +6,13 @@ Autogen:
     sh Tgen.sh --key part --invert --Tcfg with_getters=True with_setters=True --modfname manual_part_funcs --funcname-filter=is_  # NOQA
     sh Tgen.sh --key part --invert --Tcfg with_getters=True with_setters=True --modfname manual_part_funcs --funcname-filter=is_ --diff  # NOQA
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
-import six
 import uuid
 import numpy as np
 from ibeis import constants as const
 from ibeis.control import accessor_decors, controller_inject
 import utool as ut
+from ibeis.util import util_decor
 from ibeis.control.controller_inject import make_ibs_register_decorator
-from ibeis.web import routes_ajax
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -88,6 +86,7 @@ def part_src_api(rowid=None):
         Method: GET
         URL:    /api/part/<rowid>/
     """
+    from ibeis.web import routes_ajax
     return routes_ajax.part_src(rowid)
 
 
@@ -203,7 +202,7 @@ def add_parts(ibs, aid_list, bbox_list=None, theta_list=None,
         type_list = [const.UNKNOWN] * len(aid_list)
 
     nVert_list = [len(verts) for verts in vert_list]
-    vertstr_list = [six.text_type(verts) for verts in vert_list]
+    vertstr_list = [str(verts) for verts in vert_list]
     xtl_list, ytl_list, width_list, height_list = list(zip(*bbox_list))
     assert len(nVert_list) == len(vertstr_list)
 
@@ -326,7 +325,7 @@ def get_part_missing_uuid(ibs, uuid_list):
 
 
 @register_ibs_method
-@ut.accepts_numpy
+@util_decor.accepts_numpy
 @accessor_decors.getter_1toM
 @register_api('/api/part/bbox/', methods=['GET'])
 def get_part_bboxes(ibs, part_rowid_list):
@@ -362,7 +361,7 @@ def get_part_detect_confidence(ibs, part_rowid_list):
 
 
 @register_ibs_method
-@ut.accepts_numpy
+@util_decor.accepts_numpy
 @accessor_decors.getter_1to1
 @register_api('/api/part/annot/rowid/', methods=['GET'])
 def get_part_aids(ibs, part_rowid_list, assume_unique=False):
@@ -413,7 +412,7 @@ def get_part_thetas(ibs, part_rowid_list):
         theta_list (list): a list of floats describing the angles of each part
 
     CommandLine:
-        python -m ibeis.control.manual_part_funcs --test-get_part_thetas
+        python -m ibeis.control.manual_part_funcs get_part_thetas
 
     RESTful:
         Method: GET
@@ -705,7 +704,7 @@ def get_part_staged_flags(ibs, part_rowid_list):
         list: part_staged_flag_list - True if part is staged
 
     CommandLine:
-        python -m ibeis.control.manual_part_funcs --test-get_part_staged_flags
+        python -m ibeis.control.manual_part_funcs get_part_staged_flags
 
     RESTful:
         Method: GET
@@ -757,7 +756,7 @@ def get_part_staged_user_ids(ibs, part_rowid_list):
         list: part_staged_user_id_list - True if part is staged
 
     CommandLine:
-        python -m ibeis.control.manual_part_funcs --test-get_part_staged_user_ids
+        python -m ibeis.control.manual_part_funcs get_part_staged_user_ids
 
     RESTful:
         Method: GET
@@ -962,7 +961,7 @@ def set_part_verts(ibs, part_rowid_list, verts_list):
         if isinstance(vert_list, np.ndarray):
             verts_list[index] = vert_list.tolist()
     num_verts_list   = list(map(len, verts_list))
-    verts_as_strings = list(map(six.text_type, verts_list))
+    verts_as_strings = list(map(str, verts_list))
     id_iter1 = ((part_rowid,) for part_rowid in part_rowid_list)
     # also need to set the internal number of vertices
     val_iter1 = ((num_verts, verts) for (num_verts, verts)
@@ -1018,7 +1017,7 @@ def set_part_quality_texts(ibs, part_rowid_list, quality_text_list):
     """
     if not ut.isiterable(part_rowid_list):
         part_rowid_list = [part_rowid_list]
-    if isinstance(quality_text_list, six.string_types):
+    if isinstance(quality_text_list, str):
         quality_text_list = [quality_text_list]
     quality_list = ut.dict_take(const.QUALITY_TEXT_TO_INT, quality_text_list)
     ibs.set_part_qualities(part_rowid_list, quality_list)
@@ -1104,7 +1103,7 @@ def set_part_staged_metadata(ibs, part_rowid_list, metadata_dict_list):
         URL:    /api/part/staged/metadata/
 
     CommandLine:
-        python -m ibeis.control.manual_part_funcs --test-set_part_staged_metadata
+        python -m ibeis.control.manual_part_funcs set_part_staged_metadata
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -1176,7 +1175,7 @@ def set_part_metadata(ibs, part_rowid_list, metadata_dict_list):
         URL:    /api/part/metadata/
 
     CommandLine:
-        python -m ibeis.control.manual_part_funcs --test-set_part_metadata
+        python -m ibeis.control.manual_part_funcs set_part_metadata
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -1248,7 +1247,7 @@ def set_part_contour(ibs, part_rowid_list, contour_dict_list):
         URL:    /api/part/contour/
 
     CommandLine:
-        python -m ibeis.control.manual_part_funcs --test-set_part_contour
+        python -m ibeis.control.manual_part_funcs set_part_contour
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -1309,5 +1308,5 @@ if __name__ == '__main__':
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    import xdoctest
+    xdoctest.doctest_module(__file__)

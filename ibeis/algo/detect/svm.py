@@ -2,10 +2,11 @@
 """
 Interface to Darknet object proposals.
 """
-from __future__ import absolute_import, division, print_function
 import utool as ut
+import ubelt as ub
 from os import listdir
 from os.path import join, isfile, isdir
+from ibeis.util.util_grabdata import grab_zipped_url
 (print, rrr, profile) = ut.inject2(__name__, '[svm]')
 
 
@@ -73,10 +74,9 @@ def classify(vector_list, weight_filepath, verbose=VERBOSE_SVM, **kwargs):
     if weight_filepath in CONFIG_URL_DICT:
         weight_url = CONFIG_URL_DICT[weight_filepath]
         if weight_url.endswith('.zip'):
-            weight_filepath = ut.grab_zipped_url(weight_url, appname='ibeis')
+            weight_filepath = grab_zipped_url(weight_url, appname='ibeis')
         else:
-            weight_filepath = ut.grab_file_url(weight_url, appname='ibeis',
-                                               check_hash=True)
+            weight_filepath = ub.grabdata(weight_url, appname='ibeis')
 
     # Get ensemble
     is_ensemble = isdir(weight_filepath)

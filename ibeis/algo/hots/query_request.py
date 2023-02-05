@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 TODO:
     replace with dtool_ibeis
@@ -6,7 +5,6 @@ TODO:
 
     python -m utool.util_inspect check_module_usage --pat="query_request.py"
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 from os.path import join
 import dtool_ibeis
 import itertools as it
@@ -15,13 +13,10 @@ import vtool_ibeis as vt
 import utool as ut
 import numpy as np
 from ibeis.algo.hots import neighbor_index_cache
-#from ibeis.algo.hots import multi_index
-# from ibeis.algo.hots import scorenorm
-# from ibeis.algo.hots import distinctiveness_normalizer
+from ibeis.util import util_decor
 from ibeis.algo.hots import query_params
 from ibeis.algo.hots import chip_match
 from ibeis.algo.hots import _pipeline_helpers as plh  # NOQA
-#import warnings
 (print, rrr, profile) = ut.inject2(__name__)
 
 VERBOSE_QREQ, VERYVERBOSE_QREQ = ut.get_module_verbosity_flags('qreq')
@@ -61,8 +56,8 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         ibeis.QueryRequest
 
     CommandLine:
-        python -m ibeis.algo.hots.query_request --test-new_ibeis_query_request:0
-        python -m ibeis.algo.hots.query_request --test-new_ibeis_query_request:1
+        python -m ibeis.algo.hots.query_request new_ibeis_query_request:0
+        python -m ibeis.algo.hots.query_request new_ibeis_query_request:1
 
     Example0:
         >>> # ENABLE_DOCTEST
@@ -471,7 +466,7 @@ class QueryRequest(ut.NiceRepr):
         only considers grouping of database names
 
         CommandLine:
-            python -m ibeis.algo.hots.query_request --test-get_qreq_pcc_hashid:0
+            python -m ibeis.algo.hots.query_request get_qreq_pcc_hashid:0
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -700,76 +695,13 @@ class QueryRequest(ut.NiceRepr):
 
     # --- State Modification ---
 
-    #def remove_internal_daids(qreq_, remove_daids):
-    #    r"""
-    #    DEPRICATE
-
-    #    State Modification: remove daids from the query request.  Do not call
-    #    this function often. It invalidates the indexer, which is very slow to
-    #    rebuild.  Should only be done between query pipeline runs.
-
-    #    CommandLine:
-    #        python -m ibeis.algo.hots.query_request --test-remove_internal_daids
-
-    #    Example:
-    #        >>> # ENABLE_DOCTEST
-    #        >>> from ibeis.algo.hots.query_request import *  # NOQA
-    #        >>> import ibeis
-    #        >>> # build test data
-    #        >>> ibs = ibeis.opendb('testdb1')
-    #        >>> species = ibeis.const.TEST_SPECIES.ZEB_PLAIN
-    #        >>> daids = ibs.get_valid_aids(species=species, is_exemplar=True)
-    #        >>> qaids = ibs.get_valid_aids(species=species, is_exemplar=False)
-    #        >>> qreq_ = ibs.new_query_request(qaids, daids)
-    #        >>> remove_daids = daids[0:1]
-    #        >>> # execute function
-    #        >>> assert len(qreq_.internal_daids) == 4, 'bad setup data'
-    #        >>> qreq_.remove_internal_daids(remove_daids)
-    #        >>> # verify results
-    #        >>> assert len(qreq_.internal_daids) == 3, 'did not remove'
-    #    """
-    #    # Invalidate the current indexer, mask and metadata
-    #    qreq_.indexer = None
-    #    qreq_.internal_daids_mask = None
-    #    #qreq_.metadata = {}
-    #    # Find indices to remove
-    #    delete_flags = vt.get_covered_mask(qreq_.internal_daids, remove_daids)
-    #    delete_indices = np.where(delete_flags)[0]
-    #    assert len(delete_indices) == len(remove_daids), (
-    #        'requested removal of nonexistant daids')
-    #    # Remove indices
-    #    qreq_.internal_daids = np.delete(qreq_.internal_daids, delete_indices)
-    #    # TODO: multi-indexer delete support
-    #    if qreq_.indexer is not None:
-    #        warnings.warn('Implement point removal from trees')
-    #        qreq_.indexer.remove_ibeis_support(qreq_, remove_daids)
-
-    #def add_internal_daids(qreq_, new_daids):
-    #    """
-    #    DEPRICATE
-
-    #    State Modification: add new daid to query request. Should only be
-    #    done between query pipeline runs
-    #    """
-    #    if ut.DEBUG2:
-    #        species = qreq_.ibs.get_annot_species(new_daids)
-    #        assert set(qreq_.unique_species) == set(species), (
-    #            'inconsistent species')
-    #    qreq_.internal_daids_mask = None
-    #    #qreq_.metadata = {}
-    #    qreq_.internal_daids = np.append(qreq_.internal_daids, new_daids)
-    #    # TODO: multi-indexer add support
-    #    if qreq_.indexer is not None:
-    #        #qreq_.load_indexer(verbose=True)
-    #        qreq_.indexer.add_ibeis_support(qreq_, new_daids)
-
     def set_external_qaid_mask(qreq_, masked_qaid_list):
         r"""
         Args:
             qaid_list (list):
 
         CommandLine:
-            python -m ibeis.algo.hots.query_request --test-set_external_qaid_mask
+            python -m ibeis.algo.hots.query_request set_external_qaid_mask
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -899,7 +831,7 @@ class QueryRequest(ut.NiceRepr):
         """ These are the users qaids in vsone mode """
         return qreq_.get_internal_qaids()
 
-    @ut.accepts_numpy
+    @util_decor.accepts_numpy
     def get_qreq_annot_nids(qreq_, aids):
         # Hack uses own internal state to grab name rowids
         # instead of using ibeis.
@@ -1097,7 +1029,7 @@ class QueryRequest(ut.NiceRepr):
             num_retries (int): (default = 0)
 
         CommandLine:
-            python -m ibeis.algo.hots.query_request --test-ensure_chips
+            python -m ibeis.algo.hots.query_request ensure_chips
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -1142,7 +1074,7 @@ class QueryRequest(ut.NiceRepr):
             verbose (bool):  verbosity flag(default = True)
 
         CommandLine:
-            python -m ibeis.algo.hots.query_request --test-ensure_features
+            python -m ibeis.algo.hots.query_request ensure_features
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -1197,15 +1129,8 @@ class QueryRequest(ut.NiceRepr):
                 indexer = neighbor_index_cache.request_ibeis_nnindexer(
                     qreq_, verbose=verbose, prog_hook=prog_hook,
                     **qreq_._indexer_request_params)
-            #elif index_method == 'multi':
-            #    if ut.VERYVERBOSE or verbose:
-            #        print('[qreq] loading multi indexer normalizer')
-            #    indexer = multi_index.request_ibeis_mindexer(
-            #        qreq_, verbose=verbose)
             else:
                 raise ValueError('unknown index_method=%r' % (index_method,))
-            #if qreq_.prog_hook is not None:
-            #    hook.set_progress(4, 4, lbl='building indexer')
             qreq_.indexer = indexer
             return True
 
@@ -1299,11 +1224,11 @@ def cfg_deepcopy_test():
 if __name__ == '__main__':
     """
     CommandLine:
-        utprof.sh -m ibeis.algo.hots.query_request --test-QueryParams
         python -m ibeis.algo.hots.query_request
         python -m ibeis.algo.hots.query_request --allexamples
         python -m ibeis.algo.hots.query_request --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32
-    ut.doctest_funcs()
+    import xdoctest
+    xdoctest.doctest_module(__file__)

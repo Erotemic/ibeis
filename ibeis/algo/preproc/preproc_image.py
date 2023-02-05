@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function, unicode_literals
 import os
 from os.path import splitext, basename, isabs
 import warnings
@@ -39,7 +37,7 @@ def parse_imageinfo(gpath):
             for SQL columns on else returns None
 
     CommandLine:
-        python -m ibeis.algo.preproc.preproc_image --exec-parse_imageinfo
+        python -m ibeis.algo.preproc.preproc_image parse_imageinfo
 
     Doctest:
         >>> from ibeis.algo.preproc.preproc_image import *  # NOQA
@@ -100,7 +98,6 @@ def parse_imageinfo(gpath):
             # We cannot use pixel data as libjpeg is not determenistic (even for reads!)
             image_uuid = ut.get_file_uuid(gpath_)  # Read file ]-hash-> guid = gid
         except IOError as ex:
-            # ut.embed()
             print('[preproc] IOError: %s' % (str(ex),))
             return None
         if len(w) > 0:
@@ -144,38 +141,6 @@ def parse_imageinfo(gpath):
     return param_tup
 
 
-# def add_images_params_gen(gpath_list):
-#     """
-#     generates values for add_images sqlcommands asychronously
-
-#     Args:
-#         gpath_list (list):
-
-#     Kwargs:
-#         ordered, force_serial, chunksize, prog, verbose, quiet, nTasks, freq,
-#         adjust
-
-#     Returns:
-#         generator: params_gen
-
-#     CommandLine:
-#         python -m ibeis.algo.preproc.preproc_image --exec-add_images_params_gen
-
-#     Example0:
-#         >>> # ENABLE_DOCTEST
-#         >>> from ibeis.algo.preproc.preproc_image import *   # NOQA
-#         >>> from vtool_ibeis.tests import grabdata
-#         >>> gpath_list = grabdata.get_test_gpaths(ndata=3) + ['doesnotexist.jpg']
-#         >>> params_list = list(add_images_params_gen(gpath_list))
-#         >>> assert str(params_list[0][0]) == '66ec193a-1619-b3b6-216d-1784b4833b61', 'UUID gen method changed'
-#         >>> assert str(params_list[0][3]) == 'easy1.JPG', 'orig name is different'
-#         >>> assert params_list[3] is None
-#     """
-#     params_gen = ut.generate2(parse_imageinfo, zip(gpath_list), adjust=True,
-#                               force_serial=True)
-#     return params_gen
-
-
 def on_delete(ibs, featweight_rowid_list, qreq_=None):
     print('Warning: Not Implemented')
 
@@ -187,4 +152,5 @@ if __name__ == '__main__':
     """
     import multiprocessing
     multiprocessing.freeze_support()
-    ut.doctest_funcs()
+    import xdoctest
+    xdoctest.doctest_module(__file__)

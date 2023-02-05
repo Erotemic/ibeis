@@ -10,14 +10,12 @@ CommandLine:
     python -m ibeis.algo.verif.vsone deploy --db GZ_Master1
 
 """
-from __future__ import absolute_import, division, print_function, unicode_literals  # NOQA
 import utool as ut
 import ubelt as ub
 import itertools as it
 import numpy as np
 import vtool_ibeis as vt
 import dtool_ibeis as dt
-import six  # NOQA
 import hashlib
 import copy
 import pandas as pd
@@ -31,7 +29,6 @@ from ibeis.algo.verif import deploy
 from ibeis.algo.verif import pairfeat, verifier
 from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV
 from os.path import basename
-from six.moves import zip
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -1655,7 +1652,7 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples, ub.NiceRepr):
         edge_hashid = 'e{}-{}'.format(len(samples), edge_hashstr)
         return edge_hashid
 
-    @ut.memoize
+    @ub.memoize
     @profile
     def sample_hashid(samples):
         visual_hash = samples.edge_set_hashid()
@@ -1670,7 +1667,7 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples, ub.NiceRepr):
         label_hashid = ut.hashid_arr(labels.y_enc, 'labels')
         return label_hashid
 
-    @ut.memoize
+    @ub.memoize
     @profile
     def task_sample_hashid(samples, task_key):
         labels = samples.subtasks[task_key]
@@ -1707,7 +1704,7 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples, ub.NiceRepr):
         new_labels.set_simple_scores(simple_scores)
         return new_labels
 
-    @ut.memoize
+    @ub.memoize
     @profile
     def is_same(samples):
         infr = samples.infr
@@ -1739,7 +1736,7 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples, ub.NiceRepr):
         return np.array(flags, dtype=bool)
         # return samples.infr.is_same(samples.aid_pairs)
 
-    @ut.memoize
+    @ub.memoize
     @profile
     def is_photobomb(samples):
         infr = samples.infr
@@ -1752,7 +1749,7 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples, ub.NiceRepr):
         return np.array(flags, dtype=bool)
         # return samples.infr.is_photobomb(samples.aid_pairs)
 
-    @ut.memoize
+    @ub.memoize
     @profile
     def is_comparable(samples):
         infr = samples.infr

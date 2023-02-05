@@ -48,7 +48,8 @@ def get_testdata_dir(ensure=True, key='testdb1'):
         'testdb1': 'https://cthulhu.dyn.wildme.io/public/data/testdata.zip',
     }
     zipped_testdata_url = testdata_map[key]
-    testdata_dir = ut.grab_zipped_url(zipped_testdata_url, ensure=ensure)
+    from ibeis.util import util_grabdata
+    testdata_dir = util_grabdata.grab_zipped_url(zipped_testdata_url, ensure=ensure)
     return testdata_dir
 
 
@@ -183,7 +184,6 @@ def reset_mtest():
         >>> from ibeis.tests.reset_testdbs import *  # NOQA
         >>> result = reset_mtest()
     """
-    # Hack, this function does not have a utool main
     return reset_testdbs(reset_mtest=True)
 
 

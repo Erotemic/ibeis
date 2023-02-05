@@ -122,3 +122,4 @@ cachetools>=4.0.0     ; python_version < '3.7'  and python_version >= '3.6'     
 # requests>=2.7.9
 pyparsing
 requests
+safer>=4.4.1

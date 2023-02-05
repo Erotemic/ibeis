@@ -11,11 +11,10 @@ TODO: need to split up into sub modules:
     then there are also convineience functions that need to be ordered at least
     within this file
 """
-import six
 import types
 import functools
 import re
-from six.moves import zip, range, map, reduce
+from six.moves import reduce
 from os.path import split, join, exists
 import numpy as np
 import vtool_ibeis as vt
@@ -27,7 +26,7 @@ from ibeis import constants as const
 from ibeis.control import accessor_decors
 from ibeis.control import controller_inject
 from ibeis import annotmatch_funcs  # NOQA
-import xml.etree.ElementTree as ET
+from ibeis.util.util_grabdata import grab_zipped_url
 
 # Inject utool functions
 (print, rrr, profile) = ut.inject2(__name__, '[ibsfuncs]')
@@ -38,7 +37,7 @@ CLASS_INJECT_KEY, register_ibs_method = (
     controller_inject.make_ibs_register_decorator(__name__))
 
 
-register_api   = controller_inject.get_ibeis_flask_api(__name__)
+register_api = controller_inject.get_ibeis_flask_api(__name__)
 
 
 @ut.make_class_postinject_decorator(CLASS_INJECT_KEY, __name__)
@@ -902,7 +901,7 @@ def fix_remove_visual_dupliate_annotations(ibs):
     ibs_dup_annots = ut.debug_duplicate_items(visual_uuid_list)
     dupaids_list = []
     if len(ibs_dup_annots):
-        for key, dupxs in six.iteritems(ibs_dup_annots):
+        for key, dupxs in ibs_dup_annots.items():
             aids = ut.take(aid_list, dupxs)
             dupaids_list.append(aids[1:])
 
@@ -1343,7 +1342,7 @@ def delete_all_imagesets(ibs):
 def delete_all_annotations(ibs):
     """ Carefull with this function. Annotations are not recomputable """
     print('[ibs] delete_all_annotations')
-    ans = six.moves.input('Are you sure you want to delete all annotations?')
+    ans = input('Are you sure you want to delete all annotations?')
     if ans != 'yes':
         return
     all_aids = ibs._get_all_aids()
@@ -1639,8 +1638,6 @@ def aidstr(aid, ibs=None, notes=False):
 
 
 @register_ibs_method
-#@ut.time_func
-#@profile
 def update_exemplar_special_imageset(ibs):
     # FIXME SLOW
     exemplar_imgsetid = ibs.get_imageset_imgsetids_from_text(const.EXEMPLAR_IMAGESETTEXT)
@@ -1654,8 +1651,6 @@ def update_exemplar_special_imageset(ibs):
 
 
 @register_ibs_method
-#@ut.time_func
-#@profile
 def update_reviewed_unreviewed_image_special_imageset(ibs, reviewed=True, unreviewed=True):
     """
     Creates imageset of images that have not been reviewed
@@ -1677,8 +1672,6 @@ def update_reviewed_unreviewed_image_special_imageset(ibs, reviewed=True, unrevi
 
 
 @register_ibs_method
-#@ut.time_func
-#@profile
 def update_all_image_special_imageset(ibs):
     # FIXME SLOW
     allimg_imgsetid = ibs.get_imageset_imgsetids_from_text(const.ALL_IMAGE_IMAGESETTEXT)
@@ -1768,8 +1761,6 @@ def get_ungrouped_gids(ibs):
 
 
 @register_ibs_method
-#@ut.time_func
-#@profile
 @profile
 def update_ungrouped_special_imageset(ibs):
     """
@@ -1805,7 +1796,6 @@ def update_ungrouped_special_imageset(ibs):
 
 
 @register_ibs_method
-#@ut.time_func
 @profile
 def update_special_imagesets(ibs, use_more_special_imagesets=False):
     if ut.get_argflag('--readonly-mode'):
@@ -2467,8 +2457,8 @@ def group_annots_by_known_names(ibs, aid_list, checks=True):
     nid_list = ibs.get_annot_name_rowids(aid_list)
     nid2_aids = ut.group_items(aid_list, nid_list)
     def aid_gen():
-        return six.itervalues(nid2_aids)
-    isunknown_list = ibs.is_nid_unknown(six.iterkeys(nid2_aids))
+        return nid2_aids.values()
+    isunknown_list = ibs.is_nid_unknown(nid2_aids.keys())
     known_aids_list = list(ut.ifilterfalse_items(aid_gen(), isunknown_list))
     unknown_aids = list(ut.iflatten(ut.iter_compress(aid_gen(), isunknown_list)))
     if __debug__:
@@ -3235,7 +3225,7 @@ def get_annot_quality_viewpoint_subset(ibs, aid_list=None, annots_per_view=2,
             # subgroup the names by viewpoints
             yawtexts  = ibs.get_annot_viewpoints(aids_)
             yawtext2_aids = ut.group_items(aids_, yawtexts)
-            for yawtext, aids in six.iteritems(yawtext2_aids):
+            for yawtext, aids in yawtext2_aids.items():
                 flags = get_chosen_flags(aids)
                 new_aid_list.extend(aids)
                 new_flag_list.extend(flags)
@@ -5494,7 +5484,6 @@ def _clean_species(ibs):
     species_mapping_dict = {}
     if ibs is not None:
         flag = '--allow-keyboard-database-update'
-        from six.moves import input as raw_input_
         from ibeis.control.manual_species_funcs import _convert_species_nice_to_code
         species_rowid_list = ibs._get_all_species_rowids()
         species_text_list = ibs.get_species_texts(species_rowid_list)
@@ -5517,8 +5506,8 @@ def _clean_species(ibs):
                     species_code = _convert_species_nice_to_code([species_nice])[0]
                 else:
                     print('Found an unknown species: %r' % (text, ))
-                    species_nice = raw_input_('Input a NICE name for %r: ' % (text, ))
-                    species_code = raw_input_('Input a CODE name for %r: ' % (text, ))
+                    species_nice = input('Input a NICE name for %r: ' % (text, ))
+                    species_code = input('Input a CODE name for %r: ' % (text, ))
                     assert len(species_code) > 0 and len(species_nice) > 0
             else:
                 continue
@@ -5588,6 +5577,7 @@ def get_annot_occurrence_text(ibs, aids):
 
 @register_ibs_method
 def _parse_smart_xml(back, xml_path, nTotal, offset=1):
+    import xml.etree.ElementTree as ET
     # Storage for the patrol imagesets
     xml_dir, xml_name = split(xml_path)
     imageset_info_list = []
@@ -5862,7 +5852,7 @@ def compute_ggr_path_dict(ibs):
         'Meru',
     ]
     county_file_url = 'https://lev.cs.rpi.edu/public/data/kenyan_counties_boundary_gps_coordinates.zip'
-    unzipped_path = ut.grab_zipped_url(county_file_url)
+    unzipped_path = grab_zipped_url(county_file_url)
     county_path = join(unzipped_path, 'County')
     counties = shapefile.Reader(county_path)
     for record, shape in zip(counties.records(), counties.shapes()):
@@ -5878,7 +5868,7 @@ def compute_ggr_path_dict(ibs):
 
     # ADD LAND TENURES
     land_tenure_file_url = 'https://lev.cs.rpi.edu/public/data/kenyan_land_tenures_boundary_gps_coordinates.zip'
-    unzipped_path = ut.grab_zipped_url(land_tenure_file_url)
+    unzipped_path = grab_zipped_url(land_tenure_file_url)
     land_tenure_path = join(unzipped_path, 'LandTenure')
     land_tenures = shapefile.Reader(land_tenure_path)
     for record, shape in zip(land_tenures.records(), land_tenures.shapes()):
