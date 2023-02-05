@@ -5,12 +5,8 @@ sh Tgen.sh --key name --invert --Tcfg with_getters=True with_setters=False --mod
 sh Tgen.sh --key name --invert --Tcfg with_getters=True with_setters=True --modfname manual_name_funcs --funcname-filter=sex  # NOQA
 
 """
-from __future__ import absolute_import, division, print_function
-# TODO: Fix this name it is too special case
 import uuid
 import functools
-import six  # NOQA
-#from six.moves import range
 from ibeis import constants as const
 from ibeis.other import ibsfuncs
 import numpy as np
@@ -36,7 +32,7 @@ NAME_UUID       = 'name_uuid'
 NAME_TEXT       = 'name_text'
 NAME_ALIAS_TEXT = 'name_alias_text'
 NAME_NOTE       = 'name_note'
-NAME_SEX         = 'name_sex'
+NAME_SEX        = 'name_sex'
 NAME_TEMP_FLAG  = 'name_temp_flag'
 
 
@@ -107,30 +103,6 @@ def add_names(ibs, name_text_list, name_uuid_list=None, name_note_list=None):
     name_rowid_list = ibs.db.add_cleanly(const.NAME_TABLE, colnames, params_iter,
                                              get_rowid_from_superkey, superkey_paramx)
     return name_rowid_list
-    # OLD WAY
-    # # nid_list_ = [namenid_dict[name] for name in name_list_]
-    #name_text_list_ = ibs.sanitize_name_texts(name_text_list)
-    # # All names are individuals and so may safely receive the INDIVIDUAL_KEY lblannot
-    #lbltype_rowid = ibs.lbltype_ids[const.INDIVIDUAL_KEY]
-    #lbltype_rowid_list = [lbltype_rowid] * len(name_text_list_)
-    #nid_list = ibs.add_lblannots(lbltype_rowid_list, name_text_list_, note_list)
-    ##nid_list = [const.UNKNOWN_NAME_ROWID if rowid is None else rowid for rowid in nid_list]
-    #return nid_list
-
-
-#def init_default_speciesvalue():
-#    #const.KEY_DEFAULTS[const.SPECIES_KEY]
-#    note_list = ['default value']
-#    # Get random uuids
-#    import uuid
-#    lblannot_uuid_list = [uuid.UUID('00000000-0000-0000-0000-000000000001')]
-#    value_list = [const.KEY_DEFAULTS[const.SPECIES_KEY]]
-#    colnames = ['species_uuid', 'species_rowid', 'species_text', 'species_note']
-#    params_iter = list(zip(lblannot_uuid_list, lbltype_rowid_list, value_list, note_list))
-#    get_rowid_from_superkey = ibs.get_species_rowid_from_species_text
-#    superkey_paramx = (1, 2)
-#    species_rowid_list = ibs.db.add_cleanly(const.SPECIES_TABLE, colnames, params_iter,
-#                                            get_rowid_from_superkey, superkey_paramx)
 
 
 @register_ibs_method
@@ -212,7 +184,7 @@ def get_empty_nids(ibs, _nid_list=None):
         an nid is not invalid if it has a valid alias
 
     CommandLine:
-        python -m ibeis.control.manual_name_funcs --test-get_empty_nids
+        python -m ibeis.control.manual_name_funcs get_empty_nids
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -311,7 +283,7 @@ def get_name_aids(ibs, nid_list, enable_unknown_fix=True, is_staged=False):
         >>> aids_list = ibs.get_name_aids(nid_list)
         >>> # Run Assertion Test
         >>> groupid2_items = ut.group_items(aids_list, nid_list)
-        >>> grouped_items = list(six.itervalues(groupid2_items))
+        >>> grouped_items = list(groupid2_items.values())
         >>> passed_iter = map(ut.allsame, grouped_items)
         >>> passed_list = list(passed_iter)
         >>> assert all(passed_list), 'problem in get_name_aids'
@@ -573,7 +545,7 @@ def get_name_exemplar_aids(ibs, nid_list):
 
 
     CommandLine:
-        python -m ibeis.control.manual_name_funcs --test-get_name_exemplar_aids
+        python -m ibeis.control.manual_name_funcs get_name_exemplar_aids
 
     RESTful:
         Method: GET
@@ -730,7 +702,7 @@ def get_name_num_annotations(ibs, nid_list):
         list_ (list):  the number of annotations for each name
 
     CommandLine:
-        python -m ibeis.control.manual_name_funcs --test-get_name_num_annotations
+        python -m ibeis.control.manual_name_funcs get_name_num_annotations
 
     RESTful:
         Method: GET
@@ -785,7 +757,7 @@ def get_name_temp_flag(ibs, name_rowid_list, eager=True, nInput=None):
         tbl = name
 
     CommandLine:
-        python -m ibeis.control.manual_name_funcs --test-get_name_temp_flag
+        python -m ibeis.control.manual_name_funcs get_name_temp_flag
 
     RESTful:
         Method: GET
@@ -841,10 +813,10 @@ def get_name_alias_texts(ibs, name_rowid_list):
         list_ (list): name_alias_text_list
 
     CommandLine:
-        python -m ibeis.control.manual_name_funcs --test-get_name_texts
+        python -m ibeis.control.manual_name_funcs get_name_texts
 
     CommandLine:
-        python -m ibeis.control.manual_name_funcs --test-get_name_alias_texts
+        python -m ibeis.control.manual_name_funcs get_name_alias_texts
 
     RESTful:
         Method: GET
@@ -878,7 +850,7 @@ def set_name_alias_texts(ibs, name_rowid_list, name_alias_text_list):
         list_ (list): name_alias_text_list
 
     CommandLine:
-        python -m ibeis.control.manual_name_funcs --test-get_name_texts
+        python -m ibeis.control.manual_name_funcs get_name_texts
 
     RESTful:
         Method: PUT
@@ -899,7 +871,7 @@ def get_name_texts(ibs, name_rowid_list, apply_fix=True):
         list_ (list): text names
 
     CommandLine:
-        python -m ibeis.control.manual_name_funcs --test-get_name_texts
+        python -m ibeis.control.manual_name_funcs get_name_texts
 
     RESTful:
         Method: GET
@@ -939,7 +911,7 @@ def get_num_names(ibs, **kwargs):
     Number of valid names
 
     CommandLine:
-        python -m ibeis.control.manual_name_funcs --test-get_num_names
+        python -m ibeis.control.manual_name_funcs get_num_names
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -968,8 +940,8 @@ def get_name_rowids_from_text(ibs, name_text_list, ensure=True):
         name_rowid_list (list): Creates one if it doesnt exist
 
     CommandLine:
-        python -m ibeis.control.manual_name_funcs --test-get_name_rowids_from_text:0
-        python -m ibeis.control.manual_name_funcs --test-get_name_rowids_from_text:1
+        python -m ibeis.control.manual_name_funcs get_name_rowids_from_text:0
+        python -m ibeis.control.manual_name_funcs get_name_rowids_from_text:1
 
     TODO:
         should ensure be defaulted to False?
@@ -1021,7 +993,7 @@ def get_name_rowids_from_text_(ibs, name_text_list, ensure=True):
         name_rowid_list (list):
 
     CommandLine:
-        python -m ibeis.control.manual_name_funcs --test-get_name_rowids_from_text_
+        python -m ibeis.control.manual_name_funcs get_name_rowids_from_text_
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -1162,7 +1134,7 @@ def set_name_texts(ibs, name_rowid_list, name_text_list, verbose=False,
     Effectively just changes the TEXT UUID
 
     CommandLine:
-        python -m ibeis.control.manual_name_funcs --test-set_name_texts
+        python -m ibeis.control.manual_name_funcs set_name_texts
 
     RESTful:
         Method: PUT
@@ -1402,7 +1374,7 @@ def get_name_imgset_uuids(ibs, nid_list):
 def get_name_has_split(ibs, nid_list):
     r"""
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-get_name_speeds
+        python -m ibeis.other.ibsfuncs get_name_speeds
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -1434,7 +1406,7 @@ def get_name_has_split(ibs, nid_list):
 def get_name_speeds(ibs, nid_list):
     r"""
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-get_name_speeds
+        python -m ibeis.other.ibsfuncs get_name_speeds
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -1459,7 +1431,7 @@ def get_name_speeds(ibs, nid_list):
 def get_name_hourdiffs(ibs, nid_list):
     """
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-get_name_hourdiffs
+        python -m ibeis.other.ibsfuncs get_name_hourdiffs
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -1493,7 +1465,7 @@ def get_name_max_hourdiff(ibs, nid_list):
 def get_name_max_speed(ibs, nid_list):
     """
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-get_name_max_speed
+        python -m ibeis.other.ibsfuncs get_name_max_speed
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -1514,16 +1486,12 @@ def get_name_max_speed(ibs, nid_list):
 def get_name_gps_tracks(ibs, nid_list=None, aid_list=None):
     """
     CommandLine:
-        python -m ibeis.other.ibsfuncs --test-get_name_gps_tracks
+        python -m ibeis.other.ibsfuncs get_name_gps_tracks
 
     Example:
-        >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_name_funcs import *  # NOQA
         >>> import ibeis
-        >>> # build test data
-        >>> #ibs = ibeis.opendb('PZ_Master0')
         >>> ibs = ibeis.opendb('testdb1')
-        >>> #nid_list = ibs.get_valid_nids()
         >>> aid_list = ibs.get_valid_aids()
         >>> nid_list, gps_track_list, aid_track_list = ibs.get_name_gps_tracks(aid_list=aid_list)
         >>> nonempty_list = list(map(lambda x: len(x) > 0, gps_track_list))
@@ -1562,5 +1530,5 @@ if __name__ == '__main__':
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    import xdoctest
+    xdoctest.doctest_module(__file__)

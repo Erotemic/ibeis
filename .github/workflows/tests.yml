@@ -103,30 +103,38 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
     - uses: actions/download-artifact@v3
-      name: Download wheels and sdist
+      name: Download wheels
       with:
         name: wheels
         path: wheelhouse
-    - name: Test wheel with ${{ matrix.install-extras }}
+    - name: Find wheel
       shell: bash
-      env:
-        INSTALL_EXTRAS: ${{ matrix.install-extras }}
-        CI_PYTHON_VERSION: py${{ matrix.python-version }}
       run: |-
         echo "Finding the path to the wheel"
         ls -al wheelhouse
         echo "Installing helpers"
         pip install tomli pkginfo
-        MOD_NAME=ibeis
+        export MOD_NAME=ibeis
         echo "MOD_NAME=$MOD_NAME"
-        WHEEL_FPATH=$(python -c "import pathlib; print(str(sorted(pathlib.Path('wheelhouse').glob('$MOD_NAME*.whl'))[-1]).replace(chr(92), chr(47)))")
+        export WHEEL_FPATH=$(python -c "import pathlib; print(str(sorted(pathlib.Path('wheelhouse').glob('$MOD_NAME*.whl'))[-1]).replace(chr(92), chr(47)))")
         echo "WHEEL_FPATH=$WHEEL_FPATH"
-        MOD_VERSION=$(python -c "from pkginfo import Wheel; print(Wheel('$WHEEL_FPATH').version)")
+        export MOD_VERSION=$(python -c "from pkginfo import Wheel; print(Wheel('$WHEEL_FPATH').version)")
         echo "MOD_VERSION=$MOD_VERSION"
+    - name: Install wheel ${{ matrix.install-extras }}
+      shell: bash
+      env:
+        INSTALL_EXTRAS: ${{ matrix.install-extras }}
+      run: |-
         echo "Install the wheel (ensureing we are using the version we just built)"
         # NOTE: THE VERSION MUST BE NEWER THAN AN EXISTING PYPI VERSION OR THIS MAY FAIL
         pip install --prefer-binary "$MOD_NAME[$INSTALL_EXTRAS]==$MOD_VERSION" -f wheelhouse
-        echo "Install finished. Creating a sandbox directory to test it"
+        echo "Install finished."
+    - name: Test wheel ${{ matrix.install-extras }}
+      shell: bash
+      env:
+        CI_PYTHON_VERSION: py${{ matrix.python-version }}
+      run: |-
+        echo "Creating test standing"
         WORKSPACE_DNAME="testdir_${CI_PYTHON_VERSION}_${GITHUB_RUN_ID}_${RUNNER_OS}"
         echo "WORKSPACE_DNAME=$WORKSPACE_DNAME"
         mkdir -p $WORKSPACE_DNAME
@@ -143,7 +151,7 @@ jobs:
         echo "About to reset workdirs"
         python -m ibeis --set-workdir="$(readlink -f ci_ibeis_workdir)" --nogui
         python -m ibeis --resetdbs
-        python -m xdoctest $MOD_DPATH
+        python -m xdoctest $MOD_DPATH --style=google all
         echo "xdoctest command finished
         ls -al
         # Move coverage file to a new name
