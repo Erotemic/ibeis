@@ -178,9 +178,21 @@ def grab_zipped_url(zipped_url, ensure=True, appname='utool',
             zip_fpath = realpath(join(download_dir, zip_fname))
             #print('[utool] Downloading archive %s' % zip_fpath)
             if not exists(zip_fpath) or redownload:
-                import safer
-                with safer.open(zip_fpath, 'wb') as file:
-                    ub.download(zipped_url, file, chunksize=2 ** 20)
+                do_http_download = True
+                if '/ipfs/' in zipped_url and ub.find_exe('ipfs'):
+                    # Use a real ipfs client if we can.
+                    ipfs_address = zipped_url.split('/ipfs/')[-1]
+                    try:
+                        ub.cmd(f'ipfs get {ipfs_address} -o {zip_fpath}', verbose=3)
+                    except Exception:
+                        ...
+                    else:
+                        do_http_download = False
+
+                if do_http_download:
+                    import safer
+                    with safer.open(zip_fpath, 'wb') as file:
+                        ub.download(zipped_url, file, chunksize=2 ** 20)
             unarchive_file(zip_fpath, force_commonprefix)
             if cleanup:
                 ub.Path(zip_fpath).delete()  # Cleanup

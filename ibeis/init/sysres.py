@@ -7,10 +7,9 @@ import os
 from os.path import exists, join, realpath
 import utool as ut
 import ubelt as ub
-from six.moves import input, zip, map
 from ibeis import constants as const
 from ibeis import params
-from ibeis.util.util_grabdata import grab_zipped_url
+from ibeis.util import util_grabdata
 (print, rrr, profile) = ut.inject2(__name__)
 
 WORKDIR_CACHEID   = 'work_directory_cache_id'
@@ -435,7 +434,7 @@ def ensure_pz_mtest():
     from ibeis import sysres
     workdir = sysres.get_workdir()
     mtest_zipped_url = const.ZIPPED_URLS.PZ_MTEST
-    mtest_dir = grab_zipped_url(mtest_zipped_url, ensure=True, download_dir=workdir)
+    mtest_dir = util_grabdata.grab_zipped_url(mtest_zipped_url, ensure=True, download_dir=workdir)
     print('have mtest_dir=%r' % (mtest_dir,))
     # update the the newest database version
     import ibeis
@@ -800,7 +799,7 @@ def ensure_db_from_url(zipped_db_url):
     """ SeeAlso ibeis.init.sysres """
     from ibeis import sysres
     workdir = sysres.get_workdir()
-    dbdir = grab_zipped_url(zipped_url=zipped_db_url, ensure=True, download_dir=workdir)
+    dbdir = util_grabdata.grab_zipped_url(zipped_url=zipped_db_url, ensure=True, download_dir=workdir)
     print('have %s=%r' % (zipped_db_url, dbdir,))
     return dbdir
 
