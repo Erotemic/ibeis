@@ -527,7 +527,10 @@ class TestResult(ut.NiceRepr):
             >>>     t=['default:K=[1,2]'])
             >>> groupxs = testres.get_cfgx_groupxs()
             >>> result = groupxs
+            ...
             >>> print(result)
+            [[4], [0, 2], [5], [1, 3]]
+
             [[6], [4], [0, 2], [7], [5], [1, 3]]
         """
         # Group-ids for annotations are determined by joinme labels
