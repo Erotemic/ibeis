@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function
 import six
 from ibeis import constants as const
 from ibeis.control import accessor_decors, controller_inject
@@ -281,7 +279,7 @@ def get_imageset_fraction_names_with_exemplar(ibs, imgsetid_list):
         >>> # DISABLE_DOCTEST
         >>> from ibeis.control.manual_imageset_funcs import *  # NOQA
         >>> import ibeis  # NOQA
-        >>> ibs = ibeis.opendb('testdb2')
+        >>> ibs = ibeis.opendb('testdb1')
         >>> imgsetid_list = ibs._get_all_imageset_rowids()
         >>> fraction_exemplared_names_list = ibs.get_imageset_fraction_names_with_exemplar(imgsetid_list)
     """

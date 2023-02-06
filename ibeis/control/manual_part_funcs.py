@@ -422,11 +422,10 @@ def get_part_thetas(ibs, part_rowid_list):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_part_funcs import *  # NOQA
         >>> import ibeis
-        >>> ibs = ibeis.opendb('NAUT_test')
+        >>> ibs = ibeis.opendb('testdb1')
         >>> part_rowid_list = ibs.get_valid_part_rowids()
         >>> result = get_part_thetas(ibs, part_rowid_list)
         >>> print(result)
-        []
     """
     theta_list = ibs.db.get(const.PART_TABLE, ('part_theta',), part_rowid_list)
     return theta_list

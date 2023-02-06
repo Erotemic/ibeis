@@ -19,8 +19,6 @@ Notes:
         Stretch
            - relative size ratio vector (1 component for each widget)
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
-import six  # NOQA
 import sys
 import functools
 import traceback  # NOQA
@@ -41,7 +39,6 @@ from ibeis.gui import newgui
 from ibeis.viz import interact
 from os.path import exists, join, dirname, normpath
 from plottool_ibeis import fig_presenter
-from six.moves import zip
 (print, rrr, profile) = ut.inject2(__name__, '[back]')
 
 
@@ -1170,7 +1167,7 @@ class MainWindowBackend(GUIBACK_BASE):
                 id_list = uuid_to_id_fn(id_list)
             return id_list
         def ensure_texts_are_ids(id_list, text_to_id_fn):
-            if len(id_list) > 0 and isinstance(id_list[0], six.string_types):
+            if len(id_list) > 0 and isinstance(id_list[0], str):
                 id_list = text_to_id_fn(id_list)
             return id_list
         if tablename == const.ANNOTATION_TABLE:
@@ -2086,7 +2083,7 @@ class MainWindowBackend(GUIBACK_BASE):
             >>> # DISABLE_DOCTEST
             >>> from ibeis.gui.guiback import *  # NOQA
             >>> import ibeis
-            >>> main_locals = ibeis.main(db='testdb2')
+            >>> main_locals = ibeis.main(db='testdb1')
             >>> back = main_locals['back']
             >>> ibs = back.ibs
             >>> query_is_known = None
@@ -3790,7 +3787,7 @@ class MainWindowBackend(GUIBACK_BASE):
         back.front.outputLog.setVisible(not current)
 
 
-def testdata_guiback(defaultdb='testdb2', **kwargs):
+def testdata_guiback(defaultdb='testdb1', **kwargs):
     import ibeis
     print('testdata guiback')
     if defaultdb is None:

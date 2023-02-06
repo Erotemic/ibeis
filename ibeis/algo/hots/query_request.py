@@ -76,7 +76,7 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         testdb1_DPCC_UUIDS-a5-n4-pvnkfcsjkzzzecuq
 
     Example1:
-        >>> # ENABLE_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from ibeis.algo.hots.query_request import *  # NOQA
         >>> ibs, qaid_list, daid_list = testdata_newqreq('NAUT_test')
         >>> unique_species = None

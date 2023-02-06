@@ -40,9 +40,10 @@ def run_ibeis():
         # Yet another place where initialization behavior is hackilly injected
         # It is strange we can't seem to execute this after the parser
         # But this will do for now.
-        from ibeis.tests import reset_testdbs
+        # Only reset a few dbs
         ibeis.ENABLE_WILDBOOK_SIGNAL = False
-        reset_testdbs.reset_testdbs()
+        from ibeis.tests import reset_testdbs
+        reset_testdbs.reset_ci_testdbs()
         sys.exit(0)
 
     #ut.set_process_title('IBEIS_main')

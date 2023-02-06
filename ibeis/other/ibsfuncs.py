@@ -3072,7 +3072,7 @@ def set_exemplars_from_quality_and_viewpoint(ibs, aid_list=None,
         >>> # DISABLE_DOCTEST
         >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb2')
+        >>> ibs = ibeis.opendb('testdb1')
         >>> dry_run = True
         >>> verbose = False
         >>> imgsetid = None
@@ -3128,11 +3128,11 @@ def get_annot_quality_viewpoint_subset(ibs, aid_list=None, annots_per_view=2,
         >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> ut.exec_funckw(get_annot_quality_viewpoint_subset, globals())
-        >>> ibs = ibeis.opendb('testdb2')
+        >>> ibs = ibeis.opendb('testdb1')
         >>> new_flag_list = get_annot_quality_viewpoint_subset(ibs)
         >>> result = sum(new_flag_list)
         >>> print(result)
-        38
+        9
 
     Example:
         >>> # ENABLE_DOCTEST

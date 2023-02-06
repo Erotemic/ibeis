@@ -1296,7 +1296,7 @@ def get_annot_contact_aids(ibs, aid_list, daid_list=None, check_isect=False, ass
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_annot_funcs import *  # NOQA
         >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb2')
+        >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
         >>> contact_aids = ibs.get_annot_contact_aids(aid_list)
         >>> contact_gids = ibs.unflat_map(ibs.get_annot_gids, contact_aids)
@@ -1626,7 +1626,7 @@ def get_annot_thetas(ibs, aid_list):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_annot_funcs import *  # NOQA
         >>> import ibeis
-        >>> ibs = ibeis.opendb('NAUT_test')
+        >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
         >>> result = get_annot_thetas(ibs, aid_list)
         >>> print(result)

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """IBEIS CORE IMAGE.
 
 Defines the core dependency cache supported by the image analysis api

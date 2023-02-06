@@ -1,9 +1,7 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 Exports subset of an IBEIS database to a new IBEIS database
 """
-from __future__ import absolute_import, division, print_function
 import utool as ut
 from ibeis.other import ibsfuncs
 from ibeis import constants as const
@@ -157,7 +155,7 @@ def export_names(ibs, nid_list, new_dbpath=None):
         >>> from ibeis.dbio.export_subset import *  # NOQA
         >>> import ibeis
         >>> # build test data
-        >>> ibs = ibeis.opendb('testdb2')
+        >>> ibs = ibeis.opendb('testdb1')
         >>> ibs.delete_empty_nids()
         >>> nid_list = ibs._get_all_known_nids()[0:2]
         >>> # execute function

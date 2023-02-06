@@ -2,7 +2,6 @@
 """
 downloads standard test datasets. can delete them as well
 """
-import six
 import utool as ut
 from os.path import join
 from itertools import cycle
@@ -92,10 +91,7 @@ def ensure_smaller_testingdbs():
             # Get a some number of test images
             if ndata is not None:
                 gpath_cycle = cycle(gpath_list)
-                if six.PY2:
-                    gpath_list  = [gpath_cycle.next() for _ in range(ndata)]
-                else:
-                    gpath_list  = [next(gpath_cycle) for _ in range(ndata)]
+                gpath_list  = [next(gpath_cycle) for _ in range(ndata)]
             return gpath_list
         workdir = sysres.get_workdir()
         TESTDB0 = join(workdir, 'testdb0')
@@ -135,24 +131,35 @@ def ensure_smaller_testingdbs():
         ingest_database.ingest_standard_database('testdb1')
 
 
+def reset_ci_testdbs():
+    import ibeis
+    from ibeis.init import sysres
+    import ubelt as ub
+    ibeis.ENABLE_WILDBOOK_SIGNAL = False
+    workdir = ub.Path(sysres.get_workdir()).ensuredir()
+    (workdir / 'testdb0').delete()
+    (workdir / 'testdb1').delete()
+    ensure_smaller_testingdbs()
+
+
 def reset_testdbs(**kwargs):
     # Step 0) Parse Args
     import ibeis
     from ibeis.init import sysres
     ibeis.ENABLE_WILDBOOK_SIGNAL = False
     default_args = {'reset_' + key: False
-                    for key in six.iterkeys(TEST_DBNAMES_MAP)}
+                    for key in TEST_DBNAMES_MAP.keys()}
     default_args['reset_all'] = False
     default_args.update(kwargs)
     argdict = ut.parse_dict_from_argv(default_args)
-    if not any(list(six.itervalues(argdict))):
+    if not any(list(argdict.values())):
         # Default behavior is to reset the small dbs
         argdict['reset_testdb0'] = True
         argdict['reset_testdb1'] = True
         argdict['reset_testdb_guiall'] = True
 
     # Step 1) Delete DBs to be Reset
-    for key, dbname in six.iteritems(TEST_DBNAMES_MAP):
+    for key, dbname in TEST_DBNAMES_MAP.items():
         if argdict.get('reset_' + key, False) or argdict['reset_all']:
             delete_dbdir(dbname)
 

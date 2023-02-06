@@ -340,7 +340,7 @@ def get_annot_num_reviewed_matching_aids(ibs, aid1_list, eager=True, nInput=None
         >>> # DISABLE_DOCTEST
         >>> from ibeis.annotmatch_funcs import *  # NOQA
         >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb2')
+        >>> ibs = ibeis.opendb('testdb1')
         >>> aid1_list = ibs.get_valid_aids()
         >>> eager = True
         >>> nInput = None
@@ -397,7 +397,7 @@ def get_annot_pair_is_reviewed(ibs, aid1_list, aid2_list):
         >>> # DISABLE_DOCTEST
         >>> from ibeis.annotmatch_funcs import *  # NOQA
         >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb2')
+        >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
         >>> pairs = list(ut.product(aid_list, aid_list))
         >>> aid1_list = ut.get_list_column(pairs, 0)
