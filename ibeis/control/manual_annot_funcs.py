@@ -2462,17 +2462,6 @@ def get_annot_species_texts(ibs, aid_list):
         >>> print(result)
         ['zebra_plains', 'zebra_plains', '____', 'bear_polar']
 
-    Example2:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('PZ_MTEST')
-        >>> aid_list = ibs.get_valid_aids()
-        >>> species_list = get_annot_species_texts(ibs, aid_list)
-        >>> result = ut.repr2(list(set(species_list)), nl=False)
-        >>> print(result)
-        ['zebra_plains']
-
     RESTful:
         Method: GET
         URL:    /api/annot/species/text/

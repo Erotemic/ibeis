@@ -62,7 +62,7 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
     Example0:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.query_request import *  # NOQA
-        >>> ibs, qaid_list, daid_list = testdata_newqreq('PZ_MTEST')
+        >>> ibs, qaid_list, daid_list = testdata_newqreq('testdb1')
         >>> unique_species = None
         >>> verbose = ut.NOT_QUIET
         >>> cfgdict = {'sv_on': False, 'fg_on': True}  # 'fw_detector': 'rf'}
@@ -73,7 +73,7 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         >>> result = ibs.get_dbname() + qreq_.get_data_hashid()
         ...
         >>> print(result)
-        PZ_MTEST_DPCC_UUIDS-a5-n2-vpkyggtpzbqbecuq
+        testdb1_DPCC_UUIDS-a5-n4-pvnkfcsjkzzzecuq
 
     Example1:
         >>> # ENABLE_DOCTEST
@@ -99,7 +99,7 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
     Example2:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.query_request import *  # NOQA
-        >>> ibs, qaid_list, daid_list = testdata_newqreq('PZ_MTEST')
+        >>> ibs, qaid_list, daid_list = testdata_newqreq('testdb1')
         >>> unique_species = None
         >>> verbose = ut.NOT_QUIET
         >>> cfgdict = {'sv_on': False, 'query_rotation_heuristic': True}
@@ -111,7 +111,7 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         >>> result = ibs.get_dbname() + qreq_.get_data_hashid()
         ...
         >>> print(result)
-        PZ_MTEST_DPCC_UUIDS-a5-n2-vpkyggtpzbqbecuq
+        testdb1_DPCC_UUIDS-a5-n4-pvnkfcsjkzzzecuq
 
     Ignore:
         # This is supposed to be the beginings of the code to transition the

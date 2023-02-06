@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # TODO: find unused functions and kill them
 import ubelt as ub
 import six
@@ -522,7 +521,7 @@ class TestResult(ut.NiceRepr):
             >>> from ibeis.expt.test_result import *  # NOQA
             >>> from ibeis.init import main_helpers
             >>> ibs, testres = main_helpers.testdata_expts(
-            >>>    'PZ_MTEST',
+            >>>    'testdb1',
             >>>     a=['default:qnum_names=1,qname_offset=[0,1],joinme=1,dpername=1',
             >>>        'default:qsize=1,dpername=[1,2]'],
             >>>     t=['default:K=[1,2]'])
@@ -595,7 +594,7 @@ class TestResult(ut.NiceRepr):
             >>> from ibeis.expt.test_result import *  # NOQA
             >>> import ibeis
             >>> testres = ibeis.testdata_expts(
-            >>>     'PZ_MTEST', t='default:K=[1,2]')[1]
+            >>>     'testdb1', t='default:K=[1,2]')[1]
             >>> varied_params = sorted(testres.get_all_varied_params())
             >>> result = ('varied_params = %s' % (ut.repr2(varied_params),))
             >>> print(result)
@@ -963,7 +962,7 @@ class TestResult(ut.NiceRepr):
                     op_prefixes = {
                         'sum': (np.sum, 'Σ-', ''),
                         'mean': (np.mean, 'µ-', ''),
-                        'set': (lambda x: '&'.join(set(map(six.text_type, x))), '', 's'),
+                        'set': (lambda x: '&'.join(set(map(str, x))), '', 's'),
                     }
                     known_modes = {
                         'dsize': 'mean',
@@ -982,7 +981,7 @@ class TestResult(ut.NiceRepr):
                         else:
                             op, pref, suff = op_prefixes[mode]
                             c = op(vals)
-                            if isinstance(c, six.string_types):
+                            if isinstance(c, str):
                                 new_acfg[pref + key + suff] = c
                             else:
                                 new_acfg[pref + key + suff] = ut.repr2(c, precision=2)
@@ -1049,7 +1048,7 @@ class TestResult(ut.NiceRepr):
             >>> # ENABLE_DOCTEST
             >>> from ibeis.expt.test_result import *  # NOQA
             >>> import ibeis
-            >>> ibs, testres = ibeis.testdata_expts('PZ_MTEST')
+            >>> ibs, testres = ibeis.testdata_expts('testdb1')
             >>> plotname = ''
             >>> figtitle = testres.make_figtitle(plotname)
             >>> result = ('figtitle = %r' % (figtitle,))
@@ -1088,7 +1087,7 @@ class TestResult(ut.NiceRepr):
             >>> # DISABLE_DOCTEST
             >>> from ibeis.expt.test_result import *  # NOQA
             >>> import ibeis
-            >>> ibs, testres = ibeis.testdata_expts('PZ_MTEST')
+            >>> ibs, testres = ibeis.testdata_expts('testdb1')
             >>> with_size = True
             >>> title_aug = testres.get_title_aug(with_size)
             >>> res = u'title_aug = %s' % (title_aug,)
@@ -1416,7 +1415,7 @@ class TestResult(ut.NiceRepr):
             >>> from ibeis.expt.test_result import *  # NOQA
             >>> from ibeis.init import main_helpers
             >>> verbose = True
-            >>> ibs, testres = main_helpers.testdata_expts('PZ_MTEST', a=['ctrl'])
+            >>> ibs, testres = main_helpers.testdata_expts('testdb1', a=['ctrl'])
             >>> filt_cfg1 = {'fail': True}
             >>> case_pos_list1 = testres.case_sample2(filt_cfg1)
             >>> filt_cfg2 = {'min_gtrank': 1}
@@ -1428,7 +1427,7 @@ class TestResult(ut.NiceRepr):
             >>> assert np.all(case_pos_list1 == case_pos_list2), 'should be equiv configs'
             >>> assert np.any(case_pos_list2 != case_pos_list3), 'should be diff configs'
             >>> assert np.all(case_pos_list3 == case_pos_list4), 'should be equiv configs'
-            >>> ibs, testres = main_helpers.testdata_expts('PZ_MTEST', a=['ctrl'], t=['default:sv_on=[True,False]'])
+            >>> ibs, testres = main_helpers.testdata_expts('testdb1', a=['ctrl'], t=['default:sv_on=[True,False]'])
             >>> filt_cfg5 = filt_cfg1.copy()
             >>> mask5 = testres.case_sample2(filt_cfg5, return_mask=True)
             >>> case_pos_list5 = testres.case_sample2(filt_cfg5, return_mask=False)
@@ -1495,12 +1494,12 @@ class TestResult(ut.NiceRepr):
         if verbose:
             print('[testres] case_sample2')
 
-        if isinstance(filt_cfg, six.string_types):
+        if isinstance(filt_cfg, str):
             filt_cfg = [filt_cfg]
         if isinstance(filt_cfg, list):
             _combos = cfghelpers.parse_cfgstr_list2(filt_cfg, strict=False)
             filt_cfg = ut.flatten(_combos)[0]
-        if isinstance(filt_cfg, six.string_types):
+        if isinstance(filt_cfg, str):
             _combos = cfghelpers.parse_cfgstr_list2([filt_cfg], strict=False)
             filt_cfg = ut.flatten(_combos)[0]
         if filt_cfg is None:
@@ -1779,7 +1778,7 @@ class TestResult(ut.NiceRepr):
                                     'Enforcing that all configs must pass filters')
 
         if index is not None:
-            if isinstance(index, six.string_types):
+            if isinstance(index, str):
                 index = ut.smart_cast(index, slice)
             _qx_list = ut.take(qx_list, index)
             _cfgx_list = ut.take(cfgx_list, index)
@@ -1821,13 +1820,9 @@ class TestResult(ut.NiceRepr):
             >>> # ENABLE_DOCTEST
             >>> from ibeis.expt.test_result import *  # NOQA
             >>> import ibeis
-            >>> ibs, testres = ibeis.testdata_expts('PZ_MTEST', a=['ctrl'])
+            >>> ibs, testres = ibeis.testdata_expts('testdb1', a=['ctrl'])
             >>> (truth2_prop, prop2_mat) = testres.get_truth2_prop()
             >>> result = '(truth2_prop, prop2_mat) = %s' % str((truth2_prop, prop2_mat))
-            >>> print(result)
-            >>> ut.quit_if_noshow()
-            >>> import plottool_ibeis as pt
-            >>> ut.show_if_requested()
         """
 
         ibs = testres.ibs

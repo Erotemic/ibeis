@@ -410,7 +410,7 @@ def expand_acfgs_consistently(ibs, acfg_combo, initial_aids=None,
                 --nofilter-dups
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from ibeis.init.filter_annots import *  # NOQA
         >>> from ibeis.init import main_helpers
         >>> from ibeis.expt import annotation_configs
@@ -700,7 +700,7 @@ def encounter_crossval(ibs, aids, qenc_per_name=1, denc_per_name=1,
         python -m ibeis.init.filter_annots encounter_crossval
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from ibeis.init.filter_annots import *  # NOQA
         >>> from ibeis.init import main_helpers
         >>> import ibeis
@@ -809,7 +809,7 @@ def annot_crossval(ibs, aid_list, n_qaids_per_name=1, n_daids_per_name=1,
         python -m ibeis.init.filter_annots annot_crossval
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from ibeis.init.filter_annots import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')

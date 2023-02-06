@@ -1,9 +1,7 @@
-# -*- coding: utf-8 -*-
 """
 CommandLine:
     xdoctest -m ibeis.gui.inspect_gui test_review_widget --show
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 from functools import partial
 from ibeis.viz import viz_helpers as vh
 import guitool_ibeis as gt

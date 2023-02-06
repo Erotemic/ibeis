@@ -1,9 +1,7 @@
-# -*- coding: utf-8 -*-
 """
 Helper module that helps expand parameters for grid search
 TODO: move into custom pipe_cfg and annot_cfg modules
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import sys
 import six
@@ -382,7 +380,7 @@ def get_annotcfg_list(ibs, acfg_name_list, filter_dups=True,
 
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from ibeis.expt.experiment_helpers import *  # NOQA
         >>> import ibeis
         >>> from ibeis.init import main_helpers

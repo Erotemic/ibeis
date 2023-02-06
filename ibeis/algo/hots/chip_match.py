@@ -194,22 +194,25 @@ class _ChipMatchVisualization(object):
             >>> # xdoctest: +REQUIRES(--show)
             >>> from ibeis.algo.hots.chip_match import *  # NOQA
             >>> import ibeis
-            >>> cm, qreq_ = ibeis.testdata_cm('PZ_MTEST', default_qaids=[18])
+            >>> cm, qreq_ = ibeis.testdata_cm('testdb1', default_qaids=[2])
             >>> if True:
             >>>     import matplotlib as mpl
             >>>     from ibeis.scripts.thesis import TMP_RC
             >>>     mpl.rcParams.update(TMP_RC)
             >>> from ibeis.viz import viz_matches
-            >>> defaultkw = dict(ut.recursive_parse_kwargs(viz_matches.show_name_matches))
+            >>> #defaultkw = dict(ut.recursive_parse_kwargs(viz_matches.show_name_matches))
+            >>> defaultkw = {}
             >>> #kwargs = ut.argparse_dict(defaultkw, only_specified=True)
             >>> kwargs = defaultkw.copy()
             >>> kwargs.pop('qaid', None)
+            >>> kwargs.pop('qreq_', None)
+            >>> kwargs.pop('name_rank', None)
             >>> #_nid = ut.get_argval('--dnid', default=cm.qnid)
             >>> #rank = ut.get_argval('--rank', default=None)
             >>> _nid = cm.qnid
             >>> rank = None
             >>> dnid = None if rank is not None else _nid
-            >>> cm.show_single_namematch(qreq_, dnid=dnid, rank=rank, **kwargs)
+            >>> cm.show_single_namematch(qreq_=qreq_, dnid=dnid, rank=rank, **kwargs)
             >>> ut.quit_if_noshow()
             >>> ut.show_if_requested()
         """

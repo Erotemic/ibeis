@@ -1077,7 +1077,7 @@ def get_sparse_matchinfo_nonagg(qreq_, nns, neighb_valid0,
         >>> from ibeis.algo.hots.pipeline import *  # NOQA
         >>> verbose = True
         >>> qreq_, qaid, daid, args = plh.testdata_sparse_matchinfo_nonagg(
-        >>>     defaultdb='PZ_MTEST', p=['default:Knorm=3,normalizer_rule=name,const_on=True,ratio_thresh=.2,sqrd_dist_on=True'])
+        >>>     defaultdb='testdb1', p=['default:Knorm=3,normalizer_rule=name,const_on=True,ratio_thresh=.2,sqrd_dist_on=True'])
         >>> nns, neighb_valid0, neighb_score_list, neighb_valid_list, neighb_normk_list, Knorm, fsv_col_lbls = args
         >>> cm = get_sparse_matchinfo_nonagg(qreq_, *args)
         >>> qannot = qreq_.ibs.annots([qaid], config=qreq_.qparams)
@@ -1196,7 +1196,7 @@ def spatial_verification(qreq_, cm_list_FILT, verbose=VERB_PIPELINE):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.pipeline import *  # NOQA
-        >>> ibs, qreq_, cm_list = plh.testdata_pre_sver('PZ_MTEST', qaid_list=[18])
+        >>> ibs, qreq_, cm_list = plh.testdata_pre_sver('testdb1', qaid_list=[2])
         >>> scoring.score_chipmatch_list(qreq_, cm_list, qreq_.qparams.prescore_method)  # HACK
         >>> cm = cm_list[0]
         >>> top_nids = cm.get_top_nids(6)
@@ -1317,7 +1317,7 @@ def sver_single_chipmatch(qreq_, cm, verbose=False):
         >>> # DISABLE_DOCTEST
         >>> # Visualization
         >>> from ibeis.algo.hots.pipeline import *  # NOQA
-        >>> qreq_, args = plh.testdata_pre('spatial_verification', defaultdb='PZ_MTEST')  #, qaid_list=[18])
+        >>> qreq_, args = plh.testdata_pre('spatial_verification', defaultdb='testdb1')  #, qaid_list=[18])
         >>> cm_list = args.cm_list_FILT
         >>> ibs = qreq_.ibs
         >>> cm = cm_list[0]
@@ -1488,7 +1488,7 @@ def compute_matching_dlen_extent(qreq_, fm_list, kpts_list):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.pipeline import *  # NOQA
-        >>> ibs, qreq_, cm_list = plh.testdata_pre_sver('PZ_MTEST')
+        >>> ibs, qreq_, cm_list = plh.testdata_pre_sver('testdb1')
         >>> verbose = True
         >>> cm = cm_list[0]
         >>> cm.set_cannonical_annot_score(cm.get_num_matches_list())

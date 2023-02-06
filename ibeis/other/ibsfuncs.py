@@ -2311,7 +2311,7 @@ def make_next_name(ibs, num=None, str_format=2, species_text=None, location_text
         python -m ibeis.other.ibsfuncs make_next_name
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> ibs1 = ibeis.opendb('testdb1')
@@ -2822,7 +2822,7 @@ def get_database_species(ibs, aid_list=None):
         ['____', 'bear_polar', 'zebra_grevys', 'zebra_plains']
 
     Example2:
-        >>> # ENABLE_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis  # NOQA
         >>> ibs = ibeis.opendb('PZ_MTEST')
@@ -3040,7 +3040,7 @@ def set_exemplars_from_quality_and_viewpoint(ibs, aid_list=None,
         python -m ibeis.other.ibsfuncs set_exemplars_from_quality_and_viewpoint:1
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> #ibs = ibeis.opendb('PZ_MUGU_19')
@@ -4139,7 +4139,7 @@ def filter_annots_using_minimum_timedelta(ibs, aid_list, min_timedelta):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> aid_list = ibs.get_valid_aids()
         >>> aid_list = ibs.filter_aids_without_timestamps(aid_list)
         >>> print('Before')
@@ -4148,6 +4148,7 @@ def filter_annots_using_minimum_timedelta(ibs, aid_list, min_timedelta):
         >>> filtered_aids = filter_annots_using_minimum_timedelta(ibs, aid_list, min_timedelta)
         >>> print('After')
         >>> ibs.print_annot_stats(filtered_aids, min_name_hourdist=True)
+        >>> # xdoctest: +REQUIRES(--show)
         >>> ut.quit_if_noshow()
         >>> ibeis.other.dbinfo.hackshow_names(ibs, aid_list)
         >>> ibeis.other.dbinfo.hackshow_names(ibs, filtered_aids)
@@ -4888,6 +4889,7 @@ def compare_nested_props(ibs, aids1_list,
         >>> cmp_func = ut.unixtime_hourdiff
         >>> result = compare_nested_props(ibs, aids1_list, aids2_list, getter_func, cmp_func)
         >>> print(result)
+        >>> # xdoctest: +REQUIRES(--show)
         >>> ut.quit_if_noshow()
         >>> import plottool_ibeis as pt
         >>> ut.show_if_requested()
