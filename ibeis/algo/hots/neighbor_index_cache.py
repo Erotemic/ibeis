@@ -230,7 +230,7 @@ def request_ibeis_nnindexer(qreq_, verbose=True, **kwargs):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.neighbor_index_cache import *  # NOQA
-        >>> nnindexer, qreq_, ibs = testdata_nnindexer(None)
+        >>> nnindexer, qreq_, ibs = testdata_nnindexer()
         >>> nnindexer = request_ibeis_nnindexer(qreq_)
     """
     daid_list = qreq_.get_internal_daids()

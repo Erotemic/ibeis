@@ -232,15 +232,23 @@ Internal Modules
 
 In the interest of modular code we are actively developing several different modules. 
 
-
-|ibeisGithubActions|
-|utoolGithubActions|
-|vtool_ibeisGithubActions|
-|plottool_ibeisGithubActions|
-|guitool_ibeisGithubActions|
-|pyhesaffGithubActions|
-|pyflann_ibeisGithubActions|
-|vtool_ibeis_extGithubActions|
++-----------------------------------------------------------------+--------------------------------+
+| `ibeis <https://github.com/Erotemic/ibeis>`_                    | |ibeisGithubActions|           |
++-----------------------------------------------------------------+--------------------------------+
+| `utool <https://github.com/Erotemic/utool>`_                    | |utoolGithubActions|           |
++-----------------------------------------------------------------+--------------------------------+
+| `plottool_ibeis <https://github.com/Erotemic/plottool_ibeis>`_  | |plottool_ibeisGithubActions|  |
++-----------------------------------------------------------------+--------------------------------+
+| `guitool_ibeis <https://github.com/Erotemic/guitool_ibeis>`_    | |guitool_ibeisGithubActions|   |
++-----------------------------------------------------------------+--------------------------------+
+| `dtool_ibeis <https://github.com/Erotemic/dtool_ibeis>`_        | |dtool_ibeisGithubActions|     |
++-----------------------------------------------------------------+--------------------------------+
+| `pyhesaff <https://github.com/Erotemic/pyhesaff>`_              | |pyhesaffGithubActions|        |
++-----------------------------------------------------------------+--------------------------------+
+| `pyflann_ibeis <https://github.com/Erotemic/pyflann_ibeis>`_    | |pyflann_ibeisGithubActions|   |
++-----------------------------------------------------------------+--------------------------------+
+| `vtool_ibeis <https://github.com/Erotemic/vtool_ibeis>`_        | |vtool_ibeis_extGithubActions| |
++-----------------------------------------------------------------+--------------------------------+
 
 .. |ibeisGithubActions| image:: https://github.com/Erotemic/ibeis/actions/workflows/tests.yml/badge.svg?branch=main
     :target: https://github.com/Erotemic/ibeis/actions?query=branch%3Amain
@@ -248,15 +256,17 @@ In the interest of modular code we are actively developing several different mod
     :target: https://github.com/Erotemic/utool/actions?query=branch%3Amain
 .. |vtool_ibeisGithubActions| image:: https://github.com/Erotemic/vtool_ibeis/actions/workflows/tests.yml/badge.svg?branch=main
     :target: https://github.com/Erotemic/vtool_ibeis/actions?query=branch%3Amain
+.. |dtool_ibeisGithubActions| image:: https://github.com/Erotemic/dtool_ibeis/actions/workflows/tests.yml/badge.svg?branch=main
+    :target: https://github.com/Erotemic/dtool_ibeis/actions?query=branch%3Amain
 .. |plottool_ibeisGithubActions| image:: https://github.com/Erotemic/plottool_ibeis/actions/workflows/tests.yml/badge.svg?branch=main
     :target: https://github.com/Erotemic/plottool_ibeis/actions?query=branch%3Amain
 .. |guitool_ibeisGithubActions| image:: https://github.com/Erotemic/guitool_ibeis/actions/workflows/tests.yml/badge.svg?branch=main
     :target: https://github.com/Erotemic/guitool_ibeis/actions?query=branch%3Amain
-.. |pyhesaffGithubActions| image:: https://github.com/Erotemic/pyhesaff/actions/workflows/binary_test.yml/badge.svg?branch=main
+.. |pyhesaffGithubActions| image:: https://github.com/Erotemic/pyhesaff/actions/workflows/tests.yml/badge.svg?branch=main
     :target: https://github.com/Erotemic/pyhesaff/actions?query=branch%3Amain
-.. |pyflann_ibeisGithubActions| image:: https://github.com/Erotemic/pyflann_ibeis/actions/workflows/binary_test.yml/badge.svg?branch=main
+.. |pyflann_ibeisGithubActions| image:: https://github.com/Erotemic/pyflann_ibeis/actions/workflows/tests.yml/badge.svg?branch=main
     :target: https://github.com/Erotemic/pyflann_ibeis/actions?query=branch%3Amain
-.. |vtool_ibeis_extGithubActions| image:: https://github.com/Erotemic/vtool_ibeis_ext/actions/workflows/binary_test.yml/badge.svg?branch=main
+.. |vtool_ibeis_extGithubActions| image:: https://github.com/Erotemic/vtool_ibeis_ext/actions/workflows/tests.yml/badge.svg?branch=main
     :target: https://github.com/Erotemic/vtool_ibeis_ext/actions?query=branch%3Amain
 
 
