@@ -244,7 +244,7 @@ def get_namescore_nonvoting_feature_flags(fm_list, fs_list, dnid_list, name_grou
     # Flag which features are valid in this grouped space. Only one keypoint should be able to vote
     # for each group
     name_grouped_fid_grouped_isvalid_list = [
-        np.array([fs_group.max() == fs_group for fs_group in fid_grouped_fs_list])
+        np.array([fs_group.max() == fs_group for fs_group in fid_grouped_fs_list], dtype=object)
         for fid_grouped_fs_list in name_grouped_fid_grouped_fs_list
     ]
 
