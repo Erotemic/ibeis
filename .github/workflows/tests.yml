@@ -135,7 +135,7 @@ jobs:
         echo "MOD_VERSION=$MOD_VERSION"
         echo "Install the wheel (ensureing we are using the version we just built)"
         # NOTE: THE VERSION MUST BE NEWER THAN AN EXISTING PYPI VERSION OR THIS MAY FAIL
-        pip install --prefer-binary "$MOD_NAME[$INSTALL_EXTRAS]==$MOD_VERSION" -f wheelhouse
+        pip install --prefer-binary "$MOD_NAME[$INSTALL_EXTRAS]==$MOD_VERSION" -f wheelhouse -v
         echo "Install finished."
     - name: Test wheel ${{ matrix.install-extras }}
       shell: bash

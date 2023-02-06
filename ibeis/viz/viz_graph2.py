@@ -1,10 +1,8 @@
-# -*- coding: utf-8 -*-
 """
 CommandLine:
     ibeis make_qt_graph_interface --show
     ibeis make_qt_graph_interface --show --aids=1,2,3,4,5,6,7,8,9
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import vtool_ibeis as vt
 import numpy as np
