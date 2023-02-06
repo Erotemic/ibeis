@@ -18,6 +18,11 @@ supported_python_versions = [
     #"3.11"
     #"3.9"
 ]
+ci_versions_minimal_strict = 'min'
+ci_versions_full_strict = 'max'
+ci_versions_minimal_loose = 'max'
+ci_versions_full_loose = '*'
+
 description = "IBEIS - Image Based Ecological Information System"
 url="https://github.com/Erotemic/ibeis"
 author="Jon Crall, Jason Parham"
