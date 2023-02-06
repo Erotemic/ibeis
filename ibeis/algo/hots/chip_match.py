@@ -1292,7 +1292,7 @@ class _AnnotMatchConvenienceGetter(object):
         Example:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.hots.chip_match import *  # NOQA
-            >>> ibs, qreq_, cm_list = plh.testdata_pre_sver('PZ_MTEST', qaid_list=[18])
+            >>> ibs, qreq_, cm_list = plh.testdata_pre_sver('testdb1', qaid_list=[2])
             >>> cm = cm_list[0]
             >>> cm.score_name_nsum(qreq_)
             >>> top_daids = cm.get_name_shortlist_aids(5, 2)
@@ -1308,7 +1308,7 @@ class _AnnotMatchConvenienceGetter(object):
         Example:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.hots.chip_match import *  # NOQA
-            >>> ibs, qreq_, cm_list = plh.testdata_pre_sver('PZ_MTEST', qaid_list=[18])
+            >>> ibs, qreq_, cm_list = plh.testdata_pre_sver('testdb1', qaid_list=[2])
             >>> cm = cm_list[0]
             >>> cm.score_name_nsum(qreq_)
             >>> top_daids = cm.get_annot_shortlist_aids(5 * 2)
@@ -1540,7 +1540,7 @@ class _ChipMatchConvenienceGetter(object):
             >>> # DISABLE_DOCTEST
             >>> from ibeis.algo.hots.chip_match import *  # NOQA
             >>> ibs, qreq_, cm_list = plh.testdata_pre_sver(
-            >>>     defaultdb='PZ_MTEST', qaid_list=[18])
+            >>>     defaultdb='testdb1', qaid_list=[2])
             >>> cm = cm_list[0]
             >>> info_ = cm.get_flat_fm_info()
             >>> ut.assert_all_eq(ut.lmap(len, info_.values()))
@@ -1650,7 +1650,7 @@ class _ChipMatchDebugger(object):
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.hots.chip_match import *  # NOQA
             >>> import ibeis
-            >>> cm, qreq_ = ibeis.testdata_cm('PZ_MTEST', a='default:dindex=0:10,qindex=0:1', t='best:SV=False')
+            >>> cm, qreq_ = ibeis.testdata_cm('testdb1', a='default:dindex=0:10,qindex=0:1', t='best:SV=False')
             >>> varinfo = cm.get_inspect_str(qreq_)
             >>> result = ('varinfo = %s' % (str(varinfo),))
             >>> print(result)
@@ -1719,7 +1719,7 @@ class _ChipMatchDebugger(object):
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.hots.chip_match import *  # NOQA
             >>> import ibeis
-            >>> cm, qreq_ = ibeis.testdata_cm('PZ_MTEST', a='default:dindex=0:10,qindex=0:1', t='best:SV=False')
+            >>> cm, qreq_ = ibeis.testdata_cm('testdb1', a='default:dindex=0:10,qindex=0:1', t='best:SV=False')
             >>> varinfo = cm.get_rawinfostr()
             >>> result = ('varinfo = %s' % (varinfo,))
             >>> print(result)

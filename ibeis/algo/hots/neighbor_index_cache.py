@@ -2,7 +2,6 @@
 NEEDS CLEANUP
 """
 from os.path import join
-import six
 import utool as ut
 from ibeis.algo.hots import _pipeline_helpers as plh  # NOQA
 from ibeis.algo.hots.neighbor_index import NeighborIndex, get_support_data
@@ -58,67 +57,12 @@ class UUIDMapHyrbridCache(object):
         cpkl_fpath = join(cachedir, fname)
         self.uuid_maps = ut.lock_and_load_cPkl(cpkl_fpath)
 
-    #def __call__(self):
-    #    return  self.read_func(*self.args, **self.kwargs)
-
-    #def __setitem__(self, daids_hashid, visual_uuid_list):
-    #    uuid_map_fpath = self.uuid_map_fpath
-    #    self.write_func(uuid_map_fpath, visual_uuid_list, daids_hashid)
-
-    #@profile
-    #def read_uuid_map_shelf(self, uuid_map_fpath, min_reindex_thresh):
-    #    #with ut.EmbedOnException():
-    #    with lockfile.LockFile(uuid_map_fpath + '.lock'):
-    #        with ut.shelf_open(uuid_map_fpath) as uuid_map:
-    #            candidate_uuids = {
-    #                key: val for key, val in six.iteritems(uuid_map)
-    #                if len(val) >= min_reindex_thresh
-    #            }
-    #    return candidate_uuids
-
-    #@profile
-    #def write_uuid_map_shelf(self, uuid_map_fpath, visual_uuid_list, daids_hashid):
-    #    print('Writing %d visual uuids to uuid map' % (len(visual_uuid_list)))
-    #    with lockfile.LockFile(uuid_map_fpath + '.lock'):
-    #        with ut.shelf_open(uuid_map_fpath) as uuid_map:
-    #            uuid_map[daids_hashid] = visual_uuid_list
-
-    #@profile
-    #def read_uuid_map_cpkl(self, uuid_map_fpath, min_reindex_thresh):
-    #    with lockfile.LockFile(uuid_map_fpath + '.lock'):
-    #        #with ut.shelf_open(uuid_map_fpath) as uuid_map:
-    #        try:
-    #            uuid_map = ut.load_cPkl(uuid_map_fpath)
-    #            candidate_uuids = {
-    #                key: val for key, val in six.iteritems(uuid_map)
-    #                if len(val) >= min_reindex_thresh
-    #            }
-    #        except IOError:
-    #            return {}
-    #    return candidate_uuids
-
-    #@profile
-    #def write_uuid_map_cpkl(self, uuid_map_fpath, visual_uuid_list, daids_hashid):
-    #    """
-    #    let the multi-indexer know about any big caches we've made multi-indexer.
-    #    Also lets nnindexer know about other prebuilt indexers so it can attempt to
-    #    just add points to them as to avoid a rebuild.
-    #    """
-    #    print('Writing %d visual uuids to uuid map' % (len(visual_uuid_list)))
-    #    with lockfile.LockFile(uuid_map_fpath + '.lock'):
-    #        try:
-    #            uuid_map = ut.load_cPkl(uuid_map_fpath)
-    #        except IOError:
-    #            uuid_map = {}
-    #        uuid_map[daids_hashid] = visual_uuid_list
-    #        ut.save_cPkl(uuid_map_fpath, uuid_map)
-
     @profile
     def read_uuid_map_dict(self, uuid_map_fpath, min_reindex_thresh):
         """ uses in memory dictionary instead of disk """
         uuid_map = self.uuid_maps[uuid_map_fpath]
         candidate_uuids = {
-            key: val for key, val in six.iteritems(uuid_map)
+            key: val for key, val in uuid_map.items()
             if len(val) >= min_reindex_thresh
         }
         return candidate_uuids
@@ -258,7 +202,7 @@ def print_uuid_cache(qreq_):
         >>> # DISABLE_DOCTEST
         >>> from ibeis.algo.hots.neighbor_index_cache import *  # NOQA
         >>> import ibeis
-        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='PZ_Master0', p='default:fg_on=False')
+        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='testdb1', p='default:fg_on=False')
         >>> print_uuid_cache(qreq_)
         >>> result = str(nnindexer)
         >>> print(result)
@@ -671,7 +615,7 @@ def testdata_nnindexer(dbname='testdb1', with_indexer=True, use_memcache=True):
     Ignore:
         >>> # xdoctest: +SKIP
         >>> from ibeis.algo.hots.neighbor_index_cache import *  # NOQA
-        >>> nnindexer, qreq_, ibs = testdata_nnindexer('PZ_Master1')
+        >>> nnindexer, qreq_, ibs = testdata_nnindexer('testdb1')
         >>> S = np.cov(nnindexer.idx2_vec.T)
         >>> import plottool_ibeis as pt
         >>> pt.ensureqt()
