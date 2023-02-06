@@ -156,7 +156,24 @@ Unfortunately we have not released self-installing-executables for IBEIS yet.
 We ~plan~ hope to release these "soon". 
 
 However there are old HotSpotter (the software which IBEIS is based on)
-binaries available. These can be downloaded from: `http://cs.rpi.edu/hotspotter/`
+binaries available. 
+
+.. These can be downloaded from: `http://cs.rpi.edu/hotspotter/`
+
+Dropbox should still be hosting the download links: 
+
+* Win32 Installer: https://www.dropbox.com/s/5j1xyx2hq1wzqz2/hotspotter-win32-setup.exe?dl=0 
+
+* OSX Installer: https://www.dropbox.com/s/q0vzz3xnjbxhsda/hotspotter_installer_mac.dmg?dl=0
+
+IPFS CIDs for the previous installers are QmSnyetkniriHUwTxvzwhkysPKjUj7udBqq5mpK24VJXVM and QmZ3WknrAaxPZhZebdQWZ45EEKwu1Tr6bkFWJzfPRtENs7.
+
+If you are unfamiliar with IPFS use the following gateway links:
+
+https://ipfs.io/ipfs/QmSnyetkniriHUwTxvzwhkysPKjUj7udBqq5mpK24VJXVM 
+
+https://ipfs.io/ipfs/QmZ3WknrAaxPZhZebdQWZ45EEKwu1Tr6bkFWJzfPRtENs7
+
 
 Visual Demo
 -----------
@@ -249,6 +266,8 @@ In the interest of modular code we are actively developing several different mod
 +-----------------------------------------------------------------+--------------------------------+
 | `vtool_ibeis <https://github.com/Erotemic/vtool_ibeis>`_        | |vtool_ibeis_extGithubActions| |
 +-----------------------------------------------------------------+--------------------------------+
+| `futures_actors <https://github.com/Erotemic/futures_actors>`_  |  ---                           |
++-----------------------------------------------------------------+--------------------------------+
 
 .. |ibeisGithubActions| image:: https://github.com/Erotemic/ibeis/actions/workflows/tests.yml/badge.svg?branch=main
     :target: https://github.com/Erotemic/ibeis/actions?query=branch%3Amain
@@ -264,24 +283,10 @@ In the interest of modular code we are actively developing several different mod
     :target: https://github.com/Erotemic/guitool_ibeis/actions?query=branch%3Amain
 .. |pyhesaffGithubActions| image:: https://github.com/Erotemic/pyhesaff/actions/workflows/tests.yml/badge.svg?branch=main
     :target: https://github.com/Erotemic/pyhesaff/actions?query=branch%3Amain
-.. |pyflann_ibeisGithubActions| image:: https://github.com/Erotemic/pyflann_ibeis/actions/workflows/tests.yml/badge.svg?branch=main
+.. |pyflann_ibeisGithubActions| image:: https://github.com/Erotemic/pyflann_ibeis/actions/workflows/test_binaries.yml/badge.svg?branch=main
     :target: https://github.com/Erotemic/pyflann_ibeis/actions?query=branch%3Amain
 .. |vtool_ibeis_extGithubActions| image:: https://github.com/Erotemic/vtool_ibeis_ext/actions/workflows/tests.yml/badge.svg?branch=main
     :target: https://github.com/Erotemic/vtool_ibeis_ext/actions?query=branch%3Amain
-
-
-
-Erotemic's IBEIS Image Analysis module dependencies 
-
-* https://github.com/Erotemic/plottool_ibeis
-* https://github.com/Erotemic/guitool_ibeis
-* https://github.com/Erotemic/dtool_ibeis
-* https://github.com/Erotemic/vtool_ibeis
-* https://github.com/Erotemic/vtool_ibeis_ext
-* https://github.com/Erotemic/pyflann_ibeis
-* https://github.com/Erotemic/hesaff
-* https://github.com/Erotemic/utool
-* https://github.com/Erotemic/futures_actors
 
 
 bluemellophone's IBEIS Image Analysis modules
@@ -289,11 +294,6 @@ bluemellophone's IBEIS Image Analysis modules
 * https://github.com/WildbookOrg/detecttools
 * https://github.com/WildbookOrg/pyrf
   docs: http://bluemellophone.github.io/pyrf
-
-
-The IBEIS module itself: 
-
-* https://github.com/WildbookOrg/ibeis
 
 
 Building from source

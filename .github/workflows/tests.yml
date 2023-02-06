@@ -144,7 +144,7 @@ jobs:
         python -m ibeis --set-workdir="$(readlink -f ci_ibeis_workdir)" --nogui
         python -m ibeis --resetdbs
         python -m xdoctest $MOD_DPATH --style=google all
-        echo "xdoctest command finished
+        echo "xdoctest command finished"
         ls -al
         # Move coverage file to a new name
         mv .coverage "../.coverage.$WORKSPACE_DNAME"
