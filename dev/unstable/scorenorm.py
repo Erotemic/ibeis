@@ -127,6 +127,7 @@ def draw_feat_scoresep(testres, f=None, disttype=None):
 
     Example:
         >>> # SCRIPT
+        >>> # xdoctest: +SKIP
         >>> from ibeis.expt.test_result import *  # NOQA
         >>> from ibeis.init import main_helpers
         >>> disttype = ut.get_argval('--disttype', type_=list, default=None)
@@ -443,7 +444,7 @@ def learn_annotscore_normalizer(qreq_, learnkw={}):
         >>> from ibeis.algo.hots.scorenorm import *  # NOQA
         >>> import ibeis
         >>> qreq_ = ibeis.testdata_qreq_(
-        >>>     defaultdb='PZ_MTEST', a=['default'], p=['default'])
+        >>>     defaultdb='testdb1', a=['default'], p=['default'])
         >>> encoder = learn_annotscore_normalizer(qreq_)
         >>> ut.quit_if_noshow()
         >>> encoder.visualize(figtitle=encoder.get_cfgstr())

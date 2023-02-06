@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function, unicode_literals
 import plottool_ibeis as pt
 import utool as ut
 import numpy as np
@@ -55,7 +53,7 @@ def show_qres_analysis(ibs, cm, qreq_=None, **kwargs):
         python -m ibeis.viz.viz_qres show_qres_analysis --show
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> # xdoctest: +REQUIRES(env:DISPLAY)
         >>> # xdoctest: +REQUIRES(--show)
         >>> from ibeis.viz.viz_qres import *  # NOQA
@@ -70,7 +68,7 @@ def show_qres_analysis(ibs, cm, qreq_=None, **kwargs):
         >>> ut.show_if_requested()
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> # xdoctest: +REQUIRES(env:DISPLAY)
         >>> from ibeis.viz.viz_qres import *  # NOQA
         >>> import ibeis

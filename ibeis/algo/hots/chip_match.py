@@ -1,8 +1,6 @@
-# -*- coding: utf-8 -*-
 """
 python -m utool.util_inspect check_module_usage --pat="chip_match.py"
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import copy
 import numpy as np
 import utool as ut
@@ -846,8 +844,8 @@ class _ChipMatchScorers(object):
         Example:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.hots.chip_match import *  # NOQA
-            >>> qreq_, args = plh.testdata_pre('end', defaultdb='PZ_MTEST',
-            >>>                                a=['default'], qaid_override=[18])
+            >>> qreq_, args = plh.testdata_pre('end', defaultdb='testdb1',
+            >>>                                a=['default'], qaid_override=[2])
             >>> cm = args.cm_list_SVER[0]
             >>> cm.score_name_nsum(qreq_)
             >>> gt_score = cm.score_list.compress(cm.get_groundtruth_flags()).max()
@@ -891,8 +889,8 @@ class MatchBaseIO(object):
         Example:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.hots.chip_match import *  # NOQA
-            >>> qaid = 18
-            >>> ibs, qreq_, cm_list = plh.testdata_pre_sver('PZ_MTEST', qaid_list=[qaid])
+            >>> qaid = 2
+            >>> ibs, qreq_, cm_list = plh.testdata_pre_sver('testdb1', qaid_list=[qaid])
             >>> cm = cm_list[0]
             >>> cm.score_name_nsum(qreq_)
             >>> dpath = ut.get_app_resource_dir('ibeis')

@@ -210,12 +210,10 @@ def flann_add_time_experiment():
         valgrind --tool=memcheck --suppressions=valgrind-python.supp python -m ibeis.algo.hots._neighbor_experiment flann_add_time_experiment --db PZ_MTEST --no-with-reindex
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from ibeis.algo.hots._neighbor_experiment import *  # NOQA
         >>> import ibeis
-        >>> #ibs = ibeis.opendb('PZ_MTEST')
         >>> result = flann_add_time_experiment()
-        >>> # verify results
         >>> print(result)
         >>> ut.show_if_requested()
 

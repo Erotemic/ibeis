@@ -178,7 +178,7 @@ def get_annotmatch_rowids_between(ibs, aids1, aids2, method=None):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.annotmatch_funcs import *  # NOQA
         >>> import ibeis
-        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> ibs = ibeis.opendb('testdb1')
         >>> aids1 = aids2 = [1, 2, 3, 4, 5, 6]
         >>> rowids_between = ibs.get_annotmatch_rowids_between
         >>> ams1 = sorted(rowids_between(aids1, aids2, method=1))
@@ -275,7 +275,7 @@ def get_annot_pair_timedelta(ibs, aid_list1, aid_list2):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.annotmatch_funcs import *  # NOQA
         >>> import ibeis
-        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids(hasgt=True)
         >>> unixtimes = ibs.get_annot_image_unixtimes_asfloat(aid_list)
         >>> aid_list = ut.compress(aid_list, ~np.isnan(unixtimes))
@@ -283,10 +283,9 @@ def get_annot_pair_timedelta(ibs, aid_list1, aid_list2):
         >>> flags = np.array(list(map(len, gt_aids_list))) > 0
         >>> aid_list1 = ut.compress(aid_list, flags)[0:5]
         >>> aid_list2 = ut.take_column(gt_aids_list, 0)[0:5]
-        >>> timedelta_list = ibs.get_annot_pair_timedelta(aid_list1, aid_list2)
-        >>> result = ut.repr2(timedelta_list, precision=1)
-        >>> print(result)
-        np.array([7.6e+07, 7.6e+07, 2.4e+06, 2.0e+08, 9.7e+07])
+        >>> timedelta_list = ibs.get_annot_pair_timedelta(aid_list1, aid_list2).tolist()
+        >>> print(f'timedelta_list={timedelta_list}')
+        timedelta_list=[2.0, 2.0, 2.0, 2.0]
     """
     unixtime_list1 = ibs.get_annot_image_unixtimes_asfloat(aid_list1)
     unixtime_list2 = ibs.get_annot_image_unixtimes_asfloat(aid_list2)
