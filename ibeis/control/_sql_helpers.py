@@ -3,9 +3,13 @@ from __future__ import absolute_import, division, print_function
 from os.path import split, splitext, join, exists
 import six
 import datetime
-import distutils
 import utool as ut
+try:
+    from packaging.version import parse as LooseVersion
+except ImportError:
+    from distutils.version import LooseVersion
 (print, rrr, profile) = ut.inject2(__name__)
+
 
 VERBOSE_SQL = ut.get_argflag(('--print-sql', '--verbose-sql', '--verb-sql', '--verbsql'))
 NOT_QUIET = not (ut.QUIET or ut.get_argflag('--quiet-sql'))
@@ -25,8 +29,8 @@ def compare_string_versions(a, b):
         >>> print(result)
         1, -1, 0
     """
-    va = distutils.version.LooseVersion(a)
-    vb = distutils.version.LooseVersion(b)
+    va = LooseVersion(a)
+    vb = LooseVersion(b)
     if va > vb:
         return 1
     elif va < vb:
@@ -97,7 +101,7 @@ def revert_to_backup(ibs):
         db_dir (?):
 
     CommandLine:
-        python -m ibeis.control._sql_helpers --exec-revert_to_backup
+        python -m ibeis.control._sql_helpers revert_to_backup
 
     Example:
         >>> # SCRIPT
@@ -413,7 +417,7 @@ def autogenerate_nth_schema_version(schema_spec, n=-1):
         n (int):
 
     CommandLine:
-        python -m ibeis.control._sql_helpers --test-autogenerate_nth_schema_version
+        python -m ibeis.control._sql_helpers autogenerate_nth_schema_version
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -439,9 +443,9 @@ def autogenerate_nth_schema_version(schema_spec, n=-1):
     # coupled with ibeis
     autogen_cmd = ut.codeblock(
         '''
-        python -m ibeis.control.{schema_spec_fname} --test-autogen_{funcname} --force-incremental-db-update --write
-        python -m ibeis.control.{schema_spec_fname} --test-autogen_{funcname} --force-incremental-db-update --diff=1
-        python -m ibeis.control.{schema_spec_fname} --test-autogen_{funcname} --force-incremental-db-update
+        python -m ibeis.control.{schema_spec_fname} autogen_{funcname} --force-incremental-db-update --write
+        python -m ibeis.control.{schema_spec_fname} autogen_{funcname} --force-incremental-db-update --diff=1
+        python -m ibeis.control.{schema_spec_fname} autogen_{funcname} --force-incremental-db-update
         '''
     ).format(schema_spec_fname=schema_spec_fname, funcname=schema_spec_fname.lower())
     autogen_text = db.get_schema_current_autogeneration_str(autogen_cmd)

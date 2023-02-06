@@ -15,9 +15,7 @@ Zebra Experiment:
            :proot=vsmany,fg_on=False,SV=[False] \
         -a ctrl:qmingt=2
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import dtool_ibeis
-import six
 import utool as ut
 import numpy as np
 import ubelt as ub
@@ -99,7 +97,7 @@ class SMKRequest(mc5.EstimatorRequest):
         >>> # DISABLE_DOCTEST
         >>> from ibeis.algo.smk.smk_pipeline import *  # NOQA
         >>> import ibeis
-        >>> ibs, aid_list = ibeis.testdata_aids(defaultdb='PZ_MTEST')
+        >>> ibs, aid_list = ibeis.testdata_aids(defaultdb='testdb1')
         >>> qaids = aid_list[0:2]
         >>> daids = aid_list[:]
         >>> config = {'nAssign': 2, 'num_words': 64000, 'sv_on': True}
@@ -146,7 +144,7 @@ class SMKRequest(mc5.EstimatorRequest):
             >>> # DISABLE_DOCTEST
             >>> from ibeis.algo.smk.smk_pipeline import *  # NOQA
             >>> import ibeis
-            >>> ibs, aid_list = ibeis.testdata_aids(defaultdb='PZ_MTEST', a='default:mingt=2,pername=2')
+            >>> ibs, aid_list = ibeis.testdata_aids(defaultdb='testdb1', a='default:mingt=2,pername=2')
             >>> qaids = aid_list[0:2]
             >>> daids = aid_list[:]
             >>> config = {'nAssign': 1, 'num_words': 8000,
@@ -345,10 +343,10 @@ class SMK(ut.NiceRepr):
             >>> # FUTURE_ENABLE
             >>> from ibeis.algo.smk.smk_pipeline import *  # NOQA
             >>> import ibeis
-            >>> qreq_ = ibeis.testdata_qreq_(defaultdb='PZ_MTEST')
+            >>> qreq_ = ibeis.testdata_qreq_(defaultdb='testdb1')
             >>> ibs = qreq_.ibs
             >>> daids = qreq_.daids
-            >>> #ibs, daids = ibeis.testdata_aids(defaultdb='PZ_MTEST', default_set='dcfg')
+            >>> #ibs, daids = ibeis.testdata_aids(defaultdb='testdb1', default_set='dcfg')
             >>> qreq_ = SMKRequest(ibs, daids[0:1], daids, {'agg': True,
             >>>                                             'num_words': 1000,
             >>>                                             'sv_on': True})
@@ -505,7 +503,7 @@ def check_can_match(qaid, hit_daids, qreq_):
     can_match_samename = qreq_.qparams.can_match_samename
     can_match_sameimg = qreq_.qparams.can_match_sameimg
     can_match_self = False
-    valid_flags = np.ones(len(hit_daids), dtype=np.bool)
+    valid_flags = np.ones(len(hit_daids), dtype=bool)
     # Check that the two annots meet the conditions
     if not can_match_self:
         valid_flags[hit_daids == qaid] = False
@@ -527,7 +525,7 @@ def testdata_smk(*args, **kwargs):
     """
     import ibeis
     import sklearn
-    ibs, aid_list = ibeis.testdata_aids(defaultdb='PZ_MTEST')
+    ibs, aid_list = ibeis.testdata_aids(defaultdb='testdb1')
     nid_list = np.array(ibs.annots(aid_list).nids)
     rng = ut.ensure_rng(0)
     try:
@@ -537,15 +535,15 @@ def testdata_smk(*args, **kwargs):
         # Original
         import sklearn.cross_validation
         StratifiedKFold = sklearn.cross_validation.StratifiedKFold
-        xvalkw = dict(n_folds=4, shuffle=False, random_state=rng)
+        xvalkw = dict(n_folds=2, shuffle=False, random_state=rng)
         skf = StratifiedKFold(nid_list, **xvalkw)
         split_iter = skf
     else:
-        xvalkw = dict(n_splits=4, shuffle=False)
+        xvalkw = dict(n_splits=2, shuffle=False)
         skf = StratifiedKFold(**xvalkw)
         split_iter = skf.split(nid_list, nid_list)
 
-    train_idx, test_idx = six.next(iter(split_iter))
+    train_idx, test_idx = next(iter(split_iter))
     daids = list(ub.take(aid_list, train_idx))
     qaids = list(ub.take(aid_list, test_idx))
 

@@ -1,8 +1,6 @@
-# -*- coding: utf-8 -*-
 """
 Runs many queries and keeps track of some results
 """
-from __future__ import absolute_import, division, print_function
 import sys
 import textwrap
 import numpy as np  # NOQA
@@ -43,7 +41,7 @@ def run_expt(ibs, acfg_name_list, test_cfg_name_list, use_cache=None,
         test_cfg_name_list = [p]
 
     Example:
-        >>> # SLOW_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from ibeis.expt.harness import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')

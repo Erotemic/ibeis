@@ -1,18 +1,13 @@
-# -*- coding: utf-8 -*-
 """
 IBEIS: main package init
-
-TODO: LAZY IMPORTS?
-    http://code.activestate.com/recipes/473888-lazy-module-imports/
 """
-# flake8: noqa
-from __future__ import absolute_import, division, print_function, unicode_literals
 
-__version__ = '2.3.0'
+__version__ = '2.3.1'
 
 try:
     import cv2  # NOQA
 except ImportError as ex:
+    import ubelt as ub
     msg = ub.paragraph(
         '''
         The ibeis module failed to import the cv2 module.  This may be due to
@@ -20,15 +15,20 @@ except ImportError as ex:
         prevents us from marking cv2 as package dependency.
         To work around this we require that the user install this package with
         one of the following extras tags:
-        `pip install ibeis[graphics]` xor
-        `pip install ibeis[headless]`.
+        `pip install ibeis[headless]` xor
+        `pip install ibeis[graphics]`.
+
+        IT IS STRONGLY RECOMMENDED THAT YOU USE THE "headless" version of
+        opencv. The only reason you should choose "graphics" is if you have
+        another program in your stack that requires `opencv-python` and does
+        not work with `opencv-python-headless`.
 
         Alternatively, the user can directly install the cv2 package as a post
         processing step via:
         `pip install opencv-python-headless` xor
         `pip install opencv-python`.
 
-        We appologize for this issue and hope this documentation is sufficient.
+        We apologize for this issue and hope this documentation is sufficient.
 
         orig_ex={!r}
         ''').format(ex)
@@ -37,8 +37,9 @@ except ImportError as ex:
 
 try:
     import utool as ut
-    import dtool_ibeis
+    import dtool_ibeis  # NOQA
 except ImportError as ex:
+    print(f'ex={ex}')
     print('[ibeis !!!] ERROR: Unable to load all core utility modules.')
     print('[ibeis !!!] Perhaps try super_setup.py pull')
     raise
@@ -47,16 +48,6 @@ ut.noinject(__name__, '[ibeis.__init__]')
 if ut.VERBOSE:
     print('[ibeis] importing ibeis __init__')
 
-
-if ut.is_developer():
-    standard_visualization_functions = [
-        'show_image',
-        'show_chip',
-        'show_chipmatch',
-        'show_chipmatches',
-        'show_vocabulary',
-        #'show_vocabulary',
-    ]
 
 # If we dont initialize plottool_ibeis before <something>
 # then it causes a crash in windows. Its so freaking weird.
@@ -70,7 +61,7 @@ ENABLE_WILDBOOK_SIGNAL = True
 
 try:
     from ibeis import constants
-    from ibeis import constants as const
+    from ibeis import constants as const  # NOQA
     from ibeis import params
     from ibeis import main_module
     from ibeis import other
@@ -81,42 +72,41 @@ try:
     from ibeis import dbio
     #from ibeis import web
 
-    from ibeis.init import sysres
-    from ibeis.main_module import (main, _preload, _init_numpy, main_loop,
-                                   opendb, opendb_in_background, opendb_bg_web)
-    from ibeis.control.IBEISControl import IBEISController
-    from ibeis.algo.hots.query_request import QueryRequest
-    from ibeis.algo.hots.chip_match import ChipMatch, AnnotMatch
-    from ibeis.algo.graph.core import AnnotInference
-    from ibeis.init.sysres import (get_workdir, set_workdir, ensure_pz_mtest,
-                                   ensure_nauts, ensure_wilddogs, list_dbs)
-    from ibeis.init import main_helpers
+    from ibeis.init import sysres  # NOQA
+    from ibeis.main_module import (main, _preload, _init_numpy, main_loop, opendb, opendb_in_background, opendb_bg_web)  # NOQA
+    from ibeis.control.IBEISControl import IBEISController  # NOQA
+    from ibeis.algo.hots.query_request import QueryRequest  # NOQA
+    from ibeis.algo.hots.chip_match import ChipMatch, AnnotMatch  # NOQA
+    from ibeis.algo.graph.core import AnnotInference  # NOQA
+    from ibeis.init.sysres import (get_workdir, set_workdir, ensure_pz_mtest, ensure_nauts, ensure_wilddogs, list_dbs)  # NOQA
+    from ibeis.init import main_helpers  # NOQA
 
     from ibeis import algo
 
-    from ibeis import expt
-    from ibeis import templates
-    from ibeis.templates import generate_notebook
-    from ibeis.control.controller_inject import register_preprocs
-    from ibeis import core_annots
-    from ibeis import core_images
+    from ibeis import expt  # NOQA
+    from ibeis import templates  # NOQA
+    from ibeis.templates import generate_notebook  # NOQA
+    from ibeis.control.controller_inject import register_preprocs  # NOQA
+    from ibeis import core_annots  # NOQA
+    from ibeis import core_images  # NOQA
 
     try:
-        from ibeis.scripts import postdoc
+        from ibeis.scripts import postdoc  # NOQA
     except ImportError:
         pass
 except Exception as ex:
     ut.printex(ex, 'Error when importing ibeis', tb=True)
     raise
 
+
 def import_subs():
     # Weird / Fancy loading.
     # I want to make this simpler
-    from ibeis import algo
-    from ibeis import viz
-    from ibeis import web
-    from ibeis import gui
-    from ibeis import templates
+    from ibeis import algo  # NOQA
+    from ibeis import viz  # NOQA
+    from ibeis import web  # NOQA
+    from ibeis import gui  # NOQA
+    from ibeis import templates  # NOQA
 
 
 def run_experiment(e='print', db='PZ_MTEST', dbdir=None, a=['unctrl'], t=['default'],
@@ -140,7 +130,7 @@ def run_experiment(e='print', db='PZ_MTEST', dbdir=None, a=['unctrl'], t=['defau
         function: func -  live python function
 
     CommandLine:
-        python -m ibeis.__init__ --exec-run_experiment --show
+        python -m ibeis.__init__ run_experiment --show
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -191,12 +181,13 @@ def run_experiment(e='print', db='PZ_MTEST', dbdir=None, a=['unctrl'], t=['defau
         else:
             db_flag = '--db'
             db_value = db
-        command_parts = ['ibeis',
-                         epref, e,
-                         db_flag, db_value,
-                         '-a', ' '.join(a).replace('(', '\(').replace(')', '\)'),
-                         '-t', ' '.join(t),
-                        ]
+        command_parts = [
+            'ibeis',
+            epref, e,
+            db_flag, db_value,
+            '-a', ' '.join(a).replace('(', r'\(').replace(')', r'\)'),
+            '-t', ' '.join(t),
+        ]
         if qaid_override is not None:
             command_parts.extend(['--qaid=' + ','.join(map(str, qaid_override))])
         if daid_override is not None:
@@ -223,8 +214,7 @@ def run_experiment(e='print', db='PZ_MTEST', dbdir=None, a=['unctrl'], t=['defau
         print('Equivalent Command Line:')
         print(command_line_str)
         return command_line_str
-    command_line_str = build_commandline(**kwargs)
-
+    command_line_str = build_commandline(**kwargs)  # NOQA
 
     def draw_cases(testres, **kwargs):
         e_ = 'draw_cases'
@@ -252,8 +242,7 @@ def run_experiment(e='print', db='PZ_MTEST', dbdir=None, a=['unctrl'], t=['defau
             expts_kw = dict(defaultdb=db, dbdir=dbdir, a=a, t=t,
                             qaid_override=qaid_override,
                             daid_override=daid_override,
-                            initial_aids=initial_aids
-                           )
+                            initial_aids=initial_aids)
             testdata_expts_func = functools.partial(main_helpers.testdata_expts, **expts_kw)
 
             ibs, testres = testdata_expts_func()
@@ -308,18 +297,20 @@ def testdata_expts(*args, **kwargs):
 #}
 #)
 
-from ibeis.init import main_helpers
+
+from ibeis.init import main_helpers  # NOQA
 testdata_cm = main_helpers.testdata_cm
 testdata_cmlist = main_helpers.testdata_cmlist
 testdata_qreq_ = main_helpers.testdata_qreq_
 testdata_pipecfg = main_helpers.testdata_pipecfg
 testdata_filtcfg = main_helpers.testdata_filtcfg
-testdata_expts = main_helpers.testdata_expts
+testdata_expts = main_helpers.testdata_expts  # NOQA
 testdata_expanded_aids = main_helpers.testdata_expanded_aids
 testdata_aids = main_helpers.testdata_aids
 
 # Utool generated init makeinit.py
 print, rrr, profile = ut.inject2(__name__)
+
 
 def reload_subs(verbose=True):
     """ Reloads ibeis and submodules """
@@ -332,18 +323,18 @@ def reload_subs(verbose=True):
     getattr(dbio, 'reload_subs', lambda verbose: None)(verbose=verbose)
     getattr(algo, 'reload_subs', lambda verbose: None)(verbose=verbose)
     getattr(control, 'reload_subs', lambda verbose: None)(verbose=verbose)
-    getattr(viz, 'reload_subs', lambda: None)()
+    getattr(viz, 'reload_subs', lambda: None)()  # NOQA
 
-    getattr(gui, 'reload_subs', lambda verbose: None)(verbose=verbose)
+    getattr(gui, 'reload_subs', lambda verbose: None)(verbose=verbose)  # NOQA
     getattr(algo, 'reload_subs', lambda verbose: None)(verbose=verbose)
-    getattr(viz, 'reload_subs', lambda verbose: None)(verbose=verbose)
-    getattr(web, 'reload_subs', lambda verbose: None)(verbose=verbose)
+    getattr(viz, 'reload_subs', lambda verbose: None)(verbose=verbose)  # NOQA
+    getattr(web, 'reload_subs', lambda verbose: None)(verbose=verbose)  # NOQA
 
     rrr(verbose=verbose)
 rrrr = reload_subs
 
+from ibeis.control.DB_SCHEMA_CURRENT import VERSION_CURRENT  # NOQA
 
-from ibeis.control.DB_SCHEMA_CURRENT import VERSION_CURRENT
 
 """
 Regen Command:

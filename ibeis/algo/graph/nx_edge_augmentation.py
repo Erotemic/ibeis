@@ -746,7 +746,7 @@ def weighted_bridge_augmentation(G, avail, weight=None):
         for (mu, mv), uv, w in _lightest_meta_edges(mapping, avail_uv, avail_w)
     }
 
-    """
+    r"""
     Mapping of terms from (Khuller and Thurimella):
         C         : G_0 = (V, E^0)
            This is the metagraph where each node is a 2-edge-cc in G.

@@ -183,7 +183,7 @@ def request_IBEISController(
         IBEISController: ibs
 
     CommandLine:
-        python -m ibeis.control.IBEISControl --test-request_IBEISController
+        python -m ibeis.control.IBEISControl request_IBEISController
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -336,8 +336,8 @@ class IBEISController(BASE_CLASS):
     def show_depc_image_graph(ibs, **kwargs):
         """
         CommandLine:
-            python -m ibeis.control.IBEISControl --test-show_depc_image_graph --show
-            python -m ibeis.control.IBEISControl --test-show_depc_image_graph --show --reduced
+            python -m ibeis.control.IBEISControl show_depc_image_graph --show
+            python -m ibeis.control.IBEISControl show_depc_image_graph --show --reduced
 
         Example:
             >>> # SCRIPT
@@ -353,8 +353,8 @@ class IBEISController(BASE_CLASS):
     def show_depc_annot_graph(ibs, *args, **kwargs):
         """
         CommandLine:
-            python -m ibeis.control.IBEISControl --test-show_depc_annot_graph --show
-            python -m ibeis.control.IBEISControl --test-show_depc_annot_graph --show --reduced
+            python -m ibeis.control.IBEISControl show_depc_annot_graph --show
+            python -m ibeis.control.IBEISControl show_depc_annot_graph --show --reduced
 
         Example:
             >>> # SCRIPT
@@ -370,9 +370,9 @@ class IBEISController(BASE_CLASS):
     def show_depc_annot_table_input(ibs, tablename, *args, **kwargs):
         """
         CommandLine:
-            python -m ibeis.control.IBEISControl --test-show_depc_annot_table_input --show --tablename=vsone
-            python -m ibeis.control.IBEISControl --test-show_depc_annot_table_input --show --tablename=neighbor_index
-            python -m ibeis.control.IBEISControl --test-show_depc_annot_table_input --show --tablename=feat_neighbs --testmode
+            python -m ibeis.control.IBEISControl show_depc_annot_table_input --show --tablename=vsone
+            python -m ibeis.control.IBEISControl show_depc_annot_table_input --show --tablename=neighbor_index
+            python -m ibeis.control.IBEISControl show_depc_annot_table_input --show --tablename=feat_neighbs --testmode
 
         Example:
             >>> # SCRIPT
@@ -1016,7 +1016,7 @@ class IBEISController(BASE_CLASS):
             str smart_patrol_dpath
 
         CommandLine:
-            python -m ibeis.control.IBEISControl --test-get_smart_patrol_dir
+            python -m ibeis.control.IBEISControl get_smart_patrol_dir
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -1043,8 +1043,8 @@ class IBEISController(BASE_CLASS):
     def get_current_log_text(ibs):
         r"""
         CommandLine:
-            python -m ibeis.control.IBEISControl --exec-get_current_log_text
-            python -m ibeis.control.IBEISControl --exec-get_current_log_text --domain http://52.33.105.88
+            python -m ibeis.control.IBEISControl get_current_log_text
+            python -m ibeis.control.IBEISControl get_current_log_text --domain http://52.33.105.88
 
         Example:
             >>> # xdoctest: +REQUIRES(--web)
@@ -1105,8 +1105,8 @@ class IBEISController(BASE_CLASS):
             None: None
 
         CommandLine:
-            python -m ibeis.control.IBEISControl --exec-get_database_icon --show
-            python -m ibeis.control.IBEISControl --exec-get_database_icon --show --db Oxford
+            python -m ibeis.control.IBEISControl get_database_icon --show
+            python -m ibeis.control.IBEISControl get_database_icon --show --db Oxford
 
         Example:
             >>> # DISABLE_DOCTEST

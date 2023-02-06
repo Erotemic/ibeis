@@ -869,7 +869,7 @@ class MiscHelpers(object):
         print('--- <LOG DUMP> ---')
         for msg, color in infr.logs:
             ut.cprint('[infr] ' + msg, color)
-        print('--- <\LOG DUMP> ---')
+        print(r'--- <\LOG DUMP> ---')
 
 
 class AltConstructors(object):
@@ -1033,11 +1033,12 @@ class AnnotInference(ut.NiceRepr,
     Example:
         >>> from ibeis.algo.graph.core import *  # NOQA
         >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> aids = [1, 2, 3, 4, 5, 6]
         >>> infr = AnnotInference(ibs, aids, autoinit=True, verbose=1000)
         >>> result = ('infr = %s' % (infr,))
         >>> print(result)
+        >>> # xdoctest: +REQUIRES(--show)
         >>> ut.quit_if_noshow()
         >>> use_image = True
         >>> infr.initialize_visual_node_attrs()
@@ -1050,11 +1051,12 @@ class AnnotInference(ut.NiceRepr,
         >>> # SCRIPT
         >>> from ibeis.algo.graph.core import *  # NOQA
         >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> aids = [1, 2, 3, 4, 5, 6, 7, 9]
         >>> infr = AnnotInference(ibs, aids, autoinit=True)
         >>> result = ('infr = %s' % (infr,))
         >>> print(result)
+        >>> # xdoctest: +REQUIRES(--show)
         >>> ut.quit_if_noshow()
         >>> use_image = False
         >>> infr.initialize_visual_node_attrs()
@@ -1073,11 +1075,12 @@ class AnnotInference(ut.NiceRepr,
         >>> # SCRIPT
         >>> from ibeis.algo.graph.core import *  # NOQA
         >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> aids = [1, 2, 3, 4, 5, 6, 7, 9]
         >>> infr = AnnotInference(ibs, aids, autoinit=True)
         >>> result = ('infr = %s' % (infr,))
         >>> print(result)
+        >>> # xdoctest: +REQUIRES(--show)
         >>> ut.quit_if_noshow()
         >>> use_image = False
         >>> infr.initialize_visual_node_attrs()
@@ -1099,7 +1102,7 @@ class AnnotInference(ut.NiceRepr,
     Ignore:
         >>> import ibeis
         >>> import utool as ut
-        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> infr = ibeis.AnnotInference(ibs, 'all')
         >>> class_ = infr
         >>> fpath = None
@@ -1462,7 +1465,7 @@ class AnnotInference(ut.NiceRepr,
         pass
 
 
-def testdata_infr(defaultdb='PZ_MTEST'):
+def testdata_infr(defaultdb='testdb1'):
     import ibeis
     ibs = ibeis.opendb(defaultdb=defaultdb)
     aids = [1, 2, 3, 4, 5, 6]

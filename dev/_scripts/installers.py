@@ -5,8 +5,8 @@ On mac need to run with sudo
 
 
 Testing:
-    python %HOME%/code/ibeis/_installers/ibeis_pyinstaller_data_helper.py --test-get_data_list
-    python ~/code/ibeis/_installers/ibeis_pyinstaller_data_helper.py --test-get_data_list
+    python %HOME%/code/ibeis/_installers/ibeis_pyinstaller_data_helper.py get_data_list
+    python ~/code/ibeis/_installers/ibeis_pyinstaller_data_helper.py get_data_list
 
 
 

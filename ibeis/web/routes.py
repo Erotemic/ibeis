@@ -2404,7 +2404,7 @@ def turk_detection_dynamic(**kwargs):
 def turk_annotation(**kwargs):
     """
     CommandLine:
-        python -m ibeis.web.app --exec-turk_annotation --db PZ_Master1
+        python -m ibeis.web.app turk_annotation --db PZ_Master1
 
     Example:
         >>> # SCRIPT
@@ -2850,7 +2850,7 @@ def turk_species(hotkeys=8, refresh=False, previous_species_rowids=None, **kwarg
 def turk_viewpoint(**kwargs):
     """
     CommandLine:
-        python -m ibeis.web.app --exec-turk_viewpoint --db PZ_Master1
+        python -m ibeis.web.app turk_viewpoint --db PZ_Master1
 
     Example:
         >>> # SCRIPT
@@ -2914,7 +2914,7 @@ def turk_viewpoint(**kwargs):
 def turk_viewpoint2(**kwargs):
     """
     CommandLine:
-        python -m ibeis.web.app --exec-turk_viewpoint --db PZ_Master1
+        python -m ibeis.web.app turk_viewpoint --db PZ_Master1
 
     Example:
         >>> # SCRIPT
@@ -3876,9 +3876,9 @@ def turk_quality(**kwargs):
     1302
 
     CommandLine:
-        python -m ibeis.web.app --exec-turk_quality --db PZ_Master1
-        python -m ibeis.web.app --exec-turk_quality --db GZ_Master1
-        python -m ibeis.web.app --exec-turk_quality --db GIRM_Master1
+        python -m ibeis.web.app turk_quality --db PZ_Master1
+        python -m ibeis.web.app turk_quality --db GZ_Master1
+        python -m ibeis.web.app turk_quality --db GIRM_Master1
 
     Example:
         >>> # SCRIPT

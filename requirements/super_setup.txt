@@ -1,3 +1,13 @@
-gitpython
-click
-ubelt >= 0.8.7
+gitpython>=3.1.25    ; python_version < '4.0'  and python_version >= '3.11'    # Python 3.11+
+gitpython>=3.1.25    ; python_version < '3.11' and python_version >= '3.10'    # Python 3.10
+gitpython>=3.1.10    ; python_version < '3.10' and python_version >= '3.9'     # Python 3.9
+gitpython>=2.1.15    ; python_version < '3.9'  and python_version >= '3.8'     # Python 3.8
+gitpython>=3.1.24    ; python_version < '3.8'  and python_version >= '3.7'     # Python 3.7
+
+click>=8.0.2     ; python_version < '4.0'  and python_version >= '3.11'    # python 3.11+
+click>=8.0.2     ; python_version < '3.11' and python_version >= '3.10'    # Python 3.10
+click>=8.0.0     ; python_version < '3.10' and python_version >= '3.9'     # Python 3.9
+click>=7.1       ; python_version < '3.9'  and python_version >= '3.8'     # Python 3.8
+click>=8.1.0     ; python_version < '3.8'  and python_version >= '3.7'     # Python 3.7
+
+ubelt >= 1.2.3

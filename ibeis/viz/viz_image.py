@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function, unicode_literals
-from six.moves import zip
 import utool as ut
 import plottool_ibeis as pt
 from plottool_ibeis import plot_helpers as ph
@@ -53,15 +50,15 @@ def drive_test_script(ibs):
     the system works.
 
     CommandLine:
-        python -m ibeis.viz.viz_image --test-drive_test_script
-        python -m ibeis.viz.viz_image --test-drive_test_script --db PZ_MTEST --show
-        python -m ibeis.viz.viz_image --test-drive_test_script --db GIR_Tanya --show
-        python -m ibeis.viz.viz_image --test-drive_test_script --db GIR_Master0 --show
-        python -m ibeis.viz.viz_image --test-drive_test_script --db PZ_Master0 --show
-        python -m ibeis.viz.viz_image --test-drive_test_script --db PZ_FlankHack --show
+        python -m ibeis.viz.viz_image drive_test_script
+        python -m ibeis.viz.viz_image drive_test_script --db PZ_MTEST --show
+        python -m ibeis.viz.viz_image drive_test_script --db GIR_Tanya --show
+        python -m ibeis.viz.viz_image drive_test_script --db GIR_Master0 --show
+        python -m ibeis.viz.viz_image drive_test_script --db PZ_Master0 --show
+        python -m ibeis.viz.viz_image drive_test_script --db PZ_FlankHack --show
 
-        python -m ibeis.viz.viz_image --test-drive_test_script --db PZ_FlankHack --show
-        python -m ibeis.viz.viz_image --test-drive_test_script --dbdir /raid/work2/Turk/GIR_Master --show
+        python -m ibeis.viz.viz_image drive_test_script --db PZ_FlankHack --show
+        python -m ibeis.viz.viz_image drive_test_script --dbdir /raid/work2/Turk/GIR_Master --show
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -93,8 +90,8 @@ def show_multi_images(ibs, gid_list, fnum=None, **kwargs):
         fnum (int):  figure number(default = None)
 
     CommandLine:
-        python -m ibeis.viz.viz_image --test-show_multi_images --db NNP_Master3 --gids=7409,7448,4670,7497,7496,7464,7446,7442 --show
-        python -m ibeis.viz.viz_image --test-show_multi_images --db NNP_Master3 --gids=1,2,3 --show
+        python -m ibeis.viz.viz_image show_multi_images --db NNP_Master3 --gids=7409,7448,4670,7497,7496,7464,7446,7442 --show
+        python -m ibeis.viz.viz_image show_multi_images --db NNP_Master3 --gids=1,2,3 --show
 
     Ignore:
         >>> # print to 8 gids sorted by num aids
@@ -170,13 +167,13 @@ def show_image(ibs, gid, sel_aids=[], fnum=None, annote=True, draw_lbls=True,
         tuple: (fig, ax)
 
     CommandLine:
-        python -m ibeis.viz.viz_image --test-show_image --show
-        python -m ibeis.viz.viz_image --test-show_image --show --db GZ_ALL
-        python -m ibeis.viz.viz_image --test-show_image --show --db GZ_ALL --gid 100
-        python -m ibeis.viz.viz_image --test-show_image --show --db PZ_MTEST --aid 10
+        python -m ibeis.viz.viz_image show_image --show
+        python -m ibeis.viz.viz_image show_image --show --db GZ_ALL
+        python -m ibeis.viz.viz_image show_image --show --db GZ_ALL --gid 100
+        python -m ibeis.viz.viz_image show_image --show --db PZ_MTEST --aid 10
 
-        python -m ibeis.viz.viz_image --test-show_image --show --db PZ_MTEST --aid 91 --no-annot --rich-title
-        python -m ibeis.viz.viz_image --test-show_image --show --db GIR_Tanya --aid 1 --no-annot --rich-title
+        python -m ibeis.viz.viz_image show_image --show --db PZ_MTEST --aid 91 --no-annot --rich-title
+        python -m ibeis.viz.viz_image show_image --show --db GIR_Tanya --aid 1 --no-annot --rich-title
 
     Example:
         >>> # SLOW_DOCTEST

@@ -340,8 +340,8 @@ def translate_ibeis_webcall(func, *args, **kwargs):
         tuple: (output, True, 200, None, jQuery_callback)
 
     CommandLine:
-        python -m ibeis.control.controller_inject --exec-translate_ibeis_webcall
-        python -m ibeis.control.controller_inject --exec-translate_ibeis_webcall --domain http://52.33.105.88
+        python -m ibeis.control.controller_inject translate_ibeis_webcall
+        python -m ibeis.control.controller_inject translate_ibeis_webcall --domain http://52.33.105.88
 
     Example:
         >>> # xdoctest: +REQUIRES(--web)

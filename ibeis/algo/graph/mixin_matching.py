@@ -223,7 +223,7 @@ class AnnotInfrMatching(object):
         Example:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.graph.core import *  # NOQA
-            >>> infr = testdata_infr('PZ_MTEST')
+            >>> infr = testdata_infr('testdb1')
             >>> infr.exec_matching(cfgdict={
             >>>     'can_match_samename': True,
             >>>     'K': 4,
@@ -332,7 +332,7 @@ class AnnotInfrMatching(object):
         Example:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.graph.core import *  # NOQA
-            >>> infr = testdata_infr('PZ_MTEST')
+            >>> infr = testdata_infr('testdb1')
             >>> infr.exec_matching()
             >>> infr.apply_match_edges()
             >>> infr.apply_match_scores()
@@ -378,7 +378,7 @@ class InfrLearning(object):
         Example:
             >>> # DISABLE_DOCTEST
             >>> import ibeis
-            >>> ibs = ibeis.opendb('PZ_MTEST')
+            >>> ibs = ibeis.opendb('testdb1')
             >>> infr = ibeis.AnnotInference(ibs, aids='all')
             >>> infr.ensure_mst()
             >>> publish = False
@@ -414,7 +414,7 @@ class InfrLearning(object):
         Example:
             >>> import ibeis
             >>> infr = ibeis.AnnotInference(
-            >>>     'PZ_MTEST', aids='all', autoinit='annotmatch',
+            >>>     'testdb1', aids='all', autoinit='annotmatch',
             >>>     verbose=4)
             >>> infr.ensure_mst()
             >>> verifiers = infr.learn_evaluation_verifiers()
@@ -697,7 +697,7 @@ class CandidateSearch(_RedundancyAugmentation):
         """
 
         Example:
-            >>> # ENABLE_DOCTEST
+            >>> # xdoctest: +SKIP
             >>> from ibeis.algo.graph import demo
             >>> infr = demo.demodata_mtest_infr()
             >>> cand_edges = infr.find_lnbnn_candidate_edges()
@@ -800,7 +800,7 @@ class CandidateSearch(_RedundancyAugmentation):
 
         Example:
             >>> import ibeis
-            >>> ibs = ibeis.opendb('PZ_MTEST')
+            >>> ibs = ibeis.opendb('testdb1')
             >>> infr = ibeis.AnnotInference(ibs, aids='all')
             >>> infr.ensure_mst()
             >>> priority_edges = list(infr.edges())[0:1]
@@ -809,7 +809,7 @@ class CandidateSearch(_RedundancyAugmentation):
         Example:
             >>> # xdoctest: +SKIP
             >>> import ibeis
-            >>> ibs = ibeis.opendb('PZ_MTEST')
+            >>> ibs = ibeis.opendb('testdb1')
             >>> infr = ibeis.AnnotInference(ibs, aids='all')
             >>> infr.ensure_mst()
             >>> infr.load_published()

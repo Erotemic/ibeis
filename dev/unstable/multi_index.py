@@ -70,7 +70,7 @@ def request_ibeis_mindexer(qreq_, index_method='multi', verbose=True):
     """
 
     CommandLine:
-        python -m ibeis.algo.hots.multi_index --test-request_ibeis_mindexer:2
+        python -m ibeis.algo.hots.multi_index request_ibeis_mindexer:2
 
     Example0:
         >>> # SLOW_DOCTEST
@@ -268,7 +268,7 @@ class MultiNeighborIndex(object):
         Polymorphic interface to knn, but uses the multindex backend
 
         CommandLine:
-            python -m ibeis.algo.hots.multi_index --test-knn:0
+            python -m ibeis.algo.hots.multi_index knn:0
 
         Example1:
             >>> # SLOW_DOCTEST
@@ -317,7 +317,7 @@ class MultiNeighborIndex(object):
             list:
 
         CommandLine:
-            python -m ibeis.algo.hots.multi_index --test-get_offsets
+            python -m ibeis.algo.hots.multi_index get_offsets
 
         Example:
             >>> # SLOW_DOCTEST
@@ -343,7 +343,7 @@ class MultiNeighborIndex(object):
             list : nIndexed_list
 
         CommandLine:
-            python -m ibeis.algo.hots.multi_index --test-get_nIndexed_list
+            python -m ibeis.algo.hots.multi_index get_nIndexed_list
 
         Example:
             >>> # SLOW_DOCTEST
@@ -409,7 +409,7 @@ class MultiNeighborIndex(object):
             new_aid_list (list):
 
         CommandLine:
-            python -m ibeis.algo.hots.multi_index --test-add_ibeis_support
+            python -m ibeis.algo.hots.multi_index add_ibeis_support
 
         Example:
             >>> # DISABLE_DOCTEST
@@ -487,7 +487,7 @@ class MultiNeighborIndex(object):
             qfx2_imx (ndarray):
 
         CommandLine:
-            python -m ibeis.algo.hots.multi_index --test-iter_subindexers
+            python -m ibeis.algo.hots.multi_index iter_subindexers
 
         Example:
             >>> # SLOW_DOCTEST
@@ -537,7 +537,7 @@ class MultiNeighborIndex(object):
             ndarray: qfx2_aid
 
         CommandLine:
-            python -m ibeis.algo.hots.multi_index --test-get_nn_aids
+            python -m ibeis.algo.hots.multi_index get_nn_aids
 
         Example:
             >>> # SLOW_DOCTEST
@@ -574,7 +574,7 @@ class MultiNeighborIndex(object):
             ndarray: qfx2_fx
 
         CommandLine:
-            python -m ibeis.algo.hots.multi_index --test-get_nn_featxs
+            python -m ibeis.algo.hots.multi_index get_nn_featxs
 
         Example:
             >>> # SLOW_DOCTEST
@@ -603,7 +603,7 @@ class MultiNeighborIndex(object):
             ndarray: qfx2_fgw
 
         CommandLine:
-            python -m ibeis.algo.hots.multi_index --test-get_nn_fgws
+            python -m ibeis.algo.hots.multi_index get_nn_fgws
 
         Example:
             >>> # SLOW_DOCTEST

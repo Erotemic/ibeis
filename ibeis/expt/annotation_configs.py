@@ -1,10 +1,8 @@
-# -* coding: utf-8 -*-
 """
 Definitions for common aid configurations
 
 Rename to annot_cfgdef
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import numpy as np  # NOQA
 print, rrr, profile = ut.inject2(__name__)
@@ -189,7 +187,7 @@ def compress_aidcfg(acfg, filter_nones=False, filter_empty=False, force_noncommo
 
     CommandLine:
         #python -m ibeis --tf compress_aidcfg
-        python -m ibeis.expt.annotation_configs --exec-compress_aidcfg --show
+        python -m ibeis.expt.annotation_configs compress_aidcfg --show
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -358,7 +356,7 @@ def print_acfg_list(acfg_list, expanded_aids_list=None, ibs=None,
         combined (bool): (default = False)
 
     CommandLine:
-        python -m ibeis.expt.annotation_configs --exec-print_acfg_list
+        python -m ibeis.expt.annotation_configs print_acfg_list
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -714,8 +712,8 @@ varynannots = {
             #'sample_size': [.01, .05, .125, 0.25, .375, 0.5, 0.75],  # , .875],  # .95], 1.0],
             'sample_size': [.0, .01, .05, .125, 0.25, .375, 0.5, 0.75, .875, .95, 1.0],
             #'sample_size': [.01, .025, .05, .125, 0.25, .375, 0.5, 0.75, .875, .95, 1.0],
-            #'sample_size': ((10 * np.logspace(0, np.log(100), num=11, base=np.e)).astype(np.int) / 1000).tolist(),
-            #(10 * np.logspace(0, np.log2(100), num=11, base=2)).astype(np.int) / 1000,
+            #'sample_size': ((10 * np.logspace(0, np.log(100), num=11, base=np.e)).astype(int) / 1000).tolist(),
+            #(10 * np.logspace(0, np.log2(100), num=11, base=2)).astype(int) / 1000,
             'min_pername': 1,
         }),
 }
@@ -814,7 +812,7 @@ ibeis -e print_acfg -a viewdiff_td --db PZ_Master1 --verbtd --nocache --per_vp=T
 viewdiff_td = apply_timecontrol(viewdiff)
 viewdiff_td1h = apply_timecontrol(viewdiff, '1h')
 
-"""
+r"""
 ibeis get_annotcfg_list --db Oxford -a default:qhas_any=\(query,\),dpername=2,exclude_reference=True --acfginfo --verbtd  --veryverbtd
 ibeis get_annotcfg_list --db Oxford -a oxford --acfginfo
 ('_QSUUIDS((55)qxlgljvomqpdvlny)', '_DSUUIDS((4240)vhtqsdkrwetbftis)'),

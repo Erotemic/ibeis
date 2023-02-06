@@ -157,7 +157,7 @@ class StratifiedGroupKFold(_BaseKFold):
         #       ut.repr2(split_ratios, precision=3, suppress_small=True))
         # print(ut.dict_hist(grouped_splitx))
 
-        test_folds = np.empty(n_samples, dtype=np.int)
+        test_folds = np.empty(n_samples, dtype=int)
         for group_idx, splitx in zip(sortx, grouped_splitx):
             idxs = group_idxs[group_idx]
             test_folds[idxs] = splitx
@@ -472,10 +472,10 @@ def classification_report2(y_true, y_pred, target_names=None,
     confusion_df.columns.name = 'pred'
 
     if np.all(confusion_df - np.floor(confusion_df) < .000001):
-        confusion_df = confusion_df.astype(np.int)
+        confusion_df = confusion_df.astype(int)
     confusion_df.iloc[(-1, -1)] = N
     if np.all(confusion_df - np.floor(confusion_df) < .000001):
-        confusion_df = confusion_df.astype(np.int)
+        confusion_df = confusion_df.astype(int)
     # np.nan
 
     if verbose:
@@ -638,21 +638,21 @@ def predict_with_thresh(probs, threshes, target_names=None, force=False,
         if force or return_flags:
             pred_enc[no_predict] = probs[no_predict].argmax(axis=1)
         else:
-            pred_enc = pred_enc.astype(np.float)
+            pred_enc = pred_enc.astype(float)
             pred_enc[no_predict] = np.nan
 
     if np.any(multi_predict):
         if multi or return_flags:
             pred_enc[multi_predict] = probs[multi_predict].argmax(axis=1)
         else:
-            pred_enc = pred_enc.astype(np.float)
+            pred_enc = pred_enc.astype(float)
             pred_enc[multi_predict] = np.nan
 
     if df_index is not None:
         pred_enc = pd.Series(pred_enc, index=df_index)
         # pred = pred_enc.apply(lambda x: target_names[x])
     if return_flags:
-        flags = np.ones(len(probs), dtype=np.bool)
+        flags = np.ones(len(probs), dtype=bool)
         if not force:
             flags[no_predict] = False
         if not multi:
@@ -715,7 +715,7 @@ class PrefitEstimatorEnsemble(object):
             for clf in clf_list:
                 # For each index of the clf classes, find that index in the
                 # ensemble classes. Eg. class y=4 might be at cx=1 and ex=0
-                mapper = np.empty(len(clf.classes_), dtype=np.int)
+                mapper = np.empty(len(clf.classes_), dtype=int)
                 for cx, y in enumerate(clf.classes_):
                     ex = classes_.index(y)
                     mapper[cx] = ex

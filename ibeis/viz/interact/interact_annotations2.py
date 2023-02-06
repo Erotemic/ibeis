@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function
 from plottool_ibeis import interact_annotations
 import plottool_ibeis as pt  # NOQA
 import utool as ut
@@ -18,7 +16,7 @@ def ishow_image2(ibs, gid, fnum=None, dodraw=True):
         dodraw (bool):
 
     CommandLine:
-        python -m ibeis.viz.interact.interact_annotations2 --test-ishow_image2 --show
+        python -m ibeis.viz.interact.interact_annotations2 ishow_image2 --show
 
     Example:
         >>> # DISABLE_DOCTEST

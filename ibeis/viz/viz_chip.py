@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import plottool_ibeis as pt
 from plottool_ibeis import plot_helpers as ph
@@ -50,7 +48,7 @@ def HARDCODE_SHOW_PB_PAIR():
 
 def testdata_showchip():
     import ibeis
-    ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+    ibs = ibeis.opendb(defaultdb='testdb1')
     aid_list = ut.get_argval(('--aids', '--aid'), type_=list, default=None)
     if aid_list is None:
         aid_list = ibs.get_valid_aids()[0:4]
@@ -75,9 +73,9 @@ def testdata_showchip():
 def show_many_chips(ibs, aid_list, config2_=None, fnum=None, pnum=None, vert=True):
     r"""
     CommandLine:
-        python -m ibeis.viz.viz_chip --test-show_many_chips
-        python -m ibeis.viz.viz_chip --test-show_many_chips --show
-        python -m ibeis.viz.viz_chip --test-show_many_chips --show --db NNP_Master3 --aids=13276,14047,14489,14906,10194,10201,12656,10150,11002,15315,7191,13127,15591,12838,13970,14123,14167 --no-annote --dpath figures --save ~/latex/crall-candidacy-2015/figures/challengechips.jpg '--caption=challenging images'
+        python -m ibeis.viz.viz_chip show_many_chips
+        python -m ibeis.viz.viz_chip show_many_chips --show
+        python -m ibeis.viz.viz_chip show_many_chips --show --db NNP_Master3 --aids=13276,14047,14489,14906,10194,10201,12656,10150,11002,15315,7191,13127,15591,12838,13970,14123,14167 --no-annote --dpath figures --save ~/latex/crall-candidacy-2015/figures/challengechips.jpg '--caption=challenging images'
 
     Example:
         >>> # ENABLE_DOCTEST

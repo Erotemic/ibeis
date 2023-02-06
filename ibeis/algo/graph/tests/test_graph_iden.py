@@ -140,8 +140,5 @@ if __name__ == '__main__':
         python ~/code/ibeis/ibeis/algo/graph/tests/test_graph_iden.py test_incomp_inference
         python ~/code/ibeis/ibeis/algo/graph/tests/test_graph_iden.py --allexamples
     """
-    import multiprocessing
-    multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
-    # import ubelt as ub
+    import xdoctest
+    xdoctest.doctest_module(__file__)

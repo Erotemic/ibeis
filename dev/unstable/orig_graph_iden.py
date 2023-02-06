@@ -103,7 +103,7 @@ class OrigAnnotInference(object):
         user_feedback = ut.odict([
             ('aid1', aid_pairs.T[0]),
             ('aid2', aid_pairs.T[1]),
-            ('p_match', truth.astype(np.float)),
+            ('p_match', truth.astype(float)),
             ('p_nomatch', 1.0 - truth),
             ('p_notcomp', np.array([0.0] * len(aid_pairs))),
         ])
@@ -192,7 +192,7 @@ class OrigAnnotInference(object):
         if False:
             kw = dict(precision=2, max_line_width=140, suppress_small=True)
             print(ut.hz_str('prob_names = ', ut.repr2((prob_names), **kw)))
-            print(ut.hz_str('postcut = ', ut.repr2((postcut).astype(np.int), **kw)))
+            print(ut.hz_str('postcut = ', ut.repr2((postcut).astype(int), **kw)))
         matching_qaids = ut.take(qaid_list, qxs)
         matched_nids = ut.take(unique_nids, nxs)
 
@@ -408,7 +408,7 @@ class OrigAnnotInference(object):
                 import scipy.special
                 # SUPER HACK: these are not probabilities
                 # TODO: set a and b based on dbsize and param configuration
-                # python -m plottool_ibeis.draw_func2 --exec-plot_func --show --range=0,3 --func="lambda x: scipy.special.expit(2 * x - 2)"
+                # python -m plottool_ibeis.draw_func2 plot_func --show --range=0,3 --func="lambda x: scipy.special.expit(2 * x - 2)"
                 #a = 2.0
                 a = 1.5
                 b = 2

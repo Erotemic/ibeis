@@ -10,8 +10,8 @@
 #        tuple: (None, None, None)
 #
 #    CommandLine:
-#        python -m utool.util_cplat --test-fix_command_tuple:0
-#        python -m utool.util_cplat --test-fix_command_tuple:1
+#        python -m utool.util_cplat fix_command_tuple:0
+#        python -m utool.util_cplat fix_command_tuple:1
 #
 #    Example0:
 #        >>> # DISABLE_DOCTEST
@@ -76,7 +76,7 @@
 #        tuple: (None, None, None)
 #
 #    CommandLine:
-#        python -m utool.util_cplat --test-system_command
+#        python -m utool.util_cplat system_command
 #
 #    Example:
 #        >>> # DISABLE_DOCTEST

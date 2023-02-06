@@ -1,9 +1,6 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import ubelt as ub  # NOQA
 import numpy as np
-from six.moves import zip, map, filter, range  # NOQA
 from functools import partial  # NOQA
 from ibeis.control import controller_inject
 print, rrr, profile = ut.inject2(__name__)
@@ -92,8 +89,8 @@ def get_annotmatch_rowids_from_aid(ibs, aid_list, eager=True, nInput=None,
     aid_list = ibs.get_valid_aids()
 
     CommandLine:
-        python -m ibeis.annotmatch_funcs --exec-get_annotmatch_rowids_from_aid
-        python -m ibeis.annotmatch_funcs --exec-get_annotmatch_rowids_from_aid:1 --show
+        python -m ibeis.annotmatch_funcs get_annotmatch_rowids_from_aid
+        python -m ibeis.annotmatch_funcs get_annotmatch_rowids_from_aid:1 --show
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -178,7 +175,7 @@ def get_annotmatch_rowids_between(ibs, aids1, aids2, method=None):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.annotmatch_funcs import *  # NOQA
         >>> import ibeis
-        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> ibs = ibeis.opendb('testdb1')
         >>> aids1 = aids2 = [1, 2, 3, 4, 5, 6]
         >>> rowids_between = ibs.get_annotmatch_rowids_between
         >>> ams1 = sorted(rowids_between(aids1, aids2, method=1))
@@ -269,13 +266,13 @@ def get_annot_pair_timedelta(ibs, aid_list1, aid_list2):
         list: timedelta_list
 
     CommandLine:
-        python -m ibeis.annotmatch_funcs --test-get_annot_pair_timedelta
+        python -m ibeis.annotmatch_funcs get_annot_pair_timedelta
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.annotmatch_funcs import *  # NOQA
         >>> import ibeis
-        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids(hasgt=True)
         >>> unixtimes = ibs.get_annot_image_unixtimes_asfloat(aid_list)
         >>> aid_list = ut.compress(aid_list, ~np.isnan(unixtimes))
@@ -283,10 +280,9 @@ def get_annot_pair_timedelta(ibs, aid_list1, aid_list2):
         >>> flags = np.array(list(map(len, gt_aids_list))) > 0
         >>> aid_list1 = ut.compress(aid_list, flags)[0:5]
         >>> aid_list2 = ut.take_column(gt_aids_list, 0)[0:5]
-        >>> timedelta_list = ibs.get_annot_pair_timedelta(aid_list1, aid_list2)
-        >>> result = ut.repr2(timedelta_list, precision=1)
-        >>> print(result)
-        np.array([7.6e+07, 7.6e+07, 2.4e+06, 2.0e+08, 9.7e+07])
+        >>> timedelta_list = ibs.get_annot_pair_timedelta(aid_list1, aid_list2).tolist()
+        >>> print(f'timedelta_list={timedelta_list}')
+        timedelta_list=[2.0, 2.0, 2.0, 2.0]
     """
     unixtime_list1 = ibs.get_annot_image_unixtimes_asfloat(aid_list1)
     unixtime_list2 = ibs.get_annot_image_unixtimes_asfloat(aid_list2)
@@ -335,13 +331,13 @@ def get_annot_num_reviewed_matching_aids(ibs, aid1_list, eager=True, nInput=None
         list: num_annot_reviewed_list
 
     CommandLine:
-        python -m ibeis.annotmatch_funcs --test-get_annot_num_reviewed_matching_aids
+        python -m ibeis.annotmatch_funcs get_annot_num_reviewed_matching_aids
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.annotmatch_funcs import *  # NOQA
         >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb2')
+        >>> ibs = ibeis.opendb('testdb1')
         >>> aid1_list = ibs.get_valid_aids()
         >>> eager = True
         >>> nInput = None
@@ -392,13 +388,13 @@ def get_annot_pair_is_reviewed(ibs, aid1_list, aid2_list):
         list: annotmatch_reviewed_list
 
     CommandLine:
-        python -m ibeis.annotmatch_funcs --test-get_annot_pair_is_reviewed
+        python -m ibeis.annotmatch_funcs get_annot_pair_is_reviewed
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.annotmatch_funcs import *  # NOQA
         >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb2')
+        >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
         >>> pairs = list(ut.product(aid_list, aid_list))
         >>> aid1_list = ut.get_list_column(pairs, 0)
@@ -460,7 +456,7 @@ def set_annot_pair_as_positive_match(ibs, aid1, aid2, dryrun=False,
         aid2 (int):  matching annotation id
 
     CommandLine:
-        python -m ibeis.annotmatch_funcs --test-set_annot_pair_as_positive_match
+        python -m ibeis.annotmatch_funcs set_annot_pair_as_positive_match
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -551,7 +547,7 @@ def set_annot_pair_as_negative_match(ibs, aid1, aid2, dryrun=False,
         dryrun (bool):
 
     CommandLine:
-        python -m ibeis.annotmatch_funcs --test-set_annot_pair_as_negative_match
+        python -m ibeis.annotmatch_funcs set_annot_pair_as_negative_match
 
     Example:
         >>> # ENABLE_DOCTEST

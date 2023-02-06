@@ -1,12 +1,10 @@
-# -*- coding: utf-8 -*-
 """
 Interaction for a single annoation.
 Also defines annotation context menu.
 
 CommandLine:
-    python -m ibeis.viz.interact.interact_chip --test-ishow_chip --show --aid 2
+    python -m ibeis.viz.interact.interact_chip ishow_chip --show --aid 2
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import plottool_ibeis as pt  # NOQA
 from functools import partial
@@ -26,7 +24,7 @@ def interact_multichips(ibs, aid_list, config2_=None, **kwargs):
         MultiImageInteraction: iteract_obj
 
     CommandLine:
-        python -m ibeis.viz.interact.interact_chip --exec-interact_multichips --show
+        python -m ibeis.viz.interact.interact_chip interact_multichips --show
 
     Example:
         >>> # SLOW_DOCTEST
@@ -65,7 +63,7 @@ def show_annot_context_menu(ibs, aid, qwin, qpoint, refresh_func=None,
     Used in other interactions like name_interaction and interact_query_decision
 
     CommandLine:
-        python -m ibeis.viz.interact.interact_chip --test-ishow_chip --show
+        python -m ibeis.viz.interact.interact_chip ishow_chip --show
 
     """
     import guitool_ibeis as gt
@@ -97,7 +95,7 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
         list: callback_list
 
     CommandLine:
-        python -m ibeis.viz.interact.interact_chip --exec-build_annot_context_options
+        python -m ibeis.viz.interact.interact_chip build_annot_context_options
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -410,8 +408,8 @@ def ishow_chip(ibs, aid, fnum=2, fx=None, dodraw=True, config2_=None,
         fx (None):
 
     CommandLine:
-        python -m ibeis.viz.interact.interact_chip --test-ishow_chip --show
-        python -m ibeis.viz.interact.interact_chip --test-ishow_chip --show --aid 2
+        python -m ibeis.viz.interact.interact_chip ishow_chip --show
+        python -m ibeis.viz.interact.interact_chip ishow_chip --show --aid 2
 
     Example:
         >>> # DISABLE_DOCTEST

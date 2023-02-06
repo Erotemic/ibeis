@@ -200,7 +200,7 @@ def get_annot_chip_thumbtup(ibs, aid_list, thumbsize=None, config2_=None):
         list: thumbtup_list - [(thumb_path, img_path, imgsize, bboxes, thetas)]
 
     CommandLine:
-        python -m ibeis.control.manual_chip_funcs --test-get_annot_chip_thumbtup
+        python -m ibeis.control.manual_chip_funcs get_annot_chip_thumbtup
 
     RESTful:
         Method: GET
@@ -255,7 +255,7 @@ def get_annot_chip_thumb_path2(ibs, aid_list, thumbsize=None, config=None):
         list: thumbtup_list - [(thumb_path, img_path, imgsize, bboxes, thetas)]
 
     CommandLine:
-        python -m ibeis.control.manual_chip_funcs --test-get_annot_chip_thumbtup
+        python -m ibeis.control.manual_chip_funcs get_annot_chip_thumbtup
 
     RESTful:
         Method: GET

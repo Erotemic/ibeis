@@ -93,7 +93,7 @@ def get_precision_recall_curve_(qres, ibs=None, gt_aids=None):
     """
 
     CommandLine:
-        python -m ibeis.algo.hots.precision_recall --test-get_precision_recall_curve_ --show
+        python -m ibeis.algo.hots.precision_recall get_precision_recall_curve_ --show
 
     Example:
         >>> # DISABLE_DOCTEST

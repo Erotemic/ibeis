@@ -20,7 +20,7 @@ print, rrr, profile = ut.inject2(__name__)
 def fix_pz_master():
     r"""
     CommandLine:
-        python -m ibeis.algo.hots.devcases --test-fix_pz_master --show
+        python -m ibeis.algo.hots.devcases fix_pz_master --show
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -118,10 +118,10 @@ def myquery():
     see how seperability changes as we very things
 
     CommandLine:
-        python -m ibeis.algo.hots.devcases --test-myquery
-        python -m ibeis.algo.hots.devcases --test-myquery --show --index 0
-        python -m ibeis.algo.hots.devcases --test-myquery --show --index 1
-        python -m ibeis.algo.hots.devcases --test-myquery --show --index 2
+        python -m ibeis.algo.hots.devcases myquery
+        python -m ibeis.algo.hots.devcases myquery --show --index 0
+        python -m ibeis.algo.hots.devcases myquery --show --index 1
+        python -m ibeis.algo.hots.devcases myquery --show --index 2
 
     References:
         http://en.wikipedia.org/wiki/Pareto_distribution <- look into
@@ -375,7 +375,7 @@ def show_power_law_plots():
     """
 
     CommandLine:
-        python -m ibeis.algo.hots.devcases --test-show_power_law_plots --show
+        python -m ibeis.algo.hots.devcases show_power_law_plots --show
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -480,7 +480,7 @@ def get_pz_master_testcase():
 def load_gztest(ibs):
     r"""
     CommandLine:
-        python -m ibeis.algo.hots.special_query --test-load_gztest
+        python -m ibeis.algo.hots.special_query load_gztest
 
     Example:
         >>> # DISABLE_DOCTEST

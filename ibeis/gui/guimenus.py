@@ -27,7 +27,7 @@ class DummyBack(object):
 def setup_dummy_menus():
     r"""
     CommandLine:
-        python -m ibeis.gui.guimenus --test-setup_dummy_menus
+        python -m ibeis.gui.guimenus setup_dummy_menus
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -581,7 +581,7 @@ def setup_zebra_menu(mainwin, back):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.gui.guimenus --test-setup_dummy_menus
+        python -m ibeis.gui.guimenus setup_dummy_menus
         python -m ibeis.gui.guimenus
         python -m ibeis.gui.guimenus --allexamples
         python -m ibeis.gui.guimenus --allexamples --noface --nosrc

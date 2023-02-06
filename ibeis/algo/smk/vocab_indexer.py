@@ -157,11 +157,11 @@ def compute_vocab(depc, fid_list, config):
     Depcache method for computing a new visual vocab
 
     CommandLine:
-        python -m ibeis.core_annots --exec-compute_neighbor_index --show
+        python -m ibeis.core_annots compute_neighbor_index --show
         python -m ibeis show_depc_annot_table_input --show --tablename=neighbor_index
 
-        python -m ibeis.algo.smk.vocab_indexer --exec-compute_vocab:0
-        python -m ibeis.algo.smk.vocab_indexer --exec-compute_vocab:1
+        python -m ibeis.algo.smk.vocab_indexer compute_vocab:0
+        python -m ibeis.algo.smk.vocab_indexer compute_vocab:1
 
         # FIXME make util_tests register
         python -m ibeis.algo.smk.vocab_indexer compute_vocab:0

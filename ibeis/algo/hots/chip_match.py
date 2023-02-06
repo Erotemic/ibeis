@@ -1,8 +1,6 @@
-# -*- coding: utf-8 -*-
 """
 python -m utool.util_inspect check_module_usage --pat="chip_match.py"
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import copy
 import numpy as np
 import utool as ut
@@ -196,22 +194,25 @@ class _ChipMatchVisualization(object):
             >>> # xdoctest: +REQUIRES(--show)
             >>> from ibeis.algo.hots.chip_match import *  # NOQA
             >>> import ibeis
-            >>> cm, qreq_ = ibeis.testdata_cm('PZ_MTEST', default_qaids=[18])
+            >>> cm, qreq_ = ibeis.testdata_cm('testdb1', default_qaids=[2])
             >>> if True:
             >>>     import matplotlib as mpl
             >>>     from ibeis.scripts.thesis import TMP_RC
             >>>     mpl.rcParams.update(TMP_RC)
             >>> from ibeis.viz import viz_matches
-            >>> defaultkw = dict(ut.recursive_parse_kwargs(viz_matches.show_name_matches))
+            >>> #defaultkw = dict(ut.recursive_parse_kwargs(viz_matches.show_name_matches))
+            >>> defaultkw = {}
             >>> #kwargs = ut.argparse_dict(defaultkw, only_specified=True)
             >>> kwargs = defaultkw.copy()
             >>> kwargs.pop('qaid', None)
+            >>> kwargs.pop('qreq_', None)
+            >>> kwargs.pop('name_rank', None)
             >>> #_nid = ut.get_argval('--dnid', default=cm.qnid)
             >>> #rank = ut.get_argval('--rank', default=None)
             >>> _nid = cm.qnid
             >>> rank = None
             >>> dnid = None if rank is not None else _nid
-            >>> cm.show_single_namematch(qreq_, dnid=dnid, rank=rank, **kwargs)
+            >>> cm.show_single_namematch(qreq_=qreq_, dnid=dnid, rank=rank, **kwargs)
             >>> ut.quit_if_noshow()
             >>> ut.show_if_requested()
         """
@@ -461,7 +462,7 @@ class _ChipMatchVisualization(object):
             aid2 (int):  annotation id(default = None)
 
         CommandLine:
-            python -m ibeis.algo.hots.chip_match --exec-ishow_single_annotmatch --show
+            python -m ibeis.algo.hots.chip_match ishow_single_annotmatch --show
 
         Example:
             >>> # DISABLE_DOCTEST
@@ -503,7 +504,7 @@ class _ChipMatchVisualization(object):
     def ishow_analysis(cm, qreq_, **kwargs):
         """
         CommandLine:
-            python -m ibeis.algo.hots.chip_match --exec-_ChipMatchVisualization.ishow_analysis --show
+            python -m ibeis.algo.hots.chip_match _ChipMatchVisualization.ishow_analysis --show
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -537,7 +538,7 @@ class _ChipMatchVisualization(object):
     def imwrite_single_annotmatch(cm, qreq_, aid, **kwargs):
         """
         CommandLine:
-            python -m ibeis.algo.hots.chip_match --exec-ChipMatch.imwrite_single_annotmatch --show
+            python -m ibeis.algo.hots.chip_match ChipMatch.imwrite_single_annotmatch --show
 
         Example:
             >>> # DISABLE_DOCTEST
@@ -637,9 +638,9 @@ class _ChipMatchVisualization(object):
     def render_single_annotmatch(cm, qreq_, aid, **kwargs):
         """
         CommandLine:
-            python -m ibeis.algo.hots.chip_match --exec-_ChipMatchVisualization.render_single_annotmatch --show
-            utprof.py -m ibeis.algo.hots.chip_match --exec-_ChipMatchVisualization.render_single_annotmatch --show
-            utprof.py -m ibeis.algo.hots.chip_match --exec-_ChipMatchVisualization.render_single_annotmatch --show
+            python -m ibeis.algo.hots.chip_match _ChipMatchVisualization.render_single_annotmatch --show
+            utprof.py -m ibeis.algo.hots.chip_match _ChipMatchVisualization.render_single_annotmatch --show
+            utprof.py -m ibeis.algo.hots.chip_match _ChipMatchVisualization.render_single_annotmatch --show
 
         Example:
             >>> # DISABLE_DOCTEST
@@ -713,7 +714,7 @@ class _ChipMatchVisualization(object):
             QueryResult: qres_wgt -  object of feature correspondences and scores
 
         CommandLine:
-            python -m ibeis.algo.hots.chip_match --exec-qt_inspect_gui --show
+            python -m ibeis.algo.hots.chip_match qt_inspect_gui --show
 
         Example:
             >>> # DISABLE_DOCTEST
@@ -807,8 +808,8 @@ class _ChipMatchScorers(object):
     def score_annot_csum(cm, qreq_):
         """
         CommandLine:
-            python -m ibeis.algo.hots.chip_match --test-score_annot_csum --show
-            python -m ibeis.algo.hots.chip_match --test-score_annot_csum --show --qaid 18
+            python -m ibeis.algo.hots.chip_match score_annot_csum --show
+            python -m ibeis.algo.hots.chip_match score_annot_csum --show --qaid 18
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -840,14 +841,14 @@ class _ChipMatchScorers(object):
         This is fmech from the thesis
 
         CommandLine:
-            python -m ibeis.algo.hots.chip_match --test-score_name_nsum --show --qaid 1
-            python -m ibeis.algo.hots.chip_match --test-score_name_nsum --show --qaid 18 -t default:normsum=True
+            python -m ibeis.algo.hots.chip_match score_name_nsum --show --qaid 1
+            python -m ibeis.algo.hots.chip_match score_name_nsum --show --qaid 18 -t default:normsum=True
 
         Example:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.hots.chip_match import *  # NOQA
-            >>> qreq_, args = plh.testdata_pre('end', defaultdb='PZ_MTEST',
-            >>>                                a=['default'], qaid_override=[18])
+            >>> qreq_, args = plh.testdata_pre('end', defaultdb='testdb1',
+            >>>                                a=['default'], qaid_override=[2])
             >>> cm = args.cm_list_SVER[0]
             >>> cm.score_name_nsum(qreq_)
             >>> gt_score = cm.score_list.compress(cm.get_groundtruth_flags()).max()
@@ -891,8 +892,8 @@ class MatchBaseIO(object):
         Example:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.hots.chip_match import *  # NOQA
-            >>> qaid = 18
-            >>> ibs, qreq_, cm_list = plh.testdata_pre_sver('PZ_MTEST', qaid_list=[qaid])
+            >>> qaid = 2
+            >>> ibs, qreq_, cm_list = plh.testdata_pre_sver('testdb1', qaid_list=[qaid])
             >>> cm = cm_list[0]
             >>> cm.score_name_nsum(qreq_)
             >>> dpath = ut.get_app_resource_dir('ibeis')
@@ -1049,7 +1050,7 @@ class _AnnotMatchConvenienceGetter(object):
             'dnid': cm.dnid_list,
             'score': cm.annot_score_list,
             'rank': cm.annot_score_list.argsort()[::-1].argsort(),
-            'truth': (cm.dnid_list == cm.qnid).astype(np.int),
+            'truth': (cm.dnid_list == cm.qnid).astype(int),
         }
         annot_df = pd.DataFrame(data)
         annot_df.sort_values(by='rank', inplace=True)
@@ -1062,7 +1063,7 @@ class _AnnotMatchConvenienceGetter(object):
             'dnid': cm.unique_nids,
             'score': cm.name_score_list,
             'rank': cm.name_score_list.argsort()[::-1].argsort(),
-            'truth': (cm.unique_nids == cm.qnid).astype(np.int),
+            'truth': (cm.unique_nids == cm.qnid).astype(int),
         }
         name_df = pd.DataFrame(data)
         name_df.sort_values(by='rank', inplace=True)
@@ -1291,7 +1292,7 @@ class _AnnotMatchConvenienceGetter(object):
         Example:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.hots.chip_match import *  # NOQA
-            >>> ibs, qreq_, cm_list = plh.testdata_pre_sver('PZ_MTEST', qaid_list=[18])
+            >>> ibs, qreq_, cm_list = plh.testdata_pre_sver('testdb1', qaid_list=[2])
             >>> cm = cm_list[0]
             >>> cm.score_name_nsum(qreq_)
             >>> top_daids = cm.get_name_shortlist_aids(5, 2)
@@ -1307,7 +1308,7 @@ class _AnnotMatchConvenienceGetter(object):
         Example:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.hots.chip_match import *  # NOQA
-            >>> ibs, qreq_, cm_list = plh.testdata_pre_sver('PZ_MTEST', qaid_list=[18])
+            >>> ibs, qreq_, cm_list = plh.testdata_pre_sver('testdb1', qaid_list=[2])
             >>> cm = cm_list[0]
             >>> cm.score_name_nsum(qreq_)
             >>> top_daids = cm.get_annot_shortlist_aids(5 * 2)
@@ -1533,13 +1534,13 @@ class _ChipMatchConvenienceGetter(object):
             dict: info_
 
         CommandLine:
-            python -m ibeis.algo.hots.chip_match --exec-get_flat_fm_info --show
+            python -m ibeis.algo.hots.chip_match get_flat_fm_info --show
 
         Example:
             >>> # DISABLE_DOCTEST
             >>> from ibeis.algo.hots.chip_match import *  # NOQA
             >>> ibs, qreq_, cm_list = plh.testdata_pre_sver(
-            >>>     defaultdb='PZ_MTEST', qaid_list=[18])
+            >>>     defaultdb='testdb1', qaid_list=[2])
             >>> cm = cm_list[0]
             >>> info_ = cm.get_flat_fm_info()
             >>> ut.assert_all_eq(ut.lmap(len, info_.values()))
@@ -1643,13 +1644,13 @@ class _ChipMatchDebugger(object):
             str: varinfo
 
         CommandLine:
-            python -m ibeis.algo.hots.chip_match --exec-get_inspect_str
+            python -m ibeis.algo.hots.chip_match get_inspect_str
 
         Example:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.hots.chip_match import *  # NOQA
             >>> import ibeis
-            >>> cm, qreq_ = ibeis.testdata_cm('PZ_MTEST', a='default:dindex=0:10,qindex=0:1', t='best:SV=False')
+            >>> cm, qreq_ = ibeis.testdata_cm('testdb1', a='default:dindex=0:10,qindex=0:1', t='best:SV=False')
             >>> varinfo = cm.get_inspect_str(qreq_)
             >>> result = ('varinfo = %s' % (str(varinfo),))
             >>> print(result)
@@ -1675,7 +1676,7 @@ class _ChipMatchDebugger(object):
 
         top_stack = np.vstack(top_list)
         #top_stack = np.array(top_stack, dtype=object)
-        top_stack = np.array(top_stack, dtype=np.float)
+        top_stack = np.array(top_stack, dtype=float)
         #np.int32)
         top_str = np.array_str(top_stack, precision=3, suppress_small=True,
                                max_line_width=200)
@@ -1718,7 +1719,7 @@ class _ChipMatchDebugger(object):
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.hots.chip_match import *  # NOQA
             >>> import ibeis
-            >>> cm, qreq_ = ibeis.testdata_cm('PZ_MTEST', a='default:dindex=0:10,qindex=0:1', t='best:SV=False')
+            >>> cm, qreq_ = ibeis.testdata_cm('testdb1', a='default:dindex=0:10,qindex=0:1', t='best:SV=False')
             >>> varinfo = cm.get_rawinfostr()
             >>> result = ('varinfo = %s' % (varinfo,))
             >>> print(result)
@@ -1813,7 +1814,7 @@ class _ChipMatchDebugger(object):
             makes very little sense
 
         CommandLine:
-            python -m ibeis.algo.hots.chip_match --test-get_cvs_str --force-serial
+            python -m ibeis.algo.hots.chip_match get_cvs_str --force-serial
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -2187,7 +2188,7 @@ class ChipMatch(_ChipMatchVisualization,
 
     def _empty_hack(cm):
         if cm.daid_list is None:
-            cm.daid_list = np.empty(0, dtype=np.int)
+            cm.daid_list = np.empty(0, dtype=int)
         assert len(cm.daid_list) == 0
         cm.fsv_col_lbls = []
         cm.fm_list = []
@@ -2225,7 +2226,7 @@ class ChipMatch(_ChipMatchVisualization,
     # Modification / Evaluation Functions
     #------------------
 
-    def _cast_scores(cm, dtype=np.float):
+    def _cast_scores(cm, dtype=float):
         cm.fsv_list = [fsv.astype(dtype) for fsv in cm.fsv_list]
 
     def compress_results(cm, inplace=False):
@@ -2246,7 +2247,7 @@ class ChipMatch(_ChipMatchVisualization,
             ibeis.ChipMatch: out
 
         CommandLine:
-            python -m ibeis.algo.hots.chip_match --exec-extend_results --show
+            python -m ibeis.algo.hots.chip_match extend_results --show
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -2382,7 +2383,7 @@ class ChipMatch(_ChipMatchVisualization,
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.hots.chip_match import *  # NOQA
             >>> import ibeis
-            >>> cm, qreq_ = ibeis.testdata_cm('PZ_MTEST',
+            >>> cm, qreq_ = ibeis.testdata_cm('testdb1',
             >>>                               a='default:dindex=0:10,qindex=0:1',
             >>>                               t='best:sv=False')
             >>> idx_list = list(range(cm.num_daids))
@@ -2399,7 +2400,7 @@ class ChipMatch(_ChipMatchVisualization,
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.hots.chip_match import *  # NOQA
             >>> import ibeis
-            >>> cm, qreq_ = ibeis.testdata_cm('PZ_MTEST',
+            >>> cm, qreq_ = ibeis.testdata_cm('testdb1',
             >>>                               a='default:dindex=0:10,qindex=0:1',
             >>>                               t='best:SV=False')
             >>> idx_list = [0, 2]
@@ -2470,7 +2471,7 @@ class ChipMatch(_ChipMatchVisualization,
             ibeis.ChipMatch: out
 
         CommandLine:
-            python -m ibeis.algo.hots.chip_match --exec-take_feature_matches --show
+            python -m ibeis.algo.hots.chip_match take_feature_matches --show
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -2582,7 +2583,7 @@ class ChipMatch(_ChipMatchVisualization,
 
         CommandLine:
             # FIXME: util_test is broken with classmethods
-            python -m ibeis.algo.hots.chip_match --test-from_json --show
+            python -m ibeis.algo.hots.chip_match from_json --show
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -2636,9 +2637,9 @@ class ChipMatch(_ChipMatchVisualization,
         Serialize ChipMatch object as JSON string
 
         CommandLine:
-            python -m ibeis.algo.hots.chip_match --test-ChipMatch.to_json:0
-            python -m ibeis.algo.hots.chip_match --test-ChipMatch.to_json
-            python -m ibeis.algo.hots.chip_match --test-ChipMatch.to_json:1 --show
+            python -m ibeis.algo.hots.chip_match ChipMatch.to_json:0
+            python -m ibeis.algo.hots.chip_match ChipMatch.to_json
+            python -m ibeis.algo.hots.chip_match ChipMatch.to_json:1 --show
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -2785,13 +2786,13 @@ def get_chipmatch_fname(qaid, qreq_, qauuid=None, cfgstr=None,
                         MAX_FNAME_LEN=MAX_FNAME_LEN):
     r"""
     CommandLine:
-        python -m ibeis.algo.hots.chip_match --test-get_chipmatch_fname
+        python -m ibeis.algo.hots.chip_match get_chipmatch_fname
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.chip_match import *  # NOQA
         >>> qreq_, args = plh.testdata_pre('spatial_verification',
-        >>>                                defaultdb='PZ_MTEST', qaid_override=[18],
+        >>>                                defaultdb='testdb1', qaid_override=[2],
         >>>                                p='default:sqrd_dist_on=True')
         >>> cm_list = args.cm_list_FILT
         >>> cm = cm_list[0]

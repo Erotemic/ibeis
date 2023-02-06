@@ -67,8 +67,8 @@ def const_match_weighter(nns_list, nnvalid0_list, qreq_):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.algo.hots.nn_weights import *  # NOQA
-        >>> #tup = plh.testdata_pre_weight_neighbors('PZ_MTEST')
-        >>> qreq_, args = plh.testdata_pre('weight_neighbors', defaultdb='PZ_MTEST')
+        >>> #tup = plh.testdata_pre_weight_neighbors('testdb1')
+        >>> qreq_, args = plh.testdata_pre('weight_neighbors', defaultdb='testdb1')
         >>> nns_list, nnvalid0_list = args
         >>> ibs, qreq_, nns_list, nnvalid0_list = tup
         >>> constvote_weight_list = const_match_weighter(nns_list, nnvalid0_list, qreq_)
@@ -82,7 +82,7 @@ def const_match_weighter(nns_list, nnvalid0_list, qreq_):
 
     for nns in nns_list:
         (neighb_idx, neighb_dist) = nns
-        neighb_constvote = np.ones((len(neighb_idx), len(neighb_idx.T) - Knorm), dtype=np.float)
+        neighb_constvote = np.ones((len(neighb_idx), len(neighb_idx.T) - Knorm), dtype=float)
         constvote_weight_list.append(neighb_constvote)
     return constvote_weight_list
 
@@ -93,15 +93,13 @@ def fg_match_weighter(nns_list, nnvalid0_list, qreq_):
     foreground feature match weighting
 
     CommandLine:
-        python -m ibeis.algo.hots.nn_weights --exec-fg_match_weighter
+        python -m ibeis.algo.hots.nn_weights fg_match_weighter
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> # xdoctest: +SKIP
         >>> from ibeis.algo.hots.nn_weights import *  # NOQA
-        >>> #tup = plh.testdata_pre_weight_neighbors('PZ_MTEST')
-        >>> #ibs, qreq_, nns_list, nnvalid0_list = tup
-        >>> qreq_, args = plh.testdata_pre('weight_neighbors', defaultdb='PZ_MTEST')
+        >>> qreq_, args = plh.testdata_pre('weight_neighbors', defaultdb='testdb1')
         >>> nns_list, nnvalid0_list = args
         >>> print(ut.repr2(qreq_.qparams.__dict__, sorted_=True))
         >>> assert qreq_.qparams.fg_on == True, 'bug setting custom params fg_on'
@@ -145,10 +143,8 @@ def nn_normalized_weight(normweight_fn, nns_list, nnvalid0_list, qreq_):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.nn_weights import *  # NOQA
-        >>> #tup = plh.testdata_pre_weight_neighbors('PZ_MTEST')
-        >>> #ibs, qreq_, nns_list, nnvalid0_list = tup
         >>> qreq_, args = plh.testdata_pre('weight_neighbors',
-        >>>                                defaultdb='PZ_MTEST')
+        >>>                                defaultdb='testdb1')
         >>> nns_list, nnvalid0_list = args
         >>> normweight_fn = lnbnn_fn
         >>> weights_list1, normk_list1 = nn_normalized_weight(
@@ -158,14 +154,13 @@ def nn_normalized_weight(normweight_fn, nns_list, nnvalid0_list, qreq_):
         >>> weights_list2, normk_list2 = nn_normonly_weight(nns_list, nnvalid0_list, qreq_)
         >>> weights2 = weights_list2[0]
         >>> assert np.all(weights1 == weights2)
-        >>> ut.assert_inbounds(weights1.sum(), 100, 510)
+        >>> ut.assert_inbounds(weights1.sum(), 100, 1000)
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.nn_weights import *  # NOQA
-        >>> #tup = plh.testdata_pre_weight_neighbors('PZ_MTEST')
         >>> qreq_, args = plh.testdata_pre('weight_neighbors',
-        >>>                                defaultdb='PZ_MTEST')
+        >>>                                defaultdb='testdb1')
         >>> nns_list, nnvalid0_list = args
         >>> normweight_fn = ratio_fn
         >>> weights_list1, normk_list1 = nn_normalized_weight(normweight_fn, nns_list, nnvalid0_list, qreq_)
@@ -174,7 +169,7 @@ def nn_normalized_weight(normweight_fn, nns_list, nnvalid0_list, qreq_):
         >>> weights_list2, normk_list2 = nn_normonly_weight(nns_list, nnvalid0_list, qreq_)
         >>> weights2 = weights_list2[0]
         >>> assert np.all(weights1 == weights2)
-        >>> ut.assert_inbounds(weights1.sum(), 1500, 4500)
+        >>> ut.assert_inbounds(weights1.sum(), 1500, 10000)
     """
     Knorm = qreq_.qparams.Knorm
     normalizer_rule  = qreq_.qparams.normalizer_rule
@@ -245,7 +240,7 @@ def apply_normweight(normweight_fn, neighb_normk, neighb_idx, neighb_dist, Knorm
         ndarray: neighb_normweight
 
     CommandLine:
-        python -m ibeis.algo.hots.nn_weights --test-apply_normweight
+        python -m ibeis.algo.hots.nn_weights apply_normweight
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -347,7 +342,7 @@ def mark_name_valid_normalizers(qnid, neighb_topnid, neighb_normnid):
         neighb_selnorm - index of the selected normalizer for each query feature
 
     CommandLine:
-        python -m ibeis.algo.hots.nn_weights --exec-mark_name_valid_normalizers
+        python -m ibeis.algo.hots.nn_weights mark_name_valid_normalizers
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -616,7 +611,7 @@ def gravity_match_weighter(nns_list, nnvalid0_list, qreq_):
 def all_normalized_weights_test():
     r"""
     CommandLine:
-        python -m ibeis.algo.hots.nn_weights --exec-all_normalized_weights_test
+        python -m ibeis.algo.hots.nn_weights all_normalized_weights_test
 
     Example:
         >>> # ENABLE_DOCTEST

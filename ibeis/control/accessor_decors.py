@@ -1,38 +1,19 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function
-import six
 import utool as ut
-from six.moves import builtins
+import ubelt as ub
+import builtins
+from ibeis.util import util_decor
 from utool._internal.meta_util_six import get_funcname
 print, rrr, profile = ut.inject2(__name__)
 
 DEBUG_ADDERS = False
 DEBUG_SETTERS = False
 DEBUG_GETTERS = False
-# DEBUG_ADDERS  = ut.get_argflag(('--debug-adders', '--verbadd'))
-# DEBUG_SETTERS = ut.get_argflag(('--debug-setters', '--verbset'))
-# DEBUG_GETTERS = ut.get_argflag(('--debug-getters', '--verbget'))
 VERB_CONTROL = ut.get_argflag(('--verb-control'))
 
-# DEV_CACHE = ut.get_argflag(('--dev-cache', '--devcache'))
-# DEBUG_API_CACHE = ut.get_argflag('--debug-api-cache')
 DEV_CACHE = False
 DEBUG_API_CACHE = False
-RELEASE_MODE = True
-
-if RELEASE_MODE:
-    # API Cache is only for when you can gaurentee one instance of the
-    # Controller will be running. This is not safe to use in production.  Use
-    # only for local testing.
-    # API_CACHE = ut.get_argflag('--api-cache')
-    # ASSERT_API_CACHE = not ut.get_argflag(('--noassert-api-cache', '--naac'))
-    API_CACHE = False
-    ASSERT_API_CACHE = False
-else:
-    # API_CACHE = not ut.get_argflag('--no-api-cache')
-    # ASSERT_API_CACHE = ut.get_argflag(('--assert-api-cache', '--naac'))
-    API_CACHE = False
-    ASSERT_API_CACHE = False
+API_CACHE = False
+ASSERT_API_CACHE = False
 
 
 if ut.VERBOSE:
@@ -69,7 +50,7 @@ def init_tablecache():
        defaultdict: tablecache
 
     CommandLine:
-        python -m ibeis.control.accessor_decors --test-init_tablecache
+        python -m ibeis.control.accessor_decors init_tablecache
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -79,7 +60,7 @@ def init_tablecache():
     """
     # 4 levels of dictionaries
     # tablename, colname, kwargs, and then rowids
-    tablecache = ut.ddict(lambda: ut.ddict(lambda: ut.ddict(dict)))
+    tablecache = ub.ddict(lambda: ub.ddict(lambda: ub.ddict(dict)))
     return tablecache
 
 
@@ -97,7 +78,7 @@ def cache_getter(tblname, colname=None, cfgkeys=None, force=False, debug=False):
         function: closure_getter_cacher
 
     CommandLine:
-        python -m ibeis.control.accessor_decors --test-cache_getter
+        python -m ibeis.control.accessor_decors cache_getter
 
     Example0:
         >>> # ENABLE_DOCTEST
@@ -179,7 +160,7 @@ def cache_getter(tblname, colname=None, cfgkeys=None, force=False, debug=False):
             cache_vals_list = ut.dict_take_list(cache_, cached_rowid_list, None)
             db_vals_list = getter_func(ibs, cached_rowid_list, **kwargs)
             # Assert everything is valid
-            msg_fmt = ut.codeblock(
+            msg_fmt = ub.codeblock(
                 '''
                 [assert_cache_hits] tblname = %r
                 [assert_cache_hits] colname = %r
@@ -205,91 +186,39 @@ def cache_getter(tblname, colname=None, cfgkeys=None, force=False, debug=False):
                 ut.embed()
                 raise
 
-        if False:
-            #@profile cannot profile this because it is alrady being profiled by
-            def wrp_getter_cacher(ibs, rowid_list, **kwargs):
-                """
-                Wrapper function that caches rowid values in a dictionary
-                """
-                # HACK TAKE OUT GETTING DEBUG OUT OF KWARGS
-                debug_ = kwargs.pop('debug', False)
-                if cfgkeys is not None:
-                    #kwargs_hash = ut.get_dict_hashid(ut.dict_take_list(kwargs, cfgkeys, None))
-                    kwargs_hash = ut.get_dict_hashid([kwargs.get(key, None) for key in cfgkeys])
-                    #ut.dict_take_list(kwargs, cfgkeys, None))
-                else:
-                    kwargs_hash = None
-                #+----------------------------
-                # There are 3 levels of caches
-                #+----------------------------
-                # All caches for this table
-                #colscache_ = ibs.table_cache[tblname]
-                ## All caches for the this column
-                #kwargs_cache_ = colscache_[colname]
-                ## All caches for this kwargs configuration
-                #cache_ = kwargs_cache_[kwargs_hash]
-                cache_ = ibs.table_cache[tblname][colname][kwargs_hash]
-                #L____________________________
+        def handle_cache_misses(ibs, getter_func, rowid_list, ismiss_list, vals_list, cache_, kwargs):
+            miss_indices = ut.list_where(ismiss_list)
+            miss_rowids  = ut.compress(rowid_list, ismiss_list)
+            # call wrapped function
+            miss_vals = getter_func(ibs, miss_rowids, **kwargs)
+            # overwrite missed output
+            for index, val in zip(miss_indices, miss_vals):
+                vals_list[index] = val  # Output write
+            # cache save
+            for rowid, val in zip(miss_rowids, miss_vals):
+                cache_[rowid] = val     # Cache write
 
-                # Load cached values for each rowid
-                #vals_list = ut.dict_take_list(cache_, rowid_list, None)
-                vals_list = [cache_.get(rowid, None) for rowid in rowid_list]
-                # Mark rowids with cache misses
-                ismiss_list = [val is None for val in vals_list]
-                if debug or debug_:
-                    debug_cache_hits(ismiss_list, rowid_list)
-                    #print('[cache_getter] "debug_cache_hits" turned off')
-                # HACK !!! DEBUG THESE GETTERS BY ASSERTING INFORMATION IN CACHE IS CORRECT
-                if ASSERT_API_CACHE:
-                    assert_cache_hits(ibs, ismiss_list, rowid_list, kwargs_hash, **kwargs)
-                # END HACK
-                if any(ismiss_list):
-                    miss_indices = ut.list_where(ismiss_list)
-                    miss_rowids  = ut.compress(rowid_list, ismiss_list)
-                    # call wrapped function
-                    miss_vals = getter_func(ibs, miss_rowids, **kwargs)
-                    # overwrite missed output
-                    for index, val in zip(miss_indices, miss_vals):
-                        vals_list[index] = val  # Output write
-                    # cache save
-                    for rowid, val in zip(miss_rowids, miss_vals):
-                        cache_[rowid] = val     # Cache write
-                return vals_list
-        else:
-
-            def handle_cache_misses(ibs, getter_func, rowid_list, ismiss_list, vals_list, cache_, kwargs):
-                miss_indices = ut.list_where(ismiss_list)
-                miss_rowids  = ut.compress(rowid_list, ismiss_list)
-                # call wrapped function
-                miss_vals = getter_func(ibs, miss_rowids, **kwargs)
-                # overwrite missed output
-                for index, val in zip(miss_indices, miss_vals):
-                    vals_list[index] = val  # Output write
-                # cache save
-                for rowid, val in zip(miss_rowids, miss_vals):
-                    cache_[rowid] = val     # Cache write
-
-            def wrp_getter_cacher(ibs, rowid_list, **kwargs):
-                """
-                Wrapper function that caches rowid values in a dictionary
-                """
-                kwargs.pop('debug', False)
-                kwargs_hash = (
-                    None if cfgkeys is None else
-                    ut.get_dict_hashid([kwargs.get(key, None) for key in cfgkeys])
-                )
-                # There are 3 levels of caches
-                # All caches for this table, caches for the this column, and caches for this kwargs configuration
-                cache_ = ibs.table_cache[tblname][colname][kwargs_hash]
-                # Load cached values for each rowid
-                vals_list = [cache_.get(rowid, None) for rowid in rowid_list]
-                # Mark rowids with cache misses
-                ismiss_list = [val is None for val in vals_list]
-                # END HACK
-                if any(ismiss_list):
-                    handle_cache_misses(ibs, getter_func, rowid_list, ismiss_list, vals_list, cache_, kwargs)
-                return vals_list
-        wrp_getter_cacher = ut.preserve_sig(wrp_getter_cacher, getter_func)
+        def wrp_getter_cacher(ibs, rowid_list, **kwargs):
+            """
+            Wrapper function that caches rowid values in a dictionary
+            """
+            kwargs.pop('debug', False)
+            kwargs_hash = (
+                None if cfgkeys is None else
+                ut.get_dict_hashid([kwargs.get(key, None) for key in cfgkeys])
+            )
+            # There are 3 levels of caches
+            # All caches for this table, caches for the this column, and caches for this kwargs configuration
+            cache_ = ibs.table_cache[tblname][colname][kwargs_hash]
+            # Load cached values for each rowid
+            vals_list = [cache_.get(rowid, None) for rowid in rowid_list]
+            # Mark rowids with cache misses
+            ismiss_list = [val is None for val in vals_list]
+            # END HACK
+            if any(ismiss_list):
+                handle_cache_misses(ibs, getter_func, rowid_list, ismiss_list, vals_list, cache_, kwargs)
+            return vals_list
+        wrp_getter_cacher = util_decor.preserve_sig(wrp_getter_cacher, getter_func)
         return wrp_getter_cacher
     return closure_getter_cacher
 
@@ -305,7 +234,7 @@ def cache_invalidator(tblname, colnames=None, rowidx=None, force=False):
                       signature. If this does not exist you should use None.
                       (default=None)
     """
-    colnames = [colnames] if isinstance(colnames, six.string_types) else colnames
+    colnames = [colnames] if isinstance(colnames, str) else colnames
     def closure_cache_invalidator(writer_func):
         """
         writer_func is either a setter, deleter, or an adder, something that writes to
@@ -316,7 +245,7 @@ def cache_invalidator(tblname, colnames=None, rowidx=None, force=False):
         def wrp_cache_invalidator(self, *args, **kwargs):
             # the class must have a table_cache property
             colscache_ = self.table_cache[tblname]
-            colnames_ =  list(six.iterkeys(colscache_)) if colnames is None else colnames
+            colnames_ =  list(colscache_.keys()) if colnames is None else colnames
             if DEBUG_API_CACHE:
                 indenter = ut.Indenter('[%s]' % (tblname,))
                 indenter.start()
@@ -333,7 +262,7 @@ def cache_invalidator(tblname, colnames=None, rowidx=None, force=False):
                 for colname in colnames_:
                     kwargs_cache_ = colscache_[colname]
                     # We dont know the rowsids so clear everything
-                    for cache_ in six.itervalues(kwargs_cache_):
+                    for cache_ in kwargs_cache_.values():
                         cache_.clear()
             else:
                 rowid_list = args[rowidx]
@@ -341,7 +270,7 @@ def cache_invalidator(tblname, colnames=None, rowidx=None, force=False):
                     kwargs_cache_ = colscache_[colname]
                     # We know the rowids to delete
                     # iterate over all getter kwargs values
-                    for cache_ in six.itervalues(kwargs_cache_):
+                    for cache_ in kwargs_cache_.values():
                         ut.delete_dict_keys(cache_, rowid_list)
 
             # Preform set/delete action
@@ -355,7 +284,7 @@ def cache_invalidator(tblname, colnames=None, rowidx=None, force=False):
             if DEBUG_API_CACHE:
                 indenter.stop()
             return writer_result
-        wrp_cache_invalidator = ut.preserve_sig(wrp_cache_invalidator, writer_func)
+        wrp_cache_invalidator = util_decor.preserve_sig(wrp_cache_invalidator, writer_func)
         return wrp_cache_invalidator
     return closure_cache_invalidator
 
@@ -372,8 +301,9 @@ def dev_cache_getter(tblname, colname, *args, **kwargs):
 #@decorator.decorator
 def adder(func):
     func_ = default_decorator(func)
-    @ut.accepts_scalar_input
-    @ut.ignores_exc_tb
+
+    @util_decor.accepts_scalar_input
+    @util_decor.ignores_exc_tb
     def wrp_adder(*args, **kwargs):
         if DEBUG_ADDERS or VERB_CONTROL:
             print('+------')
@@ -385,8 +315,7 @@ def adder(func):
             print('[ADD]: ' + get_funcname(func))
             builtins.print('\n' + ut.func_str(func, args, kwargs) + '\n')
         return func_(*args, **kwargs)
-    wrp_adder = ut.preserve_sig(wrp_adder, func)
-    #wrp_adder = ut.on_exception_report_input(wrp_adder)
+    wrp_adder = util_decor.preserve_sig(wrp_adder, func)
     return wrp_adder
 
 
@@ -395,14 +324,15 @@ def adder(func):
 #@decorator.decorator
 def deleter(func):
     func_ = default_decorator(func)
-    @ut.accepts_scalar_input
-    @ut.ignores_exc_tb
+
+    @util_decor.accepts_scalar_input
+    @util_decor.ignores_exc_tb
     def wrp_deleter(*args, **kwargs):
         if VERB_CONTROL:
             print('[DELETE]: ' + get_funcname(func))
             builtins.print('\n' + ut.func_str(func, args, kwargs) + '\n')
         return func_(*args, **kwargs)
-    wrp_deleter = ut.preserve_sig(wrp_deleter, func)
+    wrp_deleter = util_decor.preserve_sig(wrp_deleter, func)
     return wrp_deleter
 
 
@@ -417,8 +347,9 @@ def deleter(func):
 #@decorator.decorator
 def setter(func):
     func_ = default_decorator(func)
-    @ut.accepts_scalar_input2(argx_list=[0, 1], outer_wrapper=False)
-    @ut.ignores_exc_tb
+
+    @util_decor.accepts_scalar_input2(argx_list=[0, 1], outer_wrapper=False)
+    @util_decor.ignores_exc_tb
     def wrp_setter(*args, **kwargs):
         if DEBUG_SETTERS or VERB_CONTROL:
             print('+------')
@@ -427,11 +358,8 @@ def setter(func):
             funccall_str = ut.func_str(func, args, kwargs, packed=True)
             print('\n' + funccall_str + '\n')
             print('L------')
-            #builtins.print('\n' + funccall_str + '\n')
-        #print('set: funcname=%r, args=%r, kwargs=%r' % (get_funcname(func), args, kwargs))
         return func_(*args, **kwargs)
-    wrp_setter = ut.preserve_sig(wrp_setter, func)
-    #wrp_setter = ut.on_exception_report_input(wrp_setter)
+    wrp_setter = util_decor.preserve_sig(wrp_setter, func)
     return wrp_setter
 
 
@@ -444,12 +372,10 @@ def getter(func):
     """
     #func_ = func
     func_ = default_decorator(func)
-    @ut.accepts_scalar_input
-    @ut.ignores_exc_tb
+
+    @util_decor.accepts_scalar_input
+    @util_decor.ignores_exc_tb
     def wrp_getter(*args, **kwargs):
-        #if ut.DEBUG:
-        #    print('[IN GETTER] args=%r' % (args,))
-        #    print('[IN GETTER] kwargs=%r' % (kwargs,))
         if DEBUG_GETTERS  or VERB_CONTROL:
             print('+------')
             print('[GET]: ' + get_funcname(func))
@@ -457,8 +383,7 @@ def getter(func):
             print('\n' + funccall_str + '\n')
             print('L------')
         return func_(*args, **kwargs)
-    wrp_getter = ut.preserve_sig(wrp_getter, func)
-    #wrp_getter = ut.on_exception_report_input(wrp_getter)
+    wrp_getter = util_decor.preserve_sig(wrp_getter, func)
     return wrp_getter
 
 
@@ -469,11 +394,12 @@ def getter_vector_output(func):
     list and returns a homogenous list of values
     """
     func_ = default_decorator(func)
-    @ut.accepts_scalar_input_vector_output
-    @ut.ignores_exc_tb
+
+    @util_decor.accepts_scalar_input_vector_output
+    @util_decor.ignores_exc_tb
     def getter_vector_wrp(*args, **kwargs):
         return func_(*args, **kwargs)
-    getter_vector_wrp = ut.preserve_sig(getter_vector_wrp, func)
+    getter_vector_wrp = util_decor.preserve_sig(getter_vector_wrp, func)
     return getter_vector_wrp
 
 getter_1toM = getter_vector_output
@@ -489,13 +415,13 @@ def getter_numpy(func):
     """
     #getter_func = getter(func)
     func_ = default_decorator(func)
-    @ut.accepts_numpy
-    @ut.accepts_scalar_input
-    @ut.ignores_exc_tb
+
+    @util_decor.accepts_numpy
+    @util_decor.accepts_scalar_input
+    @util_decor.ignores_exc_tb
     def getter_numpy_wrp(*args, **kwargs):
         return func_(*args, **kwargs)
-    getter_numpy_wrp = ut.preserve_sig(getter_numpy_wrp, func)
-    #getter_numpy_wrp = ut.on_exception_report_input(getter_numpy_wrp)
+    getter_numpy_wrp = util_decor.preserve_sig(getter_numpy_wrp, func)
     return getter_numpy_wrp
 
 
@@ -505,19 +431,20 @@ def getter_numpy_vector_output(func):
     id list and returns a heterogeous list of values """
     #getter_func = getter_vector_output(func)
     func_ = default_decorator(func)
-    @ut.accepts_numpy
-    @ut.accepts_scalar_input_vector_output
-    @ut.ignores_exc_tb
+
+    @util_decor.accepts_numpy
+    @util_decor.accepts_scalar_input_vector_output
+    @util_decor.ignores_exc_tb
     def getter_numpy_vector_wrp(*args, **kwargs):
         return func_(*args, **kwargs)
-    getter_numpy_vector_wrp = ut.preserve_sig(getter_numpy_vector_wrp, func)
+    getter_numpy_vector_wrp = util_decor.preserve_sig(getter_numpy_vector_wrp, func)
     return getter_numpy_vector_wrp
 
 
 def ider(func):
     """ This function takes returns ids subject to conditions """
     ider_func = default_decorator(func)
-    ider_func = ut.preserve_sig(ider_func, func)
+    ider_func = util_decor.preserve_sig(ider_func, func)
     return ider_func
 
 
@@ -529,5 +456,5 @@ if __name__ == '__main__':
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    import xdoctest
+    xdoctest.doctest_module(__file__)

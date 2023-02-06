@@ -102,7 +102,7 @@ def testdata_pre(stopnode, defaultdb='testdb1', p=['default'],
         tuple: (ibs, qreq_, args)
 
     CommandLine:
-        python -m ibeis.algo.hots._pipeline_helpers --exec-testdata_pre --show
+        python -m ibeis.algo.hots._pipeline_helpers testdata_pre --show
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -168,7 +168,7 @@ def testdata_pre_baselinefilter(defaultdb='testdb1', qaid_list=None, daid_list=N
     return qreq_, nns_list, impossible_daids_list
 
 
-def testdata_pre_sver(defaultdb='PZ_MTEST', qaid_list=None, daid_list=None):
+def testdata_pre_sver(defaultdb='testdb1', qaid_list=None, daid_list=None):
     """
         >>> from ibeis.algo.hots._pipeline_helpers import *  # NOQA
     """
@@ -186,7 +186,7 @@ def testdata_pre_sver(defaultdb='PZ_MTEST', qaid_list=None, daid_list=None):
     return ibs, qreq_, cm_list
 
 
-def testdata_post_sver(defaultdb='PZ_MTEST', qaid_list=None, daid_list=None, codename='vsmany', cfgdict=None):
+def testdata_post_sver(defaultdb='testdb1', qaid_list=None, daid_list=None, codename='vsmany', cfgdict=None):
     """
         >>> from ibeis.algo.hots._pipeline_helpers import *  # NOQA
     """

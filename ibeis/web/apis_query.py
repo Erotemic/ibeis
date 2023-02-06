@@ -66,10 +66,10 @@ def query_chips_simple_dict(ibs, *args, **kwargs):
         query_chips
 
     CommandLine:
-        python -m ibeis.web.apis_query --test-query_chips_simple_dict:0
-        python -m ibeis.web.apis_query --test-query_chips_simple_dict:1
+        python -m ibeis.web.apis_query query_chips_simple_dict:0
+        python -m ibeis.web.apis_query query_chips_simple_dict:1
 
-        python -m ibeis.web.apis_query --test-query_chips_simple_dict:0 --humpbacks
+        python -m ibeis.web.apis_query query_chips_simple_dict:0 --humpbacks
 
     Example:
         >>> # xdoctest: +REQUIRES(--web)
@@ -670,7 +670,7 @@ def query_chips(ibs, qaid_list=None, daid_list=None, cfgdict=None,
         URL:    /api/query/chip/
 
     CommandLine:
-        python -m ibeis.web.apis_query --test-query_chips
+        python -m ibeis.web.apis_query query_chips
 
         # Test speed of single query
         python -m ibeis --tf IBEISController.query_chips --db PZ_Master1 \
@@ -679,8 +679,8 @@ def query_chips(ibs, qaid_list=None, daid_list=None, cfgdict=None,
         python -m ibeis --tf IBEISController.query_chips --db PZ_Master1 \
             -a default:qindex=0:1,dindex=0:3000 --nocache-hs
 
-        python -m ibeis.web.apis_query --test-query_chips:1 --show
-        python -m ibeis.web.apis_query --test-query_chips:2 --show
+        python -m ibeis.web.apis_query query_chips:1 --show
+        python -m ibeis.web.apis_query query_chips:2 --show
 
     Example:
         >>> # SLOW_DOCTEST
@@ -831,7 +831,7 @@ def query_chips_graph_v2(ibs, annot_uuid_list=None,
                          **kwargs):
     """
     CommandLine:
-        python -m ibeis.web.apis_query --test-query_chips_graph_v2:0
+        python -m ibeis.web.apis_query query_chips_graph_v2:0
 
         python -m ibeis reset_mtest_graph
 

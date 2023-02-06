@@ -24,7 +24,6 @@ nnkj/enerate this module automagically from
 
     print(parse_codeblock)
 """
-from __future__ import absolute_import, division, print_function
 from utool import util_arg
 import os
 
@@ -117,6 +116,7 @@ def parse_args():
                          help='ignores the current database schema and forces an incremental update for new databases')
         parser2.add_flag('--dump-autogen-schema',
                          help='dumps (autogenerates) the current database schema based on the expected versions in the controller')
+        parser2.add_flag('--resetdbs', help='Resets the test databases and then exists')
 
     def commands_argparse(parser2):
         parser2 = parser2.add_argument_group('Commands')

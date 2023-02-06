@@ -2026,7 +2026,7 @@ class Chap4(DBInputs):
         df = df.drop(['markedness', 'bookmaker', 'fpr'], axis=1)
         df.index.name = None
         df.columns.name = None
-        df['support'] = df['support'].astype(np.int)
+        df['support'] = df['support'].astype(int)
         df.columns = ut.emap(upper_one, df.columns)
 
         import re
@@ -2113,7 +2113,7 @@ class Chap4(DBInputs):
         df = df.drop(['markedness', 'bookmaker', 'fpr'], axis=1)
         df.index.name = None
         df.columns.name = None
-        df['support'] = df['support'].astype(np.int)
+        df['support'] = df['support'].astype(int)
         df.columns = ut.emap(upper_one, df.columns)
 
         import re
@@ -3511,7 +3511,7 @@ class Chap3(DBInputs, Chap3Draw, Chap3Measures):
         df.index.name = None
         df.index = ut.emap(upper_one, df.index)
         df[pd.isnull(df)] = 0
-        df = df.astype(np.int)
+        df = df.astype(int)
         df.columns = ut.emap(upper_one, df.columns)
         tabular = Tabular(df, colfmt='numeric')
         qual_text = tabular.as_tabular()
@@ -3532,7 +3532,7 @@ class Chap3(DBInputs, Chap3Draw, Chap3Measures):
         df.index.name = None
         df.index = ut.emap(upper_one, df.index)
         df[pd.isnull(df)] = 0
-        df = df.astype(np.int)
+        df = df.astype(int)
         tabular = Tabular(df, colfmt='numeric')
         view_text = tabular.as_tabular()
         print(view_text)
@@ -4015,7 +4015,7 @@ class Sampler(object):
         if extra_dbsize_fracs is None:
             extra_dbsize_fracs = [1.]
         extra_fracs = np.array(extra_dbsize_fracs)
-        n_extra_list = np.unique(extra_fracs * n_extra_avail).astype(np.int)
+        n_extra_list = np.unique(extra_fracs * n_extra_avail).astype(int)
         daids_list = []
         info_list = []
         for n in n_extra_list:

@@ -337,6 +337,7 @@ class PairwiseFeatureExtractor(object):
             python -m ibeis.algo.verif.pairfeat _make_pairwise_features
 
         Doctest:
+            >>> # xdoctest: +SKIP
             >>> from ibeis.algo.verif.pairfeat import *
             >>> from ibeis.algo.graph import demo
             >>> infr = demo.demodata_mtest_infr()

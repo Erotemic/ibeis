@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 TODO:
     Remove Bloat
@@ -6,16 +5,12 @@ multi_index.py as well
 
 https://github.com/spotify/annoy
 """
-from __future__ import absolute_import, division, print_function
 import six
 import numpy as np
 import utool as ut
 import vtool_ibeis as vt
 from vtool_ibeis._pyflann_backend import pyflann as pyflann
-# import itertools as it
-#import lockfile
 from os.path import basename
-from six.moves import range, zip, map  # NOQA
 from ibeis.algo.hots import hstypes
 from ibeis.algo.hots import _pipeline_helpers as plh  # NOQA
 (print, rrr, profile) = ut.inject2(__name__)
@@ -35,7 +30,7 @@ def get_support_data(qreq_, daid_list):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.neighbor_index import *  # NOQA
         >>> import ibeis
-        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='PZ_MTEST', p=':fgw_thresh=.9,maxscale_thresh=10', a=':size=2')
+        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='testdb1', p=':fgw_thresh=.9,maxscale_thresh=10', a=':size=2')
         >>> daid_list = qreq_.daids
         >>> tup  = get_support_data(qreq_, daid_list)
         >>> vecs_list, fgws_list, fxs_list = tup
@@ -315,7 +310,7 @@ class NeighborIndex(object):
     def remove_support(nnindexer, remove_daid_list, verbose=ut.NOT_QUIET):
         r"""
         CommandLine:
-            python -m ibeis.algo.hots.neighbor_index --test-remove_support
+            python -m ibeis.algo.hots.neighbor_index remove_support
 
         SeeAlso:
             ~/code/flann/src/python/pyflann/index.py
@@ -384,7 +379,7 @@ class NeighborIndex(object):
             verbose (bool):  verbosity flag(default = True)
 
         CommandLine:
-            python -m ibeis.algo.hots.neighbor_index --test-add_support
+            python -m ibeis.algo.hots.neighbor_index add_support
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -560,7 +555,7 @@ class NeighborIndex(object):
             str: flann_cfgstr
 
         CommandLine:
-            python -m ibeis.algo.hots.neighbor_index --test-get_cfgstr
+            python -m ibeis.algo.hots.neighbor_index get_cfgstr
 
         Example:
             >>> # DISABLE_DOCTEST
@@ -588,7 +583,7 @@ class NeighborIndex(object):
                 ut.delete_dict_keys(flann_params_clean, ['checks'])
             shortnames = dict(algorithm='algo', checks='chks', random_seed='seed', trees='t')
             short_params = ut.odict([(shortnames.get(key, key), str(val)[0:7])
-                                     for key, val in six.iteritems(flann_params_clean)])
+                                     for key, val in flann_params_clean.items()])
             flann_valsig_ = ut.repr2(
                 short_params, nl=False, explicit=True, strvals=True)
             flann_valsig_ = flann_valsig_.lstrip('dict').replace(' ', '')
@@ -861,7 +856,7 @@ class NeighborIndex(object):
                                 kth approximate nearest data vector
 
         CommandLine:
-            python -m ibeis.algo.hots.neighbor_index --exec-get_nn_aids
+            python -m ibeis.algo.hots.neighbor_index get_nn_aids
 
         Example:
             >>> # ENABLE_DOCTEST

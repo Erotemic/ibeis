@@ -1,9 +1,7 @@
-# -*- coding: utf-8 -*-
 """
 CommandLine:
     xdoctest -m ibeis.gui.inspect_gui test_review_widget --show
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 from functools import partial
 from ibeis.viz import viz_helpers as vh
 import guitool_ibeis as gt
@@ -53,7 +51,7 @@ def get_review_edges(cm_list, ibs=None, review_cfg={}):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.gui.id_review_api import *  # NOQA
         >>> import ibeis
-        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> ibs = ibeis.opendb('testdb1')
         >>> qreq_ = ibeis.main_helpers.testdata_qreq_()
         >>> cm_list = qreq_.execute()
         >>> review_cfg = dict(ranks_top=5, directed=True, name_scoring=False,
@@ -62,7 +60,7 @@ def get_review_edges(cm_list, ibs=None, review_cfg={}):
         >>> print(review_edges)
 
     Example1:
-        >>> # UNSTABLE_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from ibeis.gui.id_review_api import *  # NOQA
         >>> import ibeis
         >>> cm_list, qreq_ = ibeis.testdata_cmlist('PZ_MTEST', a='default:qsize=5,dsize=20')
@@ -72,7 +70,7 @@ def get_review_edges(cm_list, ibs=None, review_cfg={}):
         >>> print(review_edges)
 
     Example3:
-        >>> # UNSTABLE_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from ibeis.gui.id_review_api import *  # NOQA
         >>> import ibeis
         >>> cm_list, qreq_ = ibeis.testdata_cmlist('PZ_MTEST', a='default:qsize=1,dsize=100')
@@ -82,7 +80,7 @@ def get_review_edges(cm_list, ibs=None, review_cfg={}):
         >>> print(review_edges)
 
     Example4:
-        >>> # UNSTABLE_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from ibeis.gui.id_review_api import *  # NOQA
         >>> import ibeis
         >>> cm_list, qreq_ = ibeis.testdata_cmlist('PZ_MTEST', a='default:qsize=10,dsize=10')
@@ -143,7 +141,7 @@ def get_review_edges(cm_list, ibs=None, review_cfg={}):
     if automatch_kw['filter_reviewed']:
         _is_reviewed = ibs.get_annot_pair_is_reviewed(qaid_arr.tolist(),
                                                       daid_arr.tolist())
-        is_unreviewed = ~np.array(_is_reviewed, dtype=np.bool)
+        is_unreviewed = ~np.array(_is_reviewed, dtype=bool)
         qaid_arr  = qaid_arr.compress(is_unreviewed)
         daid_arr   = daid_arr.compress(is_unreviewed)
         score_arr = score_arr.compress(is_unreviewed)
@@ -227,11 +225,12 @@ def make_review_api(ibs, cm_list, review_cfg, qreq_=None):
     Builds columns which are displayable in a ColumnListTableWidget
 
     CommandLine:
-        python -m ibeis.gui.id_review_api --test-test_review_widget --show
-        python -m ibeis.gui.id_review_api --test-make_review_api
+        python -m ibeis.gui.id_review_api test_review_widget --show
+        python -m ibeis.gui.id_review_api make_review_api
 
     Example:
         >>> # ENABLE_DOCTEST
+        >>> # xdoctest: +REQUIRES(env:DISPLAY)
         >>> from ibeis.gui.id_review_api import *  # NOQA
         >>> import ibeis
         >>> import guitool_ibeis as gt
@@ -519,7 +518,7 @@ def get_match_thumb_fname(cm, daid, qreq_, view_orientation='vertical',
                           draw_matches=True):
     """
     CommandLine:
-        python -m ibeis.gui.id_review_api --exec-get_match_thumb_fname
+        python -m ibeis.gui.id_review_api get_match_thumb_fname
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -544,10 +543,11 @@ def get_match_thumb_fname(cm, daid, qreq_, view_orientation='vertical',
 def ensure_match_img(ibs, cm, daid, qreq_=None, match_thumbtup_cache={}):
     r"""
     CommandLine:
-        python -m ibeis.gui.id_review_api --test-ensure_match_img --show
+        python -m ibeis.gui.id_review_api ensure_match_img --show
 
     Example:
         >>> # ENABLE_DOCTEST
+        >>> # xdoctest: +REQUIRES(env:DISPLAY)
         >>> from ibeis.gui.id_review_api import *  # NOQA
         >>> import ibeis
         >>> # build test data
@@ -609,10 +609,11 @@ def ensure_match_img(ibs, cm, daid, qreq_=None, match_thumbtup_cache={}):
 def make_ensure_match_img_nosql_func(qreq_, cm, daid):
     r"""
     CommandLine:
-        python -m ibeis.gui.id_review_api --test-ensure_match_img --show
+        python -m ibeis.gui.id_review_api ensure_match_img --show
 
     Example:
         >>> # ENABLE_DOCTEST
+        >>> # xdoctest: +REQUIRES(env:DISPLAY)
         >>> from ibeis.gui.id_review_api import *  # NOQA
         >>> import ibeis
         >>> # build test data
@@ -816,7 +817,7 @@ def get_photobomber_map(ibs, aids, aid_to_nid=None):
     """
     Builds map of which names that photobomb other names.
 
-    python -m ibeis.gui.id_review_api --test-test_review_widget --show --db PZ_MTEST -a default:qindex=0
+    python -m ibeis.gui.id_review_api test_review_widget --show --db PZ_MTEST -a default:qindex=0
 
     Ignore:
         >>> import ibeis

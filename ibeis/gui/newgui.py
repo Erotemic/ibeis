@@ -932,7 +932,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             tuple: (current_rowid, next_callback, prev_callback)
 
         CommandLine:
-            python -m ibeis.gui.newgui --test-make_adjacent_qtindex_callbacks
+            python -m ibeis.gui.newgui make_adjacent_qtindex_callbacks
 
         Example:
             >>> # DISABLE_DOCTEST
@@ -1661,7 +1661,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         """
 
         CommandLine:
-            python -m ibeis.gui.newgui --exec-edit_image_time --show
+            python -m ibeis.gui.newgui edit_image_time --show
 
         Example:
             >>> # DISABLE_DOCTEST
@@ -1680,7 +1680,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         TODO:  Finish implementation
 
         CommandLine:
-            python -m ibeis.gui.newgui --test-filter_annotation_table --show --db lynx --imgsetid 2
+            python -m ibeis.gui.newgui filter_annotation_table --show --db lynx --imgsetid 2
 
         Example:
             >>> # DISABLE_DOCTEST
@@ -1743,8 +1743,8 @@ def testdata_guifront(defaultdb='testdb1'):
 def testfunc():
     r"""
     CommandLine:
-        python -m ibeis.gui.newgui --test-testfunc --show
-        python -m ibeis.gui.newgui --test-testfunc --cmd
+        python -m ibeis.gui.newgui testfunc --show
+        python -m ibeis.gui.newgui testfunc --cmd
 
     Example:
         >>> # DISABLE_DOCTEST

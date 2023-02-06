@@ -18,8 +18,8 @@ register_api   = controller_inject.get_ibeis_flask_api(__name__)
 def ensure_simple_server(port=5832):
     r"""
     CommandLine:
-        python -m ibeis.web.apis_engine --exec-ensure_simple_server
-        python -m utool.util_web --exec-start_simple_webserver
+        python -m ibeis.web.apis_engine ensure_simple_server
+        python -m utool.util_web start_simple_webserver
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -55,7 +55,7 @@ def web_check_uuids(ibs, image_uuid_list=[], qannot_uuid_list=[], dannot_uuid_li
         dannot_uuid_list (list): (default = [])
 
     CommandLine:
-        python -m ibeis.web.apis_engine --exec-web_check_uuids --show
+        python -m ibeis.web.apis_engine web_check_uuids --show
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -124,18 +124,18 @@ def start_identify_annots(ibs, qannot_uuid_list, dannot_uuid_list=None,
 
     CommandLine:
         # Run as main process
-        python -m ibeis.web.apis_engine --exec-start_identify_annots:0
+        python -m ibeis.web.apis_engine start_identify_annots:0
         # Run using server process
-        python -m ibeis.web.apis_engine --exec-start_identify_annots:1
+        python -m ibeis.web.apis_engine start_identify_annots:1
 
         # Split into multiple processes
         python -m ibeis.web.apis_engine --main --bg
-        python -m ibeis.web.apis_engine --exec-start_identify_annots:1 --fg
+        python -m ibeis.web.apis_engine start_identify_annots:1 --fg
 
-        python -m ibeis.web.apis_engine --exec-start_identify_annots:1 --domain http://52.33.105.88
+        python -m ibeis.web.apis_engine start_identify_annots:1 --domain http://52.33.105.88
 
-        python -m ibeis.web.apis_engine --exec-start_identify_annots:1 --duuids=[]
-        python -m ibeis.web.apis_engine --exec-start_identify_annots:1 --domain http://52.33.105.88 --duuids=03a17411-c226-c960-d180-9fafef88c880
+        python -m ibeis.web.apis_engine start_identify_annots:1 --duuids=[]
+        python -m ibeis.web.apis_engine start_identify_annots:1 --domain http://52.33.105.88 --duuids=03a17411-c226-c960-d180-9fafef88c880
 
 
     Example:

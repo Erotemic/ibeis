@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import plottool_ibeis as pt
 import plottool_ibeis.plot_helpers as ph
@@ -102,8 +100,8 @@ def show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list,
         show_name_score, show_name_rank, show_timedelta
 
     CommandLine:
-        python -m ibeis.viz.viz_matches --exec-show_name_matches
-        python -m ibeis.viz.viz_matches --test-show_name_matches --show
+        python -m ibeis.viz.viz_matches show_name_matches
+        python -m ibeis.viz.viz_matches show_name_matches --show
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -467,7 +465,7 @@ def show_matches2(ibs, aid1, aid2, fm=None, fs=None, fm_norm=None, sel_fm=[],
         ----------------------
         Found 4 line(s) in '/home/joncrall/code/ibeis/ibeis/viz/viz_matches.py':
         viz_matches.py : 423 |def show_matches2(ibs, aid1, aid2, fm=None, fs=None, fm_norm=None, sel_fm=[],
-        viz_matches.py : 430 |        python -m ibeis.viz.viz_matches --exec-show_matches2 --show
+        viz_matches.py : 430 |        python -m ibeis.viz.viz_matches show_matches2 --show
         viz_matches.py : 431 |        python -m ibeis --tf ChipMatch.ishow_single_annotmatch show_matches2 --show
         viz_matches.py : 515 |    return show_matches2(ibs, aid1, aid2, fm, fs, qreq_=qreq_, **kwargs)
         ----------------------
@@ -482,7 +480,7 @@ def show_matches2(ibs, aid1, aid2, fm=None, fs=None, fm_norm=None, sel_fm=[],
         scoring.py : 562 |        viz.viz_matches.show_matches2(qreq_.ibs, qaid, daid, fm, fs,
 
     CommandLine:
-        python -m ibeis.viz.viz_matches --exec-show_matches2 --show
+        python -m ibeis.viz.viz_matches show_matches2 --show
         python -m ibeis --tf ChipMatch.ishow_single_annotmatch show_matches2 --show
 
     Example:
@@ -682,7 +680,7 @@ def show_multichip_match(rchip1, rchip2_list, kpts1, kpts2_list, fm_list,
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.viz.viz_matches --test-show_matches --show
+        python -m ibeis.viz.viz_matches show_matches --show
 
         python -m ibeis.viz.viz_matches
         python -m ibeis.viz.viz_matches --allexamples

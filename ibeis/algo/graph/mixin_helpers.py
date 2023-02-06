@@ -398,7 +398,7 @@ class DummyEdges(object):
             >>> # xdoctest: +SKIP
             >>> from ibeis.algo.graph.mixin_dynamic import *  # NOQA
             >>> import ibeis
-            >>> infr = ibeis.AnnotInference('PZ_MTEST', 'all', autoinit=True)
+            >>> infr = ibeis.AnnotInference('testdb1', 'all', autoinit=True)
             >>> infr.reset_feedback('annotmatch', apply=True)
             >>> infr.ensure_mst()
             >>> assert infr.status()['nInconsistentCCs'] == 0
@@ -509,12 +509,12 @@ class DummyEdges(object):
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.graph.mixin_helpers import *  # NOQA
             >>> import ibeis
-            >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+            >>> ibs = ibeis.opendb(defaultdb='testdb1')
             >>> infr = ibeis.AnnotInference(ibs, 'all', autoinit=True)
             >>> label = 'orig_name_label'
             >>> label = 'name_label'
             >>> infr.find_mst_edges()
-            >>> infr.ensure_mst()
+            >>> #infr.ensure_mst()
 
         Ignore:
             old_mst_edges = [

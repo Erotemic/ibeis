@@ -258,8 +258,8 @@ def image_upload_zip(**kwargs):
 def hello_world(*args, **kwargs):
     """
     CommandLine:
-        python -m ibeis.web.apis --exec-hello_world:0
-        python -m ibeis.web.apis --exec-hello_world:1
+        python -m ibeis.web.apis hello_world:0
+        python -m ibeis.web.apis hello_world:1
 
     Example:
         >>> # xdoctest: +REQUIRES(--web)

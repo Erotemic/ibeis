@@ -38,7 +38,7 @@ def submit_query_request(qreq_, use_cache=None, use_bigcache=None,
     individually.  On an individual cache miss, it preforms the query.
 
     CommandLine:
-        python -m ibeis.algo.hots.match_chips4 --test-submit_query_request
+        python -m ibeis.algo.hots.match_chips4 submit_query_request
 
     Examples:
         >>> # SLOW_DOCTEST
@@ -67,7 +67,7 @@ def submit_query_request(qreq_, use_cache=None, use_bigcache=None,
     # Create new query request object to store temporary state
     if verbose:
         #print('[mc4] --- Submit QueryRequest_ --- ')
-        print(ub.color_text('[mc4] --- Submit QueryRequest_ --- ', 'darkyellow'))
+        print(ub.color_text('[mc4] --- Submit QueryRequest_ --- ', 'yellow'))
     assert qreq_ is not None, 'query request must be prebuilt'
 
     # Check fo empty queries

@@ -91,7 +91,7 @@ class ResultMetadata(object):
 def make_metadata_custom_api(metadata):
     r"""
     CommandLine:
-        python -m ibeis.expt.experiment_drawing --test-make_metadata_custom_api --show
+        python -m ibeis.expt.experiment_drawing make_metadata_custom_api --show
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -252,9 +252,9 @@ def draw_results(ibs, testres):
         python dev.py -t pyrscale --db testdb3 --allgt --vn --fig-dname query_analysis_interesting --vf
         python dev.py -t pyrscale --db testdb3 --allgt --vn --fig-dname query_analysis_interesting --vf --quality
 
-        python -m ibeis.expt.experiment_drawing --test-draw_results --show --vn
-        python -m ibeis.expt.experiment_drawing --test-draw_results --show --vn --db PZ_MTEST
-        python -m ibeis.expt.old_storage --test-draw_results --show --db PZ_MTEST --gv
+        python -m ibeis.expt.experiment_drawing draw_results --show --vn
+        python -m ibeis.expt.experiment_drawing draw_results --show --vn --db PZ_MTEST
+        python -m ibeis.expt.old_storage draw_results --show --db PZ_MTEST --gv
 
     Example:
         >>> # DISABLE_DOCTEST

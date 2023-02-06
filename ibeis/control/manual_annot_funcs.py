@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Autogen:
     python -c "import utool as ut; ut.write_modscript_alias('Tgen.sh', 'ibeis.templates.template_generator')"  # NOQA
@@ -6,16 +5,14 @@ Autogen:
     sh Tgen.sh --key annot --invert --Tcfg with_getters=True with_setters=True --modfname manual_annot_funcs --funcname-filter=is_  # NOQA
     sh Tgen.sh --key annot --invert --Tcfg with_getters=True with_setters=True --modfname manual_annot_funcs --funcname-filter=is_ --diff  # NOQA
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
-import six
 import uuid
 import numpy as np
 from ibeis import constants as const
 from ibeis.control import accessor_decors, controller_inject
 import utool as ut
 from ibeis.other import ibsfuncs
+from ibeis.util import util_decor
 from ibeis.control.controller_inject import make_ibs_register_decorator
-# from collections import namedtuple
 from ibeis.web import routes_ajax
 import requests
 print, rrr, profile = ut.inject2(__name__)
@@ -226,8 +223,8 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
         list: aid_list
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-add_annots
-        python -m ibeis.control.manual_annot_funcs --test-add_annots --verbose --print-caller
+        python -m ibeis.control.manual_annot_funcs add_annots
+        python -m ibeis.control.manual_annot_funcs add_annots --verbose --print-caller
 
     Ignore:
        theta_list = None
@@ -372,7 +369,7 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
         interest_list = [False] * len(gid_list)
 
     nVert_list = [len(verts) for verts in vert_list]
-    vertstr_list = [six.text_type(verts) for verts in vert_list]
+    vertstr_list = [str(verts) for verts in vert_list]
     xtl_list, ytl_list, width_list, height_list = list(zip(*bbox_list))
     assert len(nVert_list) == len(vertstr_list)
 
@@ -464,7 +461,7 @@ def get_annot_visual_uuid_info(ibs, aid_list):
         get_annot_semantic_uuid_info
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_visual_uuid_info
+        python -m ibeis.control.manual_annot_funcs get_annot_visual_uuid_info
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -507,7 +504,7 @@ def get_annot_semantic_uuid_info(ibs, aid_list, _visual_infotup=None):
         tuple:  semantic_infotup (image_uuid_list, verts_list, theta_list, yaw_list, name_list, species_list)
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_semantic_uuid_info
+        python -m ibeis.control.manual_annot_funcs get_annot_semantic_uuid_info
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -656,7 +653,7 @@ def get_valid_aids(ibs, imgsetid=None,
         list: aid_list - a list of valid ANNOTATION unique ids
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-get_valid_aids
+        python -m ibeis.control.manual_annot_funcs get_valid_aids
 
     Ignore:
         ibs.print_annotation_table()
@@ -898,9 +895,9 @@ def delete_annots(ibs, aid_list):
         aid_list (int):  list of annotation ids
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-delete_annots
-        python -m ibeis.control.manual_annot_funcs --test-delete_annots --debug-api-cache
-        python -m ibeis.control.manual_annot_funcs --test-delete_annots
+        python -m ibeis.control.manual_annot_funcs delete_annots
+        python -m ibeis.control.manual_annot_funcs delete_annots --debug-api-cache
+        python -m ibeis.control.manual_annot_funcs delete_annots
 
     SeeAlso:
         back.delete_annot
@@ -1047,7 +1044,7 @@ get_annot_rowids_from_visual_uuid = get_annot_aids_from_visual_uuid
 
 
 @register_ibs_method
-@ut.accepts_numpy
+@util_decor.accepts_numpy
 @accessor_decors.getter_1toM
 @register_api('/api/annot/bbox/', methods=['GET'])
 def get_annot_bboxes(ibs, aid_list):
@@ -1113,7 +1110,7 @@ def get_annot_exemplar_flags(ibs, aid_list):
         list: annot_exemplar_flag_list - True if annotation is an exemplar
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_exemplar_flags
+        python -m ibeis.control.manual_annot_funcs get_annot_exemplar_flags
 
     RESTful:
         Method: GET
@@ -1135,7 +1132,7 @@ def get_annot_exemplar_flags(ibs, aid_list):
 
 
 @register_ibs_method
-@ut.accepts_numpy
+@util_decor.accepts_numpy
 @accessor_decors.getter_1to1
 #@cache_getter(const.ANNOTATION_TABLE, 'image_rowid')
 @register_api('/api/annot/image/rowid/', methods=['GET'])
@@ -1172,7 +1169,7 @@ def get_annot_image_rowids(ibs, aid_list):
 
 
 @register_ibs_method
-@ut.accepts_numpy
+@util_decor.accepts_numpy
 @accessor_decors.getter_1to1
 #@cache_getter(const.ANNOTATION_TABLE, 'image_rowid')
 @register_api('/api/annot/imageset/rowid/', methods=['GET'])
@@ -1205,7 +1202,7 @@ def get_annot_imgsetids(ibs, aid_list):
 
 
 @register_ibs_method
-@ut.accepts_numpy
+@util_decor.accepts_numpy
 @accessor_decors.getter_1to1
 #@cache_getter(const.ANNOTATION_TABLE, 'image_rowid')
 @register_api('/api/annot/imageset/uuid/', methods=['GET'])
@@ -1279,7 +1276,7 @@ def get_annot_contact_aids(ibs, aid_list, daid_list=None, check_isect=False, ass
         aid_list (list):
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_contact_aids;1
+        python -m ibeis.control.manual_annot_funcs get_annot_contact_aids;1
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -1299,7 +1296,7 @@ def get_annot_contact_aids(ibs, aid_list, daid_list=None, check_isect=False, ass
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_annot_funcs import *  # NOQA
         >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb2')
+        >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
         >>> contact_aids = ibs.get_annot_contact_aids(aid_list)
         >>> contact_gids = ibs.unflat_map(ibs.get_annot_gids, contact_aids)
@@ -1412,10 +1409,10 @@ def get_annot_groundtruth(ibs, aid_list, is_exemplar=None, noself=True,
         a groundtruth.  A list of these is called a groundtruth_list.
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_groundtruth:0
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_groundtruth:1
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_groundtruth:2
-        python -m --tf get_annot_groundtruth:0 --db=PZ_Master0 --aids=97 --exec-mode
+        python -m ibeis.control.manual_annot_funcs get_annot_groundtruth:0
+        python -m ibeis.control.manual_annot_funcs get_annot_groundtruth:1
+        python -m ibeis.control.manual_annot_funcs get_annot_groundtruth:2
+        python -m --tf get_annot_groundtruth:0 --db=PZ_Master0 --aids=97 mode
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -1500,7 +1497,7 @@ def get_annot_has_groundtruth(ibs, aid_list, is_exemplar=None, noself=True, daid
         list: has_gt_list
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_has_groundtruth
+        python -m ibeis.control.manual_annot_funcs get_annot_has_groundtruth
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -1582,7 +1579,7 @@ def get_annot_hashid_semantic_uuid(ibs, aid_list, prefix=''):
         str: semantic_uuid_hashid
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_hashid_semantic_uuid
+        python -m ibeis.control.manual_annot_funcs get_annot_hashid_semantic_uuid
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -1619,7 +1616,7 @@ def get_annot_thetas(ibs, aid_list):
         theta_list (list): a list of floats describing the angles of each chip
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_thetas
+        python -m ibeis.control.manual_annot_funcs get_annot_thetas
 
     RESTful:
         Method: GET
@@ -1629,7 +1626,7 @@ def get_annot_thetas(ibs, aid_list):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_annot_funcs import *  # NOQA
         >>> import ibeis
-        >>> ibs = ibeis.opendb('NAUT_test')
+        >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
         >>> result = get_annot_thetas(ibs, aid_list)
         >>> print(result)
@@ -1687,7 +1684,7 @@ def get_annot_semantic_uuids(ibs, aid_list):
         list: annot_semantic_uuid_list
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_semantic_uuids
+        python -m ibeis.control.manual_annot_funcs get_annot_semantic_uuids
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -1729,7 +1726,7 @@ def get_annot_visual_uuids(ibs, aid_list):
         list: annot_visual_uuid_list
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_visual_uuids
+        python -m ibeis.control.manual_annot_funcs get_annot_visual_uuids
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -1822,7 +1819,7 @@ def get_annot_yaws(ibs, aid_list, assume_unique=False):
         yaw_list (list): the yaw (in radians) for the annotation
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_yaws
+        python -m ibeis.control.manual_annot_funcs get_annot_yaws
 
     RESTful:
         Method: GET
@@ -1930,7 +1927,7 @@ def get_annot_staged_flags(ibs, aid_list):
         list: annot_staged_flag_list - True if annotation is staged
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_staged_flags
+        python -m ibeis.control.manual_annot_funcs get_annot_staged_flags
 
     RESTful:
         Method: GET
@@ -1982,7 +1979,7 @@ def get_annot_staged_user_ids(ibs, aid_list):
         list: annot_staged_user_id_list - True if annotation is staged
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_staged_user_ids
+        python -m ibeis.control.manual_annot_funcs get_annot_staged_user_ids
 
     RESTful:
         Method: GET
@@ -2197,9 +2194,9 @@ def get_annot_num_groundtruth(ibs, aid_list, is_exemplar=None, noself=True,
         list_ (list): number of other chips with the same name
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_num_groundtruth
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_num_groundtruth:0
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_num_groundtruth:1
+        python -m ibeis.control.manual_annot_funcs get_annot_num_groundtruth
+        python -m ibeis.control.manual_annot_funcs get_annot_num_groundtruth:0
+        python -m ibeis.control.manual_annot_funcs get_annot_num_groundtruth:1
 
     Example1:
         >>> # ENABLE_DOCTEST
@@ -2297,7 +2294,7 @@ def get_annot_part_rowids(ibs, aid_list, is_staged=False):
 
 
 @register_ibs_method
-@ut.accepts_numpy
+@util_decor.accepts_numpy
 @accessor_decors.getter_1to1
 @accessor_decors.cache_getter(const.ANNOTATION_TABLE, NAME_ROWID, cfgkeys=['distinguish_unknowns'])
 # @register_api('/api/annot/name/rowid/', methods=['GET'])
@@ -2307,7 +2304,7 @@ def get_annot_name_rowids(ibs, aid_list, distinguish_unknowns=True, assume_uniqu
         list_ (list): the name id of each annotation.
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --exec-get_annot_name_rowids
+        python -m ibeis.control.manual_annot_funcs get_annot_name_rowids
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -2391,7 +2388,7 @@ def get_annot_name_texts(ibs, aid_list, distinguish_unknowns=False):
         URL:    /api/annot/name/text/
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_name_texts
+        python -m ibeis.control.manual_annot_funcs get_annot_name_texts
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -2453,7 +2450,7 @@ def get_annot_species_texts(ibs, aid_list):
         identifying the species
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_species_texts
+        python -m ibeis.control.manual_annot_funcs get_annot_species_texts
 
     Example1:
         >>> # ENABLE_DOCTEST
@@ -2464,17 +2461,6 @@ def get_annot_species_texts(ibs, aid_list):
         >>> result = ut.repr2(get_annot_species_texts(ibs, aid_list), nl=False)
         >>> print(result)
         ['zebra_plains', 'zebra_plains', '____', 'bear_polar']
-
-    Example2:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('PZ_MTEST')
-        >>> aid_list = ibs.get_valid_aids()
-        >>> species_list = get_annot_species_texts(ibs, aid_list)
-        >>> result = ut.repr2(list(set(species_list)), nl=False)
-        >>> print(result)
-        ['zebra_plains']
 
     RESTful:
         Method: GET
@@ -2488,7 +2474,7 @@ def get_annot_species_texts(ibs, aid_list):
 
 
 @register_ibs_method
-@ut.accepts_numpy
+@util_decor.accepts_numpy
 @accessor_decors.getter_1to1
 @accessor_decors.cache_getter(const.ANNOTATION_TABLE, SPECIES_ROWID)
 @register_api('/api/annot/species/rowid/', methods=['GET'], __api_plural_check__=False)
@@ -2578,7 +2564,7 @@ def get_annot_image_unixtimes(ibs, aid_list, **kwargs):
 
 
 @register_ibs_method
-@ut.accepts_numpy
+@util_decor.accepts_numpy
 @accessor_decors.getter_1to1
 # @register_api('/api/annot/image/unixtime/float/', methods=['GET'])
 def get_annot_image_unixtimes_asfloat(ibs, aid_list):
@@ -2591,7 +2577,7 @@ def get_annot_image_unixtimes_asfloat(ibs, aid_list):
         list: unixtime_list
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --exec-get_annot_image_unixtimes_asfloat --show --db PZ_MTEST
+        python -m ibeis.control.manual_annot_funcs get_annot_image_unixtimes_asfloat --show --db PZ_MTEST
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -2606,7 +2592,7 @@ def get_annot_image_unixtimes_asfloat(ibs, aid_list):
         >>> import plottool_ibeis as pt
         >>> ut.show_if_requested()
     """
-    unixtime_list = np.array(ibs.get_annot_image_unixtimes(aid_list), dtype=np.float)
+    unixtime_list = np.array(ibs.get_annot_image_unixtimes(aid_list), dtype=float)
     unixtime_list[unixtime_list == -1] = np.nan
     return unixtime_list
 
@@ -2623,7 +2609,7 @@ def get_annot_image_datetime_str(ibs, aid_list):
         list: datetime_list
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_image_datetime_str
+        python -m ibeis.control.manual_annot_funcs get_annot_image_datetime_str
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -2641,7 +2627,7 @@ def get_annot_image_datetime_str(ibs, aid_list):
 
 
 @register_ibs_method
-@ut.accepts_numpy
+@util_decor.accepts_numpy
 @accessor_decors.getter_1to1
 @register_api('/api/annot/image/gps/', methods=['GET'], __api_plural_check__=False)
 def get_annot_image_gps(ibs, aid_list):
@@ -2662,7 +2648,7 @@ def get_annot_image_gps(ibs, aid_list):
 
 
 @register_ibs_method
-@ut.accepts_numpy
+@util_decor.accepts_numpy
 @accessor_decors.getter_1to1
 @register_api('/api/annot/image/gps2/', methods=['GET'], __api_plural_check__=False)
 def get_annot_image_gps2(ibs, aid_list):
@@ -2713,7 +2699,7 @@ def get_annot_image_uuids(ibs, aid_list):
         list: image_uuid_list
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_image_uuids --enableall
+        python -m ibeis.control.manual_annot_funcs get_annot_image_uuids --enableall
 
     RESTful:
         Method: GET
@@ -2747,7 +2733,7 @@ def get_annot_images(ibs, aid_list):
         list of ndarrays: the images of each annotation
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_images
+        python -m ibeis.control.manual_annot_funcs get_annot_images
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -2902,7 +2888,7 @@ def set_annot_names(ibs, aid_list, name_list, **kwargs):
     list of annotations.
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-set_annot_names --enableall
+        python -m ibeis.control.manual_annot_funcs set_annot_names --enableall
 
     RESTful:
         Method: PUT
@@ -2927,7 +2913,7 @@ def set_annot_names(ibs, aid_list, name_list, **kwargs):
     """
     #ibs.get_nids_from_text
     assert len(aid_list) == len(name_list)
-    assert not isinstance(name_list, six.string_types)
+    assert not isinstance(name_list, str)
     #name_rowid_list = ibs.get_name_rowids_from_text(name_list, ensure=True)
     assert not any([name == '' for name in name_list]), (
         'cannot change name to empty string use ____ for unknown.')
@@ -3027,7 +3013,7 @@ def set_annot_metadata(ibs, aid_list, metadata_dict_list):
         URL:    /api/annot/metadata/
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-set_annot_metadata
+        python -m ibeis.control.manual_annot_funcs set_annot_metadata
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -3111,7 +3097,7 @@ def _update_annot_rotate_fix_bbox(bbox):
 def update_annot_rotate_90(ibs, aid_list, direction):
     from ibeis.constants import PI, TAU
 
-    if isinstance(direction, six.string_types):
+    if isinstance(direction, str):
         direction = direction.lower()
 
     if direction in ['left', 'l', -1]:
@@ -3168,7 +3154,7 @@ def set_annot_verts(ibs, aid_list, verts_list, delete_thumbs=True):
         if isinstance(vert_list, np.ndarray):
             verts_list[index] = vert_list.tolist()
     num_verts_list   = list(map(len, verts_list))
-    verts_as_strings = list(map(six.text_type, verts_list))
+    verts_as_strings = list(map(str, verts_list))
     id_iter1 = ((aid,) for aid in aid_list)
     # also need to set the internal number of vertices
     val_iter1 = ((num_verts, verts) for (num_verts, verts)
@@ -3209,7 +3195,7 @@ def get_annot_probchip_fpath(ibs, aid_list, config2_=None):
         list: probchip_fpath_list
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --exec-get_annot_probchip_fpath --show
+        python -m ibeis.control.manual_annot_funcs get_annot_probchip_fpath --show
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -3354,7 +3340,7 @@ def set_annot_quality_texts(ibs, aid_list, quality_text_list):
     """
     if not ut.isiterable(aid_list):
         aid_list = [aid_list]
-    if isinstance(quality_text_list, six.string_types):
+    if isinstance(quality_text_list, str):
         quality_text_list = [quality_text_list]
     quality_list = ut.dict_take(const.QUALITY_TEXT_TO_INT, quality_text_list)
     ibs.set_annot_qualities(aid_list, quality_list)
@@ -3374,7 +3360,7 @@ def set_annot_yaw_texts(ibs, aid_list, yaw_text_list):
     """
     if not ut.isiterable(aid_list):
         aid_list = [aid_list]
-    if isinstance(yaw_text_list, six.string_types):
+    if isinstance(yaw_text_list, str):
         yaw_text_list = [yaw_text_list]
     ibs.set_annot_viewpoint_code(aid_list, yaw_text_list)
 
@@ -3741,7 +3727,7 @@ def get_annot_rowids_from_partial_vuuids(ibs, partial_vuuid_strs):
         partial_uuid_list (list):
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-get_annots_from_partial_uuids
+        python -m ibeis.control.manual_annot_funcs get_annots_from_partial_uuids
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -4044,7 +4030,7 @@ def set_annot_staged_metadata(ibs, aid_list, metadata_dict_list):
         URL:    /api/annot/staged/metadata/
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-set_annot_metadata
+        python -m ibeis.control.manual_annot_funcs set_annot_metadata
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -4102,5 +4088,5 @@ if __name__ == '__main__':
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    import xdoctest
+    xdoctest.doctest_module(__file__)

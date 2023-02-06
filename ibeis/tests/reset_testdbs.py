@@ -1,17 +1,10 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 downloads standard test datasets. can delete them as well
 """
-# TODO: ADD COPYRIGHT TAG
-from __future__ import absolute_import, division, print_function, unicode_literals
-from ibeis.init import sysres
-from ibeis.dbio import ingest_database
-from os.path import join
-import ibeis
-import six
-from itertools import cycle
 import utool as ut
+from os.path import join
+from itertools import cycle
 
 __test__ = False  # This is not a test
 
@@ -54,7 +47,8 @@ def get_testdata_dir(ensure=True, key='testdb1'):
         'testdb1': 'https://cthulhu.dyn.wildme.io/public/data/testdata.zip',
     }
     zipped_testdata_url = testdata_map[key]
-    testdata_dir = ut.grab_zipped_url(zipped_testdata_url, ensure=ensure)
+    from ibeis.util import util_grabdata
+    testdata_dir = util_grabdata.grab_zipped_url(zipped_testdata_url, ensure=ensure)
     return testdata_dir
 
 
@@ -71,13 +65,15 @@ TEST_DBNAMES_MAP = {
 
 
 def delete_dbdir(dbname):
-    ut.delete(join(ibeis.sysres.get_workdir(), dbname), ignore_errors=False)
+    from ibeis.init import sysres
+    ut.delete(join(sysres.get_workdir(), dbname), ignore_errors=False)
 
 
 def ensure_smaller_testingdbs():
     """
     Makes the smaller test databases
     """
+    from ibeis.init import sysres
     def make_testdb0():
         """ makes testdb0 """
         def get_test_gpaths(ndata=None, names=None, **kwargs):
@@ -95,14 +91,13 @@ def ensure_smaller_testingdbs():
             # Get a some number of test images
             if ndata is not None:
                 gpath_cycle = cycle(gpath_list)
-                if six.PY2:
-                    gpath_list  = [gpath_cycle.next() for _ in range(ndata)]
-                else:
-                    gpath_list  = [next(gpath_cycle) for _ in range(ndata)]
+                gpath_list  = [next(gpath_cycle) for _ in range(ndata)]
             return gpath_list
-        workdir = ibeis.sysres.get_workdir()
+        workdir = sysres.get_workdir()
         TESTDB0 = join(workdir, 'testdb0')
-        main_locals = ibeis.main(dbdir=TESTDB0, gui=False, allow_newdir=True)
+        # import ibeis
+        from ibeis.main_module import main as ibeis_main
+        main_locals = ibeis_main(dbdir=TESTDB0, gui=False, allow_newdir=True)
         ibs = main_locals['ibs']
         assert ibs is not None, str(main_locals)
         gpath_list = list(map(ut.unixpath, get_test_gpaths()))
@@ -127,37 +122,50 @@ def ensure_smaller_testingdbs():
             raise
 
     get_testdata_dir(True)
-    if not ut.checkpath(join(ibeis.sysres.get_workdir(), 'testdb0'), verbose=True):
+    if not ut.checkpath(join(sysres.get_workdir(), 'testdb0'), verbose=True):
         print("\n\nMAKE TESTDB0\n\n")
         make_testdb0()
-    if not ut.checkpath(join(ibeis.sysres.get_workdir(), 'testdb1'), verbose=True):
+    if not ut.checkpath(join(sysres.get_workdir(), 'testdb1'), verbose=True):
         print("\n\nMAKE TESTDB1\n\n")
+        from ibeis.dbio import ingest_database
         ingest_database.ingest_standard_database('testdb1')
+
+
+def reset_ci_testdbs():
+    import ibeis
+    from ibeis.init import sysres
+    import ubelt as ub
+    ibeis.ENABLE_WILDBOOK_SIGNAL = False
+    workdir = ub.Path(sysres.get_workdir()).ensuredir()
+    (workdir / 'testdb0').delete()
+    (workdir / 'testdb1').delete()
+    ensure_smaller_testingdbs()
 
 
 def reset_testdbs(**kwargs):
     # Step 0) Parse Args
     import ibeis
+    from ibeis.init import sysres
     ibeis.ENABLE_WILDBOOK_SIGNAL = False
     default_args = {'reset_' + key: False
-                    for key in six.iterkeys(TEST_DBNAMES_MAP)}
+                    for key in TEST_DBNAMES_MAP.keys()}
     default_args['reset_all'] = False
     default_args.update(kwargs)
     argdict = ut.parse_dict_from_argv(default_args)
-    if not any(list(six.itervalues(argdict))):
+    if not any(list(argdict.values())):
         # Default behavior is to reset the small dbs
         argdict['reset_testdb0'] = True
         argdict['reset_testdb1'] = True
         argdict['reset_testdb_guiall'] = True
 
     # Step 1) Delete DBs to be Reset
-    for key, dbname in six.iteritems(TEST_DBNAMES_MAP):
+    for key, dbname in TEST_DBNAMES_MAP.items():
         if argdict.get('reset_' + key, False) or argdict['reset_all']:
             delete_dbdir(dbname)
 
     # Step 3) Ensure DBs that dont exist
     ensure_smaller_testingdbs()
-    workdir = ibeis.sysres.get_workdir()
+    workdir = sysres.get_workdir()
     if not ut.checkpath(join(workdir, 'PZ_MTEST'), verbose=True):
         ibeis.ensure_pz_mtest()
     if not ut.checkpath(join(workdir, 'NAUT_test'), verbose=True):
@@ -165,10 +173,10 @@ def reset_testdbs(**kwargs):
     # if not ut.checkpath(join(workdir, 'wd_peter2'), verbose=True):
     #     ibeis.ensure_wilddogs()
     if not ut.checkpath(join(workdir, 'testdb2'), verbose=True):
-        ibeis.init.sysres.ensure_testdb2()
+        sysres.ensure_testdb2()
 
     # Step 4) testdb1 becomes the main database
-    workdir = ibeis.sysres.get_workdir()
+    workdir = sysres.get_workdir()
     TESTDB1 = join(workdir, 'testdb1')
     sysres.set_default_dbdir(TESTDB1)
 
@@ -183,7 +191,6 @@ def reset_mtest():
         >>> from ibeis.tests.reset_testdbs import *  # NOQA
         >>> result = reset_mtest()
     """
-    # Hack, this function does not have a utool main
     return reset_testdbs(reset_mtest=True)
 
 

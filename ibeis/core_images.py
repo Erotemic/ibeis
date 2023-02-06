@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """IBEIS CORE IMAGE.
 
 Defines the core dependency cache supported by the image analysis api
@@ -8,8 +7,8 @@ automatically
 
 
 Ex
-    python -m ibeis.control.IBEISControl --test-show_depc_image_graph --show
-    python -m ibeis.control.IBEISControl --test-show_depc_image_graph --show --reduced
+    python -m ibeis.control.IBEISControl show_depc_image_graph --show
+    python -m ibeis.control.IBEISControl show_depc_image_graph --show --reduced
 
 
 TODO:
@@ -32,8 +31,6 @@ Needed Tables:
     ViewpointClassifier
 
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
-from six.moves import zip
 import dtool_ibeis
 import utool as ut
 import numpy as np
@@ -190,7 +187,7 @@ def compute_classifications(depc, gid_list, config=None):
         ibeis compute_classifications
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from ibeis.core_images import *  # NOQA
         >>> import ibeis
         >>> defaultdb = 'PZ_MTEST'
@@ -271,7 +268,7 @@ def compute_classifications2(depc, gid_list, config=None):
         ibeis compute_classifications2
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from ibeis.core_images import *  # NOQA
         >>> import ibeis
         >>> defaultdb = 'PZ_MTEST'
@@ -347,7 +344,7 @@ def compute_features(depc, gid_list, config=None):
         python -m ibeis.core_images compute_features --show
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from ibeis.core_images import *  # NOQA
         >>> import ibeis
         >>> defaultdb = 'PZ_MTEST'
@@ -462,7 +459,7 @@ def compute_localizations_original(depc, gid_list, config=None):
         python -m ibeis.core_images compute_localizations_original --show
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from ibeis.core_images import *  # NOQA
         >>> import ibeis
         >>> defaultdb = 'PZ_MTEST'
@@ -743,7 +740,7 @@ def compute_localizations(depc, loc_orig_id_list, config=None):
         python -m ibeis.core_images compute_localizations --show
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from ibeis.core_images import *  # NOQA
         >>> import ibeis
         >>> defaultdb = 'PZ_MTEST'
@@ -1110,7 +1107,7 @@ def compute_localizations_chips(depc, loc_id_list, config=None):
         ibeis compute_localizations_chips
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from ibeis.core_images import *  # NOQA
         >>> import ibeis
         >>> defaultdb = 'PZ_MTEST'
@@ -1203,7 +1200,7 @@ def compute_localizations_classifications(depc, loc_id_list, config=None):
         ibeis compute_localizations_classifications
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from ibeis.core_images import *  # NOQA
         >>> import ibeis
         >>> defaultdb = 'PZ_MTEST'
@@ -1404,7 +1401,7 @@ def compute_localizations_features(depc, loc_id_list, config=None):
         python -m ibeis.core_images compute_localizations_features --show
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from ibeis.core_images import *  # NOQA
         >>> import ibeis
         >>> defaultdb = 'PZ_MTEST'
@@ -1545,7 +1542,7 @@ def compute_localizations_labels(depc, loc_id_list, config=None):
         ibeis compute_localizations_labels
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from ibeis.core_images import *  # NOQA
         >>> import ibeis
         >>> defaultdb = 'PZ_MTEST'
@@ -1624,7 +1621,7 @@ def compute_localizations_interest(depc, loc_id_list, config=None):
         ibeis compute_localizations_labels
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from ibeis.core_images import *  # NOQA
         >>> import ibeis
         >>> defaultdb = 'PZ_MTEST'

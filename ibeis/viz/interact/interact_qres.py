@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import plottool_ibeis as pt
 from plottool_ibeis import plot_helpers as ph
@@ -14,8 +12,8 @@ def ishow_analysis(ibs, cm, qreq_=None, **kwargs):
     """
 
     CommandLine:
-        python -m ibeis.viz.interact.interact_qres --test-ishow_analysis:0 --show
-        python -m ibeis.viz.interact.interact_qres --test-ishow_analysis:1 --show
+        python -m ibeis.viz.interact.interact_qres ishow_analysis:0 --show
+        python -m ibeis.viz.interact.interact_qres ishow_analysis:1 --show
 
     Example0:
         >>> # SLOW_DOCTEST

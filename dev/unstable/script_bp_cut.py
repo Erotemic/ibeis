@@ -352,7 +352,7 @@ def build_factor_graph(G, nodes, edges, n_annots, n_names, lookup_annot_idx,
             valueNotEqual = same_weight
             if not np.isfinite(valueNotEqual):
                 """
-                python -m plottool_ibeis.draw_func2 --exec-plot_func --show --range=-1,1 --func=scipy.special.logit
+                python -m plottool_ibeis.draw_func2 plot_func --show --range=-1,1 --func=scipy.special.logit
                 """
                 print('valueNotEqual = %r' % (valueNotEqual,))
                 print('p_same = %r' % (p_same,))

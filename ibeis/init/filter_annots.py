@@ -214,7 +214,7 @@ def get_annot_tag_filterflags(ibs, aid_list, filter_kw,
                                                       annotmatch_tags_list))))
 
     # Filter Data
-    flags = np.ones(len(aid_list), dtype=np.bool)
+    flags = np.ones(len(aid_list), dtype=bool)
     if need_annot_tags:
         flags_ = tag_funcs.filterflags_general_tags(
             annot_tags_list, **annot_filterkw)
@@ -410,7 +410,7 @@ def expand_acfgs_consistently(ibs, acfg_combo, initial_aids=None,
                 --nofilter-dups
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from ibeis.init.filter_annots import *  # NOQA
         >>> from ibeis.init import main_helpers
         >>> from ibeis.expt import annotation_configs
@@ -631,7 +631,7 @@ def crossval_helper(nid_to_sample_pool, perquery, perdatab, n_need,
         while len(splits) < n_combos:
             # combo = tuple(sorted(rng.choice(items, size, replace=False)))
             qcombo = tuple(sorted(rng.sample(pool, perquery)))
-            remain = poolset - set(qcombo)
+            remain = sorted(poolset - set(qcombo))
             dcombo = tuple(sorted(rng.sample(remain, perdatab)))
             # TODO: try not to use queries / databases that we've used before
             # until we've exhauseted those possibilities.
@@ -700,7 +700,7 @@ def encounter_crossval(ibs, aids, qenc_per_name=1, denc_per_name=1,
         python -m ibeis.init.filter_annots encounter_crossval
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from ibeis.init.filter_annots import *  # NOQA
         >>> from ibeis.init import main_helpers
         >>> import ibeis
@@ -809,7 +809,7 @@ def annot_crossval(ibs, aid_list, n_qaids_per_name=1, n_daids_per_name=1,
         python -m ibeis.init.filter_annots annot_crossval
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from ibeis.init.filter_annots import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
@@ -934,7 +934,7 @@ def expand_acfgs(ibs, aidcfg, verbose=None, use_cache=None,
         python -m ibeis --tf get_annotcfg_list  --db Oxford -a default:qhas_any=\(query,\),dpername=2,exclude_reference=True --acfginfo --verbtd  --veryverbtd --nocache-aid
 
     CommandLine:
-        python -m ibeis.init.filter_annots --exec-expand_acfgs --show
+        python -m ibeis.init.filter_annots expand_acfgs --show
 
     Example:
         >>> # ENABLE_DOCTEST

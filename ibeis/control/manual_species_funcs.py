@@ -89,7 +89,7 @@ def sanitize_species_texts(ibs, species_text_list):
         list: species_text_list_
 
     CommandLine:
-        python -m ibeis.control.manual_species_funcs --test-sanitize_species_texts
+        python -m ibeis.control.manual_species_funcs sanitize_species_texts
 
     RESTful:
         Method: POST
@@ -175,7 +175,7 @@ def add_species(ibs, species_nice_list, species_text_list=None,
         URL:    /api/species/
 
     CommandLine:
-        python -m ibeis.control.manual_species_funcs --test-add_species
+        python -m ibeis.control.manual_species_funcs add_species
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -307,8 +307,8 @@ def get_species_rowids_from_text(ibs, species_text_list, ensure=True, **kwargs):
         species_rowid_list (list): Creates one if it doesnt exist
 
     CommandLine:
-        python -m ibeis.control.manual_species_funcs --test-get_species_rowids_from_text:0
-        python -m ibeis.control.manual_species_funcs --test-get_species_rowids_from_text:1
+        python -m ibeis.control.manual_species_funcs get_species_rowids_from_text:0
+        python -m ibeis.control.manual_species_funcs get_species_rowids_from_text:1
 
     RESTful:
         Method: GET
@@ -385,8 +385,8 @@ def get_species_rowids_from_uuids(ibs, species_uuid_list):
         species_rowid_list (list): Creates one if it doesnt exist
 
     CommandLine:
-        python -m ibeis.control.manual_species_funcs --test-get_species_rowids_from_text:0
-        python -m ibeis.control.manual_species_funcs --test-get_species_rowids_from_text:1
+        python -m ibeis.control.manual_species_funcs get_species_rowids_from_text:0
+        python -m ibeis.control.manual_species_funcs get_species_rowids_from_text:1
 
     RESTful:
         Method: GET
@@ -425,7 +425,7 @@ def get_species_texts(ibs, species_rowid_list):
         list: species_text_list text names
 
     CommandLine:
-        python -m ibeis.control.manual_species_funcs --test-get_species_texts --enableall
+        python -m ibeis.control.manual_species_funcs get_species_texts --enableall
 
     RESTful:
         Method: GET
@@ -462,7 +462,7 @@ def get_species_nice(ibs, species_rowid_list):
         list: species_text_list nice names
 
     CommandLine:
-        python -m ibeis.control.manual_species_funcs --test-get_species_nice --enableall
+        python -m ibeis.control.manual_species_funcs get_species_nice --enableall
 
     RESTful:
         Method: GET

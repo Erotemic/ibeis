@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 This module lists known raw databases and how to ingest them.
 
@@ -30,14 +29,13 @@ Example:
     >>> ibs.set_image_imagesettext(gid_list_, occur_text_list)
     >>> ibs.append_annot_case_tags(aid_list, '<annotation tags>')
 """
-from __future__ import absolute_import, division, print_function
-from six.moves import zip, map, range
 import ibeis
 import os
 from os.path import relpath, dirname, exists, join, realpath, basename, abspath
 from ibeis.other import ibsfuncs
 from ibeis import constants as const
 import utool as ut
+import ubelt as ub
 import vtool_ibeis as vt
 import parse
 
@@ -232,8 +230,8 @@ def ingest_rawdata(ibs, ingestable, localize=False):
 
     CommandLine:
         python ibeis/dbio/ingest_database.py --db seals_drop2
-        python -m ibeis.dbio.ingest_database --exec-ingest_rawdata
-        python -m ibeis.dbio.ingest_database --exec-ingest_rawdata --db snow-leopards --imgdir /raid/raw_rsync/snow-leopards
+        python -m ibeis.dbio.ingest_database ingest_rawdata
+        python -m ibeis.dbio.ingest_database ingest_rawdata --db snow-leopards --imgdir /raid/raw_rsync/snow-leopards
 
         python -m ibeis --tf ingest_rawdata --db wd_peter2 --imgdir /raid/raw_rsync/african-dogs --ingest-type=named_folders --species=wild_dog --fmtkey='African Wild Dog: {name}' --force-delete
         python -m ibeis --tf ingest_rawdata --db <newdbname>  --imgdir <path-to-images> --ingest-type=named_folders --species=humpback
@@ -485,7 +483,7 @@ def get_name_texts_from_gnames(gpath_list, img_dir, fmtkey='{name:*}[aid:d].{ext
         list: name_list - based on the parent folder of each image
 
     CommandLine:
-        python -m ibeis.dbio.ingest_database --test-get_name_texts_from_gnames
+        python -m ibeis.dbio.ingest_database get_name_texts_from_gnames
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -768,7 +766,7 @@ def ingest_polar_bears(dbname):
 def ingest_wilddog_peter(dbname):
     """
     CommandLine:
-        python -m ibeis.dbio.ingest_database --exec-injest_main --db wd_peter_blinston
+        python -m ibeis.dbio.ingest_database injest_main --db wd_peter_blinston
     """
     return Ingestable(dbname, ingest_type='unknown',
                       img_dir='/raid/raw_rsync/african-dogs',
@@ -780,7 +778,7 @@ def ingest_wilddog_peter(dbname):
 def ingest_lynx(dbname):
     """
     CommandLine:
-        python -m ibeis.dbio.ingest_database --exec-injest_main --db lynx
+        python -m ibeis.dbio.ingest_database injest_main --db lynx
     """
     return Ingestable(dbname, ingest_type='named_folders',
                       img_dir='/raid/raw_rsync/iberian-lynx/CARPETAS CATALOGO INDIVIDUOS/',
@@ -793,7 +791,7 @@ def ingest_lynx(dbname):
 def ingest_whale_sharks(dbname):
     """
     CommandLine:
-        python -m ibeis.dbio.ingest_database --exec-injest_main --db WS_ALL
+        python -m ibeis.dbio.ingest_database injest_main --db WS_ALL
     """
     return Ingestable(dbname, ingest_type='named_folders',
                       img_dir='named-left-sharkimages',
@@ -896,7 +894,7 @@ def ingest_oxford_style_db(dbdir, dryrun=False):
         dbdir (str):
 
     CommandLine:
-        python -m ibeis.dbio.ingest_database --exec-ingest_oxford_style_db --show
+        python -m ibeis.dbio.ingest_database ingest_oxford_style_db --show
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -925,7 +923,7 @@ def ingest_oxford_style_db(dbdir, dryrun=False):
         name, num, quality = parse.parse(gt_format, gt_fname)
         return (name, num, quality)
 
-    @ut.memoize
+    @ub.memoize
     def _tmpread(gt_fpath):
         return ut.readfrom(gt_fpath)
 
@@ -1153,8 +1151,8 @@ def ingest_oxford_style_db(dbdir, dryrun=False):
         qannots4 = qannots.take(sortx2)
         query_df4 = query_df3.take(sortx2)
 
-        old_bboxes = np.array(qannots4.bboxes, dtype=np.float)
-        new_bboxes = np.array(query_df4['bbox'].values.tolist(), dtype=np.float)
+        old_bboxes = np.array(qannots4.bboxes, dtype=float)
+        new_bboxes = np.array(query_df4['bbox'].values.tolist(), dtype=float)
         new_ar = new_bboxes.T[2] / new_bboxes.T[3]
         old_ar = old_bboxes.T[2] / old_bboxes.T[3]
         print(new_ar == old_ar)
@@ -1178,7 +1176,7 @@ def ingest_coco_style_db(dbdir, dryrun=False):
         dbdir (str):
 
     CommandLine:
-        python -m ibeis.dbio.ingest_database --exec-ingest_coco_style_db --show
+        python -m ibeis.dbio.ingest_database ingest_coco_style_db --show
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -1534,8 +1532,8 @@ def ingest_serengeti_mamal_cameratrap(species):
         species (?):
 
     CommandLine:
-        python -m ibeis.dbio.ingest_database --test-ingest_serengeti_mamal_cameratrap --species zebra_plains
-        python -m ibeis.dbio.ingest_database --test-ingest_serengeti_mamal_cameratrap --species cheetah
+        python -m ibeis.dbio.ingest_database ingest_serengeti_mamal_cameratrap --species zebra_plains
+        python -m ibeis.dbio.ingest_database ingest_serengeti_mamal_cameratrap --species cheetah
 
     Example:
         >>> # SCRIPT
@@ -1631,9 +1629,8 @@ def ingest_serengeti_mamal_cameratrap(species):
 
     # Find the zebra events
     serengeti_sepcies_set = sorted(list(set(species_class_species_list)))
-    print('serengeti_sepcies_hist = %s' %
+    print('serengeti_species_hist = %s' %
           ut.repr2(ut.dict_hist(species_class_species_list), key_order_metric='val'))
-    #print('serengeti_sepcies_set = %s' % (ut.repr2(serengeti_sepcies_set),))
 
     assert serengeti_sepcies in serengeti_sepcies_set, 'not a known  seregeti species'
     species_class_chosen_idx_list = ut.list_where(
@@ -1674,8 +1671,8 @@ def ingest_serengeti_mamal_cameratrap(species):
 def injest_main():
     r"""
     CommandLine:
-        python -m ibeis.dbio.ingest_database --test-injest_main
-        python -m ibeis.dbio.ingest_database --test-injest_main --db snow-leopards
+        python -m ibeis.dbio.ingest_database injest_main
+        python -m ibeis.dbio.ingest_database injest_main --db snow-leopards
 
     Example:
         >>> # DISABLE_DOCTEST

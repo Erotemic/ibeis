@@ -1,10 +1,7 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 Runs IBIES gui
 """
-from __future__ import absolute_import, division, print_function
-import multiprocessing
 import utool as ut
 import ubelt as ub
 import sys
@@ -38,6 +35,17 @@ def run_ibeis():
         python -m ibeis get_annot_groundtruth:1
     """
     import ibeis  # NOQA
+
+    if ub.argflag('--resetdbs'):
+        # Yet another place where initialization behavior is hackilly injected
+        # It is strange we can't seem to execute this after the parser
+        # But this will do for now.
+        # Only reset a few dbs
+        ibeis.ENABLE_WILDBOOK_SIGNAL = False
+        from ibeis.tests import reset_testdbs
+        reset_testdbs.reset_ci_testdbs()
+        sys.exit(0)
+
     #ut.set_process_title('IBEIS_main')
     #main_locals = ibeis.main()
     #ibeis.main_loop(main_locals)
@@ -103,12 +111,12 @@ def run_ibeis():
         """
         Allow any doctest to be run the main ibeis script
 
-        python -m ibeis --tmod utool.util_str --test-align:0
-        python -m ibeis --tmod ibeis.algo.hots.pipeline --test-request_ibeis_query_L0:0 --show
+        python -m ibeis --tmod utool.util_str align:0
+        python -m ibeis --tmod ibeis.algo.hots.pipeline request_ibeis_query_L0:0 --show
         python -m ibeis --tf request_ibeis_query_L0:0 --show
-        ./dist/ibeis/IBEISApp --tmod ibeis.algo.hots.pipeline --test-request_ibeis_query_L0:0 --show  # NOQA
-        ./dist/ibeis/IBEISApp --tmod utool.util_str --test-align:0
-        ./dist/IBEIS.app/Contents/MacOS/IBEISApp --tmod utool.util_str --test-align:0
+        ./dist/ibeis/IBEISApp --tmod ibeis.algo.hots.pipeline request_ibeis_query_L0:0 --show  # NOQA
+        ./dist/ibeis/IBEISApp --tmod utool.util_str align:0
+        ./dist/IBEIS.app/Contents/MacOS/IBEISApp --tmod utool.util_str align:0
         ./dist/IBEIS.app/Contents/MacOS/IBEISApp --run-utool-tests
         ./dist/IBEIS.app/Contents/MacOS/IBEISApp --run-vtool_ibeis-tests
         """
@@ -123,7 +131,6 @@ def run_ibeis():
         #print(module)
         sys.exit(retcode)
 
-    import ibeis
     main_locals = ibeis.main()
     execstr = ibeis.main_loop(main_locals)
     # <DEBUG CODE>
@@ -141,5 +148,6 @@ def run_ibeis():
 
 
 if __name__ == '__main__':
+    import multiprocessing
     multiprocessing.freeze_support()  # for win32
     run_ibeis()

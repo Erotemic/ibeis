@@ -1,13 +1,26 @@
-ansi2html
-autopep8
-pyfiglet
+ansi2html>=1.7.0     ; python_version < '4.0'  and python_version >= '3.11'    # Python 3.11+
+ansi2html>=1.7.0     ; python_version < '3.11' and python_version >= '3.10'    # Python 3.10
+ansi2html>=1.6.0     ; python_version < '3.10' and python_version >= '3.9'     # Python 3.9
+ansi2html>=1.6.0     ; python_version < '3.9'  and python_version >= '3.8'     # Python 3.8
+ansi2html>=1.6.0     ; python_version < '3.8'  and python_version >= '3.7'     # Python 3.7
+ansi2html>=1.6.0     ; python_version < '3.7'  and python_version >= '3.6'     # Python 3.6
 
-flask-cors
-pydot
-pydot-ng
+autopep8>=2.0.1
+pyfiglet>=0.7.2
 
-Flask-CAS
+flask-cors>=3.0.10
+pydot>=1.3.0
+pydot-ng>=2.0.0
+
+# Flask-CAS
 # -e git+https://github.com/cameronbwhite/Flask-CAS.git@master#egg=flask_cas
 
-Cython>=0.24
-jupyter
+# We dont actually need Cython
+# Cython>=0.29.25   ; python_version < '4.0'  and python_version >= '3.11'    # Python 3.11+
+# Cython>=0.29.25   ; python_version < '3.11' and python_version >= '3.10'    # Python 3.10
+# Cython>=0.29.21   ; python_version < '3.10' and python_version >= '3.9'     # Python 3.9
+# Cython>=0.29.14   ; python_version < '3.9'  and python_version >= '3.8'     # Python 3.8
+# Cython>=0.28.3    ; python_version < '3.8'  and python_version >= '3.7'     # Python 3.7
+# Cython>=0.25.2    ; python_version < '3.7'  and python_version >= '3.6'     # Python 3.6
+
+jupyter>=1.0.0

@@ -1,13 +1,12 @@
-# -*- coding: utf-8 -*-
 """
 TODO: semantic_uuids should be replaced with PCC-like hashes pertaining to
 annotation clusters if any form of name scoring is used.
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 from os.path import exists, join
 from ibeis.algo.hots import chip_match
 import utool as ut
 import numpy as np
+from ibeis.util import util_decor
 (print, rrr, profile) = ut.inject2(__name__, '[mc5]')
 
 
@@ -127,7 +126,7 @@ class EstimatorRequest(ut.NiceRepr):
         qreq_.unique_nids = ibs.get_annot_nids(qreq_.unique_aids)
         qreq_.aid_to_idx = ut.make_index_lookup(qreq_.unique_aids)
 
-    @ut.accepts_numpy
+    @util_decor.accepts_numpy
     def get_qreq_annot_nids(qreq_, aids):
         # uses own internal state to grab name rowids instead of using ibeis.
         if not hasattr(qreq_, 'aid_to_idx'):

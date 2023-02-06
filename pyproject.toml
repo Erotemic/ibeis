@@ -6,16 +6,33 @@ ignore_missing_imports = true
 
 [tool.xcookie]
 # TODO: allow xcookie config to be specified in __init__.py
-tags = [ "erotemic", "purepy", "github", "cv2"]
+tags = [ "erotemic", "purepy", "github", "cv2", "notypes", "nosrcdist",
+ #"ipfs"
+]
 mod_name = "ibeis"
 os = [ "linux" ]
 repo_name = "ibeis"
+ci_pypy_versions = []
+supported_python_versions = [
+    "3.7", "3.8", "3.9", "3.10", 
+    #"3.11"
+    #"3.9"
+]
 description = "IBEIS - Image Based Ecological Information System"
 url="https://github.com/Erotemic/ibeis"
 author="Jon Crall, Jason Parham"
 author_email="erotemic@gmail.com"
+version = "{mod_dpath}/__init__.py::__version__"
+license = "Apache 2"
 dev_status = "beta"
 autostage = true
+
+
+[tool.xcookie.entry_points]
+# the console_scripts entry point creates the xdoctest executable
+console_scripts = [
+    "ibeis = ibeis.__main__:run_ibeis",
+]
 
 [tool.pytest.ini_options]
 addopts = "-p no:doctest --xdoctest --xdoctest-style=google --ignore-glob=setup.py --ignore-glob=super_setup.py"

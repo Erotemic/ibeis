@@ -354,8 +354,8 @@ def get_node_viz_attrs(model, evidence, soft_evidence, factor_list,
 
 def make_colorcodes(model):
     """
-        python -m ibeis.algo.hots.bayes --exec-make_name_model --show
-        python -m ibeis.algo.hots.bayes --exec-cluster_query --show
+        python -m ibeis.algo.hots.bayes make_name_model --show
+        python -m ibeis.algo.hots.bayes cluster_query --show
         python -m ibeis --tf demo_bayesnet --ev :nA=4,nS=2,Na=n0,rand_scores=True --show --verbose
         python -m ibeis --tf demo_bayesnet --ev :nA=4,nS=3,Na=n0,rand_scores=True --show --verbose
     """
@@ -644,7 +644,7 @@ def show_bayesian_model(model, evidence={}, soft_evidence={}, fnum=None, **kwarg
         python3 -c "import pygraphviz; print(pygraphviz.__file__)"
 
     CommandLine:
-        python -m ibeis.algo.hots.pgm_viz --exec-show_model --show
+        python -m ibeis.algo.hots.pgm_viz show_model --show
 
     Example:
         >>> # DISABLE_DOCTEST

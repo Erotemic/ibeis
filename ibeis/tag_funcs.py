@@ -1,7 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function, unicode_literals
-import six
-from six.moves import zip, map
 import numpy as np
 import vtool_ibeis as vt
 import utool as ut
@@ -164,7 +160,7 @@ def rename_and_reduce_tags(ibs, annotmatch_rowids):
     Script to update tags to newest values
 
     CommandLine:
-        python -m ibeis.tag_funcs --exec-rename_and_reduce_tags --db PZ_Master1
+        python -m ibeis.tag_funcs rename_and_reduce_tags --db PZ_Master1
 
     Ignore:
         >>> from ibeis.tag_funcs import *  # NOQA
@@ -177,12 +173,12 @@ def rename_and_reduce_tags(ibs, annotmatch_rowids):
 
     tags_list_ = get_annotmatch_case_tags(ibs, annotmatch_rowids)
     def fix_tags(tags):
-        return {six.text_type(t.lower()) for t in tags}
+        return {str(t.lower()) for t in tags}
     tags_list = list(map(fix_tags, tags_list_))
 
     prop_mapping = {
-        six.text_type(key.lower()): val
-        for key, val in six.iteritems(PROP_MAPPING)
+        str(key.lower()): val
+        for key, val in PROP_MAPPING.items()
     }
 
     bad_tags = fix_tags(prop_mapping.keys())
@@ -209,9 +205,9 @@ def export_tagged_chips(ibs, aid_list, dpath='.'):
     DEPRICATE
 
     CommandLine:
-        python -m ibeis.tag_funcs --exec-export_tagged_chips --tags Hard interesting needswork --db PZ_Master1
-        python -m ibeis.tag_funcs --exec-export_tagged_chips --logic=or --any_startswith quality occlusion --has_any lighting needswork interesting hard --db GZ_Master1 --dpath=/media/raid
-        python -m ibeis.tag_funcs --exec-export_tagged_chips --db GZ_Master1 --min_num=1  --dpath /media/raid
+        python -m ibeis.tag_funcs export_tagged_chips --tags Hard interesting needswork --db PZ_Master1
+        python -m ibeis.tag_funcs export_tagged_chips --logic=or --any_startswith quality occlusion --has_any lighting needswork interesting hard --db GZ_Master1 --dpath=/media/raid
+        python -m ibeis.tag_funcs export_tagged_chips --db GZ_Master1 --min_num=1  --dpath /media/raid
 
     Example:
         >>> # SCRIPT
@@ -241,13 +237,13 @@ def filter_annots_by_tags(ibs, aid_list=None, **kwargs):
     Filter / Find / Search for annotations with particular tags
 
     CommandLine:
-        python -m ibeis.tag_funcs --exec-filter_annots_by_tags --helpx
-        python -m ibeis.tag_funcs --exec-filter_annots_by_tags --db GZ_Master1
-        python -m ibeis.tag_funcs --exec-filter_annots_by_tags --db GZ_Master1 --min_num=1
-        python -m ibeis.tag_funcs --exec-filter_annots_by_tags --db GZ_Master1 --has_any=lighting --has_all=lighting:underexposed --show
+        python -m ibeis.tag_funcs filter_annots_by_tags --helpx
+        python -m ibeis.tag_funcs filter_annots_by_tags --db GZ_Master1
+        python -m ibeis.tag_funcs filter_annots_by_tags --db GZ_Master1 --min_num=1
+        python -m ibeis.tag_funcs filter_annots_by_tags --db GZ_Master1 --has_any=lighting --has_all=lighting:underexposed --show
 
     SeeAlso:
-        python -m ibeis.init.filter_annots --exec-filter_annots_general
+        python -m ibeis.init.filter_annots filter_annots_general
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -301,7 +297,7 @@ def get_aidpair_tags(ibs, aid1_list, aid2_list, directed=True):
         list: tags_list
 
     CommandLine:
-        python -m ibeis.tag_funcs --exec-get_aidpair_tags --db PZ_Master1 --tags Hard interesting
+        python -m ibeis.tag_funcs get_aidpair_tags --db PZ_Master1 --tags Hard interesting
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -378,16 +374,16 @@ def filter_annotmatch_by_tags(ibs, annotmatch_rowids=None, **kwargs):
         list
 
     CommandLine:
-        python -m ibeis.tag_funcs --exec-filter_annotmatch_by_tags --show
-        python -m ibeis.tag_funcs --exec-filter_annotmatch_by_tags --show --db PZ_Master1 --min-num=1
-        python -m ibeis.tag_funcs --exec-filter_annotmatch_by_tags --show --db PZ_Master1 --tags JoinCase
-        python -m ibeis.tag_funcs --exec-filter_annotmatch_by_tags --show --db PZ_Master1 --tags SplitCase
-        python -m ibeis.tag_funcs --exec-filter_annotmatch_by_tags --show --db PZ_Master1 --tags occlusion
-        python -m ibeis.tag_funcs --exec-filter_annotmatch_by_tags --show --db PZ_Master1 --tags viewpoint
-        python -m ibeis.tag_funcs --exec-filter_annotmatch_by_tags --show --db PZ_Master1 --tags SceneryMatch
-        python -m ibeis.tag_funcs --exec-filter_annotmatch_by_tags --show --db PZ_Master1 --tags Photobomb
+        python -m ibeis.tag_funcs filter_annotmatch_by_tags --show
+        python -m ibeis.tag_funcs filter_annotmatch_by_tags --show --db PZ_Master1 --min-num=1
+        python -m ibeis.tag_funcs filter_annotmatch_by_tags --show --db PZ_Master1 --tags JoinCase
+        python -m ibeis.tag_funcs filter_annotmatch_by_tags --show --db PZ_Master1 --tags SplitCase
+        python -m ibeis.tag_funcs filter_annotmatch_by_tags --show --db PZ_Master1 --tags occlusion
+        python -m ibeis.tag_funcs filter_annotmatch_by_tags --show --db PZ_Master1 --tags viewpoint
+        python -m ibeis.tag_funcs filter_annotmatch_by_tags --show --db PZ_Master1 --tags SceneryMatch
+        python -m ibeis.tag_funcs filter_annotmatch_by_tags --show --db PZ_Master1 --tags Photobomb
 
-        python -m ibeis.tag_funcs --exec-filter_annotmatch_by_tags --show --db GZ_Master1 --tags needswork
+        python -m ibeis.tag_funcs filter_annotmatch_by_tags --show --db GZ_Master1 --tags needswork
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -456,13 +452,13 @@ def filterflags_general_tags(tags_list,
         max_num (None): (default = None)
 
     CommandLine:
-        python -m ibeis.tag_funcs --exec-filterflags_general_tags
-        python -m ibeis.tag_funcs --exec-filterflags_general_tags:0  --helpx
-        python -m ibeis.tag_funcs --exec-filterflags_general_tags:0
-        python -m ibeis.tag_funcs --exec-filterflags_general_tags:0  --none_match n
-        python -m ibeis.tag_funcs --exec-filterflags_general_tags:0  --has_none=n,o
-        python -m ibeis.tag_funcs --exec-filterflags_general_tags:1
-        python -m ibeis.tag_funcs --exec-filterflags_general_tags:2
+        python -m ibeis.tag_funcs filterflags_general_tags
+        python -m ibeis.tag_funcs filterflags_general_tags:0  --helpx
+        python -m ibeis.tag_funcs filterflags_general_tags:0
+        python -m ibeis.tag_funcs filterflags_general_tags:0  --none_match n
+        python -m ibeis.tag_funcs filterflags_general_tags:0  --has_none=n,o
+        python -m ibeis.tag_funcs filterflags_general_tags:1
+        python -m ibeis.tag_funcs filterflags_general_tags:2
 
     Example0:
         >>> # DISABLE_DOCTEST
@@ -509,7 +505,7 @@ def filterflags_general_tags(tags_list,
     import operator
 
     def fix_tags(tags):
-        return {six.text_type(t.lower()) for t in tags}
+        return {str(t.lower()) for t in tags}
 
     if logic is None:
         logic = 'and'
@@ -525,7 +521,7 @@ def filterflags_general_tags(tags_list,
     }[logic]
 
     tags_list_ = [fix_tags(tags_) for tags_ in tags_list]
-    flags = default_func(len(tags_list_), dtype=np.bool)
+    flags = default_func(len(tags_list_), dtype=bool)
 
     if min_num is not None:
         flags_ = [len(tags_) >= min_num for tags_ in tags_list_]
@@ -569,11 +565,11 @@ def filterflags_general_tags(tags_list,
 
     flags = execute_filter(
         flags, tags_list, any_startswith,
-        operator.gt, six.text_type.startswith)
+        operator.gt, str.startswith)
 
     flags = execute_filter(
         flags, tags_list, any_endswith,
-        operator.gt, six.text_type.endswith)
+        operator.gt, str.endswith)
 
     flags = execute_filter(
         flags, tags_list, any_match,
@@ -597,7 +593,7 @@ def get_annotmatch_case_tags(ibs, annotmatch_rowids):
         list: filtered_aid_list
 
     CommandLine:
-        python -m ibeis.tag_funcs --exec-get_annotmatch_case_tags
+        python -m ibeis.tag_funcs get_annotmatch_case_tags
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -634,7 +630,7 @@ def get_annotmatch_case_tags(ibs, annotmatch_rowids):
     #        flag_list = ibs.get_annotmatch_prop(case, annotmatch_rowids)
     #        for tags in ut.compress(tags_list, flag_list):
     #            tags.append(case)
-    tags_list = [[six.text_type(t) for t in tags] for tags in tags_list]
+    tags_list = [[str(t) for t in tags] for tags in tags_list]
     #if ut.get_argval('--consol') or True:
     #    tags_list = consolodate_annotmatch_tags(tags_list)
     return tags_list
@@ -661,7 +657,7 @@ def get_annotmatch_prop(ibs, prop, annotmatch_rowids):
         list: filtered_aid_list
 
     CommandLine:
-        python -m ibeis.tag_funcs --exec-get_annotmatch_prop
+        python -m ibeis.tag_funcs get_annotmatch_prop
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -850,7 +846,7 @@ def append_annot_case_tags(ibs, aid_list, tag_list):
     """
     # Ensure each item is a list
     #tags_list = [tag if isinstance(tag, list) else [tag] for tag in tag_list]
-    if isinstance(tag_list, six.string_types):
+    if isinstance(tag_list, str):
         # Apply single tag to everybody
         tag_list = [tag_list] * len(aid_list)
     tags_list = [ut.ensure_iterable(tag) for tag in tag_list]
@@ -873,7 +869,7 @@ def set_annot_case_tags(ibs, aid_list, new_tags_list):
 
 @register_ibs_method
 def remove_annot_case_tags(ibs, aid_list, tag_list):
-    if isinstance(tag_list, six.string_types):
+    if isinstance(tag_list, str):
         # Apply single tag to everybody
         tag_list = [tag_list] * len(aid_list)
     tags_list = [ut.ensure_iterable(tag) for tag in tag_list]
@@ -918,7 +914,7 @@ def get_annot_case_tags(ibs, aid_list):
         list: tags_list
 
     CommandLine:
-        python -m ibeis.tag_funcs --exec-get_annot_case_tags
+        python -m ibeis.tag_funcs get_annot_case_tags
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -985,7 +981,7 @@ def get_annot_case_tags(ibs, aid_list):
         }
 
     Ignore:
-        python -m ibeis.tag_funcs --exec-filter_annotmatch_by_tags --show --db PZ_Master1 --tags viewpoint
+        python -m ibeis.tag_funcs filter_annotmatch_by_tags --show --db PZ_Master1 --tags viewpoint
 
     """
     text_list = ibs.get_annot_tag_text(aid_list)
@@ -1005,7 +1001,7 @@ def get_annot_annotmatch_tags(ibs, aid_list):
         list: annotmatch_tags_list
 
     CommandLine:
-        python -m ibeis.tag_funcs --exec-get_annot_annotmatch_tags --db GZ_Master1
+        python -m ibeis.tag_funcs get_annot_annotmatch_tags --db GZ_Master1
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -1029,7 +1025,7 @@ def get_annot_annotmatch_tags(ibs, aid_list):
 def get_annot_all_tags(ibs, aid_list=None):
     """
     CommandLine:
-        python -m ibeis.tag_funcs --exec-get_annot_all_tags --db GZ_Master1
+        python -m ibeis.tag_funcs get_annot_all_tags --db GZ_Master1
 
     Example:
         >>> # ENABLE_DOCTEST

@@ -37,7 +37,7 @@ def get_species_trees_paths(species, modeldir='default'):
         ?: trees_path
 
     CommandLine:
-        python -m ibeis.algo.detect.grabmodels --test-get_species_trees_paths
+        python -m ibeis.algo.detect.grabmodels get_species_trees_paths
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -79,7 +79,7 @@ def ensure_models(modeldir='default', verbose=True):
         modeldir (str):
 
     CommandLine:
-        python -m ibeis.algo.detect.grabmodels --test-ensure_models
+        python -m ibeis.algo.detect.grabmodels ensure_models
 
     Note:
         Dead links
@@ -105,7 +105,7 @@ def redownload_models(modeldir='default', verbose=True):
         verbose (bool):  verbosity flag(default = True)
 
     CommandLine:
-        python -m ibeis.algo.detect.grabmodels --test-redownload_models
+        python -m ibeis.algo.detect.grabmodels redownload_models
 
     Note:
         Dead links

@@ -1,8 +1,4 @@
-# -*- coding: utf-8 -*-
-### __init__.py ###
 # flake8: noqa
-from __future__ import absolute_import, division, print_function
-
 import utool as ut
 ut.noinject(__name__, '[ibeis.viz.interact.__init__]', DEBUG=False)
 

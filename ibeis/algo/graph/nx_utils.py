@@ -110,7 +110,7 @@ def edges_between(graph, nodes1, nodes2=None, assume_disjoint=False,
             returned twice (default=False)
 
     CommandLine:
-        python -m ibeis.algo.graph.nx_utils --test-edges_between
+        python -m ibeis.algo.graph.nx_utils edges_between
 
     Example:
         >>> # ENABLE_DOCTEST

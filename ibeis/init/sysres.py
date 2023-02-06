@@ -1,17 +1,15 @@
-# -*- coding: utf-8 -*-
 """
 sysres.py == system_resources
 Module for dealing with system resoureces in the context of IBEIS
 but without the need for an actual IBEIS Controller
 """
-from __future__ import absolute_import, division, print_function  # , unicode_literals
 import os
 from os.path import exists, join, realpath
 import utool as ut
 import ubelt as ub
-from six.moves import input, zip, map
 from ibeis import constants as const
 from ibeis import params
+from ibeis.util import util_grabdata
 (print, rrr, profile) = ut.inject2(__name__)
 
 WORKDIR_CACHEID   = 'work_directory_cache_id'
@@ -86,10 +84,13 @@ def get_workdir(allow_gui=True):
     print('[ibeis.sysres.get_workdir] work_dir = {!r}'.format(work_dir))
     if work_dir != '.' and exists(work_dir):
         return work_dir
-    if allow_gui:
-        work_dir = set_workdir()
-        return get_workdir(allow_gui=False)
-    return None
+    if os.environ.get('LEGACY_WORKDIR_BEHAVIOR', ''):
+        if allow_gui:
+            work_dir = set_workdir()
+            return get_workdir(allow_gui=False)
+        return None
+    else:
+        return 'ibeis_default_workdir'
 
 
 def set_workdir(work_dir=None, allow_gui=ALLOW_GUI):
@@ -362,7 +363,7 @@ def get_ibsdb_list(workdir=None):
         IBEISController: ibsdb_list -  ibeis controller object
 
     CommandLine:
-        python -m ibeis.init.sysres --test-get_ibsdb_list
+        python -m ibeis.init.sysres get_ibsdb_list
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -404,7 +405,7 @@ def ensure_wd_peter2():
         >>> ut.rsync(archive_name, 'joncrall@lev.cs.rpi.edu:/media/hdd/PUBLIC/databases')
 
     CommandLine:
-        python -m ibeis.init.sysres --exec-ensure_wd_peter2
+        python -m ibeis.init.sysres ensure_wd_peter2
 
     Example:
         >>> # SCRIPT
@@ -420,7 +421,7 @@ def ensure_pz_mtest():
     Ensures that you have the PZ_MTEST dataset
 
     CommandLine:
-        python -m ibeis.init.sysres --exec-ensure_pz_mtest
+        python -m ibeis.init.sysres ensure_pz_mtest
         python -m ibeis --tf ensure_pz_mtest
 
     Ignore:
@@ -436,7 +437,7 @@ def ensure_pz_mtest():
     from ibeis import sysres
     workdir = sysres.get_workdir()
     mtest_zipped_url = const.ZIPPED_URLS.PZ_MTEST
-    mtest_dir = ut.grab_zipped_url(mtest_zipped_url, ensure=True, download_dir=workdir)
+    mtest_dir = util_grabdata.grab_zipped_url(mtest_zipped_url, ensure=True, download_dir=workdir)
     print('have mtest_dir=%r' % (mtest_dir,))
     # update the the newest database version
     import ibeis
@@ -592,9 +593,9 @@ def copy_ibeisdb(source_dbdir, dest_dbdir):
 def ensure_pz_mtest_batchworkflow_test():
     r"""
     CommandLine:
-        python -m ibeis.init.sysres --test-ensure_pz_mtest_batchworkflow_test
-        python -m ibeis.init.sysres --test-ensure_pz_mtest_batchworkflow_test --reset
-        python -m ibeis.init.sysres --test-ensure_pz_mtest_batchworkflow_test --reset
+        python -m ibeis.init.sysres ensure_pz_mtest_batchworkflow_test
+        python -m ibeis.init.sysres ensure_pz_mtest_batchworkflow_test --reset
+        python -m ibeis.init.sysres ensure_pz_mtest_batchworkflow_test --reset
 
     Example:
         >>> # SCRIPT
@@ -700,7 +701,7 @@ def ensure_pz_mtest_mergesplit_test():
     Make a test database for MERGE and SPLIT cases
 
     CommandLine:
-        python -m ibeis.init.sysres --test-ensure_pz_mtest_mergesplit_test
+        python -m ibeis.init.sysres ensure_pz_mtest_mergesplit_test
 
     Example:
         >>> # SCRIPT
@@ -801,7 +802,7 @@ def ensure_db_from_url(zipped_db_url):
     """ SeeAlso ibeis.init.sysres """
     from ibeis import sysres
     workdir = sysres.get_workdir()
-    dbdir = ut.grab_zipped_url(zipped_url=zipped_db_url, ensure=True, download_dir=workdir)
+    dbdir = util_grabdata.grab_zipped_url(zipped_url=zipped_db_url, ensure=True, download_dir=workdir)
     print('have %s=%r' % (zipped_db_url, dbdir,))
     return dbdir
 

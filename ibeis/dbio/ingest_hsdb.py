@@ -60,7 +60,7 @@ def get_unconverted_hsdbs(workdir=None):
         workdir (None): (default = None)
 
     CommandLine:
-        python -m ibeis.dbio.ingest_hsdb --test-get_unconverted_hsdbs
+        python -m ibeis.dbio.ingest_hsdb get_unconverted_hsdbs
 
     Example:
         >>> # SCRIPT
@@ -103,7 +103,7 @@ def testdata_ensure_unconverted_hsdb():
     Makes an unconverted test datapath
 
     CommandLine:
-        python -m ibeis.dbio.ingest_hsdb --test-testdata_ensure_unconverted_hsdb
+        python -m ibeis.dbio.ingest_hsdb testdata_ensure_unconverted_hsdb
 
     Example:
         >>> # SCRIPT

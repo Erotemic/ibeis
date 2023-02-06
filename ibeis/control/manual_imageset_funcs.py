@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function
 import six
 from ibeis import constants as const
 from ibeis.control import accessor_decors, controller_inject
@@ -281,7 +279,7 @@ def get_imageset_fraction_names_with_exemplar(ibs, imgsetid_list):
         >>> # DISABLE_DOCTEST
         >>> from ibeis.control.manual_imageset_funcs import *  # NOQA
         >>> import ibeis  # NOQA
-        >>> ibs = ibeis.opendb('testdb2')
+        >>> ibs = ibeis.opendb('testdb1')
         >>> imgsetid_list = ibs._get_all_imageset_rowids()
         >>> fraction_exemplared_names_list = ibs.get_imageset_fraction_names_with_exemplar(imgsetid_list)
     """
@@ -420,7 +418,7 @@ def get_imageset_aids(ibs, imgsetid_list):
         list: aids_list
 
     CommandLine:
-        python -m ibeis.control.manual_imageset_funcs --test-get_imageset_aids
+        python -m ibeis.control.manual_imageset_funcs get_imageset_aids
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -462,7 +460,7 @@ def get_imageset_uuids(ibs, imgsetid_list):
         URL:    /api/imageset/annot/uuid/
 
     CommandLine:
-        python -m ibeis.control.manual_imageset_funcs --test-get_imageset_aids
+        python -m ibeis.control.manual_imageset_funcs get_imageset_aids
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -577,7 +575,7 @@ def get_imageset_nids(ibs, imgsetid_list):
         list_ (list):  a list of list of known nids in each imageset
 
     CommandLine:
-        python -m ibeis.control.manual_imageset_funcs --test-get_imageset_nids
+        python -m ibeis.control.manual_imageset_funcs get_imageset_nids
 
     RESTful:
         Method: GET
@@ -621,7 +619,7 @@ def get_imageset_name_uuids(ibs, imgsetid_list):
         name_uuid_list (list):  a list of list of known name uuids in each imageset
 
     CommandLine:
-        python -m ibeis.control.manual_imageset_funcs --test-get_imageset_name_uuids
+        python -m ibeis.control.manual_imageset_funcs get_imageset_name_uuids
 
     RESTful:
         Method: GET

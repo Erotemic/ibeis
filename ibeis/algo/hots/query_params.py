@@ -29,7 +29,7 @@ class QueryParams(Mapping):
             cfgdict (dict or None): dictionary to update query_cfg with
 
         CommandLine:
-            python -m ibeis.algo.hots.query_params --test-__init__
+            python -m ibeis.algo.hots.query_params __init__
 
         Example:
             >>> # ENABLE_DOCTEST

@@ -25,7 +25,7 @@ def delete_empty_imgsetids(ibs):
         ibs (IBEISController):  ibeis controller object
 
     CommandLine:
-        python -m ibeis.control.manual_gsgrelate_funcs --test-delete_empty_imgsetids
+        python -m ibeis.control.manual_gsgrelate_funcs delete_empty_imgsetids
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -98,7 +98,7 @@ def unrelate_images_and_imagesets(ibs, gid_list, imgsetid_list):
         list: gids_list
 
     CommandLine:
-        python -m ibeis.control.manual_gsgrelate_funcs --test-unrelate_images_and_imagesets
+        python -m ibeis.control.manual_gsgrelate_funcs unrelate_images_and_imagesets
         python -c "import utool; print(utool.auto_docstr('ibeis.control.manual_gsgrelate_funcs', 'delete_gsgr_image_relations'))"
 
     Example:

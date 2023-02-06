@@ -1,10 +1,6 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function, unicode_literals
-import six  # NOQA
 import utool as ut  # NOQA
 import numpy as np
 import vtool_ibeis as vt
-#from ibeis import constants as const
 from ibeis.control import accessor_decors  # NOQA
 from ibeis.control.controller_inject import make_ibs_register_decorator
 print, rrr, profile = ut.inject2(__name__)
@@ -47,7 +43,7 @@ def get_annot_kpts_distinctiveness(ibs, aid_list, config2_=None, **kwargs):
         list: dstncvs_list
 
     CommandLine:
-        python -m ibeis.control.manual_ibeiscontrol_funcs --test-get_annot_kpts_distinctiveness
+        python -m ibeis.control.manual_ibeiscontrol_funcs get_annot_kpts_distinctiveness
 
     Example:
         >>> # SLOW_DOCTEST
@@ -135,5 +131,5 @@ if __name__ == '__main__':
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    import xdoctest
+    xdoctest.doctest_module(__file__)

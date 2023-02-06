@@ -439,7 +439,7 @@ def _recombine_labels(chunk_labels):
         combined_labels[start:stop] += offset
         offset += len(np.unique(combined_labels[start:stop]))
     # Ungroup
-    X_labels = np.empty(combined_idxs.max() + 1, dtype=np.int)
+    X_labels = np.empty(combined_idxs.max() + 1, dtype=int)
     # new_labels[:] = -1
     X_labels[combined_idxs] = combined_labels
     return X_labels
@@ -465,11 +465,11 @@ def _cluster_part(X_part, dist_func, columns, thresh_sec, km_per_sec):
 
 def _cluster_chunk(X_data, dist_func, thresh_sec):
     if len(X_data) == 0:
-        X_labels = np.empty(len(X_data), dtype=np.int)
+        X_labels = np.empty(len(X_data), dtype=int)
     elif len(X_data) == 1:
-        X_labels = np.ones(len(X_data), dtype=np.int)
+        X_labels = np.ones(len(X_data), dtype=int)
     elif np.all(np.isnan(X_data)):
-        X_labels = np.arange(1, len(X_data) + 1, dtype=np.int)
+        X_labels = np.arange(1, len(X_data) + 1, dtype=int)
     else:
         # Compute pairwise distances between all inputs
         condenced_dist_mat = distance.pdist(X_data, dist_func)

@@ -29,7 +29,7 @@ def get_diffmat_str(rank_mat, qaids, nConfig):
     # Find columns that ore strictly better than other columns
     #def find_strictly_better_columns(diff_rank):
     #    colmat = diff_rank.T
-    #    pairwise_betterness_ranks = np.array([np.sum(col <= colmat, axis=1) / len(col) for col in colmat], dtype=np.float).T
+    #    pairwise_betterness_ranks = np.array([np.sum(col <= colmat, axis=1) / len(col) for col in colmat], dtype=float).T
     diff_mat = np.vstack((diff_aids, diff_rank.T)).T
     col_lbls = list(chain(['qaid'], map(lambda x: 'cfg%d_rank' % x, range(nConfig))))
     col_type  = list(chain([int], [int] * nConfig))
@@ -45,8 +45,8 @@ def print_latexsum(ibs, testres, verbose=True):
         testres (?):
 
     CommandLine:
-        python -m ibeis.expt.experiment_printres --exec-print_latexsum
-        python -m ibeis.scripts.gen_cand_expts --exec-gen_script
+        python -m ibeis.expt.experiment_printres print_latexsum
+        python -m ibeis.scripts.gen_cand_expts gen_script
 
         python -m ibeis --tf print_latexsum -t candidacy --db PZ_Master0 -a controlled --rank-lt-list=1,5,10,100
         python -m ibeis --tf print_latexsum -t candidacy --db PZ_MTEST -a controlled --rank-lt-list=1,5,10,100
@@ -130,8 +130,8 @@ def print_results(ibs, testres, **kwargs):
             default:lnbnn_on=False,normonly_on=True
 
     CommandLine:
-        python -m ibeis.expt.experiment_printres --test-print_results
-        utprof.py -m ibeis.expt.experiment_printres --test-print_results
+        python -m ibeis.expt.experiment_printres print_results
+        utprof.py -m ibeis.expt.experiment_printres print_results
 
     Example:
         >>> # DISABLE_DOCTEST

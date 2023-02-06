@@ -189,7 +189,7 @@ def detect_gid_list_with_species(ibs, gid_list, species, downsample=True,
         iter
 
     CommandLine:
-        python -m ibeis.algo.detect.randomforest --test-detect_gid_list_with_species
+        python -m ibeis.algo.detect.randomforest detect_gid_list_with_species
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -322,7 +322,7 @@ def _get_models(ibs, species, modeldir='default', cfg_override=True, verbose=VER
         ?: fpath_list
 
     CommandLine:
-        python -m ibeis.algo.detect.randomforest --test-_get_models
+        python -m ibeis.algo.detect.randomforest _get_models
 
     Example:
         >>> # xdoctest: +SKIP

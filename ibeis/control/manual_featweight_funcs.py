@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function
 import utool as ut
 from ibeis.control import controller_inject
 print, rrr, profile = ut.inject2(__name__)
@@ -26,7 +24,7 @@ def get_annot_fgweights(ibs, aid_list, config2_=None, ensure=True):
         >>> from ibeis.control.manual_featweight_funcs import *  # NOQA
         >>> import ibeis
         >>> import numpy as np
-        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> aid_list = [1, 2]
         >>> config2_ = None
         >>> ensure = True

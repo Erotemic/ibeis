@@ -2,7 +2,7 @@
 # -*- mode: python -*-
 """
 CommandLine:
-    python %CODE_DIR%/ibeis/_installers/ibeis_pyinstaller_data_helper.py --test-get_data_list
+    python %CODE_DIR%/ibeis/_installers/ibeis_pyinstaller_data_helper.py get_data_list
 
 """
 from __future__ import absolute_import, division, print_function
@@ -139,7 +139,7 @@ def get_hidden_imports():
 def get_data_list():
     r"""
     CommandLine:
-        python ~/code/ibeis/_installers/ibeis_pyinstaller_data_helper.py --test-get_data_list
+        python ~/code/ibeis/_installers/ibeis_pyinstaller_data_helper.py get_data_list
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -367,7 +367,7 @@ def get_data_list():
 if __name__ == '__main__':
     """
     CommandLine:
-        python ~/code/ibeis/_installers/ibeis_pyinstaller_data_helper.py --test-get_data_list
+        python ~/code/ibeis/_installers/ibeis_pyinstaller_data_helper.py get_data_list
         python ~/code/ibeis/_installers/ibeis_pyinstaller_data_helper.py
         python ~/code/ibeis/_installers/ibeis_pyinstaller_data_helper.py --allexamples
         python ~/code/ibeis/_installers/ibeis_pyinstaller_data_helper.py --allexamples --noface --nosrc

@@ -1,2 +1,2 @@
-#!/bin/bash
-xdoctest ibeis --style=google all
+#!/usr/bin/env bash
+xdoctest ibeis --style=google all "$@"

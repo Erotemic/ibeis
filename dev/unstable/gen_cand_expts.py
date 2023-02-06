@@ -3,7 +3,7 @@
 CommandLine:
 
     # Run many experiments
-    python -m ibeis.scripts.gen_cand_expts --exec-generate_all --full
+    python -m ibeis.scripts.gen_cand_expts generate_all --full
     ./experiments_overnight.sh
 
     # Database information
@@ -16,12 +16,12 @@ CommandLine:
     python -m ibeis --tf run_expt -t default -a ctrl --db NNP_Master3 --acfginfo
 
     # Regen Figures
-    python -m ibeis.scripts.gen_cand_expts --exec-parse_latex_comments_for_commmands
+    python -m ibeis.scripts.gen_cand_expts parse_latex_comments_for_commmands
     ./regen_figdef_expt.sh
 
 
     # Print all annotation configs that will be used
-    python -m ibeis.scripts.gen_cand_expts --exec-inspect_annotation_configs --full
+    python -m ibeis.scripts.gen_cand_expts inspect_annotation_configs --full
     sh experiment_inspect_acfg.sh
 
 """
@@ -65,9 +65,9 @@ ACFG_OPTION_VARYPERNAME = ['varypername:qsize=500']
 def generate_all():
     r"""
     CommandLine:
-        python -m ibeis.scripts.gen_cand_expts --exec-generate_all --vim
-        python -m ibeis.scripts.gen_cand_expts --exec-generate_all
-        python -m ibeis.scripts.gen_cand_expts --exec-generate_all --full
+        python -m ibeis.scripts.gen_cand_expts generate_all --vim
+        python -m ibeis.scripts.gen_cand_expts generate_all
+        python -m ibeis.scripts.gen_cand_expts generate_all --full
         ./experiments_overnight.sh
 
     Example:
@@ -78,7 +78,7 @@ def generate_all():
     #script_names = ['sh ' + func()[0] for func in TEST_GEN_FUNCS]
     script_lines = ut.flatten([
         ['\n\n### ' + ut.get_funcname(func),
-         '# python -m ibeis.scripts.gen_cand_expts --exec-' +
+         '# python -m ibeis.scripts.gen_cand_expts ' +
          ut.get_funcname(func)] + make_standard_test_scripts(func())[2]
         for func in TEST_GEN_FUNCS])
     fname, script, line_list = write_script_lines(script_lines, 'experiments_overnight.sh')
@@ -90,31 +90,31 @@ def generate_all():
 def database_intersection_test():
     """
     # PZ_FlankHack is a pure subset of PZ_Master0, but there are minor changes between them
-    python -m ibeis.dbio.export_subset --exec-check_database_overlap --db1=PZ_FlankHack --db2=PZ_Master0  # NOQA
+    python -m ibeis.dbio.export_subset check_database_overlap --db1=PZ_FlankHack --db2=PZ_Master0  # NOQA
 
     # PZ_MTEST is also a subset of PZ_Master0 with minor changes
-    python -m ibeis.dbio.export_subset --exec-check_database_overlap --db1=PZ_MTEST --db2=PZ_Master0  # NOQA
+    python -m ibeis.dbio.export_subset check_database_overlap --db1=PZ_MTEST --db2=PZ_Master0  # NOQA
 
     # NNP_Master3 and PZ_Master0 are disjoint
-    python -m ibeis.dbio.export_subset --exec-check_database_overlap --db1=NNP_Master3 --db2=PZ_Master0  # NOQA
+    python -m ibeis.dbio.export_subset check_database_overlap --db1=NNP_Master3 --db2=PZ_Master0  # NOQA
 
-    python -m ibeis.dbio.export_subset --exec-check_database_overlap --db1=PZ_Master1 --db2=PZ_Master0  # NOQA
+    python -m ibeis.dbio.export_subset check_database_overlap --db1=PZ_Master1 --db2=PZ_Master0  # NOQA
     """
     pass
 
 
 def generate_dbinfo_table():
     """
-    python -m ibeis.other.dbinfo --test-latex_dbstats --dblist PZ_Master0 PZ_FlankHack PZ_MTEST NNP_Master3 GZ_ALL NNP_MasterGIRM_core --show  # NOQA
+    python -m ibeis.other.dbinfo latex_dbstats --dblist PZ_Master0 PZ_FlankHack PZ_MTEST NNP_Master3 GZ_ALL NNP_MasterGIRM_core --show  # NOQA
 
     FIXME: Old database should not be converted to left
-    python -m ibeis.other.dbinfo --test-latex_dbstats --dblist PZ_Master1 --show
-    python -m ibeis.other.dbinfo --test-latex_dbstats --dblist PZ_Master0 PZ_FlankHack PZ_MTEST NNP_Master3 GZ_ALL NNP_MasterGIRM_core --show  # NOQA
-    python -m ibeis.other.dbinfo --test-latex_dbstats --dblist PZ_MTEST --show
-    python -m ibeis.other.dbinfo --test-latex_dbstats --dblist GZ_Master0 --show
-    python -m ibeis.other.dbinfo --test-latex_dbstats --dblist GIR_Tanya --show
-    python -m ibeis.other.dbinfo --test-latex_dbstats --dblist LF_WEST_POINT_OPTIMIZADAS LF_OPTIMIZADAS_NI_V_E LF_Bajo_bonito --show  # NOQA
-    python -m ibeis.other.dbinfo --test-latex_dbstats --dblist JAG_Kieryn JAG_Kelly --show
+    python -m ibeis.other.dbinfo latex_dbstats --dblist PZ_Master1 --show
+    python -m ibeis.other.dbinfo latex_dbstats --dblist PZ_Master0 PZ_FlankHack PZ_MTEST NNP_Master3 GZ_ALL NNP_MasterGIRM_core --show  # NOQA
+    python -m ibeis.other.dbinfo latex_dbstats --dblist PZ_MTEST --show
+    python -m ibeis.other.dbinfo latex_dbstats --dblist GZ_Master0 --show
+    python -m ibeis.other.dbinfo latex_dbstats --dblist GIR_Tanya --show
+    python -m ibeis.other.dbinfo latex_dbstats --dblist LF_WEST_POINT_OPTIMIZADAS LF_OPTIMIZADAS_NI_V_E LF_Bajo_bonito --show  # NOQA
+    python -m ibeis.other.dbinfo latex_dbstats --dblist JAG_Kieryn JAG_Kelly --show
     """
     pass
 
@@ -122,7 +122,7 @@ def generate_dbinfo_table():
 def parse_latex_comments_for_commmands():
     r"""
     CommandLine:
-        python -m ibeis.scripts.gen_cand_expts --exec-parse_latex_comments_for_commmands
+        python -m ibeis.scripts.gen_cand_expts parse_latex_comments_for_commmands
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -187,8 +187,8 @@ def parse_latex_comments_for_commmands():
 def inspect_annotation_configs():
     r"""
     CommandLine:
-        python -m ibeis.scripts.gen_cand_expts --exec-inspect_annotation_configs
-        python -m ibeis.scripts.gen_cand_expts --exec-inspect_annotation_configs --full
+        python -m ibeis.scripts.gen_cand_expts inspect_annotation_configs
+        python -m ibeis.scripts.gen_cand_expts inspect_annotation_configs --full
 
     Example:
         >>> # SCRIPT
@@ -212,7 +212,7 @@ def precompute_data():
     """
     Ensure features and such are computed
     CommandLine:
-        python -m ibeis.scripts.gen_cand_expts --exec-precompute_data
+        python -m ibeis.scripts.gen_cand_expts precompute_data
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -220,7 +220,7 @@ def precompute_data():
         >>> make_standard_test_scripts(precompute_data())
     """
     #basecmd = 'python -m ibeis.expt.experiment_printres
-    #--exec-print_latexsum --rank-lt-list=1,5,10,100 '
+    #print_latexsum --rank-lt-list=1,5,10,100 '
     varydict = ut.odict([
         ('preload_flags', [
             #'--preload-chip',
@@ -245,7 +245,7 @@ def experiments_baseline():
     Generates the experiments we are doing on invariance
 
     CommandLine:
-        python -m ibeis.scripts.gen_cand_expts --exec-experiments_baseline
+        python -m ibeis.scripts.gen_cand_expts experiments_baseline
         ./experiment_baseline.sh
 
     Example:
@@ -270,8 +270,8 @@ def experiments_invariance():
     Generates the experiments we are doing on invariance
 
     CommandLine:
-        python -m ibeis.scripts.gen_cand_expts --exec-experiments_invariance
-        python -m ibeis.scripts.gen_cand_expts --exec-experiments_invariance --full
+        python -m ibeis.scripts.gen_cand_expts experiments_invariance
+        python -m ibeis.scripts.gen_cand_expts experiments_invariance --full
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -296,11 +296,11 @@ def experiments_namescore():
     Generates the experiments we are doing on invariance
 
     CommandLine:
-        python -m ibeis.scripts.gen_cand_expts --exec-experiments_namescore --full
+        python -m ibeis.scripts.gen_cand_expts experiments_namescore --full
         ./experiment_namescore.sh
 
-        python -m ibeis.scripts.gen_cand_expts --exec-experiments_namescore --full
-        python -m ibeis.expt.experiment_helpers --exec-get_annotcfg_list:0 -a candidacy_namescore --db PZ_Master1  # NOQA
+        python -m ibeis.scripts.gen_cand_expts experiments_namescore --full
+        python -m ibeis.expt.experiment_helpers get_annotcfg_list:0 -a candidacy_namescore --db PZ_Master1  # NOQA
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -320,8 +320,8 @@ def experiments_namescore():
 def experiments_k():
     """
     CommandLine:
-        python -m ibeis.scripts.gen_cand_expts --exec-experiments_k
-        python -m ibeis.scripts.gen_cand_expts --exec-experiments_k --full
+        python -m ibeis.scripts.gen_cand_expts experiments_k
+        python -m ibeis.scripts.gen_cand_expts experiments_k --full
         ./experiment_k.sh
 
     Example:
@@ -344,7 +344,7 @@ def experiments_viewpoint():
     Generates the experiments we are doing on invariance
 
     CommandLine:
-        python -m ibeis.scripts.gen_cand_expts --exec-experiments_viewpoint --full
+        python -m ibeis.scripts.gen_cand_expts experiments_viewpoint --full
         ./experiment_view.sh
 
     Example:
@@ -353,7 +353,7 @@ def experiments_viewpoint():
         >>> make_standard_test_scripts(experiments_viewpoint())
     """
     #basecmd = 'python -m ibeis.expt.experiment_printres
-    #--exec-print_latexsum --rank-lt-list=1,5,10,100 '
+    #print_latexsum --rank-lt-list=1,5,10,100 '
     varydict = ut.odict([
         ('acfg_name', ['viewpoint_compare']),
         ('cfg_name', ['default']),
@@ -403,10 +403,10 @@ def get_results_command(expt_name, media_name):
         static_flags += ' --figsize=12,4'
         static_flags += ' --adjust=.1,.1,.01,.01'
     elif media_name == 'preload':
-        margs = 'ibeis.expt.precomputer --exec-precfg'
+        margs = 'ibeis.expt.precomputer precfg'
         dynamic_flags_ = ' {preload_flags}'
     elif media_name == 'inspect_acfg':
-        margs = 'ibeis.expt.experiment_helpers --exec-get_annotcfg_list:0'
+        margs = 'ibeis.expt.experiment_helpers get_annotcfg_list:0'
         dynamic_flags = '-a {acfg_name} --db {dbname} '
     else:
         raise NotImplementedError('media_name=%r' % (media_name,))
@@ -489,7 +489,7 @@ def write_script_lines(line_list, fname):
 def gen_dbranks_tables():
     r"""
     CommandLine:
-        python -m ibeis.scripts.gen_cand_expts --exec-gen_dbranks_tables
+        python -m ibeis.scripts.gen_cand_expts gen_dbranks_tables
 
     Example:
         >>> # SCRIPT
@@ -500,8 +500,8 @@ def gen_dbranks_tables():
     tex_file = ut.codeblock(  # NOQA
         r'''
         \begin{comment}
-        python -c "import utool as ut; ut.write_modscript_alias('ExptPrint.sh', 'ibeis.expt.experiment_printres --exec-print_latexsum')"
-        python -c "import utool as ut; ut.write_modscript_alias('DrawRanks.sh', 'python -m ibeis.expt.experiment_drawing --exec-draw_rank_cmc')"
+        python -c "import utool as ut; ut.write_modscript_alias('ExptPrint.sh', 'ibeis.expt.experiment_printres print_latexsum')"
+        python -c "import utool as ut; ut.write_modscript_alias('DrawRanks.sh', 'python -m ibeis.expt.experiment_drawing draw_rank_cmc')"
         \end{comment}
         ''')
 

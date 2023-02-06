@@ -1,9 +1,7 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 Exports subset of an IBEIS database to a new IBEIS database
 """
-from __future__ import absolute_import, division, print_function
 import utool as ut
 from ibeis.other import ibsfuncs
 from ibeis import constants as const
@@ -51,7 +49,7 @@ def merge_databases(ibs_src, ibs_dst, rowid_subsets=None, localize_images=True):
     FIXME: annotmatch table
 
     CommandLine:
-        python -m ibeis --test-merge_databases
+        python -m ibeis merge_databases
 
         python -m ibeis merge_databases:0 --db1 LF_OPTIMIZADAS_NI_V_E --db2 LF_ALL
         python -m ibeis merge_databases:0 --db1 LF_WEST_POINT_OPTIMIZADAS --db2 LF_ALL
@@ -150,14 +148,14 @@ def export_names(ibs, nid_list, new_dbpath=None):
         nid_list (list):
 
     CommandLine:
-        python -m ibeis.dbio.export_subset --test-export_names
+        python -m ibeis.dbio.export_subset export_names
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.dbio.export_subset import *  # NOQA
         >>> import ibeis
         >>> # build test data
-        >>> ibs = ibeis.opendb('testdb2')
+        >>> ibs = ibeis.opendb('testdb1')
         >>> ibs.delete_empty_nids()
         >>> nid_list = ibs._get_all_known_nids()[0:2]
         >>> # execute function
@@ -351,7 +349,7 @@ def export_data(ibs, gid_list, aid_list, nid_list, new_dbpath=None):
 def slow_merge_test():
     r"""
     CommandLine:
-        python -m ibeis.dbio.export_subset --test-slow_merge_test
+        python -m ibeis.dbio.export_subset slow_merge_test
 
     Example:
         >>> # SLOW_DOCTEST
@@ -950,7 +948,7 @@ def find_overlap_annots(ibs1, ibs2, method='annots'):
 def check_database_overlap(ibs1, ibs2):
     """
     CommandLine:
-        python -m ibeis.other.dbinfo --test-get_dbinfo:1 --db PZ_MTEST
+        python -m ibeis.other.dbinfo get_dbinfo:1 --db PZ_MTEST
         dev.py -t listdbs
         python -m ibeis.dbio.export_subset check_database_overlap
         --db PZ_MTEST --db2 PZ_MOTHERS
@@ -1118,7 +1116,7 @@ def check_database_overlap(ibs1, ibs2):
         # Show change in viewpoints
         if len(colx2_rowids[yawx]) > 0:
             vp_category_diff = ibsfuncs.viewpoint_diff(
-                sinfo1_arr[yawx], sinfo2_arr[yawx]).astype(np.float)
+                sinfo1_arr[yawx], sinfo2_arr[yawx]).astype(float)
             # Look for category changes
             #any_diff = np.floor(vp_category_diff) > 0
             #_xs    = np.nonzero(any_diff)[0]

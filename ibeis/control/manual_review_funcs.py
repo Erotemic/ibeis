@@ -137,7 +137,7 @@ def add_review(ibs, aid_1_list, aid_2_list, evidence_decision_list,
         URL:    /api/review/
 
     CommandLine:
-        python -m ibeis.control.manual_review_funcs --test-add_review
+        python -m ibeis.control.manual_review_funcs add_review
 
     Doctest:
         >>> import ibeis
@@ -338,7 +338,7 @@ def get_review_rowids_between(ibs, aids1, aids2=None, method=None):
     Doctest:
         >>> from ibeis.control.manual_review_funcs import *
         >>> import ibeis
-        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> ibs = ibeis.opendb('testdb1')
         >>> aids1 = aids2 = [1, 2, 3, 4, 5, 6]
         >>> rowids_between = ibs.get_review_rowids_between
         >>> ids1 = sorted(rowids_between(aids1, aids2, method=1))

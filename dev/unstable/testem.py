@@ -151,7 +151,7 @@ def random_test_annot(num_names=5, rng=np.random):
         return ut.random_sample(list_, 1, rng=rng)[0]
     view_to_ori = ut.map_dict_keys(lambda x: const.YAWALIAS[x], const.VIEWTEXT_TO_YAW_RADIANS)
     case = {
-        'nfeats': np.clip(rng.normal(1000, 300, size=1)[0], 0, np.inf).astype(np.int),
+        'nfeats': np.clip(rng.normal(1000, 300, size=1)[0], 0, np.inf).astype(int),
         'name': sampleone(valid_names),
         'view': sampleone(valid_views),
         'qual': sampleone(valid_quals),
@@ -244,7 +244,7 @@ def make_test_pairwise_fetaures(case1, case2, label, rng):
     sigma_fs = .1 if label == 1 else .1
     num_top = 4
     max_feats = min(case1['nfeats'], case2['nfeats'])
-    num_matches = np.clip(rng.normal(mu_fm, sigma_fm, size=1)[0], num_top + 1, max_feats).astype(np.int),
+    num_matches = np.clip(rng.normal(mu_fm, sigma_fm, size=1)[0], num_top + 1, max_feats).astype(int),
     perb = np.abs(rng.normal(.001, .001, size=num_matches))
     sift_dists = np.clip(rng.normal(mu_fs, sigma_fs, size=num_matches), 0, 1) + perb
     sortx = np.argsort(sift_dists)

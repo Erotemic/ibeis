@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function, unicode_literals  # NOQA
 from os.path import basename, join, splitext, exists, isdir, islink, abspath
 import pandas as pd
 import re
@@ -390,7 +388,7 @@ def find_minority_class_ccs(infr):
     # Finds ccs involved in photobombs and incomparble cases
     pb_edges = [
         edge for edge, tags in infr.gen_edge_attrs('tags')
-        if 'photobomb'in tags
+        if 'photobomb' in tags
     ]
     incomp_edges = list(infr.incomp_graph.edges())
     minority_edges = pb_edges + incomp_edges
@@ -429,26 +427,25 @@ def test_mcc():
 
 
 class ExpandingSample(ut.NiceRepr):
+    #         nid = enc.nids[0]
+    #         if len(nid_to_splits[nid]) == 0:
+    #             chosen = pyrng.sample(enc.aids, min(len(enc), 2))
+    #             nid_to_splits[nid].extend(chosen)
 
-        #         nid = enc.nids[0]
-        #         if len(nid_to_splits[nid]) == 0:
-        #             chosen = pyrng.sample(enc.aids, min(len(enc), 2))
-        #             nid_to_splits[nid].extend(chosen)
-
-        #     qaids = []
-        #     dname_encs = []
-        #     confusor_pool = []
-        #     for nid, aids_ in nid_to_splits.items():
-        #         if len(aids_) < 2:
-        #             confusor_pool.extend(aids_)
-        #         else:
-        #             pyrng.shuffle(aids_)
-        #             qaids.append(aids_[0])
-        #             dname_encs.append([[aids_[1]]])
-        #     confusor_pool = ut.shuffle(confusor_pool, rng=0)
-        #     self = ExpandingSample(qaids, dname_encs, confusor_pool)
-        #     query_samples.append(self)
-        # return query_samples
+    #     qaids = []
+    #     dname_encs = []
+    #     confusor_pool = []
+    #     for nid, aids_ in nid_to_splits.items():
+    #         if len(aids_) < 2:
+    #             confusor_pool.extend(aids_)
+    #         else:
+    #             pyrng.shuffle(aids_)
+    #             qaids.append(aids_[0])
+    #             dname_encs.append([[aids_[1]]])
+    #     confusor_pool = ut.shuffle(confusor_pool, rng=0)
+    #     self = ExpandingSample(qaids, dname_encs, confusor_pool)
+    #     query_samples.append(self)
+    # return query_samples
     def __init__(sample, qaids, dname_encs, confusor_pool):
         sample.qaids = qaids
         sample.dname_encs = dname_encs
@@ -503,7 +500,7 @@ class ExpandingSample(ut.NiceRepr):
         if extra_dbsize_fracs is None:
             extra_dbsize_fracs = [1.]
         extra_fracs = np.array(extra_dbsize_fracs)
-        n_extra_list = np.unique(extra_fracs * n_extra_avail).astype(np.int)
+        n_extra_list = np.unique(extra_fracs * n_extra_avail).astype(int)
         daids_list = []
         info_list = []
         for n in n_extra_list:
@@ -605,7 +602,7 @@ class Tabular(object):
         return colfmt
 
     def _rectify_text(self, text):
-        text = text.replace('±', '\pm')
+        text = text.replace('±', r'\pm')
         # Put all numbers in math mode
         pat = (
             # ut.negative_lookbehind('[A-Za-z]') +
@@ -712,7 +709,7 @@ class Tabular(object):
         if tabular:
             table += '\n' + ut.indent(tabular)
         table += '\n' + ut.codeblock(
-            '''
+            r'''
             \end{{table}}
             ''').format()
         return table

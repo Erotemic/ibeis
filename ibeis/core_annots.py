@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """
 IBEIS CORE
 Defines the core dependency cache supported by the image analysis api
@@ -36,7 +34,7 @@ Needed Tables:
 
 
 CommandLine:
-    python -m ibeis.control.IBEISControl --test-show_depc_annot_graph --show
+    python -m ibeis.control.IBEISControl show_depc_annot_graph --show
 
 Setup:
     >>> from ibeis.core_annots import *  # NOQA
@@ -46,8 +44,6 @@ Setup:
     >>> depc = ibs.depc_annot
     >>> aid_list = ibs.get_valid_aids()[0:2]
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
-from six.moves import zip
 from vtool_ibeis import image_filters
 import dtool_ibeis
 import utool as ut
@@ -103,7 +99,7 @@ def compute_chipthumb(depc, aid_list, config=None):
         >>> # DISABLE_DOCTEST
         >>> from ibeis.core_annots import *  # NOQA
         >>> import ibeis
-        >>> defaultdb = 'PZ_MTEST'
+        >>> defaultdb = 'testdb1'
         >>> ibs = ibeis.opendb(defaultdb=defaultdb)
         >>> depc = ibs.depc_annot
         >>> config = ChipThumbConfig.from_argv_dict(dim_size=None)
@@ -536,8 +532,8 @@ def compute_annotmask(depc, aid_list, config=None):
         (uri, int, int): tup
 
     CommandLine:
-        python -m ibeis.core_annots --exec-compute_annotmask --show
-        python -m ibeis.core_annots --exec-compute_annotmask --show --edit
+        python -m ibeis.core_annots compute_annotmask --show
+        python -m ibeis.core_annots compute_annotmask --show --edit
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -618,7 +614,7 @@ class ProbchipConfig(dtool_ibeis.Config):
 
 
 ProbchipImgType = dtool_ibeis.ExternType(ut.partial(vt.imread, grayscale=True),
-                                   vt.imwrite, extern_ext='.png')
+                                         vt.imwrite, extern_ext='.png')
 
 
 @derived_attribute(
@@ -633,9 +629,9 @@ def compute_probchip(depc, aid_list, config=None):
     """ Computes probability chips using pyrf
 
     CommandLine:
-        python -m ibeis.core_annots --test-compute_probchip --nocnn --show --db PZ_MTEST
-        python -m ibeis.core_annots --test-compute_probchip --show --fw_detector=cnn
-        python -m ibeis.core_annots --test-compute_probchip --show --fw_detector=rf --smooth_thresh=None
+        python -m ibeis.core_annots compute_probchip --nocnn --show --db PZ_MTEST
+        python -m ibeis.core_annots compute_probchip --show --fw_detector=cnn
+        python -m ibeis.core_annots compute_probchip --show --fw_detector=rf --smooth_thresh=None
 
     Example1:
         >>> # DISABLE_DOCTEST
@@ -756,7 +752,7 @@ def empty_probchips(inputchip_fpaths):
     # HACK for unknown species
     for fpath in inputchip_fpaths:
         size = vt.open_image_size(fpath)
-        probchip = np.ones(size[::-1], dtype=np.float)
+        probchip = np.ones(size[::-1], dtype=float)
         yield probchip
 
 
@@ -815,7 +811,7 @@ def postprocess_mask(mask, thresh=20, kernel_size=20):
         ndarray: mask2
 
     CommandLine:
-        python -m ibeis.core_annots --exec-postprocess_mask --cnn --show --aid=1 --db PZ_MTEST
+        python -m ibeis.core_annots postprocess_mask --cnn --show --aid=1 --db PZ_MTEST
         python -m ibeis --tf postprocess_mask --cnn --show --db PZ_MTEST --adapteq=True
 
     SeeAlso:
@@ -1027,8 +1023,8 @@ def compute_feats(depc, cid_list, config=None):
         ~/code/ibeis_cnn/ibeis_cnn/_plugin.py
 
     CommandLine:
-        python -m ibeis.core_annots --test-compute_feats:0 --show
-        python -m ibeis.core_annots --test-compute_feats:1
+        python -m ibeis.core_annots compute_feats:0 --show
+        python -m ibeis.core_annots compute_feats:1
 
     Doctest:
         >>> # DISABLE_DOCTEST
@@ -1054,7 +1050,7 @@ def compute_feats(depc, cid_list, config=None):
         >>> # DISABLE_DOCTEST
         >>> # TIMING
         >>> from ibeis.core_annots import *  # NOQA
-        >>> ibs, depc, aid_list = testdata_core('PZ_MTEST', 100)
+        >>> ibs, depc, aid_list = testdata_core('testdb1', 100)
         >>> #config = {'dim_size': 450}
         >>> config = {}
         >>> cid_list = depc.get_rowids('chips', aid_list, config=config)
@@ -1134,9 +1130,9 @@ def gen_feat_worker(chip_fpath, probchip_fpath, hesaff_params):
         tuple: (None, kpts, vecs)
 
     CommandLine:
-        python -m ibeis.core_annots --exec-gen_feat_worker --show
-        python -m ibeis.core_annots --exec-gen_feat_worker --show --aid 1988 --db GZ_Master1 --affine-invariance=False --scale_max=30
-        python -m ibeis.core_annots --exec-gen_feat_worker --show --aid 1988 --db GZ_Master1 --affine-invariance=False --maskmethod=None  --scale_max=30
+        python -m ibeis.core_annots gen_feat_worker --show
+        python -m ibeis.core_annots gen_feat_worker --show --aid 1988 --db GZ_Master1 --affine-invariance=False --scale_max=30
+        python -m ibeis.core_annots gen_feat_worker --show --aid 1988 --db GZ_Master1 --affine-invariance=False --maskmethod=None  --scale_max=30
 
     Doctest:
         >>> from ibeis.core_annots import *  # NOQA
@@ -1347,7 +1343,7 @@ def compute_pairwise_vsone(depc, qaids, daids, config):
     Doctest:
         >>> from ibeis.core_annots import *  # NOQA
         >>> import ibeis
-        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> ibs = ibeis.opendb('testdb1')
         >>> match_config = ut.hashdict({})
         >>> qaids = [1, 4, 2]
         >>> daids = [2, 5, 3]
@@ -1521,8 +1517,8 @@ def compute_neighbor_index(depc, fids_list, config):
         config (dtool_ibeis.Config):
 
     CommandLine:
-        python -m ibeis.core_annots --exec-compute_neighbor_index --show
-        python -m ibeis.control.IBEISControl --test-show_depc_annot_table_input --show --tablename=neighbor_index
+        python -m ibeis.core_annots compute_neighbor_index --show
+        python -m ibeis.control.IBEISControl show_depc_annot_table_input --show --tablename=neighbor_index
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -1582,8 +1578,8 @@ if testmode:
             config (dtool_ibeis.Config):
 
         CommandLine:
-            python -m ibeis.core_annots --exec-compute_feature_neighbors --show
-            python -m ibeis.control.IBEISControl --test-show_depc_annot_table_input --show --tablename=feat_neighbs
+            python -m ibeis.core_annots compute_feature_neighbors --show
+            python -m ibeis.control.IBEISControl show_depc_annot_table_input --show --tablename=feat_neighbs
 
         Example:
             >>> # DISABLE_DOCTEST
@@ -1687,7 +1683,7 @@ def compute_classifications(depc, aid_list, config=None):
         >>> # DISABLE_DOCTEST
         >>> from ibeis.core_images import *  # NOQA
         >>> import ibeis
-        >>> defaultdb = 'PZ_MTEST'
+        >>> defaultdb = 'testdb1'
         >>> ibs = ibeis.opendb(defaultdb=defaultdb)
         >>> depc = ibs.depc_image
         >>> gid_list = ibs.get_valid_gids()[0:8]
@@ -1749,7 +1745,7 @@ def compute_labels_annotations(depc, aid_list, config=None):
         >>> # DISABLE_DOCTEST
         >>> from ibeis.core_images import *  # NOQA
         >>> import ibeis
-        >>> defaultdb = 'PZ_MTEST'
+        >>> defaultdb = 'testdb1'
         >>> ibs = ibeis.opendb(defaultdb=defaultdb)
         >>> depc = ibs.depc_annot
         >>> aid_list = ibs.get_valid_aids()[0:8]
@@ -1806,7 +1802,7 @@ def compute_aoi2(depc, aid_list, config=None):
         >>> # DISABLE_DOCTEST
         >>> from ibeis.core_images import *  # NOQA
         >>> import ibeis
-        >>> defaultdb = 'PZ_MTEST'
+        >>> defaultdb = 'testdb1'
         >>> ibs = ibeis.opendb(defaultdb=defaultdb)
         >>> depc = ibs.depc_annot
         >>> aid_list = ibs.get_valid_aids()[0:8]

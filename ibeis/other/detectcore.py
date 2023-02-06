@@ -67,7 +67,7 @@ def export_to_xml(ibs, species_list, species_mapping=None, offset='auto', enforc
         # Rotate and transform vertices
         xyz_pts = vt.add_homogenous_coordinate(np.array(verts).T)
         trans_pts = vt.remove_homogenous_coordinate(R.dot(xyz_pts))
-        new_verts = np.round(trans_pts).astype(np.int).T.tolist()
+        new_verts = np.round(trans_pts).astype(int).T.tolist()
         x_points = [pt[0] for pt in new_verts]
         y_points = [pt[1] for pt in new_verts]
         xmin = int(min(x_points) * decrease)
@@ -392,7 +392,7 @@ def export_to_coco(ibs, species_list, species_mapping=None, target_size=1200,
             verts = vt.verts_from_bbox(bbox, close=True)
             xyz_pts = vt.add_homogenous_coordinate(np.array(verts).T)
             trans_pts = vt.remove_homogenous_coordinate(R.dot(xyz_pts))
-            new_verts = np.round(trans_pts).astype(np.int).T.tolist()
+            new_verts = np.round(trans_pts).astype(int).T.tolist()
 
             x_points = [int(np.around(pt[0] * decrease)) for pt in new_verts]
             y_points = [int(np.around(pt[1] * decrease)) for pt in new_verts]
@@ -601,7 +601,7 @@ def visualize_pascal_voc_dataset(ibs, dataset_path, num_examples=30, randomize=F
         write (bool, optional): if to display or write the files
 
     CommandLine:
-        python -m ibeis.other.detectcore --test-visualize_pascal_voc_dataset
+        python -m ibeis.other.detectcore visualize_pascal_voc_dataset
 
     Example:
         >>> # DISABLE_DOCTEST

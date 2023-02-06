@@ -1,13 +1,11 @@
-# -*- coding: utf-8 -*-
 """
 python -c "import utool as ut; ut.write_modscript_alias('Tgen.sh', 'ibeis.templates.template_generator')"
 sh Tgen.sh --key feat --Tcfg with_setters=False with_getters=True  with_adders=True --modfname manual_feat_funcs
 sh Tgen.sh --key feat --Tcfg with_deleters=True --autogen_modname manual_feat_funcs
 """
-from __future__ import absolute_import, division, print_function
-import six  # NOQA
 from ibeis.control.accessor_decors import (getter_1to1, getter_1toM, deleter)
 import utool as ut
+from ibeis.util import util_decor
 from ibeis.control import controller_inject
 print, rrr, profile = ut.inject2(__name__)
 
@@ -42,8 +40,8 @@ def delete_annot_feats(ibs, aid_list, config2_=None):
         leaf = feat
 
     CommandLine:
-        python -m ibeis.control.manual_feat_funcs --test-delete_annot_feats
-        python -m ibeis.control.manual_feat_funcs --test-delete_annot_feats --verb-control
+        python -m ibeis.control.manual_feat_funcs delete_annot_feats
+        python -m ibeis.control.manual_feat_funcs delete_annot_feats --verb-control
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -86,7 +84,7 @@ def get_annot_feat_rowids(ibs, aid_list, ensure=True, eager=True, nInput=None,
 
 
 @register_ibs_method
-@ut.accepts_numpy
+@util_decor.accepts_numpy
 @getter_1toM
 #@cache_getter(const.ANNOTATION_TABLE, 'kpts')
 def get_annot_kpts(ibs, aid_list, ensure=True, eager=True, nInput=None,
@@ -103,12 +101,12 @@ def get_annot_kpts(ibs, aid_list, ensure=True, eager=True, nInput=None,
         kpts_list (list): annotation descriptor keypoints
 
     CommandLine:
-        python -m ibeis.control.manual_feat_funcs --test-get_annot_kpts --show
-        python -m ibeis.control.manual_feat_funcs --test-get_annot_kpts --show --darken .9
-        python -m ibeis.control.manual_feat_funcs --test-get_annot_kpts --show --darken .9 --verbose
-        python -m ibeis.control.manual_feat_funcs --test-get_annot_kpts --show --darken .9 --verbose --no-affine-invariance
-        python -m ibeis.control.manual_feat_funcs --test-get_annot_kpts --show --darken .9 --verbose --no-affine-invariance --scale_max=20
-        python -m ibeis.control.manual_feat_funcs --test-get_annot_kpts --show --feat_type=hesaff+siam128
+        python -m ibeis.control.manual_feat_funcs get_annot_kpts --show
+        python -m ibeis.control.manual_feat_funcs get_annot_kpts --show --darken .9
+        python -m ibeis.control.manual_feat_funcs get_annot_kpts --show --darken .9 --verbose
+        python -m ibeis.control.manual_feat_funcs get_annot_kpts --show --darken .9 --verbose --no-affine-invariance
+        python -m ibeis.control.manual_feat_funcs get_annot_kpts --show --darken .9 --verbose --no-affine-invariance --scale_max=20
+        python -m ibeis.control.manual_feat_funcs get_annot_kpts --show --feat_type=hesaff+siam128
         ipython -i -- --show --feat_type=hesaff+siam128
 
     Example:
@@ -179,7 +177,7 @@ def get_annot_num_feats(ibs, aid_list, ensure=True, eager=True, nInput=None,
         nFeats_list (list): num descriptors per annotation
 
     CommandLine:
-        python -m ibeis.control.manual_feat_funcs --test-get_annot_num_feats
+        python -m ibeis.control.manual_feat_funcs get_annot_num_feats
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -226,5 +224,5 @@ if __name__ == '__main__':
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    import xdoctest
+    xdoctest.doctest_module(__file__)
