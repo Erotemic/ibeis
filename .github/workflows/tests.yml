@@ -145,30 +145,6 @@ jobs:
         python -m ibeis --resetdbs
         python -m xdoctest $MOD_DPATH --style=google all
         echo "xdoctest command finished"
-        ls -al
-        # Move coverage file to a new name
-        #mv .coverage "../.coverage.$WORKSPACE_DNAME"
-        #echo "changing directory back to th repo root"
-        cd ..
-        ls -al
-    #- name: Combine coverage Linux
-    #  if: runner.os == 'Linux'
-    #  run: |-
-    #    echo '############ PWD'
-    #    pwd
-    #    ls -al
-    #    python -m pip install coverage[toml]
-    #    echo '############ combine'
-    #    coverage combine .
-    #    echo '############ XML'
-    #    coverage xml -o ./tests/coverage.xml
-    #    echo '############ FIND'
-    #    find . -name .coverage.*
-    #    find . -name coverage.xml
-    #- uses: codecov/codecov-action@v3
-    #  name: Codecov Upload
-    #  with:
-    #    file: ./tests/coverage.xml
   test_deploy:
     name: Uploading Test to PyPi
     runs-on: ubuntu-latest
