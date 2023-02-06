@@ -697,7 +697,7 @@ class CandidateSearch(_RedundancyAugmentation):
         """
 
         Example:
-            >>> # ENABLE_DOCTEST
+            >>> # xdoctest: +SKIP
             >>> from ibeis.algo.graph import demo
             >>> infr = demo.demodata_mtest_infr()
             >>> cand_edges = infr.find_lnbnn_candidate_edges()

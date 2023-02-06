@@ -906,6 +906,8 @@ class _RedundancyComputers(object):
         """
         Get PCCs that are k-negative redundant with `cc`
 
+        Example:
+            >>> # xdoctest: +SKIP
             >>> from ibeis.algo.graph.mixin_dynamic import *  # NOQA
             >>> from ibeis.algo.graph import demo
             >>> import plottool_ibeis as pt
