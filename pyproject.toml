@@ -6,7 +6,9 @@ ignore_missing_imports = true
 
 [tool.xcookie]
 # TODO: allow xcookie config to be specified in __init__.py
-tags = [ "erotemic", "purepy", "github", "cv2", "notypes", "nosrcdist", "ipfs"]
+tags = [ "erotemic", "purepy", "github", "cv2", "notypes", "nosrcdist",
+ #"ipfs"
+]
 mod_name = "ibeis"
 os = [ "linux" ]
 repo_name = "ibeis"

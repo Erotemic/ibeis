@@ -88,11 +88,6 @@ jobs:
     steps:
     - name: Checkout source
       uses: actions/checkout@v3
-    - name: Set up IPFS
-      uses: ibnesayeed/setup-ipfs@master
-      with:
-        ipfs_version: 0.14.0
-        run_daemon: true
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v2
       if: runner.os == 'Linux' && matrix.arch != 'auto'
