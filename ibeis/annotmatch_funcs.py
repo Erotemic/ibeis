@@ -1,9 +1,6 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import ubelt as ub  # NOQA
 import numpy as np
-from six.moves import zip, map, filter, range  # NOQA
 from functools import partial  # NOQA
 from ibeis.control import controller_inject
 print, rrr, profile = ut.inject2(__name__)

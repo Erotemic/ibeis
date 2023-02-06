@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import plottool_ibeis as pt
 import plottool_ibeis.plot_helpers as ph

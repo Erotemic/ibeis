@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Interaction for a single annoation.
 Also defines annotation context menu.
@@ -6,7 +5,6 @@ Also defines annotation context menu.
 CommandLine:
     python -m ibeis.viz.interact.interact_chip ishow_chip --show --aid 2
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import plottool_ibeis as pt  # NOQA
 from functools import partial

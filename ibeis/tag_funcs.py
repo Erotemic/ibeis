@@ -1,7 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function, unicode_literals
-import six
-from six.moves import zip, map
 import numpy as np
 import vtool_ibeis as vt
 import utool as ut
@@ -177,12 +173,12 @@ def rename_and_reduce_tags(ibs, annotmatch_rowids):
 
     tags_list_ = get_annotmatch_case_tags(ibs, annotmatch_rowids)
     def fix_tags(tags):
-        return {six.text_type(t.lower()) for t in tags}
+        return {str(t.lower()) for t in tags}
     tags_list = list(map(fix_tags, tags_list_))
 
     prop_mapping = {
-        six.text_type(key.lower()): val
-        for key, val in six.iteritems(PROP_MAPPING)
+        str(key.lower()): val
+        for key, val in PROP_MAPPING.items()
     }
 
     bad_tags = fix_tags(prop_mapping.keys())
@@ -509,7 +505,7 @@ def filterflags_general_tags(tags_list,
     import operator
 
     def fix_tags(tags):
-        return {six.text_type(t.lower()) for t in tags}
+        return {str(t.lower()) for t in tags}
 
     if logic is None:
         logic = 'and'
@@ -569,11 +565,11 @@ def filterflags_general_tags(tags_list,
 
     flags = execute_filter(
         flags, tags_list, any_startswith,
-        operator.gt, six.text_type.startswith)
+        operator.gt, str.startswith)
 
     flags = execute_filter(
         flags, tags_list, any_endswith,
-        operator.gt, six.text_type.endswith)
+        operator.gt, str.endswith)
 
     flags = execute_filter(
         flags, tags_list, any_match,
@@ -634,7 +630,7 @@ def get_annotmatch_case_tags(ibs, annotmatch_rowids):
     #        flag_list = ibs.get_annotmatch_prop(case, annotmatch_rowids)
     #        for tags in ut.compress(tags_list, flag_list):
     #            tags.append(case)
-    tags_list = [[six.text_type(t) for t in tags] for tags in tags_list]
+    tags_list = [[str(t) for t in tags] for tags in tags_list]
     #if ut.get_argval('--consol') or True:
     #    tags_list = consolodate_annotmatch_tags(tags_list)
     return tags_list
@@ -850,7 +846,7 @@ def append_annot_case_tags(ibs, aid_list, tag_list):
     """
     # Ensure each item is a list
     #tags_list = [tag if isinstance(tag, list) else [tag] for tag in tag_list]
-    if isinstance(tag_list, six.string_types):
+    if isinstance(tag_list, str):
         # Apply single tag to everybody
         tag_list = [tag_list] * len(aid_list)
     tags_list = [ut.ensure_iterable(tag) for tag in tag_list]
@@ -873,7 +869,7 @@ def set_annot_case_tags(ibs, aid_list, new_tags_list):
 
 @register_ibs_method
 def remove_annot_case_tags(ibs, aid_list, tag_list):
-    if isinstance(tag_list, six.string_types):
+    if isinstance(tag_list, str):
         # Apply single tag to everybody
         tag_list = [tag_list] * len(aid_list)
     tags_list = [ut.ensure_iterable(tag) for tag in tag_list]

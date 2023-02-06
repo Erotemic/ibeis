@@ -1,7 +1,4 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
-from six.moves import range
 from plottool_ibeis import draw_func2 as df2
 from plottool_ibeis.viz_featrow import draw_feat_row
 from ibeis.viz import viz_helpers as vh

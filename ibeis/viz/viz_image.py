@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function, unicode_literals
-from six.moves import zip
 import utool as ut
 import plottool_ibeis as pt
 from plottool_ibeis import plot_helpers as ph

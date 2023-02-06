@@ -44,8 +44,6 @@ Setup:
     >>> depc = ibs.depc_annot
     >>> aid_list = ibs.get_valid_aids()[0:2]
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
-from six.moves import zip
 from vtool_ibeis import image_filters
 import dtool_ibeis
 import utool as ut
