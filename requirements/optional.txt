@@ -15,11 +15,12 @@ pydot-ng>=2.0.0
 # Flask-CAS
 # -e git+https://github.com/cameronbwhite/Flask-CAS.git@master#egg=flask_cas
 
-Cython>=0.29.25   ; python_version < '4.0'  and python_version >= '3.11'    # Python 3.11+
-Cython>=0.29.25   ; python_version < '3.11' and python_version >= '3.10'    # Python 3.10
-Cython>=0.29.21   ; python_version < '3.10' and python_version >= '3.9'     # Python 3.9
-Cython>=0.29.14   ; python_version < '3.9'  and python_version >= '3.8'     # Python 3.8
-Cython>=0.28.3    ; python_version < '3.8'  and python_version >= '3.7'     # Python 3.7
-Cython>=0.25.2    ; python_version < '3.7'  and python_version >= '3.6'     # Python 3.6
+# We dont actually need Cython
+# Cython>=0.29.25   ; python_version < '4.0'  and python_version >= '3.11'    # Python 3.11+
+# Cython>=0.29.25   ; python_version < '3.11' and python_version >= '3.10'    # Python 3.10
+# Cython>=0.29.21   ; python_version < '3.10' and python_version >= '3.9'     # Python 3.9
+# Cython>=0.29.14   ; python_version < '3.9'  and python_version >= '3.8'     # Python 3.8
+# Cython>=0.28.3    ; python_version < '3.8'  and python_version >= '3.7'     # Python 3.7
+# Cython>=0.25.2    ; python_version < '3.7'  and python_version >= '3.6'     # Python 3.6
 
 jupyter>=1.0.0
