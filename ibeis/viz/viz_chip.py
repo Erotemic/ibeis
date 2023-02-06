@@ -50,7 +50,7 @@ def HARDCODE_SHOW_PB_PAIR():
 
 def testdata_showchip():
     import ibeis
-    ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+    ibs = ibeis.opendb(defaultdb='testdb1')
     aid_list = ut.get_argval(('--aids', '--aid'), type_=list, default=None)
     if aid_list is None:
         aid_list = ibs.get_valid_aids()[0:4]

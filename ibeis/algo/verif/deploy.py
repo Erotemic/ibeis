@@ -114,7 +114,7 @@ class Deployer(object):
 
             >>> from ibeis.algo.verif.vsone import *  # NOQA
             >>> params = dict(sample_method='random')
-            >>> pblm = OneVsOneProblem.from_empty('PZ_MTEST', **params)
+            >>> pblm = OneVsOneProblem.from_empty('testdb1', **params)
             >>> pblm.setup(with_simple=False)
             >>> task_key = pblm.primary_task_key
             >>> self = Deployer(dpath='.', pblm=pblm)
@@ -433,7 +433,7 @@ class Deployer(object):
         Example:
             >>> from ibeis.algo.verif.vsone import *  # NOQA
             >>> params = dict(sample_method='random')
-            >>> pblm = OneVsOneProblem.from_empty('PZ_MTEST', **params)
+            >>> pblm = OneVsOneProblem.from_empty('testdb1', **params)
             >>> pblm.setup(with_simple=False)
             >>> task_key = pblm.primary_task_key
             >>> self = Deployer(dpath='.', pblm=pblm)

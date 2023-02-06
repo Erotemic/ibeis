@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import utool as ut
 import vtool_ibeis as vt
 import numpy as np
@@ -13,10 +12,10 @@ def fix_annotation_orientation(ibs, min_percentage=0.95):
         python -m ibeis.scripts.fix_annotation_orientation_issue fix_annotation_orientation
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> import ibeis
         >>> from ibeis.scripts.fix_annotation_orientation_issue import *  # NOQA
-        >>> ibs = ibeis.opendb()
+        >>> ibs = ibeis.opendb('testdb1')
         >>> unfixable_gid_list = fix_annotation_orientation(ibs)
         >>> assert len(unfixable_gid_list) == 0
     """

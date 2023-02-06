@@ -706,7 +706,7 @@ def testdata_inva():
     """
     import ibeis
     qreq_ = ibeis.testdata_qreq_(
-        defaultdb='PZ_MTEST', a='default',
+        defaultdb='testdb1', a='default',
         p='default:proot=smk,nAssign=1,num_words=64')
     aids = qreq_.daids
     cls = InvertedAnnots

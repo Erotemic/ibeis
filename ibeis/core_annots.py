@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """
 IBEIS CORE
 Defines the core dependency cache supported by the image analysis api
@@ -103,7 +101,7 @@ def compute_chipthumb(depc, aid_list, config=None):
         >>> # DISABLE_DOCTEST
         >>> from ibeis.core_annots import *  # NOQA
         >>> import ibeis
-        >>> defaultdb = 'PZ_MTEST'
+        >>> defaultdb = 'testdb1'
         >>> ibs = ibeis.opendb(defaultdb=defaultdb)
         >>> depc = ibs.depc_annot
         >>> config = ChipThumbConfig.from_argv_dict(dim_size=None)
@@ -618,7 +616,7 @@ class ProbchipConfig(dtool_ibeis.Config):
 
 
 ProbchipImgType = dtool_ibeis.ExternType(ut.partial(vt.imread, grayscale=True),
-                                   vt.imwrite, extern_ext='.png')
+                                         vt.imwrite, extern_ext='.png')
 
 
 @derived_attribute(
@@ -1054,7 +1052,7 @@ def compute_feats(depc, cid_list, config=None):
         >>> # DISABLE_DOCTEST
         >>> # TIMING
         >>> from ibeis.core_annots import *  # NOQA
-        >>> ibs, depc, aid_list = testdata_core('PZ_MTEST', 100)
+        >>> ibs, depc, aid_list = testdata_core('testdb1', 100)
         >>> #config = {'dim_size': 450}
         >>> config = {}
         >>> cid_list = depc.get_rowids('chips', aid_list, config=config)
@@ -1347,7 +1345,7 @@ def compute_pairwise_vsone(depc, qaids, daids, config):
     Doctest:
         >>> from ibeis.core_annots import *  # NOQA
         >>> import ibeis
-        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> ibs = ibeis.opendb('testdb1')
         >>> match_config = ut.hashdict({})
         >>> qaids = [1, 4, 2]
         >>> daids = [2, 5, 3]
@@ -1687,7 +1685,7 @@ def compute_classifications(depc, aid_list, config=None):
         >>> # DISABLE_DOCTEST
         >>> from ibeis.core_images import *  # NOQA
         >>> import ibeis
-        >>> defaultdb = 'PZ_MTEST'
+        >>> defaultdb = 'testdb1'
         >>> ibs = ibeis.opendb(defaultdb=defaultdb)
         >>> depc = ibs.depc_image
         >>> gid_list = ibs.get_valid_gids()[0:8]
@@ -1749,7 +1747,7 @@ def compute_labels_annotations(depc, aid_list, config=None):
         >>> # DISABLE_DOCTEST
         >>> from ibeis.core_images import *  # NOQA
         >>> import ibeis
-        >>> defaultdb = 'PZ_MTEST'
+        >>> defaultdb = 'testdb1'
         >>> ibs = ibeis.opendb(defaultdb=defaultdb)
         >>> depc = ibs.depc_annot
         >>> aid_list = ibs.get_valid_aids()[0:8]
@@ -1806,7 +1804,7 @@ def compute_aoi2(depc, aid_list, config=None):
         >>> # DISABLE_DOCTEST
         >>> from ibeis.core_images import *  # NOQA
         >>> import ibeis
-        >>> defaultdb = 'PZ_MTEST'
+        >>> defaultdb = 'testdb1'
         >>> ibs = ibeis.opendb(defaultdb=defaultdb)
         >>> depc = ibs.depc_annot
         >>> aid_list = ibs.get_valid_aids()[0:8]

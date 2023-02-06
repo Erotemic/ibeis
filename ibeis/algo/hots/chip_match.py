@@ -2383,7 +2383,7 @@ class ChipMatch(_ChipMatchVisualization,
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.hots.chip_match import *  # NOQA
             >>> import ibeis
-            >>> cm, qreq_ = ibeis.testdata_cm('PZ_MTEST',
+            >>> cm, qreq_ = ibeis.testdata_cm('testdb1',
             >>>                               a='default:dindex=0:10,qindex=0:1',
             >>>                               t='best:sv=False')
             >>> idx_list = list(range(cm.num_daids))
@@ -2400,7 +2400,7 @@ class ChipMatch(_ChipMatchVisualization,
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.hots.chip_match import *  # NOQA
             >>> import ibeis
-            >>> cm, qreq_ = ibeis.testdata_cm('PZ_MTEST',
+            >>> cm, qreq_ = ibeis.testdata_cm('testdb1',
             >>>                               a='default:dindex=0:10,qindex=0:1',
             >>>                               t='best:SV=False')
             >>> idx_list = [0, 2]
@@ -2792,7 +2792,7 @@ def get_chipmatch_fname(qaid, qreq_, qauuid=None, cfgstr=None,
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.chip_match import *  # NOQA
         >>> qreq_, args = plh.testdata_pre('spatial_verification',
-        >>>                                defaultdb='PZ_MTEST', qaid_override=[18],
+        >>>                                defaultdb='testdb1', qaid_override=[2],
         >>>                                p='default:sqrd_dist_on=True')
         >>> cm_list = args.cm_list_FILT
         >>> cm = cm_list[0]

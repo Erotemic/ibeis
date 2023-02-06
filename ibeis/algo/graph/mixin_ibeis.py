@@ -207,7 +207,7 @@ class IBEISIO(object):
         Doctest:
             >>> from ibeis.algo.graph.mixin_ibeis import *  # NOQA
             >>> import ibeis
-            >>> infr = ibeis.AnnotInference('PZ_MTEST', aids=list(range(1, 10)),
+            >>> infr = ibeis.AnnotInference('testdb1', aids=list(range(1, 10)),
             >>>                             autoinit='annotmatch', verbose=4)
             >>> infr.add_feedback((6, 7), NEGTV, user_id='user:foobar')
             >>> infr.add_feedback((5, 8), NEGTV, tags=['photobomb'])

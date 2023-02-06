@@ -1,11 +1,9 @@
 """
 NEEDS CLEANUP
 """
-from __future__ import absolute_import, division, print_function
 from os.path import join
 import six
 import utool as ut
-from six.moves import range, zip, map  # NOQA
 from ibeis.algo.hots import _pipeline_helpers as plh  # NOQA
 from ibeis.algo.hots.neighbor_index import NeighborIndex, get_support_data
 (print, rrr, profile) = ut.inject2(__name__)
@@ -671,7 +669,7 @@ def testdata_nnindexer(dbname='testdb1', with_indexer=True, use_memcache=True):
     r"""
 
     Ignore:
-        >>> # ENABLE_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from ibeis.algo.hots.neighbor_index_cache import *  # NOQA
         >>> nnindexer, qreq_, ibs = testdata_nnindexer('PZ_Master1')
         >>> S = np.cov(nnindexer.idx2_vec.T)
@@ -681,6 +679,7 @@ def testdata_nnindexer(dbname='testdb1', with_indexer=True, use_memcache=True):
 
     Example:
         >>> # ENABLE_DOCTEST
+        >>> # xdoctest: +SKIP
         >>> from ibeis.algo.hots.neighbor_index_cache import *  # NOQA
         >>> nnindexer, qreq_, ibs = testdata_nnindexer()
     """
