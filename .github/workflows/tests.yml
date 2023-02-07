@@ -142,8 +142,8 @@ jobs:
         echo "Finding the path to the wheel"
         ls -al wheelhouse
         echo "Installing helpers"
+        pip install pip setuptools>=0.8 setuptools_scm wheel build -U
         pip install tomli pkginfo
-        pip install pip setuptools>=0.8 build -U
         export MOD_NAME=ibeis
         echo "MOD_NAME=$MOD_NAME"
         export WHEEL_FPATH=$(python -c "import pathlib; print(str(sorted(pathlib.Path('wheelhouse').glob('$MOD_NAME*.whl'))[-1]).replace(chr(92), chr(47)))")

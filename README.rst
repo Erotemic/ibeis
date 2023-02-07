@@ -5,14 +5,15 @@
 
 This project is a component of the WildMe / WildBook project: See https://github.com/WildbookOrg/
 
-NOTE: This IBEIS software is the result of my (Jon Crall's) PhD work. After I
-graduated, the image analysis components of IBEIS and the core HotSpotter
-program have been transferred and are now being developed by the WildMe
-organization. While this software is maintained and supported, it can only
-handle medium scale populations and its it GUI interface can be difficult to
-work with. If you have a larger population or the need for simpler and scalable
-web interfaces  please reach out to the WildMe project at services@wildme.org
-(more info: https://www.wildme.org/#/services/ ). 
+NOTE: This IBEIS software is the result of my (Jon Crall's) [PhD
+work](https://github.com/Erotemic/crall-thesis-2017). After I graduated, the
+image analysis components of IBEIS and the core HotSpotter program have been
+transferred and are now being developed by the WildMe organization. While this
+software is maintained and supported, it can only handle medium scale
+populations and its it GUI interface can be difficult to work with. If you have
+a larger population or the need for simpler and scalable web interfaces  please
+reach out to the WildMe project at services@wildme.org (more info:
+https://www.wildme.org/#/services/ ). 
 
 
 IBEIS - Image Analysis 
@@ -22,7 +23,7 @@ I.B.E.I.S. = Image Based Ecological Information System
 ------------------------------------------------------
 
 .. image:: http://i.imgur.com/TNCiEBe.png
-    :alt: "(Note: the rhino and wildebeest mathces may be dubious. Other species do work well though")
+    :alt: "(Note: the rhino and wildebeest matches may be dubious. Other species do work well though")
 
 
 Installation Instructions (updated 2020-Nov-01)
@@ -135,7 +136,7 @@ species an animal is, and where an animal is with the ultimate goal being to
 ask important why biological questions.  This This repo Image Analysis image
 analysis module of IBEIS. It is both a python module and standalone program. 
 
-Currently the system is build around and SQLite database, a PyQt4 / PyQt5 GUI,
+Currently the system is build around and SQLite database, a PyQt5 GUI,
 and matplotlib visualizations. Algorithms employed are: random forest species
 detection and localization, hessian-affine keypoint detection, SIFT keypoint
 description, LNBNN identification using approximate nearest neighbors.
@@ -153,10 +154,10 @@ Self Installing Executables
 ---------------------------
 
 Unfortunately we have not released self-installing-executables for IBEIS yet. 
-We ~plan~ hope to release these "soon". 
+We ~plan~ hope to release these soon™.
 
-However there are old HotSpotter (the software which IBEIS is based on)
-binaries available. 
+However there are old [HotSpotter](https://github.com/Erotemic/hotspotter) (the
+predecessor to IBEIS) binaries available. 
 
 .. These can be downloaded from: `http://cs.rpi.edu/hotspotter/`
 
@@ -324,30 +325,76 @@ Given a Python environment where each of the dependency modules is installed
 this repo can be installed with ``pip install -e .`` as well. 
 
 
-Running Tests
--------------
+Demo Databases
+--------------
 
-If you have a source install of the dataset you can run tests. But first you
-must ensure you have test (~400MB) data downloaded and available. This can be
-done via:
+A set of small (400MB) demo databases PZ_MTEST1 and NAUT_TEST can be downloaded
+via.
 
 .. code:: python
 
    python dev/reset_dbs.py
 
-Which will ensure that the test datasets are downloaded and in a clean state.
-If you don't have a "workdir" set, it will ask you for one. A workdir is where
-IBEIS will store your databases by default. Also note that it downloads the
-data from an IPFS gateway, which may be slow and require several attempts
-before it works.
 
-Once you have the test data you can use the ``run_doctests.sh`` or
-``run_tests.py`` script to execute the system tests.
+Note that it downloads the data from an IPFS gateway, which may be slow and
+require several attempts before it works.
 
-Caveats / Things we are not currently doing
--------------------------------------------
+
+Running Tests
+-------------
+
+The tests depend on an even smaller set of test databases, which can be
+prepared via `ibeis --reset-ci-dbs`. Once you have the test data you can use
+the ``run_doctests.sh`` or ``run_tests.py`` script to execute the system tests.
+
+Known issues
+------------
 
 * We do not add or remove points from kdtrees. They are always rebuilt
+
+* Changing algorithm settings in the preferences window seems bugged and
+  probably requires a fix in utool. The default settings should work and using
+  the Python API with explicit algorithm settings should also be fine.
+
+* The code is a mess! PRs are welcome!
+
+* The UI has lots of unused or broken components. PRs to disable or make these
+  nicer are welcome!
+
+* The only blockers for Windows / OSX pip installs are pyhesaff, pyflann_ibeis, and vtool_ibeis_ext binary wheels. Getting these to build on Github Actions would mean pip installable IBEIS on non-Linux systems.
+
+
+Citations and Related Work
+--------------------------
+
+The best citation for this work would be `my thesis <https://github.com/Erotemic/crall-thesis-2017>`_.
+
+.. code:: bibtex
+
+    @phdthesis{crall_identifying_2017,
+      address = {Troy, NY},
+      author = {Crall, Jonathan P.},
+      school = {Department of Computer Science, Rensselaer Polytechnic Institute},
+      title = {Identifying {Individual} {Animals} using {Ranking}, {Verification}, and {Connectivity}},
+      type = {Ph.{D}. {Thesis}},
+      year = {2017}
+    }
+
+The original HotSpotter paper is:
+
+`Crall, Stewart, Bertger-Wolf, Rubenstein, and Sundaresan. "HotSpotter - Patterned Species Instance Recognition" WACV 2013 <http://cs.rpi.edu/hotspotter/crall-hotspotter-wacv-2013.pdf>`__
+
+Other relevant citations are:
+
+`Parham, Jason. "Animal Detection for Photographic Censusing" RPI PhD Thesis 2021 <https://github.com/bluemellophone/dissertation>`__
+
+`Weideman, Hendrik. "Contour-Based Instance Recognition of Animals" RPI PhD Thesis 2019 <https://hjweide.github.io/research/>`__
+
+.. https://web.archive.org/web/20160706072208/http://cs.rpi.edu/hotspotter/crall-hotspotter-wacv-2013.pdf
+
+`Parham, Crall, Stewart, Berger-Wolf, and Rubenstein, "Animal population censusing at scale with citizen science and photographic identification" AAAI 2017 <https://oar.princeton.edu/jspui/bitstream/88435/pr1s791/1/Animal_Population_Censusing_Scale.pdf>`__
+
+
 
 .. |CircleCI| image:: https://circleci.com/gh/Erotemic/ibeis.svg?style=svg
     :target: https://circleci.com/gh/Erotemic/ibeis
