@@ -1,7 +1,4 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function
 from os.path import split, splitext, join, exists
-import six
 import datetime
 import utool as ut
 try:
@@ -39,22 +36,6 @@ def compare_string_versions(a, b):
         return 0
     raise AssertionError('[!update_schema_version] Two version numbers are '
                          'the same along the update path')
-
-
-def _devcheck_backups():
-    import dtool_ibeis as dt
-    dbdir = ut.truepath('~/work/PZ_Master1/_ibsdb')
-    sorted(ut.glob(join(dbdir, '_ibeis_backups'), '*staging_back*.sqlite3'))
-    fpaths = sorted(ut.glob(join(dbdir, '_ibeis_backups'), '*database_back*.sqlite3'))
-    for fpath in fpaths:
-        db = dt.SQLDatabaseController(fpath=fpath)
-        print('fpath = %r' % (fpath,))
-        num_edges = len(db.executeone('SELECT rowid from annotmatch'))
-        print('num_edges = %r' % (num_edges,))
-        num_names = len(db.executeone('SELECT DISTINCT name_rowid from annotations'))
-        print('num_names = %r' % (num_names,))
-        # df = db.get_table_as_pandas('annotations', columns=['annot_rowid',
-        #                                                     'name_rowid'])
 
 
 def fix_metadata_consistency(db):
@@ -177,7 +158,7 @@ def copy_database(src_fpath, dst_fpath):
     # Load database and ask it to copy itself, which enforces an exclusive
     # blocked lock for all processes potentially writing to the database
     db = dtool_ibeis.SQLDatabaseController(fpath=src_fpath,
-                                           text_factory=six.text_type,
+                                           text_factory=str,
                                            inmemory=False)
     db.backup(dst_fpath)
 
@@ -432,7 +413,6 @@ def autogenerate_nth_schema_version(schema_spec, n=-1):
         >>> result = str(tablename)
         >>> print(result)
     """
-    import utool as ut
     print('[_SQL] AUTOGENERATING CURRENT SCHEMA')
     db = get_nth_test_schema_version(schema_spec, n=n)
     # Auto-generate the version skip schema file
@@ -492,7 +472,7 @@ def get_nth_test_schema_version(schema_spec, n=-1):
     cachedir = ut.ensure_app_resource_dir('ibeis_test')
     db_fname = 'test_%s.sqlite3' % dbname
     ut.delete(join(cachedir, db_fname))
-    db = SQLDatabaseController(cachedir, db_fname, text_factory=six.text_type)
+    db = SQLDatabaseController(cachedir, db_fname, text_factory=str)
     ensure_correct_version(
         None, db, version_expected, schema_spec, dobackup=False)
     return db
@@ -506,5 +486,5 @@ if __name__ == '__main__':
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
-    ut.doctest_funcs()
+    import xdoctest
+    xdoctest.doctest_module(__file__)
