@@ -54,8 +54,7 @@ jobs:
     - name: Build pure wheel
       shell: bash
       run: |-
-        python -m pip install pip -U
-        python -m pip install setuptools>=0.8 build
+        python -m pip install setuptools>=0.8 wheel build
         python -m build --wheel --outdir wheelhouse
     - name: Show built files
       shell: bash
@@ -74,48 +73,48 @@ jobs:
       matrix:
         include:
         - python-version: '3.7'
-          os: ubuntu-latest
           install-extras: tests-strict,runtime-strict,headless-strict
+          os: ubuntu-latest
           arch: auto
         - python-version: '3.8'
-          os: ubuntu-latest
           install-extras: tests-strict,runtime-strict,headless-strict
+          os: ubuntu-latest
           arch: auto
         - python-version: '3.9'
-          os: ubuntu-latest
           install-extras: tests-strict,runtime-strict,headless-strict
+          os: ubuntu-latest
           arch: auto
         - python-version: '3.10'
-          os: ubuntu-latest
           install-extras: tests-strict,runtime-strict,headless-strict
+          os: ubuntu-latest
           arch: auto
         - python-version: '3.11'
-          os: ubuntu-latest
           install-extras: tests-strict,runtime-strict,headless-strict
+          os: ubuntu-latest
           arch: auto
         - python-version: '3.7'
-          os: ubuntu-latest
           install-extras: tests-strict,runtime-strict,optional-strict,headless-strict
+          os: ubuntu-latest
           arch: auto
         - python-version: '3.7'
-          os: ubuntu-latest
           install-extras: tests,optional,headless
+          os: ubuntu-latest
           arch: auto
         - python-version: '3.8'
-          os: ubuntu-latest
           install-extras: tests,optional,headless
+          os: ubuntu-latest
           arch: auto
         - python-version: '3.9'
-          os: ubuntu-latest
           install-extras: tests,optional,headless
+          os: ubuntu-latest
           arch: auto
         - python-version: '3.10'
-          os: ubuntu-latest
           install-extras: tests,optional,headless
+          os: ubuntu-latest
           arch: auto
         - python-version: '3.11'
-          os: ubuntu-latest
           install-extras: tests,optional,headless
+          os: ubuntu-latest
           arch: auto
     steps:
     - name: Checkout source
@@ -140,38 +139,36 @@ jobs:
         INSTALL_EXTRAS: ${{ matrix.install-extras }}
       run: |-
         echo "Finding the path to the wheel"
-        ls -al wheelhouse
+        ls wheelhouse || echo "wheelhouse does not exist"
         echo "Installing helpers"
-        pip install pip setuptools>=0.8 setuptools_scm wheel build -U
+        pip install setuptools>=0.8 setuptools_scm wheel build -U
         pip install tomli pkginfo
-        export MOD_NAME=ibeis
-        echo "MOD_NAME=$MOD_NAME"
-        export WHEEL_FPATH=$(python -c "import pathlib; print(str(sorted(pathlib.Path('wheelhouse').glob('$MOD_NAME*.whl'))[-1]).replace(chr(92), chr(47)))")
-        echo "WHEEL_FPATH=$WHEEL_FPATH"
+        export WHEEL_FPATH=$(python -c "import pathlib; print(str(sorted(pathlib.Path('wheelhouse').glob('ibeis*.whl'))[-1]).replace(chr(92), chr(47)))")
         export MOD_VERSION=$(python -c "from pkginfo import Wheel; print(Wheel('$WHEEL_FPATH').version)")
-        echo "MOD_VERSION=$MOD_VERSION"
-        echo "Install the wheel (ensureing we are using the version we just built)"
-        # NOTE: THE VERSION MUST BE NEWER THAN AN EXISTING PYPI VERSION OR THIS MAY FAIL
-        pip install --prefer-binary "$MOD_NAME[$INSTALL_EXTRAS]==$MOD_VERSION" -f wheelhouse
+        pip install --prefer-binary "ibeis[$INSTALL_EXTRAS]==$MOD_VERSION" -f wheelhouse
         echo "Install finished."
     - name: Test wheel ${{ matrix.install-extras }}
       shell: bash
       env:
         CI_PYTHON_VERSION: py${{ matrix.python-version }}
       run: |-
-        echo "Creating test standing"
-        WORKSPACE_DNAME="testdir_${CI_PYTHON_VERSION}_${GITHUB_RUN_ID}_${RUNNER_OS}"
+        echo "Creating test sandbox directory"
+        export WORKSPACE_DNAME="testdir_${CI_PYTHON_VERSION}_${GITHUB_RUN_ID}_${RUNNER_OS}"
         echo "WORKSPACE_DNAME=$WORKSPACE_DNAME"
         mkdir -p $WORKSPACE_DNAME
         echo "cd-ing into the workspace"
         cd $WORKSPACE_DNAME
         pwd
-        ls -al
-        pip freeze
+        ls -altr
         # Get the path to the installed package and run the tests
-        MOD_DPATH=$(python -c "import ibeis, os; print(os.path.dirname(ibeis.__file__))")
-        echo "MOD_DPATH = $MOD_DPATH"
-        echo "running the pytest command inside the workspace"
+        export MOD_DPATH=$(python -c "import ibeis, os; print(os.path.dirname(ibeis.__file__))")
+        echo "
+        ---
+        MOD_DPATH = $MOD_DPATH
+        ---
+        running the pytest command inside the workspace
+        ---
+        "
         mkdir -p "ci_ibeis_workdir"
         echo "About to reset workdirs"
         python -m ibeis --set-workdir="$(readlink -f ci_ibeis_workdir)" --nogui
