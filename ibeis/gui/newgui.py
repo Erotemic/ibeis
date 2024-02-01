@@ -1581,9 +1581,9 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         Example:
             >>> # xdoctest: +REQUIRES(--gui)
             >>> from ibeis.gui.newgui import *  # NOQA
+            >>> import kwimage
             >>> ibs, back, ibswgt, testdata_main_loop = testdata_guifront('hstest')
-            >>> url_list = [ut.grab_test_imgpath('carl.jpg'), ut.grab_test_imgpath('lena.png')]
-            >>> #url_list += [ut.truepath('~/Downloads/Clutter/wd_peter2.zip')]
+            >>> url_list = [kwimage.grab_test_image_fpath('carl'), kwimage.grab_test_image_fpath('astro')]
             >>> url = url_list[0]
             >>> ut.quit_if_noshow()
             >>> ibswgt.imagesDropped(url_list)

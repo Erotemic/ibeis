@@ -41,12 +41,13 @@ def parse_imageinfo(gpath):
 
     Doctest:
         >>> from ibeis.algo.preproc.preproc_image import *  # NOQA
-        >>> gpath = ut.grab_test_imgpath('patsy.jpg')
+        >>> import kwimage
+        >>> gpath = kwimage.grab_test_image_fpath('astro')
         >>> param_tup = parse_imageinfo(gpath)
         >>> result = ('param_tup = %s' % (str(param_tup),))
         >>> print(result)
         >>> uuid = param_tup[0]
-        >>> assert str(uuid) == '16008058-788c-2d48-cd50-f6029f726cbf'
+        >>> assert str(uuid) == '160b6e59-89d2-788c-0296-eac45b33e90f'
     """
     # Try to open the image
     from PIL import Image

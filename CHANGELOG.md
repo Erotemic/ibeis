@@ -9,6 +9,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Fixed:
 * Removed codecov from test requirements
+* Replaced `utool.grab_test_imgpath` with `kwimage.grab_test_image_fpath` in tests.
 
 
 ## [Version 2.3.1]  - Released 2023-02-06

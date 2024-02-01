@@ -460,7 +460,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
             n_need = n_target - len(aid_pairs)
 
-            per_cc = int(n_need / infr.pos_graph.number_of_components() / 2)
+            num_pcc = infr.pos_graph.number_of_components()
+            per_cc = int(n_need / num_pcc / 2)
             per_cc = max(2, per_cc)
             print('per_cc = {!r}'.format(per_cc))
 

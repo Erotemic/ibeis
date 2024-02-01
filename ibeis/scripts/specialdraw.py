@@ -1386,10 +1386,7 @@ def intraoccurrence_connected():
 
 def scalespace():
     r"""
-    THIS DOES NOT SHOW A REAL SCALE SPACE PYRAMID YET. FIXME.
-
-    Returns:
-        ?: imgBGRA_warped
+    Generates the scale space plot in Jon's thesis.
 
     CommandLine:
         python -m ibeis.scripts.specialdraw scalespace --show
@@ -1408,12 +1405,16 @@ def scalespace():
     # import matplotlib.pyplot as plt
     import cv2
     import vtool_ibeis as vt
+    # import kwimage
     import plottool_ibeis as pt
     pt.qt4ensure()
 
-    #imgBGR = vt.imread(ut.grab_test_imgpath('lena.png'))
-    imgBGR = vt.imread(ut.grab_test_imgpath('zebra.png'))
-    # imgBGR = vt.imread(ut.grab_test_imgpath('carl.jpg'))
+    zebra_url = 'http://i.imgur.com/58hbGcd.png'
+    # imgBGR = vt.imread(ut.grab_test_imgpath('zebra.png'))
+    import ubelt as ub
+    gpath = ub.grabdata(zebra_url)
+    imgBGR = vt.imread(gpath)
+    # imgBGR = vt.imread(kwimage.grab_test_image_fpath('carl'))
 
     # Convert to colored intensity image
     imgGray = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2GRAY)
