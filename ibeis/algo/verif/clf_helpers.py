@@ -160,7 +160,7 @@ class ClfProblem(ut.NiceRepr):
         # TODO: ABI class should not be caching
         cacher_kw = dict(appname='vsone_rf_train', enabled=use_cache,
                          verbose=1)
-        cacher_clf = ub.Cacher(fname, cfgstr=cfgstr,
+        cacher_clf = ub.Cacher(fname, depends=cfgstr,
                                meta=[feat_dims], **cacher_kw)
 
         data = cacher_clf.tryload()

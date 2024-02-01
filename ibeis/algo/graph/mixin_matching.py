@@ -375,10 +375,14 @@ class InfrLearning(object):
         """
         Uses current knowledge to train verifiers for new unseen pairs.
 
+        CommandLine:
+            xdoctest -m ibeis.algo.graph.mixin_matching InfrLearning.learn_deploy_verifiers
+
         Example:
             >>> # DISABLE_DOCTEST
             >>> import ibeis
-            >>> ibs = ibeis.opendb('testdb1')
+            >>> ibeis.ensure_pz_mtest()
+            >>> ibs = ibeis.opendb(db='PZ_MTEST')
             >>> infr = ibeis.AnnotInference(ibs, aids='all')
             >>> infr.ensure_mst()
             >>> publish = False

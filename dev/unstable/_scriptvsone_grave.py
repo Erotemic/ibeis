@@ -150,6 +150,7 @@ def bigcache_vsone(qreq_, hyper_params):
         >>> hyper_params = self.hyper_params
     """
     import vtool_ibeis as vt
+    import ubelt as ub
     import ibeis
     # Get a set of training pairs
     ibs = qreq_.ibs
@@ -247,7 +248,7 @@ def bigcache_vsone(qreq_, hyper_params):
 
         # Combine into a big cache for the entire 1-v-1 matching run
         big_uuid = ut.hashstr_arr27(vsone_uuids, '', pathsafe=True)
-        cacher = ut.Cacher('vsone_v7', cfgstr=str(big_uuid), appname='vsone_rf_train')
+        cacher = ub.Cacher('vsone_v7', depends=str(big_uuid), appname='vsone_rf_train')
 
         cached_data = cacher.tryload()
         if cached_data is not None:
@@ -395,7 +396,7 @@ def bigcache_vsone(qreq_, hyper_params):
 
         # Combine into a big cache for the entire 1-v-1 matching run
         big_uuid = ut.hashstr_arr27(vsone_uuids, '', pathsafe=True)
-        cacher = ut.Cacher('vsone_v7', cfgstr=str(big_uuid), appname='vsone_rf_train')
+        cacher = ub.Cacher('vsone_v7', depends=str(big_uuid), appname='vsone_rf_train')
 
         cached_data = cacher.tryload()
         if cached_data is not None:

@@ -365,7 +365,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         use_cache = True
         cfgstr = qreq_.get_cfgstr(with_input=True)
         cacher1 = ub.Cacher('pairsample_1_v6' + ibs.get_dbname(),
-                            cfgstr=cfgstr, appname=pblm.appname,
+                            depends=cfgstr, appname=pblm.appname,
                             enabled=use_cache, verbose=pblm.verbose)
 
         # make sure changes is names doesn't change the pair sample so I can
@@ -441,7 +441,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         cfgstr += ibs.get_annot_hashid_semantic_uuid(pblm.infr.aids)
 
         cacher = ub.Cacher('pairsample_1_v6' + ibs.get_dbname(),
-                            cfgstr=cfgstr, appname=pblm.appname,
+                            depends=cfgstr, appname=pblm.appname,
                             verbose=pblm.verbose)
 
         data = cacher.tryload()
