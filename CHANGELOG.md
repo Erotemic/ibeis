@@ -5,10 +5,13 @@ We are currently working on porting this changelog to the specifications in
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-### [Version 2.3.2] - Released 202x-xx-xx
+### [Version 2.3.2] - Released 2024-02-01
 
 ### Fixed:
 * Removed codecov from test requirements
+* Fixed pandas 2.0 issue.
+* Fixed ubelt.Cacher issue.
+* Minor compatibility tweaks.
 * Replaced `utool.grab_test_imgpath` with `kwimage.grab_test_image_fpath` in tests.
 
 
