@@ -465,8 +465,13 @@ def classification_report2(y_true, y_pred, target_names=None,
     real_id = ['%s' % m for m in target_names]
     confusion_df = pd.DataFrame(confusion, columns=pred_id, index=real_id)
 
-    confusion_df = confusion_df.append(pd.DataFrame(
-        [confusion.sum(axis=0)], columns=pred_id, index=['Σp']))
+    try:
+        confusion_df = confusion_df.append(pd.DataFrame(
+            [confusion.sum(axis=0)], columns=pred_id, index=['Σp']))
+    except Exception:
+        new_row = pd.DataFrame([confusion.sum(axis=0)], columns=pred_id, index=['Σp'])
+        confusion_df = pd.concat([confusion_df, new_row])
+
     confusion_df['Σr'] = np.hstack([confusion.sum(axis=1), [0]])
     confusion_df.index.name = 'real'
     confusion_df.columns.name = 'pred'
