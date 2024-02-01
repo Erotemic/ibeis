@@ -1,5 +1,5 @@
 [build-system]
-requires = [ "setuptools>=41.0.1", "wheel>=0.37.1",]
+requires = [ "setuptools>=67.2.0", "setuptools_scm>=6.0.0", "wheel>=0.37.1",]
 
 [tool.mypy]
 ignore_missing_imports = true
@@ -14,10 +14,14 @@ os = [ "linux" ]
 repo_name = "ibeis"
 ci_pypy_versions = []
 supported_python_versions = [
-    "3.7", "3.8", "3.9", "3.10", 
-    #"3.11"
+    "3.7", "3.8", "3.9", "3.10", "3.11"
     #"3.9"
 ]
+ci_versions_minimal_strict = '*'
+ci_versions_full_strict = 'min'
+ci_versions_minimal_loose = 'max'
+ci_versions_full_loose = '*'
+
 description = "IBEIS - Image Based Ecological Information System"
 url="https://github.com/Erotemic/ibeis"
 author="Jon Crall, Jason Parham"

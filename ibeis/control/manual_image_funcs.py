@@ -310,8 +310,10 @@ def add_images(ibs, gpath_list, params_list=None, as_annots=False,
         >>> # test double add
         >>> from ibeis.control.manual_image_funcs import *  # NOQA
         >>> import ibeis
+        >>> import kwimage
         >>> ibs = ibeis.opendb('testdb1')
-        >>> new_gpath_list = [ut.grab_test_imgpath('carl.jpg')]
+        >>> gpath = kwimage.grab_test_image_fpath('carl')
+        >>> new_gpath_list = [gpath]
         >>> new_gids1 = ibs.add_images(new_gpath_list, auto_localize=False)
         >>> new_gids2 = ibs.add_images(new_gpath_list, auto_localize=False)
         >>> #new_gids2 = ibs.add_images(new_gpath_list, auto_localize=True)
@@ -405,9 +407,11 @@ def localize_images(ibs, gid_list_=None):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_image_funcs import *  # NOQA
         >>> import ibeis
+        >>> import kwimage
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
-        >>> gpath_list  = [ut.unixpath(ut.grab_test_imgpath('carl.jpg'))]
+        >>> gpath = kwimage.grab_test_image_fpath('carl')
+        >>> gpath_list  = [ut.unixpath(gpath)]
         >>> gid_list_   = ibs.add_images(gpath_list, auto_localize=False)
         >>> gpath_list2 = ibs.get_image_paths(gid_list_)
         >>> ut.assert_eq(gpath_list, gpath_list2, 'should not move when autolocalize is False')
@@ -1259,11 +1263,13 @@ def get_image_paths(ibs, gid_list):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_image_funcs import *  # NOQA
         >>> import ibeis
+        >>> import kwimage
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
         >>> #gid_list = ibs.get_valid_gids()
         >>> #gpath_list = get_image_paths(ibs, gid_list)
-        >>> new_gpath = ut.unixpath(ut.grab_test_imgpath('carl.jpg'))
+        >>> gpath = kwimage.grab_test_image_fpath('carl')
+        >>> new_gpath = ut.unixpath(gpath)
         >>> gid_list = ibs.add_images([new_gpath], auto_localize=False)
         >>> new_gpath_list = get_image_paths(ibs, gid_list)
         >>> ut.assert_eq(new_gpath, new_gpath_list[0])

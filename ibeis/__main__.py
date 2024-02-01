@@ -36,7 +36,7 @@ def run_ibeis():
     """
     import ibeis  # NOQA
 
-    if ub.argflag('--resetdbs'):
+    if ub.argflag('--resetdbs') or ub.argflag('--reset-ci-dbs'):
         # Yet another place where initialization behavior is hackilly injected
         # It is strange we can't seem to execute this after the parser
         # But this will do for now.

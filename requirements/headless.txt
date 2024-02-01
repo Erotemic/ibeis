@@ -1,4 +1,4 @@
-# python ~/local/tools/supported_python_versions_pip.py opencv-python-headless
+# xdev availpkg opencv-python-headless
 # --prefer-binary
 opencv-python-headless>=4.5.5.64  ; python_version < '4.0'  and python_version >= '3.11'    # Python 3.11+
 opencv-python-headless>=4.5.4.58  ; python_version < '3.11' and python_version >= '3.10'    # Python 3.10
