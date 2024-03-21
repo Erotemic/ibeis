@@ -9,7 +9,7 @@ here and they should eventually be integrated into this module (hopefully
 automagically)
 
 TODO:
-nnkj/enerate this module automagically from
+autogenerate this module automagically from
     import utool as ut
     utool_parse_codeblock = ut.util_arg.autogen_argparse_block(extra_args=parsed_args)
     ut.util_arg.reset_argrecord()
