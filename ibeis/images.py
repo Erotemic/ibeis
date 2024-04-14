@@ -77,7 +77,6 @@ class ImageIBEISPropertyInjector(BASE_TYPE):
         _ibeis_object._inject_getter_attrs(metaself, objname, attrs, [])
 
 
-# @ut.reloadable_class
 @six.add_metaclass(ImageIBEISPropertyInjector)
 class Images(IMAGE_BASE):
     """
@@ -175,7 +174,6 @@ class ImageSetAttrInjector(BASE_TYPE):
         _ibeis_object._inject_getter_attrs(metaself, objname, attrs, [])
 
 
-# @ut.reloadable_class
 @six.add_metaclass(ImageSetAttrInjector)
 class ImageSets(IMAGESET_BASE):
     """

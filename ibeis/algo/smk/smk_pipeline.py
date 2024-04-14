@@ -58,7 +58,6 @@ class SMKRequestConfig(dtool_ibeis.Config):
     ]
 
 
-@ut.reloadable_class
 class SMKRequest(mc5.EstimatorRequest):
     r"""
     qreq_-like object. Trying to work on becoming more scikit-ish
@@ -304,7 +303,6 @@ class SMKRequest(mc5.EstimatorRequest):
         #    daids, config2_=qreq_.extern_data_config2)
 
 
-@ut.reloadable_class
 class SMK(ut.NiceRepr):
     """
     Harness class that controls the execution of the SMK algorithm
