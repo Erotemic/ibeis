@@ -11,7 +11,6 @@ from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN  # NOQA
 print, rrr, profile = ut.inject2(__name__)
 
 
-@six.add_metaclass(ut.ReloadingMetaclass)
 class IBEISIO(object):
     """
     Direct interface into ibeis tables and delta statistics
@@ -972,7 +971,6 @@ class IBEISIO(object):
         print('____')
 
 
-@six.add_metaclass(ut.ReloadingMetaclass)
 class IBEISGroundtruth(object):
     """
     Methods for generating training labels for classifiers

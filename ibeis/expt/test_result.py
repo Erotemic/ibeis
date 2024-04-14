@@ -1,6 +1,5 @@
 # TODO: find unused functions and kill them
 import ubelt as ub
-import six
 import copy
 import operator
 import utool as ut
@@ -224,7 +223,6 @@ def combine_testres_list(ibs, testres_list):
     return testres
 
 
-@six.add_metaclass(ut.ReloadingMetaclass)
 class TestResult(ut.NiceRepr):
     """
     CommandLine:

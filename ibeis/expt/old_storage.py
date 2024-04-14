@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 import six
-#import six
 import utool as ut
 print, rrr, profile = ut.inject2(
     __name__, '[expt_harn]')
 
 
-@six.add_metaclass(ut.ReloadingMetaclass)
 class ResultMetadata(object):
     def __init__(metadata, fpath, autoconnect=False):
         """

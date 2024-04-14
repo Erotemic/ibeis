@@ -240,7 +240,6 @@ def __cleanup():
 # IBEIS CONTROLLER
 #-----------------
 
-@six.add_metaclass(ut.ReloadingMetaclass)
 class IBEISController(BASE_CLASS):
     """
     IBEISController docstring

@@ -11,7 +11,6 @@ from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN
 from ibeis.algo.graph.state import SAME, DIFF, NULL  # NOQA
 from ibeis.algo.graph.nx_utils import e_
 from ibeis.algo.graph import nx_utils as nxu
-import six
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -348,7 +347,6 @@ class Convenience(object):
         return tag_hist
 
 
-@six.add_metaclass(ut.ReloadingMetaclass)
 class DummyEdges(object):
 
     def ensure_mst(infr, label='name_label', meta_decision=SAME):
