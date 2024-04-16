@@ -14,6 +14,7 @@ os = [ "linux" ]
 repo_name = "ibeis"
 ci_pypy_versions = []
 min_python = 3.8
+max_python = 3.11
 ci_versions_minimal_strict = '*'
 ci_versions_full_strict = 'min'
 ci_versions_minimal_loose = 'max'
