@@ -34,7 +34,6 @@ class XValConfig(dt.Config):
     ]
 
 
-@ut.reloadable_class
 class ClfProblem(ut.NiceRepr):
     def __init__(pblm):
         pblm.deploy_task_clfs = None
@@ -555,7 +554,6 @@ class ClfProblem(ut.NiceRepr):
         pt.legend()
 
 
-@ut.reloadable_class
 class ClfResult(ut.NiceRepr):
     r"""
     Handles evaluation statistics for a multiclass classifier trained on a
@@ -1106,7 +1104,6 @@ class ClfResult(ut.NiceRepr):
         return auc_learn
 
 
-@ut.reloadable_class
 class MultiTaskSamples(ut.NiceRepr):
     """
     Handles samples (i.e. feature-label pairs) with a combination of
@@ -1338,7 +1335,6 @@ class MultiTaskSamples(ut.NiceRepr):
         return skf_list
 
 
-@ut.reloadable_class
 class MultiClassLabels(ut.NiceRepr):
     """
     Used by samples to encode a single set of mutually exclusive labels.  These

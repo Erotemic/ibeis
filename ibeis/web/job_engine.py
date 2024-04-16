@@ -399,7 +399,7 @@ class JobBackend(object):
 
     def initialize_background_processes(self, dbdir=None, wait=0, containerized=False,
                                         thread=True):
-        print = partial(ut.colorprint, color='fuchsia')
+        print = partial(ut.colorprint, color='white')
         #if VERBOSE_JOBS:
         print('Initialize Background Processes')
 

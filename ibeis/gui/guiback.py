@@ -3120,6 +3120,13 @@ class MainWindowBackend(GUIBACK_BASE):
         ut.view_directory(dump_dir)
 
     @blocking_slot()
+    def export_database_as_kwcoco(back):
+        """ File -> Export Database """
+        print('[back] export_database_as_kwcoco')
+        dump_dir = back.ibs.dump_database_kwcoco()
+        ut.view_directory(dump_dir)
+
+    @blocking_slot()
     def backup_database(back):
         """ File -> Backup Database"""
         print('[back] backup_database')

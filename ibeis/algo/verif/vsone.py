@@ -45,7 +45,6 @@ class PairSampleConfig(dt.Config):
     ]
 
 
-@ut.reloadable_class
 class OneVsOneProblem(clf_helpers.ClfProblem):
     """
     Keeps information about the one-vs-one pairwise classification problem
@@ -1589,7 +1588,6 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         return win
 
 
-@ut.reloadable_class
 class AnnotPairSamples(clf_helpers.MultiTaskSamples, ub.NiceRepr):
     """
     Manages the different ways to assign samples (i.e. feat-label pairs) to

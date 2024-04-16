@@ -99,6 +99,11 @@ def setup_file_menu(mainwin, back):
         text='Export As CSV',
         triggered=back.export_database_as_csv)
     menu.newAction(
+        name='actionExport_Database_KWCoco',
+        tooltip='Dumps and exports database as KWCoco.',
+        text='Export As KWCoco',
+        triggered=back.export_database_as_kwcoco)
+    menu.newAction(
         name='actionDuplicate_Database',
         tooltip='Creates a duplicate of the database',
         text='Duplicate Database',

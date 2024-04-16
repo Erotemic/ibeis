@@ -13,10 +13,8 @@ mod_name = "ibeis"
 os = [ "linux" ]
 repo_name = "ibeis"
 ci_pypy_versions = []
-supported_python_versions = [
-    "3.7", "3.8", "3.9", "3.10", "3.11"
-    #"3.9"
-]
+min_python = 3.8
+max_python = 3.11
 ci_versions_minimal_strict = '*'
 ci_versions_full_strict = 'min'
 ci_versions_minimal_loose = 'max'
@@ -28,7 +26,7 @@ author="Jon Crall, Jason Parham"
 author_email="erotemic@gmail.com"
 version = "{mod_dpath}/__init__.py::__version__"
 license = "Apache 2"
-dev_status = "beta"
+dev_status = "stable"
 autostage = true
 
 

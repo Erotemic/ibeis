@@ -12,7 +12,6 @@ CommandLine:
 import utool as ut
 import numpy as np
 import plottool_ibeis as pt
-import six
 from plottool_ibeis import interact_helpers as ih
 from ibeis import viz
 from ibeis.algo.hots import scoring
@@ -52,7 +51,6 @@ def testdata_match_interact(**kwargs):
 
 
 # TODO inherit from AbstractInteraction
-@six.add_metaclass(ut.ReloadingMetaclass)
 class MatchInteraction(interact_matches.MatchInteraction2):
     """
     Plots a chip result and sets up callbacks for interaction.

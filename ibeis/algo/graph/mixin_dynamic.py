@@ -16,7 +16,6 @@ TODO:
 
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
-import six
 import numpy as np
 import utool as ut
 import itertools as it
@@ -770,7 +769,6 @@ class Consistency(object):
                 yield cc
 
 
-@six.add_metaclass(ut.ReloadingMetaclass)
 class _RedundancyComputers(object):
     """
     methods for computing redundancy
@@ -987,7 +985,6 @@ class _RedundancyComputers(object):
                     yield nid1, nid2
 
 
-@six.add_metaclass(ut.ReloadingMetaclass)
 class Redundancy(_RedundancyComputers):
     """ methods for dynamic redundancy book-keeping """
 
@@ -1271,7 +1268,6 @@ class Redundancy(_RedundancyComputers):
         return prev_neg_nids
 
 
-@six.add_metaclass(ut.ReloadingMetaclass)
 class NonDynamicUpdate(object):
 
     @profile

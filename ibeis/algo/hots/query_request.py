@@ -273,7 +273,6 @@ def apply_species_with_detector_hack(ibs, cfgdict, qaids, daids,
     return unique_species
 
 
-@ut.reloadable_class
 class QueryRequest(ut.NiceRepr):
     """
     Request object for pipline parameter run
@@ -419,7 +418,7 @@ class QueryRequest(ut.NiceRepr):
         unique_nids, groupxs = vt.group_indices(nids)
         grouped_visual_uuids = ut.apply_grouping(annots.visual_uuids, groupxs)
         group_hashes = [
-            ut.combine_hashes(sorted(u.bytes for u in uuids),
+            ut.combine_hashes(sorted(b'' if u is None else u.bytes for u in uuids),
                               hasher=hashlib.sha1())
             for uuids in grouped_visual_uuids
         ]
@@ -452,7 +451,7 @@ class QueryRequest(ut.NiceRepr):
         # For now, only considers grouping of database names
         dannot_name_hashes = ut.dict_take(qreq_.dnid_to_grouphash, nids, zero)
         dannot_visual_uuids = qreq_.get_qreq_annot_visual_uuids(aids)
-        dannot_visual_hashes = (u.bytes for u in dannot_visual_uuids)
+        dannot_visual_hashes = (b'' if u is None else u.bytes for u in dannot_visual_uuids)
         for vuuid, nuuid in zip(dannot_visual_hashes, dannot_name_hashes):
             bytes_ = ut.combine_hashes((vuuid, nuuid), hasher=hashlib.sha1())
             yield bytes_

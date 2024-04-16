@@ -24,7 +24,6 @@ class VocabConfig(dtool_ibeis.Config):
     ]
 
 
-@ut.reloadable_class
 class VisualVocab(ut.NiceRepr):
     """
     Class that maintains a list of visual words (cluster centers)

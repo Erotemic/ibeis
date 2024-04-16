@@ -10,7 +10,6 @@ import six
 print, rrr, profile = ut.inject2(__name__)
 
 
-@six.add_metaclass(ut.ReloadingMetaclass)
 class OrigAnnotInference(object):
     """
     Make name inferences about a series of AnnotMatches
