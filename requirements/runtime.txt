@@ -1,6 +1,6 @@
 # Our IBEIS-specific pure python packages 
 utool>=2.2.0
-vtool_ibeis>=2.2.0
+vtool_ibeis>=2.3.0
 dtool_ibeis>=1.1.2
 plottool_ibeis>=2.3.0
 guitool_ibeis>=2.2.0
