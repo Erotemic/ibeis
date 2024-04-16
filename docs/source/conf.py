@@ -37,16 +37,16 @@ Notes:
 
         ### For gitlab
 
+        To enable the read-the-docs go to https://readthedocs.org/dashboard/ and login
+
         The user will need to enable the repo on their readthedocs account:
         https://readthedocs.org/dashboard/import/manual/?
 
-        To enable the read-the-docs go to https://readthedocs.org/dashboard/ and login
-
-        Make sure you have a .readthedocs.yml file
-
-        Click import project: (for github you can select, but gitlab you need to import manually)
+        Enter the following information:
             Set the Repository NAME: ibeis
             Set the Repository URL: https://github.com/Erotemic/ibeis
+
+        Make sure you have a .readthedocs.yml file
 
         For gitlab you also need to setup an integrations. Navigate to:
 
@@ -505,6 +505,17 @@ class GoogleStyleDocstringProcessor:
             new_lines.append('')
             new_lines.extend(lines[1:])
             return new_lines
+
+        # @self.register_section(tag='TODO', alias=['.. todo::'])
+        # def todo_section(lines):
+        #     """
+        #     Fixup todo sections
+        #     """
+        #     import xdev
+        #     xdev.embed()
+        #     import ubelt as ub
+        #     print('lines = {}'.format(ub.urepr(lines, nl=1)))
+        #     return new_lines
 
         @self.register_section(tag='Ignore')
         def ignore(lines):

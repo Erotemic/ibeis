@@ -76,6 +76,9 @@ def parse_requirements(fname="requirements.txt", versions=False):
 
     Returns:
         List[str]: list of requirements items
+
+    CommandLine:
+        python -c "import setup, ubelt; print(ubelt.urepr(setup.parse_requirements()))"
     """
     require_fpath = fname
 
@@ -199,30 +202,45 @@ VERSION = parse_version(INIT_PATH)
 if __name__ == "__main__":
     setupkw = {}
 
-    setupkw["install_requires"] = parse_requirements("requirements/runtime.txt", versions="loose"),
+    setupkw["install_requires"] = parse_requirements(
+        "requirements/runtime.txt", versions="loose"
+    )
     setupkw["extras_require"] = {
         "all": parse_requirements("requirements.txt", versions="loose"),
-        "tests": parse_requirements("requirements/tests.txt", versions="loose"),
-        "optional": parse_requirements("requirements/optional.txt", versions="loose"),
         "headless": parse_requirements("requirements/headless.txt", versions="loose"),
         "graphics": parse_requirements("requirements/graphics.txt", versions="loose"),
-        # Strict versions
+        "docs": parse_requirements("requirements/docs.txt", versions="loose"),
+        "optional": parse_requirements("requirements/optional.txt", versions="loose"),
+        "problematic": parse_requirements(
+            "requirements/problematic.txt", versions="loose"
+        ),
+        "runtime": parse_requirements("requirements/runtime.txt", versions="loose"),
+        "super_setup": parse_requirements(
+            "requirements/super_setup.txt", versions="loose"
+        ),
+        "tests": parse_requirements("requirements/tests.txt", versions="loose"),
+        "all-strict": parse_requirements("requirements.txt", versions="strict"),
         "headless-strict": parse_requirements(
             "requirements/headless.txt", versions="strict"
         ),
         "graphics-strict": parse_requirements(
             "requirements/graphics.txt", versions="strict"
         ),
-        "all-strict": parse_requirements("requirements.txt", versions="strict"),
-        "runtime-strict": parse_requirements(
-            "requirements/runtime.txt", versions="strict"
-        ),
-        "tests-strict": parse_requirements("requirements/tests.txt", versions="strict"),
+        "docs-strict": parse_requirements("requirements/docs.txt", versions="strict"),
         "optional-strict": parse_requirements(
             "requirements/optional.txt", versions="strict"
         ),
+        "problematic-strict": parse_requirements(
+            "requirements/problematic.txt", versions="strict"
+        ),
+        "runtime-strict": parse_requirements(
+            "requirements/runtime.txt", versions="strict"
+        ),
+        "super_setup-strict": parse_requirements(
+            "requirements/super_setup.txt", versions="strict"
+        ),
+        "tests-strict": parse_requirements("requirements/tests.txt", versions="strict"),
     }
-
     setupkw["name"] = NAME
     setupkw["version"] = VERSION
     setupkw["author"] = "Jon Crall, Jason Parham"
@@ -233,18 +251,18 @@ if __name__ == "__main__":
     setupkw["long_description_content_type"] = "text/x-rst"
     setupkw["license"] = "Apache 2"
     setupkw["packages"] = find_packages(".")
-    setupkw["python_requires"] = ">=3.7"
+    setupkw["python_requires"] = ">=3.8"
     setupkw["classifiers"] = [
-        "Development Status :: 4 - Beta",
+        "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
         "Topic :: Software Development :: Libraries :: Python Modules",
         "Topic :: Utilities",
         "License :: OSI Approved :: Apache Software License",
-        "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
     ]
     setupkw["entry_points"] = {
         "console_scripts": [
