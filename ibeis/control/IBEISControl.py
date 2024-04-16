@@ -1095,6 +1095,112 @@ class IBEISController(BASE_CLASS):
         ibs.db.dump_to_fpath(dump_fpath=join(dump_dir, '_ibsdb.dump'))
         return dump_dir
 
+    def dump_database_kwcoco(ibs):
+        """
+        Ignore:
+            >>> # DISABLE_DOCTEST
+            >>> import ibeis
+            >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+            >>> ibs.dump_database_kwcoco()
+
+        Ignore:
+            db = ibs.db
+            tablename = tblname = 'annotations'
+            db.get_table_column_data(tblname)
+            print(db.get_table_csv(tblname))
+        """
+        import kwcoco
+        import kwutil
+        import numpy as np
+        import kwimage
+        dump_dir = ub.Path(ibs.get_dbdir()) / 'KWCOCO_DUMP'
+        dump_dir.ensuredir()
+
+        db = ibs.db
+
+        def _table_rows(tablename, prefix):
+            column_list, column_names = db.get_table_column_data(
+                tablename, rowids=None, columns=None,
+                exclude_columns=[])
+
+            normalized_colnames = []
+            for colname in column_names:
+                if colname.startswith(prefix):
+                    colname = colname[len(prefix):]
+                normalized_colnames.append(colname)
+
+            for col_values in zip(*column_list):
+                row = dict(zip(normalized_colnames, col_values))
+                yield row
+
+        dset = kwcoco.CocoDataset()
+
+        # NOTE: not all ibsdb tables are dumped into kwcoco.
+        # It is currently a very basic encoding
+
+        custom_tables = {}
+        tablename = 'species'
+        prefix = 'species_'
+        species_table = []
+        for row in _table_rows(tablename, prefix):
+            row['id'] = row.pop('rowid')
+            row['uuid'] = str(row['uuid'])
+            species_table.append(row)
+        custom_tables['species'] = species_table
+
+        tablename = 'names'
+        prefix = 'name_'
+        name_table = []
+        for row in _table_rows(tablename, prefix):
+            row['id'] = row.pop('rowid')
+            row['uuid'] = str(row['uuid'])
+            name_table.append(row)
+        custom_tables['species'] = name_table
+        dset.dataset.update(custom_tables)
+
+        tablename = 'images'
+        prefix = 'image_'
+        image_dpath = ub.Path(ibs.get_imgdir())
+        for row in _table_rows(tablename, prefix):
+            row['id'] = row.pop('rowid')
+            row['uuid'] = str(row['uuid'])
+            row['datetime'] = kwutil.util_time.datetime.coerce(row['time_posix']).isoformat()
+            row['file_name'] = image_dpath / row.pop('uri')
+            dset.add_image(**row)
+
+        tablename = 'annotations'
+        prefix = 'annot_'
+        for row in _table_rows(tablename, prefix):
+            row['id'] = row.pop('rowid')
+            row['image_id'] = row.pop('image_rowid')
+            row['uuid'] = str(row['uuid'])
+            row['visual_uuid'] = str(row['visual_uuid'])
+            row['semantic_uuid'] = str(row['semantic_uuid'])
+            x1 = row.pop('xtl')
+            y1 = row.pop('ytl')
+            width = row.pop('width')
+            height = row.pop('height')
+            theta = row.pop('theta')
+            exterior = np.array(eval(row.pop('verts'), {}, {}))
+            poly = kwimage.Polygon(exterior=exterior)
+            if theta == 0:
+                row['bbox'] = [x1, y1, width, height]
+            else:
+                row['bbox'] = list(poly.bounding_box().to_coco())[0]
+                row['obbox'] = {'data': [x1, y1, width, height, theta], 'format': ['xywho']}
+            row['polygon'] = poly.to_coco(style='new')
+            dset.add_annotation(**row)
+
+        print(ibs.db.get_table_csv('images'))
+
+        fpath = dump_dir / 'ibsdb.kwcoco.zip'
+        dset.fpath = fpath
+        dset.dump()
+        return dset.fpath
+
+        # ibs.db.dump_to_fpath(dump_fpath=join(dump_dir, 'ibsdb.kwcoco.zip'))
+        # return dump_dir
+
     def get_database_icon(ibs, max_dsize=(None, 192), aid=None):
         r"""
         Args:
