@@ -69,7 +69,7 @@ matplotlib>=2.2.2     ; python_version < '3.8'  and python_version >= '3.7'     
 matplotlib>=1.5.3     ; python_version < '3.7'  and python_version >= '3.6'     # Python 3.6
 
 numpy>=1.26.0  ; python_version < '4.0'  and python_version >= '3.12'    # Python 3.12+
-numpy>=1.23.2  ; python_version < '3.12' and python_version >= '3.11'    # Python 3.11
+numpy>=1.24.0  ; python_version < '3.12' and python_version >= '3.11'    # Python 3.11
 numpy>=1.21.6  ; python_version < '3.11' and python_version >= '3.10'  # Python 3.10
 numpy>=1.19.3  ; python_version < '3.10' and python_version >= '3.9'   # Python 3.9
 numpy>=1.19.2  ; python_version < '3.9' and python_version >= '3.8'    # Python 3.8
