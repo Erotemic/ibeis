@@ -12,10 +12,9 @@ Conservation X Labs.
 
 I continue to independently maintain and support this software, but it can only
 handle medium scale populations and its GUI interface can be difficult to work
-with.
-
-If you have a larger population or the need for simpler and scalable web
+with. If you have a larger population or the need for simpler and scalable web
 interfaces please reach out `Conservation X Labs <https://conservationxlabs.com/>`_.
+
 If you have the ambition to run and possibly develop software yourself, then
 keep reading.
 
