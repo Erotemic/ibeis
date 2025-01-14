@@ -287,7 +287,7 @@ In the interest of modular code we are actively developing several different mod
     :target: https://github.com/Erotemic/guitool_ibeis/actions?query=branch%3Amain
 .. |pyhesaffGithubActions| image:: https://github.com/Erotemic/pyhesaff/actions/workflows/tests.yml/badge.svg?branch=main
     :target: https://github.com/Erotemic/pyhesaff/actions?query=branch%3Amain
-.. |pyflann_ibeisGithubActions| image:: https://github.com/Erotemic/pyflann_ibeis/actions/workflows/test_binaries.yml/badge.svg?branch=main
+.. |pyflann_ibeisGithubActions| image:: https://github.com/Erotemic/pyflann_ibeis/actions/workflows/tests.yml/badge.svg?branch=main
     :target: https://github.com/Erotemic/pyflann_ibeis/actions?query=branch%3Amain
 .. |vtool_ibeis_extGithubActions| image:: https://github.com/Erotemic/vtool_ibeis_ext/actions/workflows/tests.yml/badge.svg?branch=main
     :target: https://github.com/Erotemic/vtool_ibeis_ext/actions?query=branch%3Amain
