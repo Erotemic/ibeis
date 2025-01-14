@@ -1,22 +1,26 @@
-|ReadTheDocs| |Pypi| |Downloads| |Codecov| |GithubActions| 
+|ReadTheDocs| |Pypi| |Downloads| |Codecov| |GithubActions|
 
 
 .. image:: https://i.imgur.com/L0k84xQ.png
 
-This project is a component of the WildMe / WildBook project: See https://github.com/WildbookOrg/
 
-NOTE: This IBEIS software is the result of my (Jon Crall's) [PhD
-work](https://github.com/Erotemic/crall-thesis-2017). After I graduated, the
-image analysis components of IBEIS and the core HotSpotter program have been
-transferred and are now being developed by the WildMe organization. While this
-software is maintained and supported, it can only handle medium scale
-populations and its it GUI interface can be difficult to work with. If you have
-a larger population or the need for simpler and scalable web interfaces  please
-reach out to the WildMe project at services@wildme.org (more info:
-https://www.wildme.org/#/services/ ). 
+NOTE: This IBEIS software is the result of my (Jon Crall's)
+`PhD work <https://github.com/Erotemic/crall-thesis-2017>`_.
+After I graduated in 2017, the image analysis components of IBEIS and the core
+HotSpotter program were transferred to WildMe, which as of 2024 has merged with
+Conservation X Labs.
+
+I continue to independently maintain and support this software, but it can only
+handle medium scale populations and its GUI interface can be difficult to work
+with.
+
+If you have a larger population or the need for simpler and scalable web
+interfaces please reach out `Conservation X Labs <https://conservationxlabs.com/>`_.
+If you have the ambition to run and possibly develop software yourself, then
+keep reading.
 
 
-IBEIS - Image Analysis 
+IBEIS - Image Analysis
 ----------------------
 
 I.B.E.I.S. = Image Based Ecological Information System
@@ -55,9 +59,9 @@ the rest of the dependencies can be installed from pypi even on OSX / Windows.
 
 NOTE: When using a VM on windows, you may encounter an error:
 
-.. code:: 
+.. code::
 
-    qt.qpa.plugin: Could not load the Qt platform plugin "xcb" in 
+    qt.qpa.plugin: Could not load the Qt platform plugin "xcb" in
     ... even though it was found. This application failed to start because no
     Qt platform plugin could be initialized. Reinstalling the application may
     fix this problem.
@@ -67,7 +71,7 @@ NOTE: When using a VM on windows, you may encounter an error:
     Core dumped
 
 The reason the issue happens appears to be because the opencv-python package
-includes libraries also packaged with PyQt5 and those are conflicting. 
+includes libraries also packaged with PyQt5 and those are conflicting.
 
 The workaround is to uninstall opencv-python and then install a variant that
 does not include extra Qt libs:
@@ -77,7 +81,7 @@ does not include extra Qt libs:
     pip uninstall opencv-python
     pip install opencv-python-headless
 
-    
+
 Basic Usage (updated 2020-Nov-01)
 ---------------------------------
 
@@ -134,36 +138,36 @@ IBEIS program for the storage and management of images and derived data for
 use in computer vision algorithms. It aims to compute who an animal is, what
 species an animal is, and where an animal is with the ultimate goal being to
 ask important why biological questions.  This This repo Image Analysis image
-analysis module of IBEIS. It is both a python module and standalone program. 
+analysis module of IBEIS. It is both a python module and standalone program.
 
 Currently the system is build around and SQLite database, a PyQt5 GUI,
 and matplotlib visualizations. Algorithms employed are: random forest species
 detection and localization, hessian-affine keypoint detection, SIFT keypoint
 description, LNBNN identification using approximate nearest neighbors.
 Algorithms in development are SMK (selective match kernel) for identification
-and deep neural networks for detection and localization. 
+and deep neural networks for detection and localization.
 
 The core of IBEIS is the IBEISController class. It provides an API into IBEIS
 data management and algorithms. The IBEIS API Documentation can be found here:
 `http://erotemic.github.io/ibeis`
 
-The IBEIS GUI (graphical user interface) is built on top of the API. 
+The IBEIS GUI (graphical user interface) is built on top of the API.
 We are also experimenting with a new web frontend that bypasses the older GUI code.
 
 Self Installing Executables
 ---------------------------
 
-Unfortunately we have not released self-installing-executables for IBEIS yet. 
+Unfortunately we have not released self-installing-executables for IBEIS yet.
 We ~plan~ hope to release these soon™.
 
 However there are old [HotSpotter](https://github.com/Erotemic/hotspotter) (the
-predecessor to IBEIS) binaries available. 
+predecessor to IBEIS) binaries available.
 
 .. These can be downloaded from: `http://cs.rpi.edu/hotspotter/`
 
-Dropbox should still be hosting the download links: 
+Dropbox should still be hosting the download links:
 
-* Win32 Installer: https://www.dropbox.com/s/5j1xyx2hq1wzqz2/hotspotter-win32-setup.exe?dl=0 
+* Win32 Installer: https://www.dropbox.com/s/5j1xyx2hq1wzqz2/hotspotter-win32-setup.exe?dl=0
 
 * OSX Installer: https://www.dropbox.com/s/q0vzz3xnjbxhsda/hotspotter_installer_mac.dmg?dl=0
 
@@ -171,7 +175,7 @@ IPFS CIDs for the previous installers are QmSnyetkniriHUwTxvzwhkysPKjUj7udBqq5mp
 
 If you are unfamiliar with IPFS use the following gateway links:
 
-https://ipfs.io/ipfs/QmSnyetkniriHUwTxvzwhkysPKjUj7udBqq5mpK24VJXVM 
+https://ipfs.io/ipfs/QmSnyetkniriHUwTxvzwhkysPKjUj7udBqq5mpK24VJXVM
 
 https://ipfs.io/ipfs/QmZ3WknrAaxPZhZebdQWZ45EEKwu1Tr6bkFWJzfPRtENs7
 
@@ -189,7 +193,7 @@ Visual Demo
    :alt: Nearest Neighbors
 
 
-Match Scoring 
+Match Scoring
 -------------
 
 .. image:: http://imgur.com/Hj43Xxy.png
@@ -220,7 +224,7 @@ Name Scoring
 
     python -m ibeis.algo.hots.chip_match show_single_namematch --qaid 1 --show
 
-Identification Ranking 
+Identification Ranking
 ----------------------
 
 .. image:: http://i.imgur.com/BlajchI.jpg
@@ -248,7 +252,7 @@ Inference
 Internal Modules
 ----------------
 
-In the interest of modular code we are actively developing several different modules. 
+In the interest of modular code we are actively developing several different modules.
 
 +-----------------------------------------------------------------+--------------------------------+
 | `ibeis <https://github.com/Erotemic/ibeis>`_                    | |ibeisGithubActions|           |
@@ -322,7 +326,7 @@ development mode with the normal clone the repo, and run ``pip install -e .``
 inside the repo process.
 
 Given a Python environment where each of the dependency modules is installed
-this repo can be installed with ``pip install -e .`` as well. 
+this repo can be installed with ``pip install -e .`` as well.
 
 
 Demo Databases
