@@ -157,7 +157,7 @@ Self Installing Executables
 ---------------------------
 
 Unfortunately we have not released self-installing-executables for IBEIS yet.
-We ~plan~ hope to release these soon™.
+We hope to release these soon™, but developer support is needed (contributions welcome).
 
 However there are old [HotSpotter](https://github.com/Erotemic/hotspotter) (the
 predecessor to IBEIS) binaries available.
@@ -174,9 +174,9 @@ IPFS CIDs for the previous installers are QmSnyetkniriHUwTxvzwhkysPKjUj7udBqq5mp
 
 If you are unfamiliar with IPFS use the following gateway links:
 
-https://ipfs.io/ipfs/QmSnyetkniriHUwTxvzwhkysPKjUj7udBqq5mpK24VJXVM
+https://ipfs.io/ipfs/QmQonrckXZq37ZHDoRGN4xVBkqedvJRgYyzp2aBC5Ujpyp?redirectURL=QmSnyetkniriHUwTxvzwhkysPKjUj7udBqq5mpK24VJXVM&autoadapt=0&requiresorigin=0&web3domain=0&immediatecontinue=1&magiclibraryconfirmation=0
 
-https://ipfs.io/ipfs/QmZ3WknrAaxPZhZebdQWZ45EEKwu1Tr6bkFWJzfPRtENs7
+https://ipfs.io/ipfs/QmQonrckXZq37ZHDoRGN4xVBkqedvJRgYyzp2aBC5Ujpyp?redirectURL=QmZ3WknrAaxPZhZebdQWZ45EEKwu1Tr6bkFWJzfPRtENs7&autoadapt=0&requiresorigin=0&web3domain=0&immediatecontinue=1&magiclibraryconfirmation=0
 
 
 Visual Demo
