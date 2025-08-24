@@ -26,7 +26,6 @@ from __future__ import absolute_import, division, print_function
 import sys
 import functools
 import utool as ut
-from pkg_resources import parse_version
 from utool._internal.meta_util_six import get_funcname
 
 ASSERT_FUNCS = []
@@ -64,7 +63,12 @@ def version_ge_target(version, target=None):
         passed = False
     else:
         _version = version.replace('.dev1', '')
-        passed = parse_version(_version) >= parse_version(target)
+        try:
+            from pkg_resources import parse_version
+            passed = parse_version(_version) >= parse_version(target)
+        except (ImportError, AttributeError):
+            from packaging import version
+            passed = version.parse(_version) >= version.parse(target)
     return passed
 
 
@@ -79,7 +83,6 @@ def checkinfo(target=None, pipname=None):
         """
 
         # Decorator which adds funcs to ASSERT_FUNCS
-        global ASSERT_FUNCS
         @functools.wraps(func)
         def checkinfo_wrapper(*args, **kwargs):
             suggested_fix = ''

@@ -16,7 +16,7 @@ from utool._internal.meta_util_six import get_funcname
 # My data getters
 from vtool_ibeis.tests import grabdata
 elephant  = grabdata.get_testimg_path('elephant.jpg')
-lena  = grabdata.get_testimg_path('lena.jpg')
+astro  = grabdata.get_testimg_path('astro.jpg')
 zebra = grabdata.get_testimg_path('zebra.jpg')
 jeff  = grabdata.get_testimg_path('jeff.png')
 gpath = zebra

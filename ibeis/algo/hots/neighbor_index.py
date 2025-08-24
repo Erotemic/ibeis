@@ -5,7 +5,6 @@ multi_index.py as well
 
 https://github.com/spotify/annoy
 """
-import six
 import numpy as np
 import utool as ut
 import vtool_ibeis as vt
@@ -183,7 +182,6 @@ def invert_index(vecs_list, fgws_list, ax_list, fxs_list, verbose=ut.NOT_QUIET):
     return idx2_vec, idx2_fgw, idx2_ax, idx2_fx
 
 
-@six.add_metaclass(ut.ReloadingMetaclass)
 class NeighborIndex(object):
     r"""
     wrapper class around flann

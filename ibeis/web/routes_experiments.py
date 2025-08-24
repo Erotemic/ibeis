@@ -245,7 +245,7 @@ def voting_uuid_list(ibs, team_list):
 
 def voting_data(method=3, option='inclusive', species='all',
                 team1=True, team2=True, team3=True, team4=True, team5=True):
-    global GLOBAL_AOI_VALUES, GLOBAL_AOI_DICT, GLOBAL_ANNOT_UUID_LIST
+    global GLOBAL_AOI_VALUES, GLOBAL_AOI_DICT
 
     method = int(method)
     method_list = [1, 2, 3, 4, 5]

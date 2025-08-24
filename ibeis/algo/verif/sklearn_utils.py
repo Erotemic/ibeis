@@ -86,6 +86,9 @@ class StratifiedGroupKFold(_BaseKFold):
         #                    " be less than n_splits=%d."
         #                    % (min_classes_, self.n_splits)), Warning)
 
+        # FIXME: if the code after is failing for numpy 2.x we may need to
+        # ravel the y value here to get old behavior. Don't remember if it is
+        # flat to start with.
         unique_y, y_inversed = np.unique(y, return_inverse=True)
         n_classes = max(unique_y) + 1
         unique_groups, group_idxs = ut.group_indices(groups)

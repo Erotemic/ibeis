@@ -2316,7 +2316,7 @@ def get_annot_name_rowids(ibs, aid_list, distinguish_unknowns=True, assume_uniqu
         >>> distinguish_unknowns = True
         >>> nid_arr1 = np.array(ibs.get_annot_name_rowids(aid_list, distinguish_unknowns=distinguish_unknowns))
         >>> nid_arr2 = np.array(ibs.get_annot_name_rowids(aid_list, distinguish_unknowns=False))
-        >>> nid_arr2 = np.array(ibs.get_annot_name_rowids(None, distinguish_unknowns=True))
+        >>> #nid_arr2 = np.array(ibs.get_annot_name_rowids(None, distinguish_unknowns=True))
         >>> assert const.UNKNOWN_LBLANNOT_ROWID == 0
         >>> assert np.all(nid_arr1[np.where(const.UNKNOWN_LBLANNOT_ROWID == nid_arr2)[0]] < 0)
     """

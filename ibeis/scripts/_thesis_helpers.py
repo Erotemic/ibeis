@@ -59,7 +59,6 @@ def dbname_to_species_nice(dbname):
     return species_nice
 
 
-@ut.reloadable_class
 class DBInputs(object):
     def __init__(self, dbname=None):
         self.ibs = None
@@ -546,7 +545,6 @@ def split_tabular(text):
     return parts
 
 
-@ut.reloadable_class
 class Tabular(object):
     def __init__(self, data=None, colfmt=None, hline=None, caption='',
                  index=True, escape=True):

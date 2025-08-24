@@ -204,7 +204,6 @@ except ImportError:
     BASE = _ibeis_object.ObjectList1D
 
 
-# @ut.reloadable_class
 @six.add_metaclass(_AnnotPropInjector)
 class Annots(BASE):
     """
@@ -391,7 +390,6 @@ class _AnnotGroupPropInjector(BASE_TYPE):
             setattr(metaself, attrname, property(ibs_unflat_getter))
 
 
-@ut.reloadable_class
 @six.add_metaclass(_AnnotGroupPropInjector)
 class AnnotGroups(ut.NiceRepr):
     """ Effciently handle operations on multiple groups of annotations """

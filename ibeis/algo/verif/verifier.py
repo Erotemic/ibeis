@@ -11,7 +11,6 @@ import vtool_ibeis as vt
 print, rrr, profile = ut.inject2(__name__)
 
 
-@ut.reloadable_class
 class BaseVerifier(ut.NiceRepr):
 
     def __nice__(verif):
@@ -52,7 +51,6 @@ class BaseVerifier(ut.NiceRepr):
         return easiness
 
 
-@ut.reloadable_class
 class Verifier(BaseVerifier):
     """
     Notes:
@@ -120,7 +118,6 @@ class Verifier(BaseVerifier):
         # task_probs[task_key] = probs_df
 
 
-@ut.reloadable_class
 class IntraVerifier(BaseVerifier):
     """
     Predicts cross-validated intra-training sample probs.

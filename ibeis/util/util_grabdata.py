@@ -142,7 +142,7 @@ def clean_dropbox_link(dropbox_url):
 
 def grab_zipped_url(zipped_url, ensure=True, appname='utool',
                     download_dir=None, force_commonprefix=True, cleanup=False,
-                    redownload=False):
+                    redownload=False, existing_zip_fpath=None):
     r"""
     downloads and unzips the url
 
@@ -161,8 +161,12 @@ def grab_zipped_url(zipped_url, ensure=True, appname='utool',
         >>> zipped_url = 'http://www.spam.com/eggs/data.zip'
 
     """
-    zipped_url = clean_dropbox_link(zipped_url)
-    zip_fname = split(zipped_url)[1]
+    if zipped_url is not None:
+        zipped_url = clean_dropbox_link(zipped_url)
+        zip_fname = split(zipped_url)[1]
+    if existing_zip_fpath is not None:
+        existing_zip_fpath = ub.Path(existing_zip_fpath)
+        zip_fname = existing_zip_fpath.name
     data_name = split_archive_ext(zip_fname)[0]
     # Download zipfile to
     if download_dir is None:
@@ -175,11 +179,15 @@ def grab_zipped_url(zipped_url, ensure=True, appname='utool',
         ub.Path(download_dir).ensuredir()
         if not exists(data_dir) or redownload:
             # Download and unzip testdata
-            zip_fpath = realpath(join(download_dir, zip_fname))
+            if existing_zip_fpath:
+                zip_fpath =  existing_zip_fpath
+            else:
+                zip_fpath = realpath(join(download_dir, zip_fname))
             #print('[utool] Downloading archive %s' % zip_fpath)
             if not exists(zip_fpath) or redownload:
+                assert not existing_zip_fpath
                 do_http_download = True
-                if '/ipfs/' in zipped_url and ub.find_exe('ipfs'):
+                if zipped_url and '/ipfs/' in zipped_url and ub.find_exe('ipfs'):
                     # Use a real ipfs client if we can.
                     ipfs_address = zipped_url.split('/ipfs/')[-1]
                     try:
@@ -195,6 +203,7 @@ def grab_zipped_url(zipped_url, ensure=True, appname='utool',
                         ub.download(zipped_url, file, chunksize=2 ** 20)
             unarchive_file(zip_fpath, force_commonprefix)
             if cleanup:
+                assert exists(data_dir)
                 ub.Path(zip_fpath).delete()  # Cleanup
     if cleanup:
         assert exists(data_dir)

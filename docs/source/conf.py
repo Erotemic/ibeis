@@ -16,14 +16,15 @@ Notes:
 
     # need to edit the conf.py
 
+    # Remove any old auto docs folder and regenerate it.
+    rm -rf ~/code/ibeis/docs/source/auto
     cd ~/code/ibeis/docs
-    sphinx-apidoc --private --separate -f -o ~/code/ibeis/docs/source/auto ~/code/ibeis/ibeis
+    sphinx-apidoc --private --separate --force --output-dir ~/code/ibeis/docs/source/auto ~/code/ibeis/ibeis
+    git add source/auto/*.rst
 
     # Note: the module should importable before running this
     # (e.g. install it in developer mode or munge the PYTHONPATH)
     make html
-
-    git add source/auto/*.rst
 
     Also:
         To turn on PR checks
@@ -37,16 +38,16 @@ Notes:
 
         ### For gitlab
 
+        To enable the read-the-docs go to https://readthedocs.org/dashboard/ and login
+
         The user will need to enable the repo on their readthedocs account:
         https://readthedocs.org/dashboard/import/manual/?
 
-        To enable the read-the-docs go to https://readthedocs.org/dashboard/ and login
-
-        Make sure you have a .readthedocs.yml file
-
-        Click import project: (for github you can select, but gitlab you need to import manually)
+        Enter the following information:
             Set the Repository NAME: ibeis
             Set the Repository URL: https://github.com/Erotemic/ibeis
+
+        Make sure you have a .readthedocs.yml file
 
         For gitlab you also need to setup an integrations. Navigate to:
 
@@ -83,6 +84,7 @@ Notes:
                 push events,
                 tag push events,
                 merge request events
+                release events
 
             Click the "Add webhook" button.
 
@@ -136,7 +138,7 @@ def parse_version(fpath):
     return visitor.version
 
 project = 'ibeis'
-copyright = '2024, Jon Crall Jason Parham'
+copyright = '2025, Jon Crall Jason Parham'
 author = 'Jon Crall Jason Parham'
 modname = 'ibeis'
 
@@ -171,6 +173,7 @@ extensions = [
     'sphinx.ext.imgconverter',  # For building latexpdf
     'sphinx.ext.githubpages',
     # 'sphinxcontrib.redirects',
+    'sphinxcontrib.jquery',  # Fix for search
     'sphinx_reredirects',
 ]
 
@@ -193,6 +196,9 @@ autosummary_mock_imports = [
     'geowatch.tasks.depth_pcd.model',
     'geowatch.tasks.cold.export_change_map',
 ]
+
+autodoc_default_options = {  # Document callable classes
+    'special-members': '__call__'}
 
 autodoc_member_order = 'bysource'
 autoclass_content = 'both'
@@ -217,7 +223,7 @@ intersphinx_mapping = {
     # 'xxhash': ('https://pypi.org/project/xxhash/', None),
     # 'pygments': ('https://pygments.org/docs/', None),
     # 'tqdm': ('https://tqdm.github.io/', None),
-    # Requries that the repo have objects.inv
+    # Requires that the repo have objects.inv
     'kwarray': ('https://kwarray.readthedocs.io/en/latest/', None),
     'kwimage': ('https://kwimage.readthedocs.io/en/latest/', None),
     # 'kwplot': ('https://kwplot.readthedocs.io/en/latest/', None),
@@ -506,6 +512,17 @@ class GoogleStyleDocstringProcessor:
             new_lines.extend(lines[1:])
             return new_lines
 
+        # @self.register_section(tag='TODO', alias=['.. todo::'])
+        # def todo_section(lines):
+        #     """
+        #     Fixup todo sections
+        #     """
+        #     import xdev
+        #     xdev.embed()
+        #     import ubelt as ub
+        #     print('lines = {}'.format(ub.urepr(lines, nl=1)))
+        #     return new_lines
+
         @self.register_section(tag='Ignore')
         def ignore(lines):
             return []
@@ -577,7 +594,7 @@ class GoogleStyleDocstringProcessor:
 
             accum.append(line)
 
-        # Finialize the last section
+        # Finalize the last section
         accept()
 
         lines[:] = new_lines

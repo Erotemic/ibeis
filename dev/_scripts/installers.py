@@ -231,7 +231,7 @@ def ensure_inno_script():
         ; Also it seems like the off-balanced curly brace is necessary
         AppId={{47BE3DA2-261D-4672-9849-18BB2EB382FC}
         AppName=IBEIS
-        AppVersion=''' + str(ibeis.__version__) + '''
+        AppVersion=''' + str(ibeis.__version__) + r'''
         ;AppVerName=IBEIS 1
         AppPublisher=Rensselaer Polytechnic Institute
         AppPublisherURL=ibeis.org ;www.rpi.edu/~crallj/

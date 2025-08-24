@@ -454,6 +454,10 @@ def get_name_aids(ibs, nid_list, enable_unknown_fix=True, is_staged=False):
         # The index maxes the following query very efficient
     elif USE_GROUPING_HACK:
         # This code doesn't work because it doesn't respect empty names
+
+        # FIXME: if the code after is failing for numpy 2.x we may need to
+        # ravel the y value here to get old behavior. Don't remember if it is
+        # flat to start with.
         input_list, inverse_unique = np.unique(nid_list_, return_inverse=True)
         input_str = ', '.join(list(map(str, input_list)))
         opstr = '''
@@ -1499,9 +1503,9 @@ def get_name_gps_tracks(ibs, nid_list=None, aid_list=None):
         >>> ut.compress(nid_list, nonempty_list)
         >>> ut.compress(gps_track_list, nonempty_list)
         >>> ut.compress(aid_track_list, nonempty_list)
-        >>> result = str(aid_track_list)
-        >>> print(result)
-        [[11], [], [4], [1], [2, 3], [5, 6], [7], [8], [10], [12], [13]]
+        >>> import ubelt as ub
+        >>> result = ub.urepr(aid_track_list, nl=0, strvals=True)
+        >>> assert result == '[[11], [], [4], [1], [2, 3], [5, 6], [7], [8], [10], [12], [13]]'
     """
     assert aid_list is None or nid_list is None, 'only specify one please'
     if aid_list is None:

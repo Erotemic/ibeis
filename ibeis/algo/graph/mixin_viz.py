@@ -11,7 +11,6 @@ from ibeis.algo.graph.state import (SAME, DIFF, NULL)  # NOQA
 print, rrr, profile = ut.inject2(__name__)
 
 
-@six.add_metaclass(ut.ReloadingMetaclass)
 class GraphVisualization(object):
     """ contains plotting related code """
 

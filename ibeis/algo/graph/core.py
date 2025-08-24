@@ -983,7 +983,6 @@ class AltConstructors(object):
             # )
 
 
-@six.add_metaclass(ut.ReloadingMetaclass)
 class AnnotInference(ut.NiceRepr,
                      # Old internal stuffs
                      AltConstructors,

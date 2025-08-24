@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 """
 Runs IBIES gui
+
+SeeAlso:
+    ibeis.main_module - contains more entry point logic (needs cleanup)
 """
 import utool as ut
 import ubelt as ub
@@ -79,30 +82,6 @@ def run_ibeis():
         ibeis.dev.devmain()
         print('... exiting')
         sys.exit(0)
-
-    # Attempt to run a test using the funciton name alone
-    # with the --tf flag
-    # if False:
-    #     import ibeis.tests.run_tests
-    #     import ibeis.tests.reset_testdbs
-    #     import ibeis.scripts.thesis
-    #     ignore_prefix = [
-    #         #'ibeis.tests',
-    #         'ibeis.control.__SQLITE3__',
-    #         '_autogen_explicit_controller']
-    #     ignore_suffix = ['_grave']
-    #     func_to_module_dict = {
-    #         'demo_bayesnet': 'ibeis.unstable.demobayes',
-    #     }
-    #     ut.main_function_tester('ibeis', ignore_prefix, ignore_suffix,
-    #                             func_to_module_dict=func_to_module_dict)
-
-    #if ub.argflag('-e'):
-    #    import ibeis
-    #    expt_kw = ut.get_arg_dict(ut.get_func_kwargs(ibeis.run_experiment),
-    #    prefix_list=['--', '-'])
-    #    ibeis.run_experiment(**expt_kw)
-    #    sys.exit(0)
 
     doctest_modname = ut.get_argval(
         ('--doctest-module', '--tmod', '-tm', '--testmod'),

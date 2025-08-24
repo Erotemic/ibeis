@@ -7,7 +7,6 @@ import utool as ut
 print, rrr, profile = ut.inject2(__name__)
 
 
-@ut.reloadable_class
 class Deployer(object):
     """
     Transforms a OneVsOne problem into a deployable model.

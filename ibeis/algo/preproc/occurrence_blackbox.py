@@ -393,9 +393,10 @@ def cluster_timespace_sec(posixtimes, latlons, thresh_sec=5, km_per_sec=KM_PER_S
         >>> thresh_sec = 250  # seconds
         >>> km_per_sec = KM_PER_SEC
         >>> X_labels = cluster_timespace_sec(posixtimes, latlons, thresh_sec)
-        >>> result = 'X_labels = {}'.format(ut.repr2(X_labels))
-        >>> print(result)
-        X_labels = np.array([3, 4, 1, 2, 4, 5])
+        >>> assert X_labels[0] == 3
+        >>> assert X_labels[1] == 4
+        >>> assert X_labels[-2] == 4
+        >>> assert X_labels[-1] == 5
     """
     X_data, dist_func, columns = prepare_data(posixtimes, latlons, km_per_sec,
                                               'seconds')

@@ -245,7 +245,6 @@ class InvertedAnnotsExtras(object):
         return all_words
 
 
-@ut.reloadable_class
 class InvertedAnnots(InvertedAnnotsExtras):
     """
     CommandLine:
@@ -431,7 +430,6 @@ class InvertedAnnots(InvertedAnnotsExtras):
         return gamma_list
 
 
-@ut.reloadable_class
 class SingleAnnot(ut.NiceRepr):
     def __init__(X):
         X.aid = None

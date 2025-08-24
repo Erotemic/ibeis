@@ -21,7 +21,6 @@ from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV  # NOQA
 (print, rrr, profile) = ut.inject2(__name__)
 
 
-@ut.reloadable_class
 class Chap5(DBInputs):
     """
     python -m ibeis Chap5.measure all GZ_Master1
@@ -1299,7 +1298,6 @@ class Chap5(DBInputs):
         pt.set_figtitle(self.dbname)
 
 
-@ut.reloadable_class
 class Chap4(DBInputs):
     """
     Collect data from experiments to visualize
@@ -2725,7 +2723,6 @@ class Chap4(DBInputs):
         vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
 
 
-@ut.reloadable_class
 class Chap3Measures(object):
     def measure_baseline(self):
         """
@@ -3071,7 +3068,6 @@ class Chap3Measures(object):
         return info
 
 
-@ut.reloadable_class
 class Chap3Draw(object):
     def draw_baseline(self):
         mpl.rcParams.update(TMP_RC)
@@ -3415,7 +3411,6 @@ class Chap3Draw(object):
         return fpath
 
 
-@ut.reloadable_class
 class Chap3(DBInputs, Chap3Draw, Chap3Measures):
     base_dpath = ut.truepath('~/latex/crall-thesis-2017/figures3')
     def _setup(self):

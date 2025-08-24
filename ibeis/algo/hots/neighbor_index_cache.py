@@ -168,7 +168,6 @@ def build_nnindex_cfgstr(qreq_, daid_list):
 
 
 def clear_memcache():
-    global NEIGHBOR_CACHE
     NEIGHBOR_CACHE.clear()
 
 
@@ -296,7 +295,6 @@ def request_augmented_ibeis_nnindexer(qreq_, daid_list, verbose=True,
         >>> nnindexer2 = request_augmented_ibeis_nnindexer(qreq_, daid_list)
         >>> assert nnindexer is nnindexer2
     """
-    global NEIGHBOR_CACHE
     min_reindex_thresh = qreq_.qparams.min_reindex_thresh
     if not force_rebuild:
         new_daid_list, covered_aids_list = group_daids_by_cached_nnindexer(
@@ -387,7 +385,6 @@ def request_memcached_ibeis_nnindexer(qreq_, daid_list, use_memcache=True,
         >>> result = str(nnindexer)
         >>> print(result)
     """
-    global NEIGHBOR_CACHE
     #try:
     if veryverbose:
         print('[nnindex.MEMCACHE] len(NEIGHBOR_CACHE) = %r' % (len(NEIGHBOR_CACHE),))

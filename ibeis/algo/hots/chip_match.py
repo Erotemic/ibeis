@@ -2074,7 +2074,6 @@ class _ChipMatchDebugger(object):
             pass
 
 
-@six.add_metaclass(ut.ReloadingMetaclass)
 class ChipMatch(_ChipMatchVisualization,
                 AnnotMatch,
                 _ChipMatchScorers,

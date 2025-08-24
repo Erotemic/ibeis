@@ -45,7 +45,6 @@ def turk_pz():
     pass
 
 
-@ut.reloadable_class
 class GraphExpt(DBInputs):
     r"""
 
@@ -761,7 +760,6 @@ def plot_cmcs(cdfs, labels, fnum=1, pnum=(1, 1, 1), ymin=.4):
     return pt.gcf()
 
 
-@ut.reloadable_class
 class VerifierExpt(DBInputs):
     """
     Collect data from experiments to visualize

@@ -79,7 +79,8 @@ def get_name_shortlist_aids(daid_list, dnid_list, annot_score_list,
         >>> args = (daid_list, dnid_list, annot_score_list, name_score_list,
         ...         nid2_nidx, nNameShortList, nAnnotPerName)
         >>> top_daids = get_name_shortlist_aids(*args)
-        >>> result = str(top_daids)
+        >>> import ubelt as ub
+        >>> result = ub.urepr(top_daids, sv=1, nl=0)
         >>> print(result)
         [15, 14, 11, 13, 16]
     """

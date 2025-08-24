@@ -21,15 +21,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout source
-      uses: actions/checkout@v4
-    - name: Set up Python 3.11 for linting
-      uses: actions/setup-python@v4.7.1
+      uses: actions/checkout@v4.2.2
+    - name: Set up Python 3.13 for linting
+      uses: actions/setup-python@v5.6.0
       with:
-        python-version: '3.11'
+        python-version: '3.13'
     - name: Install dependencies
       run: |-
-        python -m pip install --upgrade pip
-        python -m pip install flake8
+        python -m pip install pip uv -U
+        python -m uv pip install flake8
     - name: Lint with flake8
       run: |-
         # stop the build if there are Python syntax errors or undefined names
@@ -47,37 +47,39 @@ jobs:
         os:
         - ubuntu-latest
         python-version:
-        - '3.11'
+        - '3.13'
         arch:
         - auto
     steps:
     - name: Checkout source
-      uses: actions/checkout@v4
+      uses: actions/checkout@v4.2.2
     - name: Set up QEMU
-      uses: docker/setup-qemu-action@v3
+      uses: docker/setup-qemu-action@v3.0.0
       if: runner.os == 'Linux' && matrix.arch != 'auto'
       with:
         platforms: all
     - name: Setup Python
-      uses: actions/setup-python@v4.7.1
+      uses: actions/setup-python@v5.6.0
       with:
         python-version: ${{ matrix.python-version }}
     - name: Build pure wheel
       shell: bash
       run: |-
-        python -m pip install setuptools>=0.8 wheel build twine
+        python -m pip install pip uv -U
+        python -m uv pip install setuptools>=0.8 wheel build twine
         python -m build --wheel --outdir wheelhouse
         python -m twine check ./wheelhouse/ibeis*.whl
     - name: Show built files
       shell: bash
       run: ls -la wheelhouse
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4.4.0
       name: Upload wheels artifact
       with:
-        name: wheels
+        name: wheels-${{ matrix.os }}-${{ matrix.arch }}
         path: ./wheelhouse/ibeis*.whl
   test_purepy_wheels:
     name: ${{ matrix.python-version }} on ${{ matrix.os }}, arch=${{ matrix.arch }} with ${{ matrix.install-extras }}
+    if: "! startsWith(github.event.ref, 'refs/heads/release')"
     runs-on: ${{ matrix.os }}
     needs:
     - build_purepy_wheels
@@ -87,14 +89,6 @@ jobs:
         # Xcookie generates an explicit list of environments that will be used
         # for testing instead of using the more concise matrix notation.
         include:
-        - python-version: '3.7'
-          install-extras: tests-strict,runtime-strict,headless-strict
-          os: ubuntu-latest
-          arch: auto
-        - python-version: '3.8'
-          install-extras: tests-strict,runtime-strict,headless-strict
-          os: ubuntu-latest
-          arch: auto
         - python-version: '3.9'
           install-extras: tests-strict,runtime-strict,headless-strict
           os: ubuntu-latest
@@ -107,18 +101,18 @@ jobs:
           install-extras: tests-strict,runtime-strict,headless-strict
           os: ubuntu-latest
           arch: auto
-        - python-version: '3.7'
+        - python-version: '3.12'
+          install-extras: tests-strict,runtime-strict,headless-strict
+          os: ubuntu-latest
+          arch: auto
+        - python-version: '3.13'
+          install-extras: tests-strict,runtime-strict,headless-strict
+          os: ubuntu-latest
+          arch: auto
+        - python-version: '3.9'
           install-extras: tests-strict,runtime-strict,optional-strict,headless-strict
           os: ubuntu-latest
           arch: auto
-        - python-version: '3.7'
-          install-extras: tests,optional,headless
-          os: ubuntu-latest
-          arch: auto
-        - python-version: '3.8'
-          install-extras: tests,optional,headless
-          os: ubuntu-latest
-          arch: auto
         - python-version: '3.9'
           install-extras: tests,optional,headless
           os: ubuntu-latest
@@ -128,25 +122,34 @@ jobs:
           os: ubuntu-latest
           arch: auto
         - python-version: '3.11'
+          install-extras: tests,optional,headless
+          os: ubuntu-latest
+          arch: auto
+        - python-version: '3.12'
+          install-extras: tests,optional,headless
+          os: ubuntu-latest
+          arch: auto
+        - python-version: '3.13'
           install-extras: tests,optional,headless
           os: ubuntu-latest
           arch: auto
     steps:
     - name: Checkout source
-      uses: actions/checkout@v4
+      uses: actions/checkout@v4.2.2
     - name: Set up QEMU
-      uses: docker/setup-qemu-action@v3
+      uses: docker/setup-qemu-action@v3.0.0
       if: runner.os == 'Linux' && matrix.arch != 'auto'
       with:
         platforms: all
     - name: Setup Python
-      uses: actions/setup-python@v4.7.1
+      uses: actions/setup-python@v5.6.0
       with:
         python-version: ${{ matrix.python-version }}
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4.1.8
       name: Download wheels
       with:
-        name: wheels
+        pattern: wheels-*
+        merge-multiple: true
         path: wheelhouse
     - name: Install wheel ${{ matrix.install-extras }}
       shell: bash
@@ -155,12 +158,33 @@ jobs:
       run: |-
         echo "Finding the path to the wheel"
         ls wheelhouse || echo "wheelhouse does not exist"
-        echo "Installing helpers"
-        pip install setuptools>=0.8 setuptools_scm wheel build -U
-        pip install tomli pkginfo
-        export WHEEL_FPATH=$(python -c "import pathlib; print(str(sorted(pathlib.Path('wheelhouse').glob('ibeis*.whl'))[-1]).replace(chr(92), chr(47)))")
-        export MOD_VERSION=$(python -c "from pkginfo import Wheel; print(Wheel('$WHEEL_FPATH').version)")
-        pip install --prefer-binary "ibeis[$INSTALL_EXTRAS]==$MOD_VERSION" -f wheelhouse
+        echo "Installing helpers: update pip"
+        python -m pip install pip uv -U
+        echo "Installing helpers: setuptools"
+        python -m uv pip install setuptools>=0.8 setuptools_scm wheel build -U
+        echo "Installing helpers: tomli and pkginfo"
+        python -m uv pip install tomli pkginfo
+        export WHEEL_FPATH=$(python -c "if 1:
+            import pathlib
+            dist_dpath = pathlib.Path('wheelhouse')
+            candidates = list(dist_dpath.glob('ibeis*.whl'))
+            candidates += list(dist_dpath.glob('ibeis*.tar.gz'))
+            fpath = sorted(candidates)[-1]
+            print(str(fpath).replace(chr(92), chr(47)))
+        ")
+        export MOD_VERSION=$(python -c "if 1:
+            from pkginfo import Wheel, SDist
+            import pathlib
+            fpath = '$WHEEL_FPATH'
+            cls = Wheel if fpath.endswith('.whl') else SDist
+            item = cls(fpath)
+            print(item.version)
+        ")
+        echo "WHEEL_FPATH=$WHEEL_FPATH"
+        echo "INSTALL_EXTRAS=$INSTALL_EXTRAS"
+        echo "UV_RESOLUTION=$UV_RESOLUTION"
+        echo "MOD_VERSION=$MOD_VERSION"
+        python -m uv pip install --prerelease=allow "ibeis[$INSTALL_EXTRAS]==$MOD_VERSION" -f wheelhouse
         echo "Install finished."
     - name: Test wheel ${{ matrix.install-extras }}
       shell: bash
@@ -177,6 +201,7 @@ jobs:
         ls -altr
         # Get the path to the installed package and run the tests
         export MOD_DPATH=$(python -c "import ibeis, os; print(os.path.dirname(ibeis.__file__))")
+        export MOD_NAME=ibeis
         echo "
         ---
         MOD_DPATH = $MOD_DPATH
@@ -191,19 +216,19 @@ jobs:
         python -m xdoctest $MOD_DPATH --style=google all
         echo "xdoctest command finished"
   test_deploy:
-    name: Uploading Test to PyPi
+    name: Deploy Test
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && ! startsWith(github.event.ref, 'refs/tags') && ! startsWith(github.event.ref, 'refs/heads/release')
     needs:
     - build_purepy_wheels
-    - test_purepy_wheels
     steps:
     - name: Checkout source
-      uses: actions/checkout@v4
-    - uses: actions/download-artifact@v3
-      name: Download wheels and sdist
+      uses: actions/checkout@v4.2.2
+    - uses: actions/download-artifact@v4.1.8
+      name: Download wheels
       with:
-        name: wheels
+        pattern: wheels-*
+        merge-multiple: true
         path: wheelhouse
     - name: Show files to upload
       shell: bash
@@ -228,25 +253,50 @@ jobs:
         $GPG_EXECUTABLE --list-keys  || echo "first invocation of gpg creates directories and returns 1"
         $GPG_EXECUTABLE --list-keys
         VERSION=$(python -c "import setup; print(setup.VERSION)")
-        pip install twine
-        pip install urllib3 requests[security] twine
+        python -m pip install pip uv -U
+        python -m pip install packaging twine -U
+        python -m pip install urllib3 requests[security]
         GPG_KEYID=$(cat dev/public_gpg_key)
         echo "GPG_KEYID = '$GPG_KEYID'"
-        DO_GPG=True GPG_KEYID=$GPG_KEYID TWINE_REPOSITORY_URL=${TWINE_REPOSITORY_URL} TWINE_PASSWORD=$TWINE_PASSWORD TWINE_USERNAME=$TWINE_USERNAME GPG_EXECUTABLE=$GPG_EXECUTABLE DO_UPLOAD=True DO_TAG=False ./publish.sh
+        GPG_SIGN_CMD="$GPG_EXECUTABLE --batch --yes --detach-sign --armor --local-user $GPG_KEYID"
+        WHEEL_PATHS=(wheelhouse/*.whl)
+        WHEEL_PATHS_STR=$(printf '"%s" ' "${WHEEL_PATHS[@]}")
+        echo "$WHEEL_PATHS_STR"
+        for WHEEL_PATH in "${WHEEL_PATHS[@]}"
+        do
+            echo "------"
+            echo "WHEEL_PATH = $WHEEL_PATH"
+            $GPG_SIGN_CMD --output $WHEEL_PATH.asc $WHEEL_PATH
+            $GPG_EXECUTABLE --verify $WHEEL_PATH.asc $WHEEL_PATH  || echo "hack, the first run of gpg very fails"
+            $GPG_EXECUTABLE --verify $WHEEL_PATH.asc $WHEEL_PATH
+        done
+        ls -la wheelhouse
+        python -m pip install opentimestamps-client
+        ots stamp wheelhouse/*.whl wheelhouse/*.asc
+        ls -la wheelhouse
+        twine upload --username __token__ --password "$TWINE_PASSWORD" --repository-url "$TWINE_REPOSITORY_URL" wheelhouse/*.whl --skip-existing --verbose || { echo "failed to twine upload" ; exit 1; }
+    - uses: actions/upload-artifact@v4.4.0
+      name: Upload deploy artifacts
+      with:
+        name: deploy_artifacts
+        path: |-
+          wheelhouse/*.whl
+          wheelhouse/*.asc
+          wheelhouse/*.ots
   live_deploy:
-    name: Uploading Live to PyPi
+    name: Deploy Live
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && (startsWith(github.event.ref, 'refs/tags') || startsWith(github.event.ref, 'refs/heads/release'))
     needs:
     - build_purepy_wheels
-    - test_purepy_wheels
     steps:
     - name: Checkout source
-      uses: actions/checkout@v4
-    - uses: actions/download-artifact@v3
-      name: Download wheels and sdist
+      uses: actions/checkout@v4.2.2
+    - uses: actions/download-artifact@v4.1.8
+      name: Download wheels
       with:
-        name: wheels
+        pattern: wheels-*
+        merge-multiple: true
         path: wheelhouse
     - name: Show files to upload
       shell: bash
@@ -271,11 +321,81 @@ jobs:
         $GPG_EXECUTABLE --list-keys  || echo "first invocation of gpg creates directories and returns 1"
         $GPG_EXECUTABLE --list-keys
         VERSION=$(python -c "import setup; print(setup.VERSION)")
-        pip install twine
-        pip install urllib3 requests[security] twine
+        python -m pip install pip uv -U
+        python -m pip install packaging twine -U
+        python -m pip install urllib3 requests[security]
         GPG_KEYID=$(cat dev/public_gpg_key)
         echo "GPG_KEYID = '$GPG_KEYID'"
-        DO_GPG=True GPG_KEYID=$GPG_KEYID TWINE_REPOSITORY_URL=${TWINE_REPOSITORY_URL} TWINE_PASSWORD=$TWINE_PASSWORD TWINE_USERNAME=$TWINE_USERNAME GPG_EXECUTABLE=$GPG_EXECUTABLE DO_UPLOAD=True DO_TAG=False ./publish.sh
+        GPG_SIGN_CMD="$GPG_EXECUTABLE --batch --yes --detach-sign --armor --local-user $GPG_KEYID"
+        WHEEL_PATHS=(wheelhouse/*.whl)
+        WHEEL_PATHS_STR=$(printf '"%s" ' "${WHEEL_PATHS[@]}")
+        echo "$WHEEL_PATHS_STR"
+        for WHEEL_PATH in "${WHEEL_PATHS[@]}"
+        do
+            echo "------"
+            echo "WHEEL_PATH = $WHEEL_PATH"
+            $GPG_SIGN_CMD --output $WHEEL_PATH.asc $WHEEL_PATH
+            $GPG_EXECUTABLE --verify $WHEEL_PATH.asc $WHEEL_PATH  || echo "hack, the first run of gpg very fails"
+            $GPG_EXECUTABLE --verify $WHEEL_PATH.asc $WHEEL_PATH
+        done
+        ls -la wheelhouse
+        python -m pip install opentimestamps-client
+        ots stamp wheelhouse/*.whl wheelhouse/*.asc
+        ls -la wheelhouse
+        twine upload --username __token__ --password "$TWINE_PASSWORD" --repository-url "$TWINE_REPOSITORY_URL" wheelhouse/*.whl --skip-existing --verbose || { echo "failed to twine upload" ; exit 1; }
+    - uses: actions/upload-artifact@v4.4.0
+      name: Upload deploy artifacts
+      with:
+        name: deploy_artifacts
+        path: |-
+          wheelhouse/*.whl
+          wheelhouse/*.asc
+          wheelhouse/*.ots
+  release:
+    name: Create Github Release
+    if: github.event_name == 'push' && (startsWith(github.event.ref, 'refs/tags') || startsWith(github.event.ref, 'refs/heads/release'))
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    needs:
+    - live_deploy
+    steps:
+    - name: Checkout source
+      uses: actions/checkout@v4.2.2
+    - uses: actions/download-artifact@v4.1.8
+      name: Download artifacts
+      with:
+        name: deploy_artifacts
+        path: wheelhouse
+    - name: Show files to release
+      shell: bash
+      run: ls -la wheelhouse
+    - run: 'echo "Automatic Release Notes. TODO: improve" > ${{ github.workspace }}-CHANGELOG.txt'
+    - name: Tag Release Commit
+      if: (startsWith(github.event.ref, 'refs/heads/release'))
+      run: |-
+        export VERSION=$(python -c "import setup; print(setup.VERSION)")
+        git tag "v$VERSION"
+        git push origin "v$VERSION"
+    - uses: softprops/action-gh-release@v1
+      name: Create Release
+      id: create_release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        body_path: ${{ github.workspace }}-CHANGELOG.txt
+        tag_name: ${{ github.ref }}
+        name: Release ${{ github.ref }}
+        body: Automatic Release
+        generate_release_notes: true
+        draft: true
+        prerelease: false
+        files: |-
+          wheelhouse/*.whl
+          wheelhouse/*.asc
+          wheelhouse/*.ots
+          wheelhouse/*.zip
+          wheelhouse/*.tar.gz
 
 
 ###

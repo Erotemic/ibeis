@@ -2,7 +2,7 @@ import utool
 import six
 from os.path import join, realpath
 from itertools import cycle
-from ibeis.util.util_grabdata import grab_zipped_url
+# from ibeis.util.util_grabdata import grab_zipped_url
 print, rrr, profile = utool.inject2(__name__)
 
 
@@ -10,11 +10,29 @@ def get_testdata_dir(ensure=True, key='testdb1'):
     """
     Gets test img directory and downloads it if it doesn't exist
     """
-    testdata_map = {
-        'testdb1': 'https://cthulhu.dyn.wildme.io/public/data/testdata.zip'
-    }
-    zipped_testdata_url = testdata_map[key]
-    testdata_dir = grab_zipped_url(zipped_testdata_url, ensure=ensure)
+    # testdata_map = {
+    #     'testdb1': 'https://cthulhu.dyn.wildme.io/public/data/testdata.zip'
+    # }
+    # zipped_testdata_url = testdata_map[key]
+    # testdata_dir = grab_zipped_url(zipped_testdata_url, ensure=ensure)
+
+    from ibeis.tests import demodata2
+    # New content addressable data
+    fpath = demodata2.DEMODATA.grab(key)
+    # testdata_map = {
+    #     # TODO: content addressable data
+    #     'testdb1': 'https://cthulhu.dyn.wildme.io/public/data/testdata.zip',
+    # }
+    # zipped_testdata_url = testdata_map[key]
+    from ibeis.util import util_grabdata
+    testdata_dir = util_grabdata.grab_zipped_url(
+        None,
+        appname=demodata2.DEMODATA.appname,
+        existing_zip_fpath=fpath,
+        # zipped_testdata_url,
+        # zipped_testdata_url,
+        ensure=ensure
+    )
     return testdata_dir
 
 

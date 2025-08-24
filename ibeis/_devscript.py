@@ -148,7 +148,6 @@ def devcmd(*args):
     else:
         func_aliases = list(args)
     def closure_devcmd(func):
-        global DEVCMD_FUNCTIONS
         func_aliases.extend([get_funcname(func)])
         DEVCMD_FUNCTIONS.append((tuple(func_aliases), func))
         def func_wrapper(*args_, **kwargs_):
@@ -172,7 +171,6 @@ def devprecmd(*args):
     else:
         func_aliases = list(args)
     def closure_devprecmd(func):
-        global DEVPRECMD_FUNCTIONS
         func_aliases.extend([get_funcname(func)])
         DEVPRECMD_FUNCTIONS.append((tuple(func_aliases), func))
         def func_wrapper(*args_, **kwargs_):

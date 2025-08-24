@@ -5,6 +5,14 @@ We are currently working on porting this changelog to the specifications in
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+### [Version 2.4.0] - Released xx
+
+### Changed
+* Support 312, 313, 314
+
+### Added
+* Can now dump a simplified version of the database to a kwcoco file
+
 ### [Version 2.3.2] - Released 2024-02-01
 
 ### Fixed:
@@ -61,4 +69,3 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Added
     * First semi-usable pip release
-

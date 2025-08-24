@@ -102,7 +102,6 @@ def get_flask_app(templates_auto_reload=True):
     global GLOBAL_APP
     global GLOBAL_CORS
     global GLOBAL_CAS
-    global HAS_FLASK
     if not HAS_FLASK:
         print('flask is not installed')
         return None
@@ -595,7 +594,6 @@ def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=True):
         return ut.dummy_args_decor
     if GLOBAL_APP_ENABLED:
         def register_api(rule, __api_plural_check__=True, **options):
-            global API_SEEN_SET
             assert rule.endswith('/'), 'An API should always end in a forward-slash'
             assert 'methods' in options, 'An api should always have a specified methods list'
             rule_ = rule + ':'.join(options['methods'])

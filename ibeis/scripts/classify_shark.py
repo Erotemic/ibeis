@@ -143,7 +143,6 @@ def shark_net(dry=False):
     model.fit(X_learn, y_learn, X_valid=X_valid, y_valid=y_valid)
 
 
-# @ut.reloadable_class
 class WhaleSharkInjuryModel(AbstractCategoricalModel):
     """
     Example:
@@ -613,7 +612,6 @@ def get_shark_labels_and_metadata(target_type=None, ibs=None, config=None):
     return tup
 
 
-# @ut.reloadable_class
 class ClfProblem(object):
     """ Harness for researching a classification problem """
     def __init__(problem, ds):
@@ -847,7 +845,6 @@ class ClfProblem(object):
             yield train_idx, test_idx
 
 
-# @ut.reloadable_class
 class ClfSingleResult(object):
     r"""
     Reports the results of a classification problem

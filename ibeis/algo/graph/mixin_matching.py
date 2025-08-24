@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
-import six
 import numpy as np
 import ubelt as ub
 import utool as ut
@@ -15,7 +14,6 @@ from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV  # NOQA
 print, rrr, profile = ut.inject2(__name__)
 
 
-@six.add_metaclass(ut.ReloadingMetaclass)
 class AnnotInfrMatching(object):
     """
     Methods for running matching algorithms

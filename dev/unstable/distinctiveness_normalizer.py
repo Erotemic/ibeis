@@ -60,7 +60,6 @@ def testdata_distinctiveness():
     return dstcnvs_normer, qreq_
 
 
-#@six.add_metaclass(ut.ReloadingMetaclass)
 class DistinctivnessNormalizer(ut.Cachable):
     ext    = '.cPkl'
     prefix = 'distinctivness'

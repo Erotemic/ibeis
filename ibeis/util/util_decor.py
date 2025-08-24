@@ -464,7 +464,9 @@ def accepts_numpy(func):
             # If the input is a numpy array, and return the output with the same
             # shape as the input
             # Remove redundant input (because we are passing it to SQL)
-            input_list, inverse_unique = np.unique(input_, return_inverse=True)
+            # HACK: ravel to get the pre numpy 2.x behavior
+            input_list, inverse_unique = np.unique(input_.ravel(), return_inverse=True)
+            print(f'inverse_unique.shape={inverse_unique.shape}')
             # Call the function in list format
             # TODO: is this necessary?
             input_list = input_list.tolist()

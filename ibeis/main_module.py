@@ -147,17 +147,7 @@ def _init_numpy():
         'under':   on_err,
         'invalid': on_err,
     }
-    #numpy_print = {
-    #    'precision': 8,
-    #    'threshold': 500,
-    #    'edgeitems': 3,
-    #    'linewidth': 200,  # default 75
-    #    'suppress': False,
-    #    'nanstr': 'nan',
-    #    'formatter': None,
-    #}
     np.seterr(**numpy_err)
-    #np.set_printoptions(**numpy_print)
 
 
 #-----------------------
@@ -215,8 +205,6 @@ def set_newfile_permissions():
     mask = 0o000  # most permissive umask
     prev_mask = os.umask(mask)
     return prev_mask
-    #print('prev_mask = %o' % (prev_mask,))
-    #print('new_mask  = %o' % (mask,))
 
 
 def main(gui=True, dbdir=None, defaultdb='cache',
@@ -574,9 +562,6 @@ def _preload(mpl=True, par=True, logging=True):
     _init_signals()
     # inject colored exceptions
     ut.util_inject.inject_colored_exceptions()
-    # register type aliases for debugging
-    #main_helpers.register_utool_aliases()
-    #return params.args
 
 
 def main_loop(main_locals, rungui=True, ipy=False, persist=True):
@@ -626,8 +611,6 @@ def main_close(main_locals=None):
     _reset_signals()
 
 
-#if __name__ == '__main__':
-#    multiprocessing.freeze_support()
 if __name__ == '__main__':
     """
     CommandLine:

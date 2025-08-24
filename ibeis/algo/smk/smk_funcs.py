@@ -550,8 +550,9 @@ def invert_assigns_old(idx_to_wxs, idx_to_maws, verbose=False):
         >>>     np.array([ 0.5,  0.5], dtype=np.float32),
         >>> ]
         >>> wx_to_idxs, wx_to_maws = invert_assigns_old(idx_to_wxs, idx_to_maws)
-        >>> result = 'wx_to_idxs = %s' % (ut.repr4(wx_to_idxs, with_dtype=True),)
-        >>> result += '\nwx_to_maws = %s' % (ut.repr4(wx_to_maws, with_dtype=True),)
+        >>> import ubelt as ub
+        >>> result = 'wx_to_idxs = %s' % (ub.urepr(wx_to_idxs, with_dtype=True, sk=1),)
+        >>> result += '\nwx_to_maws = %s' % (ub.urepr(wx_to_maws, with_dtype=True, sk=1),)
         >>> print(result)
         wx_to_idxs = {
             0: np.array([0, 2], dtype=np.int32),
@@ -574,6 +575,13 @@ def invert_assigns_old(idx_to_wxs, idx_to_maws, verbose=False):
     maws_list = vt.apply_jagged_grouping(idx_to_maws, groupxs)
     maws_list = [np.array(maws, dtype=np.float32) for maws in maws_list]
     wx_to_maws = dict(zip(wx_keys, maws_list))
+
+    # hack: Fix for change in ordering, normalize it
+    for idxs, maws in zip(wx_to_maws.values(), wx_to_idxs.values()):
+        _sortx = maws.argsort()
+        maws[:] = maws[_sortx]
+        idxs[:] = idxs[_sortx]
+
     if verbose:
         print('[vocab] L___ End Assign vecs to words.')
     return (wx_to_idxs, wx_to_maws)
@@ -600,8 +608,9 @@ def invert_assigns(idx_to_wxs, idx_to_maws, verbose=False):
         >>> idx_to_maws[1, 1] = np.ma.masked
         >>> tup = invert_assigns(idx_to_wxs, idx_to_maws)
         >>> wx_to_idxs, wx_to_maws = tup
-        >>> result = 'wx_to_idxs = %s' % (ut.repr4(wx_to_idxs, with_dtype=True),)
-        >>> result += '\nwx_to_maws = %s' % (ut.repr4(wx_to_maws, with_dtype=True),)
+        >>> import ubelt as ub
+        >>> result = 'wx_to_idxs = %s' % (ub.urepr(wx_to_idxs, with_dtype=True, sk=1),)
+        >>> result += '\nwx_to_maws = %s' % (ub.urepr(wx_to_maws, with_dtype=True, sk=1),)
         >>> print(result)
         wx_to_idxs = {
             0: np.array([0, 2], dtype=np.int32),
@@ -640,6 +649,12 @@ def invert_assigns(idx_to_wxs, idx_to_maws, verbose=False):
 
     wx_to_idxs = dict(zip(wx_keys, idxs_list))
     wx_to_maws = dict(zip(wx_keys, maws_list))
+
+    # hack: Fix for change in ordering, normalize it
+    for idxs, maws in zip(wx_to_maws.values(), wx_to_idxs.values()):
+        _sortx = maws.argsort()
+        maws[:] = maws[_sortx]
+        idxs[:] = idxs[_sortx]
 
     if verbose:
         print('[vocab] L___ End Assign vecs to words.')

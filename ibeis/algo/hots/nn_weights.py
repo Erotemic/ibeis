@@ -33,7 +33,6 @@ def _register_nn_normalized_weight_func(func):
     Registers a nearest neighbor normalized weighting
     Used for LNBNN
     """
-    global NN_WEIGHT_FUNC_DICT
     filtkey = ut.get_funcname(func).replace('_fn', '').lower()
     if ut.VERYVERBOSE:
         print('[nn_weights] registering norm func: %r' % (filtkey,))
