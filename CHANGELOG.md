@@ -8,13 +8,17 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ## Version 2.4.1 - Unreleased
 
 
-### [Version 2.4.0] - Released xx
+### [Version 2.4.0] - Released 2025-08-24
 
 ### Changed
 * Support 312, 313, 314
 
 ### Added
 * Can now dump a simplified version of the database to a kwcoco file
+
+### Fixed
+* Fix linkrot issues.
+* Fix numpy 2.x issues with np.unique
 
 ### [Version 2.3.2] - Released 2024-02-01
 
