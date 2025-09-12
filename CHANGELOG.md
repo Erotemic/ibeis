@@ -10,6 +10,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Fixed
 
 * Hotspotter convert script.
+* Issue when querying in a database without any species information
 
 
 ### [Version 2.4.0] - Released 2025-08-24
