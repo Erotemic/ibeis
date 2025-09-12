@@ -130,6 +130,7 @@ def convert_hsdb_to_ibeis(hsdir, dbdir=None, **kwargs):
     CommandLine:
         python -m ibeis convert_hsdb_to_ibeis --dbdir ~/work/Frogs
         python -m ibeis convert_hsdb_to_ibeis --hsdir "/raid/raw/RotanTurtles/Roatan HotSpotter Nov_21_2016"
+        xdoctest -m ibeis.dbio.ingest_hsdb convert_hsdb_to_ibeis --hsdir "/data/store/data/legacy_hots_dbs/OLD_DB_HS_INSTANCE_WD_siva"
 
     Ignore:
         from ibeis.dbio.ingest_hsdb import *  # NOQA
@@ -161,11 +162,16 @@ def convert_hsdb_to_ibeis(hsdir, dbdir=None, **kwargs):
     imgtbl_fpath = join(internal_dir, 'image_table.csv')
     chiptbl_fpath = join(internal_dir, 'chip_table.csv')
 
+    import pathlib
+    nametbl_fpath = pathlib.Path(nametbl_fpath)
+    assert nametbl_fpath.exists(), f'{nametbl_fpath} does not exist'
+
     # READ NAME TABLE
     name_text_list = ['____']
     name_hs_nid_list = [0]
-    with open(nametbl_fpath, 'rb') as nametbl_file:
+    with open(nametbl_fpath, 'r') as nametbl_file:
         name_reader = csv.reader(nametbl_file)
+        name_reader = list(name_reader)
         for ix, row in enumerate(name_reader):
             #if ix >= 3:
             if len(row) == 0 or row[0].strip().startswith('#'):
@@ -180,7 +186,7 @@ def convert_hsdb_to_ibeis(hsdir, dbdir=None, **kwargs):
     iamge_hs_gid_list   = []
     image_gname_list = []
     image_reviewed_list   = []
-    with open(imgtbl_fpath, 'rb') as imgtb_file:
+    with open(imgtbl_fpath, 'r') as imgtb_file:
         image_reader = csv.reader(imgtb_file)
         for ix, row in enumerate(image_reader):
             if len(row) == 0 or row[0].strip().startswith('#'):
@@ -242,7 +248,7 @@ def convert_hsdb_to_ibeis(hsdir, dbdir=None, **kwargs):
     chip_hs_nid_list = []
     chip_hs_gid_list = []
     chip_note_list   = []
-    with open(chiptbl_fpath, 'rb') as chiptbl_file:
+    with open(chiptbl_fpath, 'r') as chiptbl_file:
         chip_reader = csv.reader(chiptbl_file)
         for ix, row in enumerate(chip_reader):
             if len(row) == 0 or row[0].strip().startswith('#'):
