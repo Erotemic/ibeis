@@ -682,7 +682,10 @@ def make_ensure_match_img_nosql_func(qreq_, cm, daid):
                 # This call takes 23% - 15% of the time depending on settings
                 fig.savefig(stream, bbox_inches=extent, **savekw)
                 stream.seek(0)
-                data = np.fromstring(stream.getvalue(), dtype=np.uint8)
+                try:
+                    data = np.fromstring(stream.getvalue(), dtype=np.uint8)
+                except Exception:
+                    data = np.frombuffer(stream.getvalue(), dtype=np.uint8)
             if check_func is not None and check_func():
                 return
             pt.plt.close(fig)
@@ -794,7 +797,10 @@ def make_ensure_match_img_nosql_func(qreq_, cm, daid):
             # This call takes 23% - 15% of the time depending on settings
             fig.savefig(stream, bbox_inches=extent, **savekw)
             stream.seek(0)
-            data = np.fromstring(stream.getvalue(), dtype=np.uint8)
+            try:
+                data = np.fromstring(stream.getvalue(), dtype=np.uint8)
+            except Exception:
+                data = np.frombuffer(stream.getvalue(), dtype=np.uint8)
         if check_func is not None and check_func():
             return
         pt.plt.close(fig)
