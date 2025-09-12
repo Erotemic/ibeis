@@ -1439,6 +1439,7 @@ def sver_single_chipmatch(qreq_, cm, verbose=False):
                            keys=['kpts1', 'kpts2',  'fm', 'xy_thresh',
                                  'scale_thresh', 'dlen_sqrd2', 'min_nInliers'])
                 sv_tup = None
+                raise
         svtup_list.append(sv_tup)
 
     # <SENTINAL>

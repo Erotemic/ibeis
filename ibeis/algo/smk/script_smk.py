@@ -329,7 +329,10 @@ def load_oxford_2007():
             file_ = open(sift_fpath, 'rb')
             with ut.Timer('Reading SIFT binary file'):
                 nbytes = np.prod(shape)
-                all_vecs = np.fromstring(file_.read(nbytes), dtype=np.uint8)
+                try:
+                    all_vecs = np.fromstring(file_.read(nbytes), dtype=np.uint8)
+                except Exception:
+                    all_vecs = np.frombuffer(file_.read(nbytes), dtype=np.uint8)
             all_vecs = all_vecs.reshape(shape)
         finally:
             file_.close()

@@ -694,7 +694,10 @@ class _ChipMatchVisualization(object):
             # This call takes 23% - 15% of the time depending on settings
             fig.savefig(stream, bbox_inches=extent, **savekw)
             stream.seek(0)
-            data = np.fromstring(stream.getvalue(), dtype=np.uint8)
+            try:
+                data = np.fromstring(stream.getvalue(), dtype=np.uint8)
+            except Exception:
+                data = np.frombuffer(stream.getvalue(), dtype=np.uint8)
         image = cv2.imdecode(data, 1)
         # Ensure that this figure will not pop up
         pt.plt.close(fig)

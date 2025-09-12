@@ -205,7 +205,7 @@ def request_IBEISController(
         if force_serial:
             assert ibs.force_serial, 'set use_cache=False in ibeis.opendb'
     else:
-        # Convert hold hotspotter dirs if necessary
+        # Convert old hotspotter dirs if necessary
         if check_hsdb and ingest_hsdb.check_unconverted_hsdb(dbdir):
             ibs = ingest_hsdb.convert_hsdb_to_ibeis(dbdir, ensure=ensure,
                                                     wbaddr=wbaddr,

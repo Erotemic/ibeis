@@ -228,7 +228,7 @@ class QueryResultsWidget(gt.APIItemWidget):
         logger.addHandler(ch)
 
         qres_wgt.logger = logger
-        logger.info('START QUERY_RESULT_REVIEW')
+        logger.info('START QUERY_RESULT_REVIEW.')
         logger.info('NUM CHIP_MATCH OBJECTS (len(cm_list)=%d)' % (len(cm_list),))
         logger.info('NUM PAIRS TO EVIDENCE_DECISION (nRows=%d)' % (qres_wgt.review_api.nRows,))
         logger.info('PARENT QUERY REQUEST (cfgstr=%s)' % (qres_wgt.qreq_.get_cfgstr(with_input=True),))
