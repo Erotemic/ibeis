@@ -259,7 +259,6 @@ def delete_empty_nids(ibs):
 @register_ibs_method
 @accessor_decors.getter_1toM
 @register_api('/api/name/annot/rowid/', methods=['GET'])
-@profile
 def get_name_aids(ibs, nid_list, enable_unknown_fix=True, is_staged=False):
     r"""
     # TODO: Rename to get_anot_rowids_from_name_rowid
