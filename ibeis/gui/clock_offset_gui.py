@@ -85,7 +85,7 @@ class ClockOffsetWidget(QtWidgets.QWidget):
                 co_wgt.button_list[1].setEnabled(True)
 
         def extract_tuple(li, idx):
-            return list(zip(*li)[idx])
+            return list(zip(*li))[idx]
         # Update option setting, assume datetime has been updated
         co_wgt.combo_list[1].setCurrentIndex(extract_tuple(co_wgt.opt_list['year'], 1).index(co_wgt.dtime.year))
         co_wgt.combo_list[3].setCurrentIndex(extract_tuple(co_wgt.opt_list['month'], 1).index(co_wgt.dtime.month))
