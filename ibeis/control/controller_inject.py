@@ -41,7 +41,8 @@ except Exception:
     HAS_FLASK = False
     msg = ('Missing flask and/or Flask-session.\n'
            'pip install Flask')
-    warnings.warn(msg)
+    if 0:
+        warnings.warn(msg)
     if ut.STRICT:
         raise
 
@@ -51,7 +52,8 @@ try:
     HAS_FLASK_CORS = True
 except Exception:
     HAS_FLASK_CORS = False
-    warnings.warn('Missing flask.ext.cors')
+    if 0:
+        warnings.warn('Missing flask.ext.cors')
     if ut.SUPER_STRICT:
         raise
 

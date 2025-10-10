@@ -10,14 +10,10 @@ ToRegenerate:
     python -m ibeis.templates.template_generator --key annotmatch --Tcfg with_web_api=False with_api_cache=False with_deleters=True no_extern_deleters=True --diff
     python -m ibeis.templates.template_generator --key annotmatch --Tcfg with_web_api=False with_api_cache=False with_deleters=True no_extern_deleters=True --write
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
-import functools  # NOQA
-import six  # NOQA
-from six.moves import map, range, zip  # NOQA
 from ibeis import constants as const
 import utool as ut
 from ibeis.control import controller_inject
-from ibeis.control import accessor_decors  # NOQA
+from ibeis.control import accessor_decors
 print, rrr, profile = ut.inject2(__name__)
 
 # Create dectorator to inject functions in this module into the IBEISController
@@ -118,7 +114,7 @@ def add_annotmatch(ibs, aid1_list, aid2_list,
         (ANNOTMATCH_COUNT, anotmatch_count_list),
     ]
     colnames = ut.take_column(cols_to_lists, 0)
-    params_iter = zip(*ut.take_column(cols_to_lists, 1))
+    params_iter = list(zip(*ut.take_column(cols_to_lists, 1)))
 
     get_rowid_from_superkey = ibs.get_annotmatch_rowid_from_superkey
     # FIXME: encode superkey paramx
@@ -385,7 +381,7 @@ def get_annotmatch_rowid_from_superkey(ibs, aid1_list, aid2_list, eager=True, nI
     """
     colnames = (ANNOTMATCH_ROWID,)
     # FIXME: col_rowid is not correct
-    params_iter = zip(aid1_list, aid2_list)
+    params_iter = list(zip(aid1_list, aid2_list))
     andwhere_colnames = [ANNOT_ROWID1, ANNOT_ROWID2]
     annotmatch_rowid_list = ibs.db.get_where_eq(
         const.ANNOTMATCH_TABLE, colnames, params_iter, andwhere_colnames, eager=eager, nInput=nInput)

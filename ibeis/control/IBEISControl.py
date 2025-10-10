@@ -264,13 +264,16 @@ class IBEISController(BASE_CLASS):
         """ Creates a new IBEIS Controller associated with one database """
         #if verbose and ut.VERBOSE:
         print('\n[ibs.__init__] new IBEISController')
-        # HACK
-        try:
-            from ibeis_flukematch import plugin  # NOQA
-        except Exception as ex:
-            msg = ('Cannot import the flukematch plugin. '
-                   'It does not exist or has not been built.')
-            ut.printex(ex, msg, iswarning=True)
+
+        ENABLE_FLUKEMATCH = False
+        if ENABLE_FLUKEMATCH:
+            # HACK
+            try:
+                from ibeis_flukematch import plugin  # NOQA
+            except Exception as ex:
+                msg = ('Cannot import the flukematch plugin. '
+                       'It does not exist or has not been built.')
+                ut.printex(ex, msg, iswarning=True)
         ibs.dbname = None
         # an dict to hack in temporary state
         ibs.const = const

@@ -5,7 +5,6 @@ controller functions for contributors, versions, configs, and other metadata
 from __future__ import absolute_import, division, print_function
 import functools
 import utool as ut
-from six.moves import range, input, zip
 from ibeis import constants as const
 from ibeis.control import accessor_decors, controller_inject
 from ibeis.algo import Config
@@ -76,9 +75,9 @@ def add_contributors(ibs, tag_list, uuid_list=None, name_first_list=None, name_l
                 'contributor_name_last', 'contributor_location_city',
                 'contributor_location_state', 'contributor_location_country',
                 'contributor_location_zip', 'contributor_note']
-    params_iter = zip(uuid_list, tag_list, name_first_list,
-                      name_last_list, loc_city_list, loc_state_list,
-                      loc_country_list, loc_zip_list, notes_list)
+    params_iter = list(zip(uuid_list, tag_list, name_first_list,
+                           name_last_list, loc_city_list, loc_state_list,
+                           loc_country_list, loc_zip_list, notes_list))
 
     get_rowid_from_superkey = ibs.get_contributor_rowid_from_uuid
     #get_rowid_from_superkey = ibs.get_contributor_rowid_from_tag  # ?? is tag a superkey?
@@ -504,13 +503,13 @@ def get_contributor_name_string(ibs, contributor_rowid_list, include_tag=False):
     last_list = ibs.get_contributor_last_name(contributor_rowid_list)
     if include_tag:
         tag_list = ibs.get_contributor_tag(contributor_rowid_list)
-        name_list = zip(first_list, last_list, tag_list)
+        name_list = list(zip(first_list, last_list, tag_list))
         contributor_name_list = [
             "%s %s (%s)" % (first, last, tag)
             for first, last, tag in name_list
         ]
     else:
-        name_list = zip(first_list, last_list)
+        name_list = list(zip(first_list, last_list))
         contributor_name_list = [
             "%s %s" % (first, last)
             for first, last in name_list
@@ -599,7 +598,7 @@ def get_contributor_location_string(ibs, contributor_rowid_list):
     state_list = ibs.get_contributor_state(contributor_rowid_list)
     zip_list = ibs.get_contributor_zip(contributor_rowid_list)
     country_list = ibs.get_contributor_country(contributor_rowid_list)
-    location_list = zip(city_list, state_list, zip_list, country_list)
+    location_list = list(zip(city_list, state_list, zip_list, country_list))
     contributor_list = [
         "%s, %s\n%s %s" % (city, state, _zip, country)
         for city, state, _zip, country in location_list
@@ -836,7 +835,7 @@ def add_metadata(ibs, metadata_key_list, metadata_value_list, db):
         print('[ibs] adding %d metadata' % len(metadata_key_list))
     # Add imageset text names to database
     colnames = ['metadata_key', 'metadata_value']
-    params_iter = zip(metadata_key_list, metadata_value_list)
+    params_iter = list(zip(metadata_key_list, metadata_value_list))
     get_rowid_from_superkey = functools.partial(ibs.get_metadata_rowid_from_metadata_key, db=(db,))
     metadata_rowid_list = db.add_cleanly(const.METADATA_TABLE, colnames, params_iter, get_rowid_from_superkey)
     return metadata_rowid_list
