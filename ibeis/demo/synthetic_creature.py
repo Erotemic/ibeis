@@ -118,7 +118,7 @@ def compose_creature(params: RenderParams, debug: bool = False):
         >>> import numpy as np, kwimage
         >>> from ibeis.demo.pattern import RenderParams
         >>> from ibeis.demo.synthetic_creature import compose_creature
-        >>> ids = ['creature-A', 'creature-B', 'creature-C', 'creature-D', 'creature-E']
+        >>> ids = ['creature-A', 'creature-B', 'creature-C']
         >>> vars = [0, 1, 2, 4, 5]
         >>> canvases = []
         >>> for name in ids:

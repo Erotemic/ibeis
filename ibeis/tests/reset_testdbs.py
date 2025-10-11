@@ -11,6 +11,8 @@ __test__ = False  # This is not a test
 
 def testdb2_stuff():
     """
+    This can be removed.
+
     tar -zcvf testdb2.tar.gz testdb2/
     """
     import ibeis
@@ -178,6 +180,9 @@ def reset_testdbs(**kwargs):
         if argdict.get('reset_' + key, False) or argdict['reset_all']:
             delete_dbdir(dbname)
 
+    # Just do this one
+    ensure_synthetic_db1(reset=True)
+
     # Step 3) Ensure DBs that dont exist
     ensure_smaller_testingdbs()
     workdir = sysres.get_workdir()
@@ -207,6 +212,88 @@ def reset_mtest():
         >>> result = reset_mtest()
     """
     return reset_testdbs(reset_mtest=True)
+
+
+def generate_synthetic_images(raw_img_dpath, image_size=512, images_per_name=4, num_names=10):
+    import ubelt as ub
+    synthetic_items = []
+    for name_idx in range(1, num_names + 1):
+        creature_name = f'creature_{name_idx:04d}'
+        for variant in range(images_per_name):
+            stem = f"{creature_name}__v{variant:02d}"
+            name_dpath = (raw_img_dpath / creature_name)
+            image_fpath = name_dpath / f"{stem}.png"
+            synthetic_items.append({
+                'creature_name': creature_name,
+                'variant': variant,
+                'image_fpath': image_fpath,
+            })
+
+    depends = {
+        'image_size': image_size,
+        'num_names': num_names,
+        'images_per_name': images_per_name,
+    }
+    imgstamp = ub.CacheStamp('img_stamp', dpath=raw_img_dpath, depends=depends)
+    if imgstamp.expired():
+        from ibeis.demo import synthetic_creature
+        for item in ub.ProgIter(synthetic_items, desc='generating synthetic data'):
+            creature_name = item['creature_name']
+            variant = item['variant']
+            image_fpath = item['image_fpath']
+            params = synthetic_creature.random_params(creature_name, variant, image_size)
+            img, meta = synthetic_creature.compose_creature(params, debug=False)
+            image_fpath.parent.ensuredir()
+            img.save(image_fpath)
+        imgstamp.renew()
+    return synthetic_items
+
+
+def ensure_synthetic_db1(reset=False):
+    """
+    New 2025 mechanism for test database with completed matching state.
+
+    Example:
+        >>> from ibeis.tests.reset_testdbs import *  # NOQA
+        >>> ibs = ensure_synthetic_db1()
+    """
+    import ubelt as ub
+    import os
+    from ibeis.control import IBEISControl
+    import ibeis
+    ibeis.ENABLE_WILDBOOK_SIGNAL = False
+    img_dpath = ub.Path.appdir('ibeis/demodata/synthetic_images1')
+    if reset:
+        # FIXME: deleting a database directory does not seem to close or
+        # invalidate any existing open databases.
+        img_dpath.delete()
+
+    raw_img_dpath = (img_dpath / 'raw_images').ensuredir()
+    dbname = 'synthetic_db1'
+    dbdir = (img_dpath / 'database' / dbname)
+
+    image_size = 512
+    images_per_name = 4
+    num_names = 10
+
+    dbstamp = ub.CacheStamp('create_stamp', dpath=dbdir)
+    if dbstamp.expired():
+        dbdir.ensuredir()
+        synthetic_items = generate_synthetic_images(raw_img_dpath,
+                                                    image_size=image_size,
+                                                    images_per_name=images_per_name,
+                                                    num_names=num_names)
+        ibs = IBEISControl.request_IBEISController(dbdir)
+        image_paths = [os.fspath(item['image_fpath']) for item in synthetic_items]
+        names = [item['creature_name'] for item in synthetic_items]
+        image_ids = ibs.add_images(image_paths)
+        bbox_list = [[0, 0, image_size, image_size] for _ in image_ids]
+        annot_ids = ibs.add_annots(image_ids, bbox_list=bbox_list)
+        ibs.set_annot_name_texts(annot_ids, names)
+        dbstamp.renew()
+    else:
+        ibs = ibeis.opendb(dbdir=dbdir)
+    return ibs
 
 
 if __name__ == '__main__':
