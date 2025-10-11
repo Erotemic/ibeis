@@ -81,40 +81,6 @@ def diagonal_gradient(size: Tuple[int, int], color1, color2, angle_deg: float = 
     return ImageOps.colorize(g, black=color1, white=color2)
 
 
-def value_noise(
-    h: int, w: int, rng: np.random.Generator, octaves: int = 4
-) -> np.ndarray:
-    base = np.zeros((h, w), np.float32)
-    freq, amp = 1, 1.0
-    for _ in range(octaves):
-        gh, gw = max(1, h // (8 * freq)), max(1, w // (8 * freq))
-        grid = rng.random((gh + 1, gw + 1)).astype(np.float32)
-        y = np.linspace(0, gh, h, endpoint=False, dtype=np.float32)
-        x = np.linspace(0, gw, w, endpoint=False, dtype=np.float32)
-        yi = np.floor(y).astype(np.int32)
-        xi = np.floor(x).astype(np.int32)
-        yi1 = np.minimum(yi + 1, gh)
-        xi1 = np.minimum(xi + 1, gw)
-        dy = y - yi
-        dx = x - xi
-        v00 = grid[yi, xi]
-        v10 = grid[yi1, xi]
-        v01 = grid[yi, xi1]
-        v11 = grid[yi1, xi1]
-        val = (
-            v00 * (1 - dy)[:, None] * (1 - dx)[None, :]
-            + v10 * dy[:, None] * (1 - dx)[None, :]
-            + v01 * (1 - dy)[:, None] * dx[None, :]
-            + v11 * dy[:, None] * dx[None, :]
-        )
-        base += amp * val
-        freq *= 2
-        amp *= 0.5
-    base -= base.min()
-    base /= base.max() + 1e-6
-    return base
-
-
 def value_noise(h: int, w: int, rng: np.random.Generator, octaves: int = 4) -> np.ndarray:
     base = np.zeros((h, w), np.float32)
     freq, amp = 1, 1.0

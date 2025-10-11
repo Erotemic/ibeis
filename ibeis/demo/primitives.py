@@ -160,6 +160,43 @@ def draw_bullseye(size: int, rings: int, fg: int, bg: int) -> Image.Image:
 def draw_star(
     size: int, points: int, inner: float, fg: int, bg: int, rot_deg: float
 ) -> Image.Image:
+    """
+    Draw a star outline with inner rays.
+
+    CommandLine:
+        xdoctest -m ibeis.demo.primitives draw_star --show
+
+    Example:
+        >>> import numpy as np
+        >>> from ibeis.demo.primitives import draw_star
+        >>> img = draw_star(size=256, points=7, inner=0.45, fg=0, bg=255, rot_deg=12)
+        >>> arr = np.asarray(img)
+        >>> assert img.mode == 'L' and img.size == (256, 256)
+        >>> assert (arr < 255).any()
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import kwplot; kwplot.autompl()
+        >>> kwplot.imshow(arr, doclf=True, title='draw_star')
+        >>> kwplot.show_if_requested()
+
+    Example:
+        >>> # Grid: points / inner / rotation sweep
+        >>> import numpy as np, kwimage
+        >>> from ibeis.demo.primitives import draw_star
+        >>> points_list = [5, 8]
+        >>> inner_list  = [0.35, 0.45, 0.55]
+        >>> rot_list    = [0]
+        >>> canvases = []
+        >>> for p in points_list:
+        ...     for inner in inner_list:
+        ...         for r in rot_list:
+        ...             im = draw_star(160, p, inner, fg=0, bg=255, rot_deg=r)
+        ...             rgb = kwimage.atleast_3channels(np.asarray(im))
+        ...             rgb = kwimage.draw_header_text(rgb, f'p={p}, i={inner:.2f}, r={r}')
+        ...             canvases.append(rgb)
+        >>> grid = kwimage.stack_images_grid(canvases, chunksize=len(rot_list), pad=6, bg_value='kitware_gray')
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import kwplot; kwplot.autompl(); kwplot.imshow(grid, title='draw_star grid'); kwplot.show_if_requested()
+    """
     R = size * 0.48
     r = R * inner
     ang0 = math.radians(rot_deg)
@@ -182,6 +219,38 @@ def draw_star(
 
 
 def id_bitmatrix(id_str: str, dim: int = 8) -> np.ndarray:
+    """
+    Generate a deterministic bit matrix from an id string.
+
+    CommandLine:
+        xdoctest -m ibeis.demo.primitives id_bitmatrix
+
+    Example:
+        >>> import numpy as np
+        >>> from ibeis.demo.primitives import id_bitmatrix
+        >>> m = id_bitmatrix('demo-id', dim=8)
+        >>> assert m.shape == (8, 8) and m.dtype == np.uint8
+        >>> assert set(np.unique(m)).issubset({0, 1})
+        >>> # Deterministic repeatability
+        >>> assert np.array_equal(m, id_bitmatrix('demo-id', dim=8))
+
+    Example:
+        >>> # Different dims; visualize as a tiny sprite sheet
+        >>> import numpy as np, kwimage
+        >>> from ibeis.demo.primitives import id_bitmatrix
+        >>> dims = [6, 8, 10, 12]
+        >>> canvases = []
+        >>> for d in dims:
+        ...     m = id_bitmatrix('demo-id', dim=d) * 255
+        ...     # nearest resize so the blocks stay crisp
+        ...     sprite = kwimage.imresize(m, dsize=(d*12, d*12), interpolation='nearest')
+        ...     rgb = kwimage.atleast_3channels(sprite.astype(np.uint8))
+        ...     rgb = kwimage.draw_header_text(rgb, f'dim={d}')
+        ...     canvases.append(rgb)
+        >>> grid = kwimage.stack_images_grid(canvases, chunksize=2, pad=6, bg_value='kitware_gray')
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import kwplot; kwplot.autompl(); kwplot.imshow(grid, title='id_bitmatrix dims'); kwplot.show_if_requested()
+    """
     import hashlib
     import numpy as np
 
@@ -199,6 +268,40 @@ def id_bitmatrix(id_str: str, dim: int = 8) -> np.ndarray:
 def draw_bitglyph(
     matrix: np.ndarray, size: int, rot_deg: float, fg: int, bg: int
 ) -> Image.Image:
+    """
+    Render a binary matrix as a pixel glyph, optionally rotated.
+
+    CommandLine:
+        xdoctest -m ibeis.demo.primitives draw_bitglyph --show
+
+    Example:
+        >>> import numpy as np
+        >>> from ibeis.demo.primitives import id_bitmatrix, draw_bitglyph
+        >>> m = id_bitmatrix('glyph-id', dim=8)
+        >>> img = draw_bitglyph(m, size=256, rot_deg=30, fg=0, bg=255)
+        >>> arr = np.asarray(img)
+        >>> assert (arr < 255).any()
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import kwplot; kwplot.autompl(); kwplot.imshow(arr, doclf=True, title='draw_bitglyph'); kwplot.show_if_requested()
+
+    Example:
+        >>> # Grid: rotate several glyphs of different sizes
+        >>> import numpy as np, kwimage
+        >>> from ibeis.demo.primitives import id_bitmatrix, draw_bitglyph
+        >>> sizes = [96, 128, 160]
+        >>> rots  = [0, 15, 30, 45]
+        >>> canvases = []
+        >>> for s in sizes:
+        ...     m = id_bitmatrix(f'glyph-{s}', dim=8)
+        ...     for r in rots:
+        ...         im = draw_bitglyph(m, size=s, rot_deg=r, fg=0, bg=255)
+        ...         rgb = kwimage.atleast_3channels(np.asarray(im))
+        ...         rgb = kwimage.draw_header_text(rgb, f's={s}, r={r}')
+        ...         canvases.append(rgb)
+        >>> grid = kwimage.stack_images_grid(canvases, chunksize=len(rots), pad=6, bg_value='kitware_gray')
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import kwplot; kwplot.autompl(); kwplot.imshow(grid, title='draw_bitglyph grid'); kwplot.show_if_requested()
+    """
     h, w = matrix.shape
     img = Image.new("L", (size, size), color=bg)
     d = ImageDraw.Draw(img)
@@ -215,6 +318,47 @@ def draw_bitglyph(
 def hatch_layer(
     img, rng, density: float = 0.004, thickness: int = 1, angle_deg: float = 30
 ):
+    """
+    Draw a slanted line hatch on an L image, in-place.
+
+    CommandLine:
+        xdoctest -m ibeis.demo.primitives hatch_layer --show
+
+    Example:
+        >>> import numpy as np
+        >>> from numpy.random import default_rng
+        >>> from PIL import Image
+        >>> from ibeis.demo.primitives import hatch_layer
+        >>> canvas = Image.new('L', (256, 256), 0)
+        >>> before = np.asarray(canvas).sum()
+        >>> hatch_layer(canvas, rng=default_rng(0), density=0.01, thickness=2, angle_deg=30)
+        >>> after = np.asarray(canvas).sum()
+        >>> assert after > before
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import kwplot; kwplot.autompl(); kwplot.imshow(canvas, title='hatch_layer'); kwplot.show_if_requested()
+
+    Example:
+        >>> # Grid: density / thickness / angle sweep
+        >>> import numpy as np, kwimage
+        >>> from numpy.random import default_rng
+        >>> from PIL import Image
+        >>> from ibeis.demo.primitives import hatch_layer
+        >>> dens = [0.004, 0.008, 0.016]
+        >>> thks = [1, 2]
+        >>> angs = [15, 45, 75]
+        >>> canvases = []
+        >>> for d in dens:
+        ...     for t in thks:
+        ...         for a in angs:
+        ...             base = Image.new('L', (180, 180), 0)
+        ...             hatch_layer(base, rng=default_rng(0), density=d, thickness=t, angle_deg=a)
+        ...             rgb = kwimage.atleast_3channels(np.asarray(base))
+        ...             rgb = kwimage.draw_header_text(rgb, f'd={d}, t={t}, a={a}')
+        ...             canvases.append(rgb)
+        >>> grid = kwimage.stack_images_grid(canvases, chunksize=len(angs), pad=6, bg_value='kitware_gray')
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import kwplot; kwplot.autompl(); kwplot.imshow(grid, title='hatch_layer grid'); kwplot.show_if_requested()
+    """
     d = ImageDraw.Draw(img)
     w, h = img.size
     spacing = max(6, int(1.0 / math.sqrt(density)))

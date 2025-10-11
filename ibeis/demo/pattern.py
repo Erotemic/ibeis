@@ -4,7 +4,7 @@ import math
 from typing import Tuple, List
 from PIL import Image, ImageDraw, ImageFilter, ImageOps
 
-from ibeis.demo.utils import rng_from, seed_from_string, id_to_colors
+from ibeis.demo.utils import rng_from, seed_from_string, id_to_colors  # NOQA
 from ibeis.demo.primitives import (
     draw_bitglyph,
     draw_checker,
