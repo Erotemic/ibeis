@@ -2,6 +2,7 @@ from __future__ import annotations
 import dataclasses as dc
 import math
 from typing import Tuple, List
+import kwarray
 from PIL import Image, ImageDraw, ImageFilter, ImageOps
 
 from ibeis.demo.utils import rng_from, seed_from_string, id_to_colors  # NOQA
@@ -21,12 +22,19 @@ class Anchor:
     size: float  # relative to shorter side
 
 
-def make_anchors(id_str: str, variant: int = 0) -> List[Anchor]:
+def make_anchors(rng=None) -> List[Anchor]:
     """
     Generate deterministic anchors with a small, variant-dependent jitter so
     different variants remain coherent but not identical.
+
+    Example:
+        >>> from ibeis.demo.pattern import *  # NOQA
+        >>> anchors = make_anchors(0)
+        >>> import ubelt as ub
+        >>> print(f'anchors = {ub.urepr(anchors, nl=1)}')
+
     """
-    rng = rng_from(id_str, variant)
+    rng = kwarray.ensure_rng(rng)
     anchors: List[Anchor] = []
     for i in range(3):
         for j in range(3):
@@ -110,6 +118,7 @@ def render_id_pattern_layer(
 
     Example:
         >>> # Grid of variations across multiple IDs / variants (visual check)
+        >>> from ibeis.demo.pattern import *  # NOQA
         >>> import numpy as np, kwimage
         >>> from ibeis.demo.pattern import RenderParams, render_id_pattern_layer
         >>> ids = ['zebra-001', 'zebra-002', 'zebra-003']
@@ -136,9 +145,10 @@ def render_id_pattern_layer(
     fg_rgb = (0, 0, 0)
     accent_rgb = (50, 50, 50)
     canvas = Image.new("RGB", (W, H), color=(255, 255, 255))
-    anchors = make_anchors(params.id_str)
-    # M = __import__("numpy").array([])  # lazy matrix creation below
-    rng = rng_from(params.id_str)
+
+    id_rng = kwarray.ensure_rng(params.id_str)
+    variant_rng = kwarray.ensure_rng(params.id_str + str(params.variant))
+    anchors = make_anchors(rng=id_rng)
 
     # precompute bitmatrix only if needed
     bm = None
@@ -149,17 +159,17 @@ def render_id_pattern_layer(
         s = int(anchor.size * min(W, H))
         if s < 10:  # too small to matter
             continue
-        choice = idx % 5
+        choice = id_rng.randint(0, 5)
         # rotate glyph family by variant so variants look different yet consistent
         # choice = (idx + int(params.variant)) % 5
         if choice == 0:
             from ibeis.demo.primitives import id_bitmatrix
             if bm is None:
                 bm = id_bitmatrix(params.id_str, dim=8)
-            rot = seed_from_string(params.id_str + anchor.name) % 360
+            rot = id_rng.rand() * 360
             gL = draw_bitglyph(bm, s, rot, fg=0, bg=255)
         elif choice == 1:
-            rot = seed_from_string(anchor.name + params.id_str) % 360
+            rot = id_rng.rand() * 360
             gL, _ = draw_checker(
                 ImageDraw.Draw(Image.new("L", (1, 1))),
                 0,
@@ -196,7 +206,8 @@ def render_id_pattern_layer(
             )
         else:
             gL = draw_bezier_stripes(
-                size=s, stripes=3, stroke=max(2, s // 36), fg=0, bg=255, rng=rng
+                size=s, stripes=3, stroke=max(2, s // 36), fg=0, bg=255,
+                rng=id_rng
             )
 
         x = int(cx - gL.width // 2)
@@ -214,12 +225,12 @@ def render_id_pattern_layer(
     if 0:
         try:
             # nudge with small scale/shear/translate
-            sx = 1.0 + float(rng.uniform(-0.035, 0.035))
-            sy = 1.0 + float(rng.uniform(-0.035, 0.035))
-            shx = float(rng.uniform(-0.028, 0.028))
-            shy = float(rng.uniform(-0.028, 0.028))
-            tx = float(rng.uniform(-0.02, 0.02)) * W
-            ty = float(rng.uniform(-0.02, 0.02)) * H
+            sx = 1.0 + float(variant_rng.uniform(-0.035, 0.035))
+            sy = 1.0 + float(variant_rng.uniform(-0.035, 0.035))
+            shx = float(variant_rng.uniform(-0.028, 0.028))
+            shy = float(variant_rng.uniform(-0.028, 0.028))
+            tx = float(variant_rng.uniform(-0.02, 0.02)) * W
+            ty = float(variant_rng.uniform(-0.02, 0.02)) * H
             A = (sx, shx, tx,  shy, sy,  ty)
             canvas = canvas.transform(canvas.size, Image.AFFINE, A, resample=Image.BICUBIC)
         except Exception:

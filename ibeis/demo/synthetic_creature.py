@@ -74,10 +74,190 @@ from ibeis.demo.pattern import (
 from ibeis.demo.utils import id_to_color_pair, diagonal_gradient # NOQA
 
 
-def draw_cartoon_animal(size: int):
+def compose_creature(params: RenderParams, debug: bool = False):
+    """
+    Compose a full synthetic creature with its patterned body, cartoon outline,
+    gradient coloration, and optional blur/noise augmentations.
+
+    This is the primary synthesis routine combining the cartoon base
+    with the deterministic raster pattern built by `render_id_pattern_layer`.
+
+    Returns:
+        (creature RGB image, metadata dict)
+
+    Compose a full synthetic creature by:
+      1) building a standardized animal with body pattern applied,
+      2) randomly affine-warping ONLY the animal (and its masks),
+      3) pasting the warped animal onto an unwarped background (no blending),
+      4) applying full-frame photometric tweaks.
+
+    Returns:
+        (final RGB image, metadata dict)
+
+    CommandLine:
+        xdoctest -m ibeis.demo.synthetic_creature compose_creature --show
+
+    Example:
+        >>> from ibeis.demo.synthetic_creature import *  # NOQA
+        >>> from ibeis.demo.pattern import RenderParams
+        >>> from ibeis.demo.synthetic_creature import compose_creature
+        >>> #import kwarray
+        >>> import random, string
+        >>> label = random.choice(string.ascii_lowercase)
+        >>> params = RenderParams(f'demo-animal-{label}', 0, canvas_size=756)
+        >>> img, meta = compose_creature(params)
+        >>> assert img.mode == 'RGB' and isinstance(meta, dict)
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import kwplot
+        >>> kwplot.autompl()
+        >>> kwplot.imshow(np.asarray(img), fnum=1, doclf=True, title=f"Creature {meta['id']}")
+        >>> kwplot.show_if_requested()
+
+    Example:
+        >>> # Grid: visualize multiple IDs and variants
+        >>> import numpy as np, kwimage
+        >>> from ibeis.demo.pattern import RenderParams
+        >>> from ibeis.demo.synthetic_creature import compose_creature
+        >>> ids = ['creature-A', 'creature-B', 'creature-C', 'creature-D', 'creature-E']
+        >>> vars = [0, 1, 2, 4, 5]
+        >>> canvases = []
+        >>> for name in ids:
+        ...     for v in vars:
+        ...         #p = RenderParams(name, v, canvas_size=192)
+        ...         p = RenderParams(name, variant=v, canvas_size=512)
+        ...         im, meta = compose_creature(p)
+        ...         rgb = kwimage.ensure_float01(np.array(im))
+        ...         rgb = kwimage.draw_header_text(rgb, f"{name} v{v}")
+        ...         canvases.append((rgb * 255).astype(np.uint8))
+        >>> grid = kwimage.stack_images_grid(canvases, chunksize=len(vars), pad=8, bg_value='kitware_gray')
+        >>> # xdoctest: +REQUIRES(--show)
+        >>> import kwplot; kwplot.autompl(); kwplot.imshow(grid, title='creature variants grid'); kwplot.show_if_requested()
+    """
+    size = params.canvas_size
+    W = H = size
+
+    # --- Unwarped background (kept untouched by the affine) ---
+    background = draw_forest_background(size, params.id_str, params.variant)
+
+    # --- Standardized animal + masks (body + full) ---
+    rng = kwarray.ensure_rng(params.id_str + str(params.variant) + 'salt')
+    animal_info = draw_cartoon_animal(size, rng=rng)
+    cartoon_rgba  = animal_info['image']
+    body_bbox     = animal_info['body_bbox']
+    # mask_body_L   = animal_info['mask_body']      # body ellipse only (L)
+    mask_full_L   = animal_info['mask_full']      # head+body+legs+tail (L)
+
+    # --- Build body-space pattern and warp onto the body ellipse (full-canvas L) ---
+    bw = body_bbox[2] - body_bbox[0]
+    bh = body_bbox[3] - body_bbox[1]
+    raw_pattern_rgb = render_id_pattern_layer(params, (bw, bh))
+
+    c1, c2 = id_to_color_pair(params.id_str)
+    grad = diagonal_gradient((bw, bh), c1, c2, angle_deg=45.0)
+    ink_mask = ImageOps.invert(ImageOps.grayscale(raw_pattern_rgb))
+    # 3) Paint gradient over dark parts of the pattern (outside body untouched)
+    raw_pattern_rgb2 = raw_pattern_rgb.copy()
+    raw_pattern_rgb2.paste(grad, mask=ink_mask)
+
+    # pattern_L = ImageOps.grayscale(raw_pattern_rgb)
+    warped_rgb = warp_pattern_into_ellipse(
+        raw_pattern_rgb2, body_bbox, (W, H),
+    )
+    # warped_pattern_mask = ImageOps.invert(warped_pattern_L)
+    # warped_rgb = pattern_L.convert('RGB')
+    # warped_rgb.paste(grad, mask=warped_pattern_mask)
+
+    # Start with a blank animal canvas, then paste the *exact* warped pattern into the body
+    raw_body_rgb = Image.new("RGB", (W, H), (255, 255, 255))
+    raw_body_rgb.paste(warped_rgb, mask=animal_info['mask_body'])  # exact body texture
+    raw_body_rgb.paste(warped_rgb, mask=animal_info['mask_body'])  # exact body texture
+
+    # Overlay the cartoon outlines to keep the drawing look
+    animal_rgb = Image.new("RGB", (W, H), (255, 255, 255))
+
+    # Paste the raw animal cartoon onto a white image
+    animal_rgb.paste(cartoon_rgba, mask=mask_full_L)
+    # animal_rgb.paste(raw_body_rgb, mask=mask_body_L)
+    animal_rgb = ImageChops.darker(raw_body_rgb, animal_rgb)
+    animal_rgb = ImageChops.multiply(raw_body_rgb, animal_rgb)
+
+    # --- Build random affine that ONLY affects the animal (and corresponding masks) ---
+    rng = kwarray.ensure_rng(params.id_str + str(params.variant))
+    tf_center_to_origin = kwimage.Affine.coerce(offset=(-W // 2, -H // 2))
+    tf_origin_to_center = kwimage.Affine.coerce(offset=(W // 2, H // 2))
+    tf_rand = kwimage.Affine.random(rng=rng, scale=(0.95, 1.05), theta=(-0.1, 0.1), shear=None, translate=(0, 0))
+    tf_animal = tf_origin_to_center @ tf_rand @ tf_center_to_origin
+
+    # Warp the animal RGB (bilinear) and the masks (nearest) with identical transform
+    animal_arr = np.asarray(animal_rgb)
+    warped_animal_arr = kwimage.warp_image(animal_arr, transform=tf_animal, interpolation='linear')
+
+    mask_full_arr = np.asarray(mask_full_L)
+    warped_mask_full = kwimage.warp_image(mask_full_arr, transform=tf_animal, interpolation='nearest')
+    warped_mask_full = np.clip(warped_mask_full, 0, 255).astype(np.uint8)
+
+    # (Optional) also keep a warped body mask if needed downstream
+    # mask_body_arr = np.asarray(mask_body_L)
+    # warped_mask_body = kwimage.warp_image(mask_body_arr, transform=tf_animal, interpolation='nearest').astype(np.uint8)
+
+    warped_animal_rgb = Image.fromarray(warped_animal_arr, mode='RGB')
+    warped_mask_full_L = Image.fromarray(warped_mask_full, mode='L')
+
+    # --- Paste the warped animal onto the original (unwarped) background with NO blending ---
+    final_rgb = background.copy()
+    final_rgb.paste(warped_animal_rgb, mask=warped_mask_full_L)
+
+    # --- Global photometric tweaks on the full image (now includes background + animal) ---
+    if params.blur_sigma > 0:
+        final_rgb = final_rgb.filter(ImageFilter.GaussianBlur(radius=params.blur_sigma))
+    if params.add_noise > 0:
+        arr = np.array(final_rgb, dtype=np.float32)
+        rng = np.random.default_rng(seed_from_string(params.id_str) ^ params.variant)
+        arr += rng.normal(0, params.add_noise, arr.shape)
+        arr = np.clip(arr, 0, 255).astype(np.uint8)
+        final_rgb = Image.fromarray(arr, mode="RGB")
+
+    meta = {
+        "id": params.id_str,
+        "variant": params.variant,
+        "body_bbox": body_bbox,
+        "contrast": params.contrast,
+        "gamma": params.gamma,
+        "blur_sigma": params.blur_sigma,
+        "add_noise": params.add_noise,
+        # Optionally expose the random affine params (matrix) for reproducibility
+        "affine_matrix": tf_animal.matrix.tolist(),
+    }
+
+    if debug and cv2 is not None:
+        overlay = np.array(final_rgb.convert("RGB"))
+        gray = np.array(final_rgb.convert("L"))
+        try:
+            sift = cv2.SIFT_create()
+            kps = sift.detect(gray, None)
+        except Exception:
+            Hc = cv2.cornerHarris(gray.astype(np.float32), 2, 3, 0.04)
+            Hc = cv2.dilate(Hc, None)
+            thresh = 0.01 * Hc.max()
+            ys, xs = np.where(Hc > thresh)
+            kps = [cv2.KeyPoint(float(x), float(y), 6) for x, y in zip(xs, ys)]
+        overlay = cv2.drawKeypoints(
+            overlay, kps, None, flags=cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS
+        )
+        return Image.fromarray(overlay), meta
+
+    # final_rgb = raw_pattern_rgb
+    # final_rgb = animal_rgb
+    # final_rgb = grad
+
+    return final_rgb, meta
+
+
+def draw_cartoon_animal(size: int, rng=None):
     """
     Draw a simple cartoon quadruped with head, body, *thick rectangular* legs,
-    eyes, and a *thick rectangular* tail.
+    eyes, and a *thick rectangular* (possibly angled) tail. The pose (leg
+    angles, tail angle, head offset) varies deterministically with ``variant``.
 
     Returns:
         Dict with fields:
@@ -86,8 +266,11 @@ def draw_cartoon_animal(size: int):
             mask_full (L): mask covering body + tail + legs + head
             body_bbox (tuple[int, int, int, int])
             head_bbox (tuple[int, int, int, int])
-            leg_boxes (List[tuple[int, int, int, int]])
-            tail_poly (List[tuple[int, int]])
+            leg_boxes (List[tuple[int, int, int, int]])  # AABBs of rotated legs
+            leg_polys (List[List[tuple[float, float]]])  # exact leg polygons
+            tail_poly (List[tuple[float, float]])
+            size (int)
+            variant (int)
 
     CommandLine:
         xdoctest -m ibeis.demo.synthetic_creature draw_cartoon_animal --show
@@ -95,7 +278,7 @@ def draw_cartoon_animal(size: int):
     Example:
         >>> import numpy as np
         >>> from ibeis.demo.synthetic_creature import draw_cartoon_animal
-        >>> info = draw_cartoon_animal(256)
+        >>> info = draw_cartoon_animal(256, rng=1)
         >>> img, mask_body, mask_full = info['image'], info['mask_body'], info['mask_full']
         >>> assert img.mode == 'RGBA'
         >>> assert mask_body.mode == 'L' and mask_full.mode == 'L'
@@ -109,21 +292,25 @@ def draw_cartoon_animal(size: int):
         >>> kwplot.show_if_requested()
 
     Example:
-        >>> # Grid of different sizes (kwimage-style visual)
+        >>> # Grid of variants
         >>> import numpy as np, kwimage
         >>> from ibeis.demo.synthetic_creature import draw_cartoon_animal
-        >>> sizes = [128, 192, 256, 384]
+        >>> vars = [0, 1, 2, 3, 4, 5]
         >>> canvases = []
-        >>> for s in sizes:
-        ...     info = draw_cartoon_animal(s)
+        >>> for v in vars:
+        ...     info = draw_cartoon_animal(224, rng=v)
         ...     rgba = np.array(info['image'])[..., :3]
         ...     rgb = kwimage.ensure_float01(rgba)
-        ...     rgb = kwimage.draw_header_text(rgb, f'size={s}')
+        ...     rgb = kwimage.draw_header_text(rgb, f'variant={v}')
         ...     canvases.append((rgb * 255).astype(np.uint8))
-        >>> grid = kwimage.stack_images_grid(canvases, chunksize=2, pad=8, bg_value='kitware_gray')
+        >>> grid = kwimage.stack_images_grid(canvases, chunksize=3, pad=8, bg_value='kitware_gray')
         >>> # xdoctest: +REQUIRES(--show)
-        >>> import kwplot; kwplot.autompl(); kwplot.imshow(grid, title='cartoon grid'); kwplot.show_if_requested()
+        >>> import kwplot; kwplot.autompl(); kwplot.imshow(grid, title='cartoon variants'); kwplot.show_if_requested()
     """
+    import numpy as np
+    import kwimage
+    from PIL import Image, ImageDraw
+    rng = kwarray.ensure_rng(rng)
 
     W = H = size
     img = Image.new("RGBA", (W, H), (0, 0, 0, 0))
@@ -148,27 +335,65 @@ def draw_cartoon_animal(size: int):
     # Paint body
     d.ellipse(body_bbox, outline=outline, fill=bodycolor, width=max(2, size // 256))
 
-    # --- Legs as thick vertical rectangles ---
+    # --- Helpers ---
+    def rotate_rect_as_poly(x0, y0, x1, y1, angle_deg, about):
+        """Return polygon (4 pts) for axis-aligned rect rotated around 'about'."""
+        rect = np.array([[x0, y0], [x1, y0], [x1, y1], [x0, y1]], dtype=np.float32)
+        A = np.array(about, dtype=np.float32)
+        rad = math.radians(angle_deg)
+        c, s = math.cos(rad), math.sin(rad)
+        R = np.array([[c, -s], [s, c]], dtype=np.float32)
+        poly = (rect - A) @ R.T + A
+        return poly.tolist()
+
+    def draw_poly_on(imgdraw, poly, **kw):
+        imgdraw.polygon([tuple(p) for p in poly], **kw)
+
+    # --- Legs as thick rectangles (with stronger, variant-driven angles) ---
     leg_len = int(0.16 * H)
-    leg_w = max(4, int(0.04 * body_w))  # thicker than before
+    leg_w = max(4, int(0.04 * body_w))
     leg_xs = [
-        int(cx - 0.22 * body_w),
-        int(cx - 0.07 * body_w),
-        int(cx + 0.07 * body_w),
-        int(cx + 0.22 * body_w),
+        int(cx - 0.22 * body_w),  # back-left
+        int(cx - 0.07 * body_w),  # front-left
+        int(cx + 0.07 * body_w),  # front-right
+        int(cx + 0.22 * body_w),  # back-right
     ]
     y0 = body_bbox[3] - int(0.09 * body_h)
-    leg_boxes = []
-    for x in leg_xs:
-        box = (x - leg_w // 2, y0, x + leg_w // 2, y0 + leg_len)
-        # fill legs and outline
-        d.rectangle(box, fill=bodycolor, outline=outline, width=max(2, size // 256))
-        md.rectangle(box, fill=255)
-        leg_boxes.append(box)
 
-    # --- Head ellipse ---
+    pose_intensity = 2
+
+    # Gait phase & amplitude
+    phase = (rng.rand() * 2 * math.pi)
+    amp_deg = 10.0 + 12.0 * pose_intensity              # up to ~22° at intensity=1
+    # Front/back swing opposite; left/right slight asymmetry
+    base_stride = np.array([
+        -math.sin(phase + 0.2) * amp_deg,   # back-left
+        +math.sin(phase + 0.0) * amp_deg,   # front-left
+        -math.sin(phase + 0.0) * amp_deg,   # front-right (opposes front-left)
+        +math.sin(phase + 0.2) * amp_deg,   # back-right
+    ], dtype=float)
+    jitter = rng.uniform(-4.0, 4.0, size=4) * (0.6 + 0.8 * pose_intensity)
+    leg_angles = base_stride + jitter
+
+    leg_boxes = []
+    leg_polys = []
+    for x, ang in zip(leg_xs, leg_angles):
+        box = (x - leg_w // 2, y0, x + leg_w // 2, y0 + leg_len)
+        about = (x, y0)  # hinge at top
+        poly = rotate_rect_as_poly(*box, angle_deg=float(ang), about=about)
+        draw_poly_on(d, poly, fill=bodycolor, outline=outline, width=max(2, size // 256))
+        draw_poly_on(md, poly, fill=255)
+        xs = [p[0] for p in poly]
+        ys = [p[1] for p in poly]
+        leg_boxes.append((int(min(xs)), int(min(ys)), int(max(xs)), int(max(ys))))
+        leg_polys.append(poly)
+
+    # --- Head ellipse (with slight offset by variant) ---
     head_r = int(0.12 * W)
-    hx, hy = int(0.26 * W), int(0.35 * H)
+    # gentle pseudo-random offset
+    hx_off = int(rng.uniform(-0.02, 0.02) * W)
+    hy_off = int(rng.uniform(-0.02, 0.02) * H)
+    hx, hy = int(0.26 * W) + hx_off, int(0.35 * H) + hy_off
     head_bb = (hx - head_r, hy - head_r, hx + head_r, hy + head_r)
     d.ellipse(head_bb, outline=outline, width=max(2, size // 256), fill=bodycolor)
     md.ellipse(head_bb, fill=255)
@@ -187,21 +412,27 @@ def draw_cartoon_animal(size: int):
     d.arc((hx - sR // 2, hy - sR // 4, hx + sR // 2, hy + sR // 2),
           start=20, end=160, fill=outline, width=max(2, size // 256))
 
-    # --- Tail as a thick rotated rectangle ---
-    # previous tail points (tx0, ty0) to (tx1, ty1)
+    # --- Tail with stronger, variant-driven swing ---
     tx0, ty0 = body_bbox[2] - int(0.05 * body_w), int(0.52 * H)
     tx1, ty1 = tx0 + int(0.10 * W), ty0 - int(0.08 * H)
-    tail_w = max(6, int(0.07 * body_w))  # thicker tail
-    # build rotated rectangle polygon around segment p0->p1
+    tail_w = max(6, int(0.07 * body_w))
     vx, vy = (tx1 - tx0), (ty1 - ty0)
     L = math.hypot(vx, vy) or 1.0
-    nx, ny = (-vy / L, vx / L)  # unit normal
-    ox, oy = (nx * (tail_w / 2), ny * (tail_w / 2))
-    p0 = (tx0 - ox, ty0 - oy)
-    p1 = (tx0 + ox, ty0 + oy)
-    p2 = (tx1 + ox, ty1 + oy)
-    p3 = (tx1 - ox, ty1 - oy)
-    tail_poly = [p0, p1, p2, p3]
+    nxv, nyv = (-vy / L, vx / L)
+    ox, oy = (nxv * (tail_w / 2), nyv * (tail_w / 2))
+    base_poly = [(tx0 - ox, ty0 - oy), (tx0 + ox, ty0 + oy), (tx1 + ox, ty1 + oy), (tx1 - ox, ty1 - oy)]
+
+    tail_base = 8.0 + 10.0 * pose_intensity   # ~18° at intensity=1
+    tail_angle = tail_base * math.sin(phase * 1.3 + 0.7) + rng.uniform(-3, 3)
+    A = np.array([tx0, ty0], dtype=np.float32)
+    rad = math.radians(tail_angle)
+    c, s = math.cos(rad), math.sin(rad)
+    R = np.array([[c, -s], [s, c]], dtype=np.float32)
+    tail_poly = ((np.array(base_poly, dtype=np.float32) - A) @ R.T + A).tolist()
+
+    d.polygon(tail_poly, fill=bodycolor, outline=outline)
+    md.polygon(tail_poly, fill=255)
+
     d.polygon(tail_poly, fill=bodycolor, outline=outline)
     md.polygon(tail_poly, fill=255)
 
@@ -211,7 +442,8 @@ def draw_cartoon_animal(size: int):
         "mask_full": mask_full,
         "body_bbox": body_bbox,
         "head_bbox": head_bb,
-        "leg_boxes": leg_boxes,
+        "leg_boxes": leg_boxes,   # AABBs
+        "leg_polys": leg_polys,   # exact polygons (new)
         "tail_poly": tail_poly,
         "size": size,
     }
@@ -527,184 +759,6 @@ def draw_forest_background(size: int, id_str: str, variant: int) -> Image.Image:
     return bg
 
 
-def compose_creature_body_pattern(params: RenderParams, debug: bool = False):
-    """
-    Compose a full synthetic creature with its patterned body, cartoon outline,
-    gradient coloration, and optional blur/noise augmentations.
-
-    This is the primary synthesis routine combining the cartoon base
-    with the deterministic raster pattern built by `render_id_pattern_layer`.
-
-    Returns:
-        (creature RGB image, metadata dict)
-
-    Compose a full synthetic creature by:
-      1) building a standardized animal with body pattern applied,
-      2) randomly affine-warping ONLY the animal (and its masks),
-      3) pasting the warped animal onto an unwarped background (no blending),
-      4) applying full-frame photometric tweaks.
-
-    Returns:
-        (final RGB image, metadata dict)
-
-    CommandLine:
-        xdoctest -m ibeis.demo.synthetic_creature compose_creature_body_pattern --show
-
-    Example:
-        >>> from ibeis.demo.synthetic_creature import *  # NOQA
-        >>> from ibeis.demo.pattern import RenderParams
-        >>> from ibeis.demo.synthetic_creature import compose_creature_body_pattern
-        >>> #import kwarray
-        >>> import random, string
-        >>> label = random.choice(string.ascii_lowercase)
-        >>> params = RenderParams(f'demo-animal-{label}', 0, canvas_size=756)
-        >>> img, meta = compose_creature_body_pattern(params)
-        >>> assert img.mode == 'RGB' and isinstance(meta, dict)
-        >>> # xdoctest: +REQUIRES(--show)
-        >>> import kwplot
-        >>> kwplot.autompl()
-        >>> kwplot.imshow(np.asarray(img), fnum=1, doclf=True, title=f"Creature {meta['id']}")
-        >>> kwplot.show_if_requested()
-
-    Example:
-        >>> # Grid: visualize multiple IDs and variants
-        >>> import numpy as np, kwimage
-        >>> from ibeis.demo.pattern import RenderParams
-        >>> from ibeis.demo.synthetic_creature import compose_creature_body_pattern
-        >>> ids = ['creature-A', 'creature-B', 'creature-C']
-        >>> vars = [0, 1, 2, 4, 5]
-        >>> canvases = []
-        >>> for name in ids:
-        ...     for v in vars:
-        ...         #p = RenderParams(name, v, canvas_size=192)
-        ...         p = RenderParams(name, variant=v, canvas_size=512)
-        ...         im, meta = compose_creature_body_pattern(p)
-        ...         rgb = kwimage.ensure_float01(np.array(im))
-        ...         rgb = kwimage.draw_header_text(rgb, f"{name} v{v}")
-        ...         canvases.append((rgb * 255).astype(np.uint8))
-        >>> grid = kwimage.stack_images_grid(canvases, chunksize=len(vars), pad=8, bg_value='kitware_gray')
-        >>> # xdoctest: +REQUIRES(--show)
-        >>> import kwplot; kwplot.autompl(); kwplot.imshow(grid, title='creature variants grid'); kwplot.show_if_requested()
-    """
-    size = params.canvas_size
-    W = H = size
-
-    # --- Unwarped background (kept untouched by the affine) ---
-    background = draw_forest_background(size, params.id_str, params.variant)
-
-    # --- Standardized animal + masks (body + full) ---
-    animal_info = draw_cartoon_animal(size)
-    cartoon_rgba  = animal_info['image']
-    body_bbox     = animal_info['body_bbox']
-    # mask_body_L   = animal_info['mask_body']      # body ellipse only (L)
-    mask_full_L   = animal_info['mask_full']      # head+body+legs+tail (L)
-
-    # --- Build body-space pattern and warp onto the body ellipse (full-canvas L) ---
-    bw = body_bbox[2] - body_bbox[0]
-    bh = body_bbox[3] - body_bbox[1]
-    raw_pattern_rgb = render_id_pattern_layer(params, (bw, bh))
-
-    c1, c2 = id_to_color_pair(params.id_str)
-    grad = diagonal_gradient((bw, bh), c1, c2, angle_deg=45.0)
-    ink_mask = ImageOps.invert(ImageOps.grayscale(raw_pattern_rgb))
-    # 3) Paint gradient over dark parts of the pattern (outside body untouched)
-    raw_pattern_rgb2 = raw_pattern_rgb.copy()
-    raw_pattern_rgb2.paste(grad, mask=ink_mask)
-
-    # pattern_L = ImageOps.grayscale(raw_pattern_rgb)
-    warped_rgb = warp_pattern_into_ellipse(
-        raw_pattern_rgb2, body_bbox, (W, H),
-    )
-    # warped_pattern_mask = ImageOps.invert(warped_pattern_L)
-    # warped_rgb = pattern_L.convert('RGB')
-    # warped_rgb.paste(grad, mask=warped_pattern_mask)
-
-    # Start with a blank animal canvas, then paste the *exact* warped pattern into the body
-    raw_body_rgb = Image.new("RGB", (W, H), (255, 255, 255))
-    raw_body_rgb.paste(warped_rgb, mask=animal_info['mask_body'])  # exact body texture
-    raw_body_rgb.paste(warped_rgb, mask=animal_info['mask_body'])  # exact body texture
-
-    # Overlay the cartoon outlines to keep the drawing look
-    animal_rgb = Image.new("RGB", (W, H), (255, 255, 255))
-
-    # Paste the raw animal cartoon onto a white image
-    animal_rgb.paste(cartoon_rgba, mask=mask_full_L)
-    # animal_rgb.paste(raw_body_rgb, mask=mask_body_L)
-    animal_rgb = ImageChops.darker(raw_body_rgb, animal_rgb)
-    animal_rgb = ImageChops.multiply(raw_body_rgb, animal_rgb)
-
-    # --- Build random affine that ONLY affects the animal (and corresponding masks) ---
-    rng = kwarray.ensure_rng(params.id_str + str(params.variant))
-    tf_center_to_origin = kwimage.Affine.coerce(offset=(-W // 2, -H // 2))
-    tf_origin_to_center = kwimage.Affine.coerce(offset=(W // 2, H // 2))
-    tf_rand = kwimage.Affine.random(rng=rng, scale=(0.95, 1.05), theta=(-0.1, 0.1), shear=None, translate=(0, 0))
-    tf_animal = tf_origin_to_center @ tf_rand @ tf_center_to_origin
-
-    # Warp the animal RGB (bilinear) and the masks (nearest) with identical transform
-    animal_arr = np.asarray(animal_rgb)
-    warped_animal_arr = kwimage.warp_image(animal_arr, transform=tf_animal, interpolation='linear')
-
-    mask_full_arr = np.asarray(mask_full_L)
-    warped_mask_full = kwimage.warp_image(mask_full_arr, transform=tf_animal, interpolation='nearest')
-    warped_mask_full = np.clip(warped_mask_full, 0, 255).astype(np.uint8)
-
-    # (Optional) also keep a warped body mask if needed downstream
-    # mask_body_arr = np.asarray(mask_body_L)
-    # warped_mask_body = kwimage.warp_image(mask_body_arr, transform=tf_animal, interpolation='nearest').astype(np.uint8)
-
-    warped_animal_rgb = Image.fromarray(warped_animal_arr, mode='RGB')
-    warped_mask_full_L = Image.fromarray(warped_mask_full, mode='L')
-
-    # --- Paste the warped animal onto the original (unwarped) background with NO blending ---
-    final_rgb = background.copy()
-    final_rgb.paste(warped_animal_rgb, mask=warped_mask_full_L)
-
-    # --- Global photometric tweaks on the full image (now includes background + animal) ---
-    if params.blur_sigma > 0:
-        final_rgb = final_rgb.filter(ImageFilter.GaussianBlur(radius=params.blur_sigma))
-    if params.add_noise > 0:
-        arr = np.array(final_rgb, dtype=np.float32)
-        rng = np.random.default_rng(seed_from_string(params.id_str) ^ params.variant)
-        arr += rng.normal(0, params.add_noise, arr.shape)
-        arr = np.clip(arr, 0, 255).astype(np.uint8)
-        final_rgb = Image.fromarray(arr, mode="RGB")
-
-    meta = {
-        "id": params.id_str,
-        "variant": params.variant,
-        "body_bbox": body_bbox,
-        "contrast": params.contrast,
-        "gamma": params.gamma,
-        "blur_sigma": params.blur_sigma,
-        "add_noise": params.add_noise,
-        # Optionally expose the random affine params (matrix) for reproducibility
-        "affine_matrix": tf_animal.matrix.tolist(),
-    }
-
-    if debug and cv2 is not None:
-        overlay = np.array(final_rgb.convert("RGB"))
-        gray = np.array(final_rgb.convert("L"))
-        try:
-            sift = cv2.SIFT_create()
-            kps = sift.detect(gray, None)
-        except Exception:
-            Hc = cv2.cornerHarris(gray.astype(np.float32), 2, 3, 0.04)
-            Hc = cv2.dilate(Hc, None)
-            thresh = 0.01 * Hc.max()
-            ys, xs = np.where(Hc > thresh)
-            kps = [cv2.KeyPoint(float(x), float(y), 6) for x, y in zip(xs, ys)]
-        overlay = cv2.drawKeypoints(
-            overlay, kps, None, flags=cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS
-        )
-        return Image.fromarray(overlay), meta
-
-    # final_rgb = raw_pattern_rgb
-    # final_rgb = animal_rgb
-    # final_rgb = grad
-
-    return final_rgb, meta
-
-
 # ---------------- Dataset utilities ----------------
 def save_example(img: Image.Image, meta: Dict, outdir: Path, with_kp: bool):
     outdir.mkdir(parents=True, exist_ok=True)
@@ -712,7 +766,7 @@ def save_example(img: Image.Image, meta: Dict, outdir: Path, with_kp: bool):
     img_path = outdir / f"{stem}.png"
     img.save(img_path)
     if with_kp and cv2 is not None:
-        overlay, _ = compose_creature_body_pattern(
+        overlay, _ = compose_creature(
             RenderParams(
                 meta["id"],
                 meta["variant"],
@@ -769,7 +823,7 @@ def main():
     for id_str in args.ids:
         for v in range(args.per_id):
             params = random_params(id_str, v, args.size)
-            img, meta = compose_creature_body_pattern(params, debug=False)
+            img, meta = compose_creature(params, debug=False)
             p = save_example(img, meta, outdir, with_kp=args.show_kp)
             all_meta.append({**meta, "path": str(p)})
     mpath = write_metadata(all_meta, outdir)
