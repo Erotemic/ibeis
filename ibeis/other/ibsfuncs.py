@@ -3599,7 +3599,7 @@ def get_unflat_annots_kmdists_list(ibs, aids_list):
         # our database encodes -1 as invalid.
         # Silly, but its in the middle of the atlantic ocean
         arrs[arrs == -1] = np.nan
-    km_dists_list   = [ut.safe_pdist(latlon_arr, metric=vt.haversine) for latlon_arr in latlon_arrs]
+    km_dists_list   = [vt.safe_pdist(latlon_arr, metric=vt.haversine) for latlon_arr in latlon_arrs]
     return km_dists_list
 
 
@@ -3620,7 +3620,7 @@ def get_unflat_annots_hourdists_list(ibs, aids_list):
     unixtimes_list = ibs.unflat_map(ibs.get_annot_image_unixtimes_asfloat, aids_list)
     #assert all(list(map(ut.isunique, unixtimes_list)))
     unixtime_arrs = [np.array(unixtimes)[:, None] for unixtimes in unixtimes_list]
-    hour_dists_list = [ut.safe_pdist(unixtime_arr, metric=ut.unixtime_hourdiff)
+    hour_dists_list = [vt.safe_pdist(unixtime_arr, metric=lambda a, b: ut.unixtime_hourdiff(a, b)[0])
                        for unixtime_arr in unixtime_arrs]
     return hour_dists_list
 
@@ -3642,7 +3642,7 @@ def get_unflat_annots_timedelta_list(ibs, aids_list):
     unixtimes_list = ibs.unflat_map(ibs.get_annot_image_unixtimes_asfloat, aids_list)
     #assert all(list(map(ut.isunique, unixtimes_list)))
     unixtime_arrs = [np.array(unixtimes)[:, None] for unixtimes in unixtimes_list]
-    timedelta_list = [ut.safe_pdist(unixtime_arr, metric=ut.absdiff) for
+    timedelta_list = [vt.safe_pdist(unixtime_arr, metric=lambda a, b: ut.absdiff(a, b)[0]) for
                       unixtime_arr in unixtime_arrs]
     return timedelta_list
 
@@ -5203,13 +5203,13 @@ def find_unlabeled_name_members(ibs, **kwargs):
         yaws_list = ibs.unflat_map(ibs.get_annot_yaws, aids_list)
         time_list = ibs.unflat_map(ibs.get_annot_image_unixtimes_asfloat, aids_list)
         max_timedelta_list = np.array([
-            np.nanmax(ut.safe_pdist(unixtime_arr[:, None], metric=ut.absdiff))
+            np.nanmax(vt.safe_pdist(unixtime_arr[:, None], metric=lambda a, b: ut.absdiff(a, b)[0]))
             for unixtime_arr in time_list])
         flags = max_timedelta_list > 60 * 60 * 1
 
         aids1 = ut.compress(aids_list, flags)
         max_yawdiff_list = np.array([
-            np.nanmax(ut.safe_pdist(np.array(yaws)[:, None], metric=vt.ori_distance))
+            np.nanmax(vt.safe_pdist(np.array(yaws)[:, None], metric=vt.ori_distance))
             for yaws in ut.compress(yaws_list, flags)
         ])
 
