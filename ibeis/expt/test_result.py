@@ -356,8 +356,9 @@ class TestResult(ut.NiceRepr):
         qaids = testres.get_test_qaids()
         """
         if key == 'participant':
+            from ibeis.util import util_compat
             # Get if qaids are part of the config
-            cfgx2_infoprop = [np.in1d(qaids, aids_) for aids_ in testres.cfgx2_qaids]
+            cfgx2_infoprop = [util_compat.in1d_port(qaids, aids_) for aids_ in testres.cfgx2_qaids]
         else:
             _tmp1_cfgx2_infoprop = ut.get_list_column(testres.cfgx2_cmsinfo, key)
             _tmp2_cfgx2_infoprop = list(map(

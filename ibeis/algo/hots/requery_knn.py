@@ -108,7 +108,8 @@ class TempResults(ut.NiceRepr):
 
 
 def in1d_shape(arr1, arr2):
-    return np.in1d(arr1, arr2).reshape(arr1.shape)
+    from ibeis.util import util_compat
+    return util_compat.in1d_port(arr1, arr2).reshape(arr1.shape)
 
 
 def requery_knn(get_neighbors, get_axs, qfx2_vec, num_neighbs, invalid_axs=[],

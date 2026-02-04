@@ -12,6 +12,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 * Hotspotter convert script.
 * Issue when querying in a database without any species information
 * `safe_pdist` issues with scipy 1.17.0
+* Fix np.in1d issue
 
 
 ### [Version 2.4.0] - Released 2025-08-24

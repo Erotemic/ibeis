@@ -123,7 +123,8 @@ def show_qres_analysis(ibs, cm, qreq_=None, **kwargs):
             # Only look at the groundtruth if a name isnt in the top list
             _gtnids = ibs.get_annot_name_rowids(_gtaids)
             top_nids = ibs.get_annot_name_rowids(top_aids)
-            _valids = ~np.in1d(_gtnids, top_nids)
+            from ibeis.util import util_compat
+            _valids = ~util_compat.in1d_port(_gtnids, top_nids)
             _gtaids = ut.compress(_gtaids, _valids)
 
         # No need to display highly ranked groundtruth. It will already show up
