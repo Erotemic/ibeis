@@ -73,6 +73,14 @@ from ibeis.demo.pattern import (
 )
 from ibeis.demo.utils import id_to_color_pair, diagonal_gradient # NOQA
 
+def _str_to_int(str_seed):
+    import hashlib
+    raw_bytes = str_seed.encode('utf-8')
+    hasher = hashlib.md5()  # this does not need to be cryptographically secure, use md5 for speed.
+    hasher.update(raw_bytes)
+    int_seed = int(hasher.hexdigest(), 16)
+    return int_seed
+
 
 def compose_creature(params: RenderParams, debug: bool = False):
     """
@@ -140,7 +148,9 @@ def compose_creature(params: RenderParams, debug: bool = False):
     background = draw_forest_background(size, params.id_str, params.variant)
 
     # --- Standardized animal + masks (body + full) ---
-    rng = kwarray.ensure_rng(params.id_str + str(params.variant) + 'salt')
+    str_seed = params.id_str + str(params.variant) + 'salt'
+
+    rng = kwarray.ensure_rng(_str_to_int(str_seed))
     animal_info = draw_cartoon_animal(size, rng=rng)
     cartoon_rgba  = animal_info['image']
     body_bbox     = animal_info['body_bbox']
@@ -182,7 +192,7 @@ def compose_creature(params: RenderParams, debug: bool = False):
     animal_rgb = ImageChops.multiply(raw_body_rgb, animal_rgb)
 
     # --- Build random affine that ONLY affects the animal (and corresponding masks) ---
-    rng = kwarray.ensure_rng(params.id_str + str(params.variant))
+    rng = kwarray.ensure_rng(_str_to_int(params.id_str + str(params.variant)))
     tf_center_to_origin = kwimage.Affine.coerce(offset=(-W // 2, -H // 2))
     tf_origin_to_center = kwimage.Affine.coerce(offset=(W // 2, H // 2))
     tf_rand = kwimage.Affine.random(rng=rng, scale=(0.95, 1.05), theta=(-0.1, 0.1), shear=None, translate=(0, 0))
@@ -430,11 +440,12 @@ def draw_cartoon_animal(size: int, rng=None):
     R = np.array([[c, -s], [s, c]], dtype=np.float32)
     tail_poly = ((np.array(base_poly, dtype=np.float32) - A) @ R.T + A).tolist()
 
-    d.polygon(tail_poly, fill=bodycolor, outline=outline)
-    md.polygon(tail_poly, fill=255)
+    _tail_poly = [tuple(map(float, p)) for p in tail_poly]
+    d.polygon(_tail_poly, fill=bodycolor, outline=outline)
+    md.polygon(_tail_poly, fill=255)
 
-    d.polygon(tail_poly, fill=bodycolor, outline=outline)
-    md.polygon(tail_poly, fill=255)
+    d.polygon(_tail_poly, fill=bodycolor, outline=outline)
+    md.polygon(_tail_poly, fill=255)
 
     return {
         "image": img,

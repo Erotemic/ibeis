@@ -92,6 +92,15 @@ def random_params(id_str: str, variant: int, size: int) -> RenderParams:
     )
 
 
+def _str_to_int(str_seed):
+    import hashlib
+    raw_bytes = str_seed.encode('utf-8')
+    hasher = hashlib.md5()  # this does not need to be cryptographically secure, use md5 for speed.
+    hasher.update(raw_bytes)
+    int_seed = int(hasher.hexdigest(), 16)
+    return int_seed
+
+
 def render_id_pattern_layer(
     params: RenderParams, out_size: Tuple[int, int]
 ) -> Image.Image:
@@ -146,8 +155,8 @@ def render_id_pattern_layer(
     accent_rgb = (50, 50, 50)
     canvas = Image.new("RGB", (W, H), color=(255, 255, 255))
 
-    id_rng = kwarray.ensure_rng(params.id_str)
-    variant_rng = kwarray.ensure_rng(params.id_str + str(params.variant))
+    id_rng = kwarray.ensure_rng(_str_to_int(params.id_str))
+    variant_rng = kwarray.ensure_rng(_str_to_int(params.id_str + str(params.variant)))
     anchors = make_anchors(rng=id_rng)
 
     # precompute bitmatrix only if needed
