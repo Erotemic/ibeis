@@ -1,3 +1,3 @@
-pip install -U pyinstaller
-cd ~/code/ibeis
-pyinstaller -y dev/_installers/pyinstaller-ibeis.spec
+#cd ~/code/ibeis
+python -m pip install -U PyInstaller
+python -m PyInstaller -y dev/_installers/pyinstaller-ibeis.spec
