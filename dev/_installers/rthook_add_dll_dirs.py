@@ -221,5 +221,8 @@ def collect_everything():
     datas = _dedupe_pairs(datas)
     binaries = _dedupe_pairs(binaries)
     hiddenimports = sorted(set(hiddenimports))
+    print(f'datas={datas}')
+    print(f'binaries={binaries}')
+    print(f'hiddenimports={hiddenimports}')
 
     return datas, binaries, hiddenimports
