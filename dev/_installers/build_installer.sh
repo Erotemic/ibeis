@@ -2,7 +2,16 @@
 python -m pip install -U PyInstaller
 python -m PyInstaller -y dev/_installers/pyinstaller-ibeis.spec
 
+Remove-Item -Recurse -Force .\build, .\dist -ErrorAction SilentlyContinue
+
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+.\.venv\Scripts\Activate.ps1
+python -m pip install -U pywin32-ctypes
 python -m PyInstaller --clean -y dev/_installers/pyinstaller-ibeis.spec
+
+python -m pip install -U pywin32-ctypes
+python -c "import win32ctypes.pywin32; import win32ctypes.pywin32.win32api, win32ctypes.pywin32.pywintypes; print('win32ctypes OK')"
+
 
 # Test
 .\dist\IBEIS-dist\IBEIS-console.exe

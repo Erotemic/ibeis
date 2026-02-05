@@ -205,6 +205,19 @@ def collect_everything():
                 out.append((src, dst))
         return out
 
+    # ---- pywin32-ctypes / win32ctypes (PyInstaller often misses these dynamic imports) ----
+    try:
+        hiddenimports += _all_py_modules_in_package("win32ctypes")
+    except Exception:
+        # Fallback minimal set (usually enough)
+        hiddenimports += [
+            "win32ctypes.core",
+            "win32ctypes.pywin32",
+            "win32ctypes.pywin32.win32api",
+            "win32ctypes.pywin32.pywintypes",
+            "win32ctypes.pywin32.win32con",
+        ]
+
     datas = _dedupe_pairs(datas)
     binaries = _dedupe_pairs(binaries)
     hiddenimports = sorted(set(hiddenimports))
