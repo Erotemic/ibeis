@@ -26,3 +26,12 @@ iscc "dev\_installers\ibeis.iss"
 #"$env:LOCALAPPDATA\Programs\Inno Setup 6\ISCC.exe" "dev\_installers\win_installer_script.iss"
 & "$env:LOCALAPPDATA\Programs\Inno Setup 6\ISCC.exe" ".\dev\_installers\win_installer_script.iss"
 
+
+# Debugging
+winget search Dependencies
+#
+winget install --id JacquelinPotier.AllDllsDependencies --source winget --accept-source-agreements --accept-package-agreements
+AllDllDeps64.exe
+
+
+#
