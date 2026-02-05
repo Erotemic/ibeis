@@ -3,6 +3,10 @@
 
 function Debug-Notes {
 @'
+
+-Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+-.\.venv\Scripts\Activate.ps1
+
 # Debugging / notes (manual)
 # winget search Dependencies
 # winget install --id JacquelinPotier.AllDllsDependencies --source winget --accept-source-agreements --accept-package-agreements
