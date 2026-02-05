@@ -1,19 +1,37 @@
 # dev/_installers/rthook_add_dll_dirs.py
-"""Runtime hook to make ctypes-loaded DLLs work in PyInstaller builds (Windows).
+"""
+Runtime hook to make ctypes-loaded DLLs work in PyInstaller builds (Windows).
 
-Key points:
-* Python 3.8+ uses safe DLL search on Windows; you must add directories explicitly.
-* os.add_dll_directory() returns a handle that MUST be kept alive, or the directory is removed.
-* We also prepend PATH for libraries that still rely on PATH-based resolution.
+Why this exists:
+- On modern Python/Windows, DLL search is “safe” by default.
+- os.add_dll_directory() only helps if the loader uses the right LoadLibraryEx flags.
+- Many projects using ctypes do not pass winmode=..., so dependencies in adjacent folders
+  are not found even though you've added dirs.
+- We therefore:
+  1) add known DLL directories (and keep handles alive)
+  2) prepend PATH (still helps some cases)
+  3) monkeypatch ctypes.CDLL/WinDLL to provide a good default winmode for absolute paths
 """
 
 from __future__ import annotations
 
+import ctypes
 import os
 import sys
 from pathlib import Path
 
 _DLL_DIR_HANDLES: list[object] = []
+
+# Windows loader flags
+LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR = 0x00000100
+LOAD_LIBRARY_SEARCH_USER_DIRS = 0x00000400
+LOAD_LIBRARY_SEARCH_DEFAULT_DIRS = 0x00001000
+
+DEFAULT_WINMODE = (
+    LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR
+    | LOAD_LIBRARY_SEARCH_USER_DIRS
+    | LOAD_LIBRARY_SEARCH_DEFAULT_DIRS
+)
 
 
 def _add_dll_dir(p: Path) -> None:
@@ -21,56 +39,99 @@ def _add_dll_dir(p: Path) -> None:
     if not p.is_dir():
         return
 
-    # Prepend PATH (helps some loaders; also useful for debugging)
+    # Prepend PATH (some loaders still consult this)
     os.environ["PATH"] = str(p) + os.pathsep + os.environ.get("PATH", "")
 
-    # AddDllDirectory (preferred under Python's safe DLL loading)
+    # AddDllDirectory (must keep handle alive!)
     if hasattr(os, "add_dll_directory"):
         try:
             _DLL_DIR_HANDLES.append(os.add_dll_directory(str(p)))
         except Exception:
-            # Don't hard-fail the app if Windows rejects the directory for any reason
             pass
 
 
-def _resolve_base_dir() -> Path:
-    # onefile: sys._MEIPASS points to extracted bundle directory
-    # onedir: sys.executable's parent is the dist directory
-    base = Path(getattr(sys, "_MEIPASS", Path(sys.executable).resolve().parent)).resolve()
-    return base
+def _resolve_dirs():
+    # PyInstaller sometimes sets sys._MEIPASS even for onedir.
+    meipass = getattr(sys, "_MEIPASS", None)
+    if meipass:
+        base = Path(meipass).resolve()
+        # If base is "...\\_internal", treat its parent as the app dir.
+        if base.name.lower() == "_internal":
+            appdir = base.parent
+            internal = base
+        else:
+            appdir = base
+            internal = base / "_internal"
+    else:
+        appdir = Path(sys.executable).resolve().parent
+        internal = appdir / "_internal"
+
+    return appdir, internal
 
 
-base = _resolve_base_dir()
+def _patch_ctypes_winmode():
+    # Patch ctypes.CDLL/WinDLL so that absolute-path loads use a sane winmode.
+    orig_cdll = ctypes.CDLL
+    orig_windll = ctypes.WinDLL
 
-# PyInstaller onedir layout typically has a sibling "_internal" directory.
-# On onefile, it may also exist under _MEIPASS.
-if (base / "_internal").is_dir():
-    internal = base / "_internal"
-elif base.name.lower() == "_internal":
-    internal = base
-else:
-    internal = base / "_internal"
+    def cdll_patched(name, *args, **kwargs):
+        if sys.platform == "win32" and kwargs.get("winmode", None) is None:
+            try:
+                s = os.fspath(name)
+                if os.path.isabs(s):
+                    kwargs["winmode"] = DEFAULT_WINMODE
+            except Exception:
+                pass
+        return orig_cdll(name, *args, **kwargs)
 
-# Always add these
-_add_dll_dir(base)
-_add_dll_dir(internal)
+    def windll_patched(name, *args, **kwargs):
+        if sys.platform == "win32" and kwargs.get("winmode", None) is None:
+            try:
+                s = os.fspath(name)
+                if os.path.isabs(s):
+                    kwargs["winmode"] = DEFAULT_WINMODE
+            except Exception:
+                pass
+        return orig_windll(name, *args, **kwargs)
 
-# Critical: pyhesaff ships hesaff.dll + opencv_*.dll in this directory; deps must be discoverable.
-_add_dll_dir(internal / "pyhesaff")
+    ctypes.CDLL = cdll_patched  # type: ignore[assignment]
+    ctypes.WinDLL = windll_patched  # type: ignore[assignment]
 
-# Other common binary dependency locations in your build
-_add_dll_dir(internal / "cv2")
-_add_dll_dir(internal / "pyflann_ibeis")
-_add_dll_dir(internal / "vtool_ibeis_ext")
 
-# Common wheel binary bundles (numpy.libs, scipy.libs, etc.)
-if internal.is_dir():
-    for p in internal.glob("*.libs"):
+# ---- Main hook behavior ----
+_appdir, _internal = _resolve_dirs()
+
+_add_dll_dir(_appdir)
+_add_dll_dir(_internal)
+
+# Critical: hesaff.dll and its opencv_*.dll live here
+_add_dll_dir(_internal / "pyhesaff")
+
+# Common locations in your bundle
+_add_dll_dir(_internal / "cv2")
+_add_dll_dir(_internal / "pyflann_ibeis")
+_add_dll_dir(_internal / "vtool_ibeis_ext")
+
+# Wheel .libs bundles (numpy.libs, scipy.libs, shapely.libs, etc.)
+if _internal.is_dir():
+    for p in _internal.glob("*.libs"):
         _add_dll_dir(p)
 
-# Optional debug
+# Patch ctypes so user-added DLL dirs + dll-load-dir are actually used
+_patch_ctypes_winmode()
+
+# Optional debug / proof test
 if os.environ.get("IBEIS_DLL_DEBUG") == "1":
-    print("[rthook] base     =", base)
-    print("[rthook] internal =", internal)
+    print("[rthook] appdir   =", _appdir)
+    print("[rthook] internal =", _internal)
     print("[rthook] added DLL dirs (count) =", len(_DLL_DIR_HANDLES))
     print("[rthook] PATH(head) =", os.environ.get("PATH", "").split(os.pathsep)[:12])
+
+    test = _internal / "pyhesaff" / "hesaff.dll"
+    if test.exists():
+        try:
+            ctypes.WinDLL(str(test), winmode=DEFAULT_WINMODE)
+            print("[rthook] test load OK:", test)
+        except OSError as ex:
+            print("[rthook] test load FAILED:", repr(ex), "winerror=", getattr(ex, "winerror", None))
+
