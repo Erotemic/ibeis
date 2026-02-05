@@ -6,15 +6,16 @@
 #define AppExeName "IBEIS.exe"
 #define AppConsoleExeName "IBEIS-console.exe"
 
-; PyInstaller output folder (relative to this .iss file in dev/_installers/)
-#define DistDir "..\..\dist\IBEIS-dist"
-
-; Icon that already exists in dev/_installers/
 #define IconFile "ibsicon.ico"
 
-; Optional: if you place vcredist_x64.exe next to this .iss, it will be bundled
+; Optional: if you drop vcredist_x64.exe next to this .iss, it will be bundled
 #define VCRedistExe "vcredist_x64.exe"
 #define HaveVCRedist FileExists(AddBackslash(SourcePath) + VCRedistExe)
+
+; IMPORTANT:
+; Use a SHORT (8.3) absolute path for the PyInstaller dist folder to reduce path length issues
+#define DistDir GetShortName(SourcePath + "..\..\dist\IBEIS-dist")
+#define OutDir  (SourcePath + "..\..\dist\installer")
 
 [Setup]
 AppId={{47BE3DA2-261D-4672-9849-18BB2EB382FC}}
@@ -27,7 +28,7 @@ DefaultGroupName={#AppName}
 UninstallDisplayIcon={app}\{#AppExeName}
 SetupIconFile={#IconFile}
 
-OutputDir=..\..\dist\installer
+OutputDir={#OutDir}
 OutputBaseFilename={#AppName}-Setup-{#AppVersion}
 Compression=lzma2
 SolidCompression=yes
@@ -37,14 +38,16 @@ ArchitecturesInstallIn64BitMode=x64
 PrivilegesRequired=admin
 
 [Files]
-; Copy everything PyInstaller produced (EXEs + _internal + DLLs + data files)
-Source: "{#DistDir}\*"; DestDir: "{app}"; Flags: recursesubdirs createallsubdirs ignoreversion
+; Copy everything PyInstaller produced
+; Exclude JupyterLab labextensions (very deep paths + not needed for the desktop app)
+; Also exclude source maps to reduce size
+Source: "{#DistDir}\*"; DestDir: "{app}"; Flags: recursesubdirs createallsubdirs ignoreversion; \
+    Excludes: "_internal\share\jupyter\labextensions\*;*.map"
 
-; Copy icon into install dir (so shortcuts can reference it)
+; Put the icon in the install directory for shortcuts
 Source: "{#IconFile}"; DestDir: "{app}"; Flags: ignoreversion
 
 #if HaveVCRedist
-; Bundle VC++ redist only if the file exists next to the .iss
 Source: "{#VCRedistExe}"; DestDir: "{tmp}"; Flags: deleteafterinstall
 #endif
 
@@ -58,8 +61,23 @@ Name: "{commondesktop}\{#AppName}"; Filename: "{app}\{#AppExeName}"; Tasks: desk
 
 [Run]
 #if HaveVCRedist
-Filename: "{tmp}\{#VCRedistExe}"; Parameters: "/install /quiet /norestart"; StatusMsg: "Installing Microsoft Visual C++ Runtime..."
+Filename: "{tmp}\{#VCRedistExe}"; Parameters: "/install /quiet /norestart"; \
+  StatusMsg: "Installing Microsoft Visual C++ Runtime..."; Check: VCRedistNeedsInstall
 #endif
 
 Filename: "{app}\{#AppExeName}"; Description: "Launch {#AppName}"; Flags: nowait postinstall skipifsilent
+
+[Code]
+function VCRedistNeedsInstall(): Boolean;
+var
+  Installed: Cardinal;
+begin
+  Result := True;
+  if RegQueryDWordValue(HKLM,
+     'SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\x64',
+     'Installed', Installed) then
+  begin
+    Result := (Installed = 0);
+  end;
+end;
 
