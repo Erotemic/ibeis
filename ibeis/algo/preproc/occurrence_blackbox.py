@@ -148,7 +148,7 @@ def timespace_distance_sec(pt1, pt2, km_per_sec=KM_PER_SEC):
     # (return nan if points are not comparable, otherwise nansum)
     parts = np.array([km_dist, sec_dist])
     timespace_dist = np.nan if np.all(np.isnan(parts)) else np.nansum(parts)
-    return timespace_dist
+    return timespace_dist[0]
 
 
 def space_distance_sec(pt1, pt2, km_per_sec=KM_PER_SEC):
@@ -157,7 +157,7 @@ def space_distance_sec(pt1, pt2, km_per_sec=KM_PER_SEC):
     # Get pure gps distance and convert to seconds
     km_dist = haversine(latlon1, latlon2)
     space_dist = km_dist / km_per_sec
-    return space_dist
+    return space_dist[0]
 
 
 def space_distance_km(pt1, pt2):
@@ -170,13 +170,13 @@ def space_distance_km(pt1, pt2):
 
 def time_dist_sec(sec1, sec2):
     sec_dist = np.abs(sec1 - sec2)
-    return sec_dist
+    return sec_dist[0]
 
 
 def time_dist_km(sec1, sec2, km_per_sec=KM_PER_SEC):
     sec_dist = np.abs(sec1 - sec2)
     sec_dist *= km_per_sec
-    return sec_dist
+    return sec_dist[0]
 
 
 def prepare_data(posixtimes, latlons, km_per_sec=KM_PER_SEC, thresh_units='seconds'):
