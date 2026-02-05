@@ -2,6 +2,12 @@
 python -m pip install -U PyInstaller
 python -m PyInstaller -y dev/_installers/pyinstaller-ibeis.spec
 
+python -m PyInstaller --clean -y dev/_installers/pyinstaller-ibeis.spec
+
+# Test
+.\dist\IBEIS-dist\IBEIS-console.exe
+
+
 # Need INNO on windows
 winget search innosetup
 
