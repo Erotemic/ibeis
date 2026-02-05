@@ -7,32 +7,38 @@ from pathlib import Path
 
 block_cipher = None
 
-# PyInstaller provides SPECPATH; __file__ is not always defined
-HERE = Path(globals().get("SPECPATH", os.getcwd())).resolve()
-ROOT = HERE.parent.parent  # repo root (…/ibeis)
+# PyInstaller provides SPECPATH; __file__ is not always defined when executing a .spec.
+HERE = Path(globals().get("SPECPATH", os.getcwd())).resolve()  # dev/_installers
+ROOT = HERE.parent.parent  # repo root (.../ibeis)
 
+# Make helper importable
 sys.path.insert(0, str(HERE))
 import ibeis_pyi_helper as helper  # noqa: E402
 
 datas, binaries, hiddenimports = helper.collect_everything()
 icon_path = helper.get_icon_path()
 
+# Prefer the small wrapper entrypoint (freeze_support + optional diagnostics)
+entry_script = str(HERE / "ibeis_app_entry.py")
+
 a = Analysis(
-    [str(ROOT / "ibeis" / "__main__.py")],
-    pathex=[str(ROOT)],
+    [entry_script],
+    pathex=[str(ROOT), str(HERE)],
     binaries=binaries,
     datas=datas,
     hiddenimports=hiddenimports,
     hookspath=[],
     runtime_hooks=[str(HERE / "rthook_add_dll_dirs.py")],
-    excludes=["torch"],
+    excludes=["torch", "tensorflow"],
     noarchive=False,
 )
 
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 
 exe_gui = EXE(
-    pyz, a.scripts, [],
+    pyz,
+    a.scripts,
+    [],
     exclude_binaries=True,
     name="IBEIS",
     console=False,
@@ -40,7 +46,9 @@ exe_gui = EXE(
 )
 
 exe_console = EXE(
-    pyz, a.scripts, [],
+    pyz,
+    a.scripts,
+    [],
     exclude_binaries=True,
     name="IBEIS-console",
     console=True,
@@ -48,10 +56,13 @@ exe_console = EXE(
 )
 
 coll = COLLECT(
-    exe_gui, exe_console,
-    a.binaries, a.zipfiles, a.datas,
+    exe_gui,
+    exe_console,
+    a.binaries,
+    a.zipfiles,
+    a.datas,
     strip=False,
-    upx=True,
+    upx=False,   # keep OFF while iterating; you can re-enable later
     name="IBEIS-dist",
 )
 

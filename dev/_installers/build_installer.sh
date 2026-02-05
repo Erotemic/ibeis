@@ -34,4 +34,10 @@ winget install --id JacquelinPotier.AllDllsDependencies --source winget --accept
 AllDllDeps64.exe
 
 
-#
+python .\dev\_installers\all_deps.py `
+  .\dist\IBEIS-dist\_internal\pyhesaff\hesaff.dll `
+  .\dist\IBEIS-dist `
+  .\dist\IBEIS-dist\_internal `
+  .\dist\IBEIS-dist\_internal\numpy.libs `
+  .\dist\IBEIS-dist\_internal\scipy.libs `
+  .\dist\IBEIS-dist\_internal\cv2

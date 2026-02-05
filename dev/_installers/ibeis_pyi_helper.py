@@ -15,6 +15,7 @@ BinaryTuple = Tuple[str, str]    # (src, destdir)
 
 
 def get_icon_path() -> str | None:
+    # Use your existing icons in dev/_installers/
     if sys.platform == "win32":
         return str(HERE / "ibsicon.ico")
     if sys.platform == "darwin":
@@ -23,9 +24,7 @@ def get_icon_path() -> str | None:
 
 
 def _find_pkg_dir(pkgname: str) -> Path | None:
-    """
-    Find a package directory without importing it.
-    """
+    """Find a package directory without importing it."""
     spec = importlib.util.find_spec(pkgname)
     if spec is None:
         return None
@@ -46,10 +45,6 @@ def _iter_files(d: Path) -> Iterable[Path]:
 
 
 def _collect_dir_as_datas(src_dir: Path, dest_prefix: str, exts: set[str] | None = None) -> List[DataTuple]:
-    """
-    Copy a directory tree as DATA tuples (src, destdir).
-    If exts is provided, only include files with those suffixes (lowercased).
-    """
     out: List[DataTuple] = []
     for p in _iter_files(src_dir):
         if exts is not None and p.suffix.lower() not in exts:
@@ -61,9 +56,6 @@ def _collect_dir_as_datas(src_dir: Path, dest_prefix: str, exts: set[str] | None
 
 
 def _collect_dir_as_binaries(src_dir: Path, dest_prefix: str) -> List[BinaryTuple]:
-    """
-    Copy only dll/pyd files under src_dir as BINARIES tuples.
-    """
     out: List[BinaryTuple] = []
     for p in _iter_files(src_dir):
         if p.suffix.lower() in {".dll", ".pyd"}:
@@ -74,9 +66,6 @@ def _collect_dir_as_binaries(src_dir: Path, dest_prefix: str) -> List[BinaryTupl
 
 
 def _collect_pkg_binaries(pkgname: str) -> List[BinaryTuple]:
-    """
-    Collect all .dll/.pyd files inside the package tree without importing it.
-    """
     pkgdir = _find_pkg_dir(pkgname)
     if pkgdir is None:
         return []
@@ -84,9 +73,6 @@ def _collect_pkg_binaries(pkgname: str) -> List[BinaryTuple]:
 
 
 def _collect_sibling_dotlibs(pkgname: str) -> List[BinaryTuple]:
-    """
-    Collect sibling <pkgname>.libs directory if present (numpy.libs, scipy.libs, etc.)
-    """
     pkgdir = _find_pkg_dir(pkgname)
     if pkgdir is None:
         return []
@@ -97,10 +83,6 @@ def _collect_sibling_dotlibs(pkgname: str) -> List[BinaryTuple]:
 
 
 def _collect_named_sibling_libs(sibling_dirname: str, anchor_pkg: str) -> List[BinaryTuple]:
-    """
-    Collect sibling directory by exact name, using anchor_pkg to locate site-packages.
-    Example: opencv_python.libs next to cv2.
-    """
     pkgdir = _find_pkg_dir(anchor_pkg)
     if pkgdir is None:
         return []
@@ -112,9 +94,6 @@ def _collect_named_sibling_libs(sibling_dirname: str, anchor_pkg: str) -> List[B
 
 
 def _all_py_modules_in_package(pkgname: str) -> List[str]:
-    """
-    Enumerate all python modules in a package without importing it.
-    """
     pkgdir = _find_pkg_dir(pkgname)
     if pkgdir is None:
         return []
@@ -144,24 +123,23 @@ def collect_everything():
     # ---- ctypes / custom wheels: include their package DLLs/PYDs ----
     for pkg in ["pyhesaff", "pyflann_ibeis", "vtool_ibeis_ext"]:
         binaries += _collect_pkg_binaries(pkg)
+        # also include their python submodules in case of dynamic imports
+        hiddenimports += _all_py_modules_in_package(pkg)
 
     # ---- Bring in common wheel dependency bundles (.libs) ----
     for pkg in ["numpy", "scipy", "pandas", "shapely", "sklearn"]:
         binaries += _collect_sibling_dotlibs(pkg)
 
+    # OpenCV wheel: extra DLLs live in these sibling folders
     binaries += _collect_named_sibling_libs("opencv_python.libs", anchor_pkg="cv2")
     binaries += _collect_named_sibling_libs("opencv_python_headless.libs", anchor_pkg="cv2")
 
-    # ---- FORCE include win32ctypes (pip package: pywin32-ctypes) ----
-    # Hiddenimports alone can still miss packaging; copying .py files guarantees they exist on disk.
+    # ---- FORCE include win32ctypes (pip name: pywin32-ctypes) ----
     win32_dir = _find_pkg_dir("win32ctypes")
     if win32_dir is not None:
-        # Copy sources into _internal/win32ctypes/...
         datas += _collect_dir_as_datas(win32_dir, "win32ctypes", exts={".py", ".pyi"})
-        # And tell PyInstaller about all modules for good measure
         hiddenimports += _all_py_modules_in_package("win32ctypes")
     else:
-        # Fallback explicit set (if spec discovery fails)
         hiddenimports += [
             "win32ctypes.core",
             "win32ctypes.pywin32",
@@ -193,3 +171,4 @@ def collect_everything():
     hiddenimports = sorted(set(hiddenimports))
 
     return datas, binaries, hiddenimports
+

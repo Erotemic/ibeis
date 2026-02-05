@@ -1,41 +1,40 @@
-# ibeis_app_entry.py
+# dev/_installers/ibeis_app_entry.py
+"""PyInstaller entrypoint for IBEIS.
+
+Why this wrapper exists:
+* Calls multiprocessing.freeze_support() (required on Windows when frozen).
+* Keeps the actual app entry logic in ibeis.__main__.run_ibeis.
+"""
+
+from __future__ import annotations
+
 import multiprocessing
-"""
-pip install pyinstaller
+import os
+import sys
 
-pyinstaller --clean -y --onedir ^
-  --name IBEIS ^
-  --console ^
-  --collect-all PyQt5 ^
-  --collect-all numpy ^
-  --collect-all scipy ^
-  --collect-all matplotlib ^
-  --collect-all cv2 ^
-  --collect-all ibeis ^
-  --collect-all vtool_ibeis ^
-  --collect-all dtool_ibeis ^
-  --collect-all plottool_ibeis ^
-  --collect-all guitool_ibeis ^
-  --collect-all pyhesaff ^
-  --collect-all pyflann_ibeis ^
-  --collect-all vtool_ibeis_ext ^
-  ibeis_app_entry.py
 
-"""
+def main() -> None:
+    multiprocessing.freeze_support()
 
-def main():
-    multiprocessing.freeze_support()  # needed on Windows when frozen
+    # Optional quick startup diagnostics (disabled by default)
+    if os.environ.get("IBEIS_BOOT_DEBUG") == "1":
+        print("[IBEIS_BOOT_DEBUG] sys.executable =", sys.executable)
+        print("[IBEIS_BOOT_DEBUG] cwd           =", os.getcwd())
+        print("[IBEIS_BOOT_DEBUG] argv          =", sys.argv)
+        print("[IBEIS_BOOT_DEBUG] _MEIPASS      =", getattr(sys, "_MEIPASS", None))
+        print("[IBEIS_BOOT_DEBUG] PATH(head)    =", os.environ.get("PATH", "").split(os.pathsep)[:10])
 
-    # Help PyInstaller “see” dynamic imports / compiled submodules
+    # Help PyInstaller “see” dynamic imports / compiled submodules (safe if it fails)
     try:
-        from ibeis.__main__ import dependencies_for_myprogram
+        from ibeis.__main__ import dependencies_for_myprogram  # type: ignore
         dependencies_for_myprogram()
     except Exception:
         pass
 
-    # Run the actual app
     from ibeis.__main__ import run_ibeis
     run_ibeis()
 
+
 if __name__ == "__main__":
     main()
+
