@@ -7,18 +7,16 @@ from pathlib import Path
 
 block_cipher = None
 
-# PyInstaller provides SPECPATH; __file__ is not always defined when executing a .spec.
+# PyInstaller provides SPECPATH; __file__ is not always defined.
 HERE = Path(globals().get("SPECPATH", os.getcwd())).resolve()  # dev/_installers
 ROOT = HERE.parent.parent  # repo root (.../ibeis)
 
-# Make helper importable
 sys.path.insert(0, str(HERE))
 import ibeis_pyi_helper as helper  # noqa: E402
 
 datas, binaries, hiddenimports = helper.collect_everything()
 icon_path = helper.get_icon_path()
 
-# Prefer the small wrapper entrypoint (freeze_support + optional diagnostics)
 entry_script = str(HERE / "ibeis_app_entry.py")
 
 a = Analysis(
@@ -62,7 +60,6 @@ coll = COLLECT(
     a.zipfiles,
     a.datas,
     strip=False,
-    upx=False,   # keep OFF while iterating; you can re-enable later
+    upx=False,
     name="IBEIS-dist",
 )
-
