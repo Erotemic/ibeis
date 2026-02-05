@@ -8,14 +8,13 @@
 
 #define IconFile "ibsicon.ico"
 
-; Optional: if you drop vcredist_x64.exe next to this .iss, it will be bundled
+; Optional: bundle VC++ runtime if present next to this .iss
 #define VCRedistExe "vcredist_x64.exe"
 #define HaveVCRedist FileExists(AddBackslash(SourcePath) + VCRedistExe)
 
-; IMPORTANT:
-; Use a SHORT (8.3) absolute path for the PyInstaller dist folder to reduce path length issues
-#define DistDir GetShortName(SourcePath + "..\..\dist\IBEIS-dist")
-#define OutDir  (SourcePath + "..\..\dist\installer")
+; PyInstaller output (relative to dev/_installers/)
+#define DistDir "..\..\dist\IBEIS-dist"
+#define OutDir  "..\..\dist\installer"
 
 [Setup]
 AppId={{47BE3DA2-261D-4672-9849-18BB2EB382FC}}
@@ -38,13 +37,13 @@ ArchitecturesInstallIn64BitMode=x64
 PrivilegesRequired=admin
 
 [Files]
-; Copy everything PyInstaller produced
-; Exclude JupyterLab labextensions (very deep paths + not needed for the desktop app)
-; Also exclude source maps to reduce size
-Source: "{#DistDir}\*"; DestDir: "{app}"; Flags: recursesubdirs createallsubdirs ignoreversion; \
-    Excludes: "_internal\share\jupyter\labextensions\*;*.map"
+; Copy the entire PyInstaller output
+; Exclude deep JupyterLab assets + source maps (path-length killers)
+Source: "{#DistDir}\*"; DestDir: "{app}"; \
+  Flags: recursesubdirs createallsubdirs ignoreversion; \
+  Excludes: "_internal\share\jupyter\labextensions\*;*.map"
 
-; Put the icon in the install directory for shortcuts
+; Install icon for shortcuts
 Source: "{#IconFile}"; DestDir: "{app}"; Flags: ignoreversion
 
 #if HaveVCRedist
@@ -61,23 +60,8 @@ Name: "{commondesktop}\{#AppName}"; Filename: "{app}\{#AppExeName}"; Tasks: desk
 
 [Run]
 #if HaveVCRedist
-Filename: "{tmp}\{#VCRedistExe}"; Parameters: "/install /quiet /norestart"; \
-  StatusMsg: "Installing Microsoft Visual C++ Runtime..."; Check: VCRedistNeedsInstall
+Filename: "{tmp}\{#VCRedistExe}"; \
+  Parameters: "/install /quiet /norestart"; \
+  StatusMsg: "Installing Microsoft Visual C++ Runtime..."
 #endif
-
-Filename: "{app}\{#AppExeName}"; Description: "Launch {#AppName}"; Flags: nowait postinstall skipifsilent
-
-[Code]
-function VCRedistNeedsInstall(): Boolean;
-var
-  Installed: Cardinal;
-begin
-  Result := True;
-  if RegQueryDWordValue(HKLM,
-     'SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\x64',
-     'Installed', Installed) then
-  begin
-    Result := (Installed = 0);
-  end;
-end;
 
