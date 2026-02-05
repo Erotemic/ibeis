@@ -2,31 +2,59 @@
 from __future__ import annotations
 
 import sys
+import importlib.util
 from pathlib import Path
 
-from PyInstaller.utils.hooks import (
-    collect_all,
-    collect_data_files,
-    collect_dynamic_libs,
-)
+from PyInstaller.utils.hooks import collect_data_files, collect_dynamic_libs
+
+try:
+    # PyInstaller 6.x
+    from PyInstaller.building.datastruct import Tree
+except Exception:  # pragma: no cover
+    Tree = None  # type: ignore
+
 
 HERE = Path(__file__).resolve().parent
-ROOT = HERE.parent.parent  # repo root (…/ibeis)
 
 
 def get_icon_path() -> str | None:
-    """
-    Use your existing icons:
-      dev/_installers/ibsicon.ico
-      dev/_installers/ibsicon.png
-      dev/_installers/ibsicon.icns
-    """
     if sys.platform == "win32":
         return str(HERE / "ibsicon.ico")
     if sys.platform == "darwin":
         return str(HERE / "ibsicon.icns")
-    # Linux: EXE icon embedding doesn't really apply; keep None for safety.
     return None
+
+
+def _pkg_dir(pkgname: str) -> Path | None:
+    """
+    Find package directory WITHOUT importing it.
+    """
+    spec = importlib.util.find_spec(pkgname)
+    if spec is None:
+        return None
+    locs = getattr(spec, "submodule_search_locations", None)
+    if not locs:
+        return None
+    return Path(list(locs)[0])
+
+
+def _collect_sibling_libs(pkgname: str):
+    """
+    Collect delvewheel-style sibling dir: <pkgname>.libs
+    Example: site-packages/pyhesaff.libs/*.dll
+    """
+    if Tree is None:
+        return []
+
+    pkgdir = _pkg_dir(pkgname)
+    if pkgdir is None:
+        return []
+
+    sib = pkgdir.with_name(pkgname + ".libs")
+    if sib.exists():
+        # Prefix ensures it lands in _internal/<name>.libs
+        return Tree(str(sib), prefix=sib.name).tolist()
+    return []
 
 
 def collect_everything():
@@ -34,39 +62,20 @@ def collect_everything():
     binaries = []
     hiddenimports = []
 
-    # Big hitters (PyInstaller hooks exist, but collect_all is the “make it work” hammer)
-    for pkg in ["PyQt5", "numpy", "scipy", "matplotlib", "cv2"]:
-        d, b, h = collect_all(pkg)
-        datas += d
-        binaries += b
-        hiddenimports += h
+    # --- IBEIS data you likely need at runtime ---
+    # (collect_data_files does NOT import ibeis)
+    datas += collect_data_files("ibeis", includes=["web/*", "web/**/*"], excludes=["**/*.pyc"])
 
-    # IBEIS + your stack
-    for pkg in [
-        "ibeis",
-        "utool",
-        "ubelt",
-        "guitool_ibeis",
-        "plottool_ibeis",
-        "vtool_ibeis",
-        "dtool_ibeis",
-        "pyhesaff",
-        "pyflann_ibeis",
-        "vtool_ibeis_ext",
-    ]:
-        d, b, h = collect_all(pkg)
-        datas += d
-        binaries += b
-        hiddenimports += h
-
-    # Ensure IBEIS web assets are present (templates/static)
-    datas += collect_data_files("ibeis", includes=["web/*", "web/**/*"])
-
-    # Ensure compiled extension DLLs for your custom wheels get picked up
+    # --- DLL-heavy wheels that use ctypes to load their own *.dll ---
     for pkg in ["pyhesaff", "pyflann_ibeis", "vtool_ibeis_ext"]:
         binaries += collect_dynamic_libs(pkg)
+        binaries += _collect_sibling_libs(pkg)
 
-    # A few historical “sometimes-missed” things (your __main__.py references these)
+    # --- Often helpful for scientific wheels (usually redundant with built-in hooks, but safe) ---
+    for pkg in ["numpy", "scipy", "cv2"]:
+        binaries += collect_dynamic_libs(pkg)
+
+    # Your __main__.py already hints these are sometimes missed
     hiddenimports += [
         "mpl_toolkits.axes_grid1",
         "scipy.sparse.csgraph._validation",
@@ -77,5 +86,4 @@ def collect_everything():
     datas = list(dict.fromkeys(datas))
     binaries = list(dict.fromkeys(binaries))
     hiddenimports = sorted(set(hiddenimports))
-
     return datas, binaries, hiddenimports

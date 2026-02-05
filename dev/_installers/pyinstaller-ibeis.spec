@@ -25,7 +25,7 @@ a = Analysis(
     hiddenimports=hiddenimports,
     hookspath=[],
     runtime_hooks=[str(HERE / "rthook_add_dll_dirs.py")],
-    excludes=[],
+    excludes=["torch"],
     noarchive=False,
 )
 
