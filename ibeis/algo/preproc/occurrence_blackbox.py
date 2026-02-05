@@ -148,7 +148,7 @@ def timespace_distance_sec(pt1, pt2, km_per_sec=KM_PER_SEC):
     # (return nan if points are not comparable, otherwise nansum)
     parts = np.array([km_dist, sec_dist])
     timespace_dist = np.nan if np.all(np.isnan(parts)) else np.nansum(parts)
-    return timespace_dist[0]
+    return timespace_dist
 
 
 def space_distance_sec(pt1, pt2, km_per_sec=KM_PER_SEC):
