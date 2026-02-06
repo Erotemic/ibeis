@@ -112,12 +112,23 @@ try {
 
         # VC runtime presence in dist (critical for customer machines)
         Write-Host "`nVC runtime DLLs in dist (_internal):"
-        $vc = Get-ChildItem $InternalDir -Filter "msvcp140*.dll" -ErrorAction SilentlyContinue
-        if ($null -eq $vc -or $vc.Count -eq 0) {
-            Write-Warning "No msvcp140*.dll found in dist\IBEIS-dist\_internal. Fresh machines may fail unless VC++ redist is installed or you bundle these DLLs."
+        $vc = @(Get-ChildItem $InternalDir -Filter "msvcp140*.dll" -ErrorAction SilentlyContinue)
+
+        if ($vc.Count -eq 0) {
+            Write-Warning "No msvcp140*.dll found in $InternalDir."
+
+            # Extra diagnostic: did they land somewhere else?
+            $vc_any = @(Get-ChildItem $AppDir -Recurse -Filter "msvcp140*.dll" -ErrorAction SilentlyContinue)
+            if ($vc_any.Count -eq 0) {
+                Write-Warning "No msvcp140*.dll found anywhere under $AppDir."
+            } else {
+                Write-Warning "Found msvcp140*.dll elsewhere under $AppDir:"
+                $vc_any | Select-Object FullName, Length | Format-Table -AutoSize
+            }
         } else {
-            $vc | Format-Table Name, Length
+            $vc | Select-Object FullName, Length | Format-Table -AutoSize
         }
+
 
         # Run your CLI deps checker and save output
         Write-Section "Dependency scan (all_deps.py) -> deps_hesaff.txt"
