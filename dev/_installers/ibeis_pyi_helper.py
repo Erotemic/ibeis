@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import importlib.util
+import os
 import sys
 from pathlib import Path
 from typing import Iterable, List, Tuple
@@ -15,7 +16,6 @@ BinaryTuple = Tuple[str, str]    # (src, destdir)
 
 
 def get_icon_path() -> str | None:
-    # Use your existing icons in dev/_installers/
     if sys.platform == "win32":
         return str(HERE / "ibsicon.ico")
     if sys.platform == "darwin":
@@ -105,36 +105,64 @@ def _all_py_modules_in_package(pkgname: str) -> List[str]:
     return sorted(set(mods))
 
 
+def _collect_msvc_runtime_binaries() -> List[BinaryTuple]:
+    """Include VC++ runtime DLLs app-locally for customer machines without the redist.
+
+    Destination is '_internal' so they sit next to python313.dll, vcruntime*, etc.
+    """
+    if sys.platform != "win32":
+        return []
+    windir = Path(os.environ.get("WINDIR", r"C:\\Windows"))
+    sys32 = windir / "System32"
+    if not sys32.is_dir():
+        return []
+
+    patterns = [
+        "msvcp140*.dll",
+        "vcruntime140*.dll",
+        "concrt140.dll",
+        "vcomp140.dll",
+    ]
+
+    out: List[BinaryTuple] = []
+    for pat in patterns:
+        for p in sys32.glob(pat):
+            out.append((str(p), "_internal"))
+    return out
+
+
 def collect_everything():
     datas: List[DataTuple] = []
     binaries: List[BinaryTuple] = []
     hiddenimports: List[str] = []
 
-    # ---- IBEIS assets ----
+    # IBEIS assets
     datas += collect_data_files(
         "ibeis",
         includes=["web/*", "web/**/*"],
         excludes=["**/*.pyc", "**/__pycache__/*"],
     )
 
-    # ---- Ensure ALL ibeis.* modules are available (dynamic imports) ----
+    # Dynamic imports in ibeis
     hiddenimports += _all_py_modules_in_package("ibeis")
 
-    # ---- ctypes / custom wheels: include their package DLLs/PYDs ----
+    # Custom binary packages
     for pkg in ["pyhesaff", "pyflann_ibeis", "vtool_ibeis_ext"]:
         binaries += _collect_pkg_binaries(pkg)
-        # also include their python submodules in case of dynamic imports
         hiddenimports += _all_py_modules_in_package(pkg)
 
-    # ---- Bring in common wheel dependency bundles (.libs) ----
+    # Wheel binary bundles
     for pkg in ["numpy", "scipy", "pandas", "shapely", "sklearn"]:
         binaries += _collect_sibling_dotlibs(pkg)
 
-    # OpenCV wheel: extra DLLs live in these sibling folders
+    # OpenCV wheel extra DLL folders
     binaries += _collect_named_sibling_libs("opencv_python.libs", anchor_pkg="cv2")
     binaries += _collect_named_sibling_libs("opencv_python_headless.libs", anchor_pkg="cv2")
 
-    # ---- FORCE include win32ctypes (pip name: pywin32-ctypes) ----
+    # VC++ runtime (portable folder installs)
+    binaries += _collect_msvc_runtime_binaries()
+
+    # win32ctypes (pywin32-ctypes)
     win32_dir = _find_pkg_dir("win32ctypes")
     if win32_dir is not None:
         datas += _collect_dir_as_datas(win32_dir, "win32ctypes", exts={".py", ".pyi"})
@@ -148,14 +176,14 @@ def collect_everything():
             "win32ctypes.pywin32.win32con",
         ]
 
-    # ---- A few known “sometimes missed” modules ----
+    # Known sometimes-missed modules
     hiddenimports += [
         "mpl_toolkits.axes_grid1",
         "scipy.sparse.csgraph._validation",
         "scipy.special._ufuncs_cxx",
     ]
 
-    # De-dupe while preserving order
+    # Deduplicate pairs (keep order)
     def _dedupe_pairs(pairs: List[Tuple[str, str]]) -> List[Tuple[str, str]]:
         seen = set()
         out = []
@@ -171,4 +199,3 @@ def collect_everything():
     hiddenimports = sorted(set(hiddenimports))
 
     return datas, binaries, hiddenimports
-

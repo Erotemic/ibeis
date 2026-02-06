@@ -1,9 +1,5 @@
 # dev/_installers/ibeis_app_entry.py
-"""PyInstaller entrypoint for IBEIS.
-
-- Ensures multiprocessing.freeze_support() on Windows frozen apps
-- Delegates to ibeis.__main__.run_ibeis
-"""
+"""PyInstaller entrypoint for IBEIS."""
 
 from __future__ import annotations
 
@@ -21,7 +17,7 @@ def main() -> None:
         print("[IBEIS_BOOT_DEBUG] argv          =", sys.argv)
         print("[IBEIS_BOOT_DEBUG] _MEIPASS      =", getattr(sys, "_MEIPASS", None))
 
-    # Help PyInstaller “see” dynamic imports / compiled submodules (best-effort)
+    # Best-effort: helps PyInstaller discover dynamically imported pieces
     try:
         from ibeis.__main__ import dependencies_for_myprogram  # type: ignore
         dependencies_for_myprogram()

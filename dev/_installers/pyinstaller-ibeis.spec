@@ -7,9 +7,8 @@ from pathlib import Path
 
 block_cipher = None
 
-# PyInstaller provides SPECPATH; __file__ is not always defined.
 HERE = Path(globals().get("SPECPATH", os.getcwd())).resolve()  # dev/_installers
-ROOT = HERE.parent.parent  # repo root (.../ibeis)
+ROOT = HERE.parent.parent  # repo root
 
 sys.path.insert(0, str(HERE))
 import ibeis_pyi_helper as helper  # noqa: E402
