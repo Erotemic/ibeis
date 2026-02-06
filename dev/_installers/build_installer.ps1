@@ -72,21 +72,21 @@ try {
     # Sanity check that win32ctypes works in the venv
     & $VenvPy -c "import win32ctypes.pywin32; import win32ctypes.pywin32.win32api, win32ctypes.pywin32.pywintypes; print('win32ctypes OK')" | Out-Host
 
-    if (-not $NoClean) {
-        Write-Section "Clean build/dist"
-        Remove-Item -Recurse -Force (Join-Path $RepoRoot "build"), (Join-Path $RepoRoot "dist") -ErrorAction SilentlyContinue
-        New-Item -ItemType Directory -Force $DistDir | Out-Null
-        New-Item -ItemType Directory -Force $DiagDir | Out-Null
-    }
+    #if (-not $NoClean) {
+    #    Write-Section "Clean build/dist"
+    #    Remove-Item -Recurse -Force (Join-Path $RepoRoot "build"), (Join-Path $RepoRoot "dist") -ErrorAction SilentlyContinue
+    #    New-Item -ItemType Directory -Force $DistDir | Out-Null
+    #    New-Item -ItemType Directory -Force $DiagDir | Out-Null
+    #}
 
     if (-not $SkipPyInstaller) {
-        Write-Section "PyInstaller build"
-        Push-Location $RepoRoot
-        try {
-            & $VenvPy -m PyInstaller --clean -y (Join-Path $InstallersDir "pyinstaller-ibeis.spec") | Out-Host
-        } finally {
-            Pop-Location
-        }
+        #Write-Section "PyInstaller build"
+        #Push-Location $RepoRoot
+        #try {
+        #    & $VenvPy -m PyInstaller --clean -y (Join-Path $InstallersDir "pyinstaller-ibeis.spec") | Out-Host
+        #} finally {
+        #    Pop-Location
+        #}
 
         Write-Section "Post-build checks"
         $AppDir = Join-Path $DistDir "IBEIS-dist"
@@ -128,6 +128,7 @@ try {
         } else {
             $vc | Select-Object FullName, Length | Format-Table -AutoSize
         }
+
 
 
         # Run your CLI deps checker and save output
