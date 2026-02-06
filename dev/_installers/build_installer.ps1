@@ -115,21 +115,19 @@ try {
         $vc = @(Get-ChildItem $InternalDir -Filter "msvcp140*.dll" -ErrorAction SilentlyContinue)
 
         if ($vc.Count -eq 0) {
-            Write-Warning "No msvcp140*.dll found in $InternalDir."
+            Write-Warning "No msvcp140*.dll found in ${InternalDir}."
 
             # Extra diagnostic: did they land somewhere else?
             $vc_any = @(Get-ChildItem $AppDir -Recurse -Filter "msvcp140*.dll" -ErrorAction SilentlyContinue)
             if ($vc_any.Count -eq 0) {
-                Write-Warning "No msvcp140*.dll found anywhere under $AppDir."
+                Write-Warning "No msvcp140*.dll found anywhere under ${AppDir}."
             } else {
-                Write-Warning "Found msvcp140*.dll elsewhere under $AppDir:"
+                Write-Warning "Found msvcp140*.dll elsewhere under ${AppDir}:"
                 $vc_any | Select-Object FullName, Length | Format-Table -AutoSize
             }
         } else {
             $vc | Select-Object FullName, Length | Format-Table -AutoSize
         }
-
-
 
         # Run your CLI deps checker and save output
         Write-Section "Dependency scan (all_deps.py) -> deps_hesaff.txt"
