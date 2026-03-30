@@ -2571,13 +2571,15 @@ class MainWindowBackend(GUIBACK_BASE):
         print('[back] Found len(qaid_list) = %r' % (len(qaid_list),))
         # Group annotations by species
         species2_qaids = ibs.group_annots_by_prop(qaid_list, ibs.get_annot_species)
+
+        species_list = ut.unique(list(ibs.get_all_species_texts()) + (list(species2_qaids.keys())))
+
         # ID unknown species against each database species
         nospecies_qaids = species2_qaids.pop(ibs.const.UNKNOWN, [])
         print('[back] num Queries without species = %r' % (len(nospecies_qaids),))
         print('species2_qaids = %r' % (species2_qaids,))
 
         species2_expanded_aids = {}
-        species_list = ut.unique(list(ibs.get_all_species_texts()) + (list(species2_qaids.keys())))
         for species in species_list:
             print('[back] Finding daids for species = %r' % (species,))
             qaids = species2_qaids[species]

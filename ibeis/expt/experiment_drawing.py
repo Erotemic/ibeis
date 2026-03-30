@@ -667,7 +667,8 @@ def draw_rank_surface(ibs, testres, verbose=None, fnum=None):
             # Find which colors will not be used
             nonconst_key = nd_labels_[1]
             nonconst_basis = np.array(basis_dict[nonconst_key])
-            nonconst_covers_basis = np.in1d(nonconst_basis, nonconst_basis_vals)
+            from ibeis.util import util_compat
+            nonconst_covers_basis = util_compat.in1d_port(nonconst_basis, nonconst_basis_vals)
             # I dont remember what was trying to happen here
             nonconst_color_list = ut.compress(color_list, nonconst_covers_basis)
             nonconst_marker_list = ut.compress(marker_list, nonconst_covers_basis)

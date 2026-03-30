@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 python -c "import utool as ut; ut.write_modscript_alias('Tgen.sh', 'ibeis.templates.template_generator')"  # NOQA
 sh Tgen.sh --key name --invert --Tcfg with_getters=True with_setters=False --modfname manual_name_funcs  # NOQA
@@ -13,6 +12,7 @@ import numpy as np
 import vtool_ibeis as vt
 from ibeis.control import accessor_decors, controller_inject  # NOQA
 import utool as ut
+import ubelt as ub
 from ibeis.control.controller_inject import make_ibs_register_decorator
 import os
 print, rrr, profile = ut.inject2(__name__)
@@ -157,7 +157,7 @@ def delete_names(ibs, name_rowid_list, safe=True, strict=False, verbose=ut.VERBO
         print('[ibs] deleting %d names' % len(name_rowid_list))
     if safe:
         aids_list = ibs.get_name_aids(name_rowid_list)
-        aid_list = ut.flatten(aids_list)
+        aid_list = list(ub.flatten(aids_list))
         if strict:
             assert len(aid_list) == 0, (
                 'should not be any annots belonging to a deleted name')
@@ -216,7 +216,7 @@ def get_empty_nids(ibs, _nid_list=None):
     nRois_list = ibs.get_name_num_annotations(_nid_list)
     # Filter names with rois
     isempty_list = (nRois <= 0 for nRois in nRois_list)
-    empty_nid_list = list(ut.iter_compress(_nid_list, isempty_list))
+    empty_nid_list = list(ub.compress(_nid_list, isempty_list))
     # Filter names with aliases (TODO: use transitivity to determine validity)
     alias_text_list = ibs.get_name_alias_texts(empty_nid_list)
     hasalias_list = [alias_text is not None for alias_text in alias_text_list]
@@ -259,7 +259,6 @@ def delete_empty_nids(ibs):
 @register_ibs_method
 @accessor_decors.getter_1toM
 @register_api('/api/name/annot/rowid/', methods=['GET'])
-@profile
 def get_name_aids(ibs, nid_list, enable_unknown_fix=True, is_staged=False):
     r"""
     # TODO: Rename to get_anot_rowids_from_name_rowid
@@ -571,7 +570,7 @@ def get_name_exemplar_aids(ibs, nid_list):
     aids_list = ibs.get_name_aids(nid_list, enable_unknown_fix=True)
     # Flag any annots that are not exemplar and remove them
     flags_list = ibsfuncs.unflat_map(ibs.get_annot_exemplar_flags, aids_list)
-    exemplar_aids_list = [ut.compress(aids, flags) for aids, flags in
+    exemplar_aids_list = [list(ub.compress(aids, flags)) for aids, flags in
                           zip(aids_list, flags_list)]
     return exemplar_aids_list
 
@@ -888,7 +887,7 @@ def get_name_texts(ibs, name_rowid_list, apply_fix=True):
         >>> ibs = ibeis.opendb('testdb1')
         >>> name_rowid_list = ibs._get_all_known_name_rowids()
         >>> name_text_list = get_name_texts(ibs, name_rowid_list)
-        >>> result = ut.repr2(name_text_list)
+        >>> result = ub.urepr(name_text_list)
         >>> print(result)
         ['easy', 'hard', 'jeff', 'lena', 'occl', 'polar', 'zebra']
     """
@@ -963,10 +962,10 @@ def get_name_rowids_from_text(ibs, name_text_list, ensure=True):
         >>> name_text_list = [u'Fred', u'Sue', '____', u'zebra_grevys', 'TYPO', '____']
         >>> ensure = False
         >>> name_rowid_list = ibs.get_name_rowids_from_text(name_text_list, ensure)
-        >>> print(ut.repr2(list(zip(name_text_list, name_rowid_list))))
+        >>> print(ub.urepr(list(zip(name_text_list, name_rowid_list))))
         >>> ensure = True
         >>> name_rowid_list = ibs.get_name_rowids_from_text(name_text_list, ensure)
-        >>> print(ut.repr2(list(zip(name_text_list, name_rowid_list))))
+        >>> print(ub.urepr(list(zip(name_text_list, name_rowid_list))))
         >>> ibs.print_name_table()
         >>> result = str(name_rowid_list) + '\n'
         >>> typo_rowids = ibs.get_name_rowids_from_text(['TYPO', 'Fred', 'Sue', 'zebra_grevys'])
@@ -1086,7 +1085,7 @@ def get_valid_nids(ibs, imgsetid=None, filter_empty=False, min_pername=None):
     if min_pername is not None:
         nAnnot_list = ibs.get_name_num_annotations(nid_list)
         flag_list = np.array(nAnnot_list) >= min_pername
-        nid_list = ut.compress(nid_list, flag_list)
+        nid_list = list(ub.compress(nid_list, flag_list))
     return nid_list
 
 
@@ -1345,12 +1344,11 @@ def get_name_imgsetids(ibs, nid_list):
         Method: GET
         URL:    /api/name/imageset/rowid/
     """
-    import utool as ut
     name_aids_list = ibs.get_name_aids(nid_list)
-    name_aid_list  = ut.flatten(name_aids_list)
+    name_aid_list  = list(ub.flatten(name_aids_list))
     name_gid_list  = ibs.get_annot_gids(name_aid_list)
     name_imgsetids_list = ibs.get_image_imgsetids(name_gid_list)
-    name_imgsetid_list  = ut.flatten(name_imgsetids_list)
+    name_imgsetid_list  = list(ub.flatten(name_imgsetids_list))
     name_imgsetids      = list(set(name_imgsetid_list))
     return name_imgsetids
 
@@ -1396,10 +1394,10 @@ def get_name_has_split(ibs, nid_list):
     def get_valid_aids_clique_annotmatch_rowids(aids):
         import itertools
         aid_pairs = list(itertools.combinations(aids, 2))
-        aids1 = ut.take_column(aid_pairs, 0)
-        aids2 = ut.take_column(aid_pairs, 1)
+        aids1 = [p[0] for p in aid_pairs]
+        aids2 = [p[1] for p in aid_pairs]
         am_ids = ibs.get_annotmatch_rowid_from_undirected_superkey(aids1, aids2)
-        am_ids = ut.filter_Nones(am_ids)
+        am_ids = [_id for _id in am_ids if _id is not None]
         return am_ids
     amids_list = [get_valid_aids_clique_annotmatch_rowids(aids) for aids in aids_list_]
     flags_list = ibs.unflat_map(ut.partial(ibs.get_annotmatch_prop, 'SplitCase'), amids_list)
@@ -1500,9 +1498,9 @@ def get_name_gps_tracks(ibs, nid_list=None, aid_list=None):
         >>> aid_list = ibs.get_valid_aids()
         >>> nid_list, gps_track_list, aid_track_list = ibs.get_name_gps_tracks(aid_list=aid_list)
         >>> nonempty_list = list(map(lambda x: len(x) > 0, gps_track_list))
-        >>> ut.compress(nid_list, nonempty_list)
-        >>> ut.compress(gps_track_list, nonempty_list)
-        >>> ut.compress(aid_track_list, nonempty_list)
+        >>> list(ub.compress(nid_list, nonempty_list))
+        >>> list(ub.compress(gps_track_list, nonempty_list))
+        >>> list(ub.compress(aid_track_list, nonempty_list))
         >>> import ubelt as ub
         >>> result = ub.urepr(aid_track_list, nl=0, strvals=True)
         >>> assert result == '[[11], [], [4], [1], [2, 3], [5, 6], [7], [8], [10], [12], [13]]'
@@ -1518,9 +1516,9 @@ def get_name_gps_tracks(ibs, nid_list=None, aid_list=None):
 
     isvalids_list = [[gps[0] != -1.0 or gps[1] != -1.0 for gps in gpss]
                      for gpss in gpss_list]
-    gps_track_list = [ut.compress(gpss, isvalids) for gpss, isvalids in
+    gps_track_list = [list(ub.compress(gpss, isvalids)) for gpss, isvalids in
                       zip(gpss_list, isvalids_list)]
-    aid_track_list  = [ut.compress(aids, isvalids) for aids, isvalids in
+    aid_track_list  = [list(ub.compress(aids, isvalids)) for aids, isvalids in
                        zip(aids_list, isvalids_list)]
     return nid_list, gps_track_list, aid_track_list
 

@@ -335,9 +335,10 @@ class NeighborIndex(object):
         if ut.DEBUG2:
             print('REMOVING POINTS')
         # TODO: ensure no duplicates
-        ax2_remove_flag = np.in1d(nnindexer.ax2_aid, remove_daid_list)
+        from ibeis.util import util_compat
+        ax2_remove_flag = util_compat.in1d_port(nnindexer.ax2_aid, remove_daid_list)
         remove_ax_list = np.nonzero(ax2_remove_flag)[0]
-        idx2_remove_flag = np.in1d(nnindexer.idx2_ax, remove_ax_list)
+        idx2_remove_flag = util_compat.in1d_port(nnindexer.idx2_ax, remove_ax_list)
         remove_idx_list = np.nonzero(idx2_remove_flag)[0]
         if verbose:
             print('[nnindex] Found %d / %d annots that need removing' %
@@ -931,10 +932,6 @@ class NeighborIndex(object):
         qfx2_aid = indexer.get_nn_aids(qfx2_nnidx)
         qfx2_nid = qreq_.get_qreq_annot_nids(qfx2_aid)
         return qfx2_nid
-
-
-def in1d_shape(arr1, arr2):
-    return np.in1d(arr1, arr2).reshape(arr1.shape)
 
 
 class NeighborIndex2(NeighborIndex, ut.NiceRepr):

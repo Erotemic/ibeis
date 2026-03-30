@@ -10,6 +10,7 @@ python -c "import ibeis"
 """
 from __future__ import absolute_import, division, print_function
 import utool as ut
+import ubelt as ub
 import six
 import sys
 import dtool_ibeis
@@ -41,7 +42,8 @@ except Exception:
     HAS_FLASK = False
     msg = ('Missing flask and/or Flask-session.\n'
            'pip install Flask')
-    warnings.warn(msg)
+    if 0:
+        warnings.warn(msg)
     if ut.STRICT:
         raise
 
@@ -51,7 +53,8 @@ try:
     HAS_FLASK_CORS = True
 except Exception:
     HAS_FLASK_CORS = False
-    warnings.warn('Missing flask.ext.cors')
+    if 0:
+        warnings.warn('Missing flask.ext.cors')
     if ut.SUPER_STRICT:
         raise
 
@@ -65,7 +68,7 @@ try:
     HAS_FLASK_CAS = False
 except Exception:
     HAS_FLASK_CAS = False
-    login_required_cas = ut.identity
+    login_required_cas = ub.identity
     if 0:
         msg = ('Missing flask.ext.cas.\n'
                'To install try pip install git+https://github.com/cameronbwhite/Flask-CAS.git')
@@ -82,7 +85,7 @@ UTOOL_AUTOGEN_SPHINX_RUNNING = not (
     os.environ.get('UTOOL_AUTOGEN_SPHINX_RUNNING', 'OFF') == 'OFF')
 
 GLOBAL_APP_ENABLED = (not UTOOL_AUTOGEN_SPHINX_RUNNING and
-                      not ut.get_argflag('--no-flask') and HAS_FLASK)
+                      not ub.argflag('--no-flask') and HAS_FLASK)
 GLOBAL_APP_NAME = 'IBEIS'
 GLOBAL_APP_SECRET = os.urandom(64)
 
@@ -156,7 +159,7 @@ except AttributeError:
         raise
 
 
-class WebException(ut.NiceRepr, Exception):
+class WebException(ub.NiceRepr, Exception):
     def __init__(self, message, rawreturn=None, code=400):
         self.code = code
         self.message = message
@@ -600,7 +603,7 @@ def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=True):
             if rule_ in API_SEEN_SET:
                 msg = 'An API rule has been duplicated'
                 warnings.warn(msg + '. Ignoring duplicate (may break web)')
-                return ut.identity
+                return ub.identity
                 # raise AssertionError(msg)
             API_SEEN_SET.add(rule_)
             try:
@@ -828,7 +831,7 @@ def get_ibeis_flask_route(__name__):
                 login_required = login_required_cas if HAS_FLASK_CAS else login_required_session
 
                 if not __route_authenticate__:
-                    login_required = ut.identity
+                    login_required = ub.identity
 
                 @app.route(rule, **options)
                 # @crossdomain(origin='*')

@@ -205,7 +205,7 @@ def request_IBEISController(
         if force_serial:
             assert ibs.force_serial, 'set use_cache=False in ibeis.opendb'
     else:
-        # Convert hold hotspotter dirs if necessary
+        # Convert old hotspotter dirs if necessary
         if check_hsdb and ingest_hsdb.check_unconverted_hsdb(dbdir):
             ibs = ingest_hsdb.convert_hsdb_to_ibeis(dbdir, ensure=ensure,
                                                     wbaddr=wbaddr,
@@ -264,13 +264,16 @@ class IBEISController(BASE_CLASS):
         """ Creates a new IBEIS Controller associated with one database """
         #if verbose and ut.VERBOSE:
         print('\n[ibs.__init__] new IBEISController')
-        # HACK
-        try:
-            from ibeis_flukematch import plugin  # NOQA
-        except Exception as ex:
-            msg = ('Cannot import the flukematch plugin. '
-                   'It does not exist or has not been built.')
-            ut.printex(ex, msg, iswarning=True)
+
+        ENABLE_FLUKEMATCH = False
+        if ENABLE_FLUKEMATCH:
+            # HACK
+            try:
+                from ibeis_flukematch import plugin  # NOQA
+            except Exception as ex:
+                msg = ('Cannot import the flukematch plugin. '
+                       'It does not exist or has not been built.')
+                ut.printex(ex, msg, iswarning=True)
         ibs.dbname = None
         # an dict to hack in temporary state
         ibs.const = const

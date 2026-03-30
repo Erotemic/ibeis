@@ -21,13 +21,25 @@ def dependencies_for_myprogram():
     from guitool_ibeis.__PYQT__ import QtCore, QtGui  # Pyinstaller hacks  # NOQA
     # from PyQt4 import QtCore, QtGui  # NOQA
     #from PyQt4 import QtCore, QtGui  # NOQA
-    from scipy.sparse.csgraph import _validation  # NOQA
-    from scipy.special import _ufuncs_cxx  # NOQA
-    from mpl_toolkits.axes_grid1 import make_axes_locatable  # NOQA
+    try:
+        from scipy.sparse.csgraph import _validation  # NOQA
+    except ImportError:
+        ...
+    try:
+        from scipy.special import _ufuncs_cxx  # NOQA
+    except ImportError:
+        ...
+    try:
+        from mpl_toolkits.axes_grid1 import make_axes_locatable  # NOQA
+    except ImportError:
+        ...
     #import lru  # NOQA
     # Workaround for mpl_toolkits
-    import importlib
-    importlib.import_module('mpl_toolkits').__path__
+    try:
+        import importlib
+        importlib.import_module('mpl_toolkits').__path__
+    except ImportError:
+        ...
 
 
 def run_ibeis():
