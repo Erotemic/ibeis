@@ -336,6 +336,8 @@ SIMPLIFY_INTERFACE = (ut.get_computer_name() == 'ibeis.cs.uic.edu') or ut.get_ar
 # Pass --legacy-web to temporarily re-enable the old behavior.
 ENABLE_LEGACY_WEB = ut.get_argflag('--legacy-web')
 
+ENABLE_LEGACY_ZEBRA = ut.get_argflag('--legacy-zebra')
+
 
 # For candidacy document
 DBNAME_ALIAS = {

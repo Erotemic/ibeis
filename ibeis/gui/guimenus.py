@@ -68,7 +68,8 @@ def setup_menus(mainwin, back=None):
         setup_web_menu(mainwin, back)
     setup_help_menu(mainwin, back)
     setup_developer_menu(mainwin, back)
-    setup_zebra_menu(mainwin, back)
+    if const.ENABLE_LEGACY_ZEBRA:
+        setup_zebra_menu(mainwin, back)
 
 
 def setup_file_menu(mainwin, back):
