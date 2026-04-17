@@ -430,6 +430,20 @@ def filter_annotmatch_by_tags(ibs, annotmatch_rowids=None, **kwargs):
 # TODO: ut.filterflags_general_tags
 
 
+TAG_FILTERFLAG_KEYS = [
+    'has_any',
+    'has_all',
+    'has_none',
+    'min_num',
+    'max_num',
+    'any_startswith',
+    'any_endswith',
+    'any_match',
+    'none_match',
+    'logic',
+]
+
+
 def filterflags_general_tags(tags_list,
                              has_any=None,
                              has_all=None,

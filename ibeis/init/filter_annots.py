@@ -180,7 +180,7 @@ def get_annot_tag_filterflags(ibs, aid_list, filter_kw,
     from ibeis import tag_funcs
 
     # Build Filters
-    filter_keys = ut.get_func_kwargs(tag_funcs.filterflags_general_tags)
+    filter_keys = tag_funcs.TAG_FILTERFLAG_KEYS
 
     annotmatch_filterkw = {}
     annot_filterkw = {}

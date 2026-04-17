@@ -108,8 +108,7 @@ INDEPENDENT_DEFAULTS = {
 # HACK
 from ibeis import tag_funcs  # NOQA  #
 # Build Filters
-filter_keys = ut.get_func_kwargs(tag_funcs.filterflags_general_tags)
-for key in filter_keys:
+for key in tag_funcs.TAG_FILTERFLAG_KEYS:
     INDEPENDENT_DEFAULTS[key] = None
 
 for pi in INDEPENDENT_DEFAULTS_PARAM_INFO:
