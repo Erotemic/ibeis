@@ -381,7 +381,7 @@ def print_acfg_list(acfg_list, expanded_aids_list=None, ibs=None,
     # get default kwkeys for annot info
     if ibs is not None:
         annotstats_kw = kwargs.copy()
-        kwkeys = ut.parse_func_kwarg_keys(ibs.get_annot_stats_dict)
+        kwkeys = ibs.parse_annot_stats_filter_kws()
         annotstats_kw.update(ut.argparse_dict(
             dict(zip(kwkeys, [None] * len(kwkeys))), only_specified=True))
 

@@ -27,6 +27,10 @@ from ibeis.control import accessor_decors
 from ibeis.control import controller_inject
 from ibeis import annotmatch_funcs  # NOQA
 from ibeis.util.util_grabdata import grab_zipped_url
+from ibeis.other._autogen_stats_schema import (
+    ANNOT_STATS_KW_DEFAULTS,
+    ANNOTCONFIG_STATS_KW_DEFAULTS,
+)
 
 # Inject utool functions
 (print, rrr, profile) = ut.inject2(__name__, '[ibsfuncs]')
@@ -4572,8 +4576,7 @@ def group_prop_edges(prop2_nid2_aids, prop_basis, size=2, wrap=True):
 
 @register_ibs_method
 def parse_annot_stats_filter_kws(ibs):
-    kwkeys = ut.parse_func_kwarg_keys(ibs.get_annot_stats_dict)
-    return kwkeys
+    return list(ANNOT_STATS_KW_DEFAULTS.keys())
 
 
 # Indepdentent query / database stats
@@ -4630,7 +4633,7 @@ def get_annot_stats_dict(ibs, aids, prefix='', forceall=False, old=True,
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> aids = ibeis.testdata_aids(ibs=ibs)
         >>> prefix = ''
-        >>> kwkeys = ut.parse_func_kwarg_keys(get_annot_stats_dict)
+        >>> kwkeys = ibs.parse_annot_stats_filter_kws()
         >>> #default = True if ut.get_argflag('--all') else None
         >>> default = None if ut.get_argflag('--notall') else True
         >>> kwargs = ut.argparse_dict(dict(zip(kwkeys, [default] * len(kwkeys))))
@@ -4922,13 +4925,7 @@ def viewpoint_diff(ori1, ori2):
 
 @register_ibs_method
 def parse_annot_config_stats_filter_kws(ibs):
-    #kwkeys = ibs.parse_annot_stats_filter_kws() + ['combined', 'combo_gt_info', 'combo_enc_info', 'combo_dists']
-    kwkeys1 = ibs.parse_annot_stats_filter_kws()
-    kwkeys2 = list(ut.get_func_kwargs(ibs.get_annotconfig_stats).keys())
-    if 'verbose' in kwkeys2:
-        kwkeys2.remove('verbose')
-    kwkeys = ut.unique(kwkeys1 + kwkeys2)
-    return kwkeys
+    return list(ANNOTCONFIG_STATS_KW_DEFAULTS.keys())
 
 
 @register_ibs_method
