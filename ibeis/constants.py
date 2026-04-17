@@ -332,6 +332,11 @@ class ZIPPED_URLS(object):
 SIMPLIFY_INTERFACE = (ut.get_computer_name() == 'ibeis.cs.uic.edu') or ut.get_argflag('--simplify')
 
 
+# Legacy browser / Wildbook integration is disabled by default.
+# Pass --legacy-web to temporarily re-enable the old behavior.
+ENABLE_LEGACY_WEB = ut.get_argflag('--legacy-web')
+
+
 # For candidacy document
 DBNAME_ALIAS = {
     #'NNP_MasterGIRM_core': 'NNP_GIRM'
