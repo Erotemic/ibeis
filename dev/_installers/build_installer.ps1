@@ -22,7 +22,7 @@ Important:
 
 Packaging note:
   - If the venv is new (or has never had project deps installed), we run:
-      uv pip install -e .[headless]
+      <venv-python> -m pip install -e .[headless]
     so the editable project + runtime deps needed for packaging are present.
 
 .PARAMETER Clean
@@ -129,7 +129,7 @@ NOTES
 - If you specify no targets (-PyInstaller/-Checks/-Inno), the default is PyInstaller + Inno.
 - Checks/Inno require an existing dist output (dist\IBEIS-dist). Run -PyInstaller first.
 - This script always uses uv. If uv is missing it will install it via python -m pip install -U uv.
-- If project deps are not installed into the venv yet, it will run: uv pip install -e .[headless]
+- If project deps are not installed into the venv yet, it will run: <venv-python> -m pip install -e .[headless]
 - Diagnostics and logs go in: dist\diagnostics\
 ================================================================================
 '@
@@ -278,8 +278,8 @@ function Ensure-ProjectDepsForPackaging($Ctx) {
     Write-Section "Install project deps into venv (editable) .[headless]"
     Push-Location $Ctx.RepoRoot
     try {
-        # IMPORTANT: run from repo root so uv pip targets .venv there.
-        & $Ctx.Boot.Exe @($Ctx.Boot.Args) -m uv pip install -e ".[headless]" | Out-Host
+        & $Ctx.VenvPython -m pip install -U pip setuptools wheel | Out-Host
+        & $Ctx.VenvPython -m pip install -e ".[headless]" | Out-Host
         New-Item -ItemType File -Force $marker | Out-Null
     } finally {
         Pop-Location
@@ -287,10 +287,10 @@ function Ensure-ProjectDepsForPackaging($Ctx) {
 }
 
 function Install-BuildDeps($Ctx) {
-    Write-Section "Install build deps into venv (uv pip)"
+    Write-Section "Install build deps into venv"
     Push-Location $Ctx.RepoRoot
     try {
-        & $Ctx.Boot.Exe @($Ctx.Boot.Args) -m uv pip install -U setuptools wheel PyInstaller pywin32-ctypes pefile | Out-Host
+        & $Ctx.VenvPython -m pip install -U pip setuptools wheel PyInstaller pywin32-ctypes pefile | Out-Host
     } finally {
         Pop-Location
     }
