@@ -89,6 +89,9 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
+if (Get-Variable PSNativeCommandUseErrorActionPreference -ErrorAction SilentlyContinue) {
+    $PSNativeCommandUseErrorActionPreference = $true
+}
 
 $UsageText = @'
 ================================================================================
@@ -200,11 +203,11 @@ function Ensure-Uv([hashtable]$Boot) {
         & $Boot.Exe @($Boot.Args) -m pip install -U --user uv | Out-Host
     }
 
-    # best-effort sanity check
+    Write-Section "Verify uv"
     try {
-        & $Boot.Exe @($Boot.Args) -m uv --version | Out-Null
+        & $Boot.Exe @($Boot.Args) -m uv --version | Out-Host
     } catch {
-        Write-Warning "uv module invocation still failing; later uv operations may fail."
+        throw "uv module invocation still failing after bootstrap attempt: $($_.Exception.Message)"
     }
 }
 
