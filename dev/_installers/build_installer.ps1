@@ -387,11 +387,26 @@ function Ensure-InnoSetup {
         Write-Warning "winget not found; skipping auto-install attempt."
     }
 
-    $iscc = Join-Path $env:LOCALAPPDATA "Programs\Inno Setup 6\ISCC.exe"
-    if (-not (Test-Path $iscc)) {
-        throw "Could not find ISCC.exe at expected path: $iscc"
+    $pathHit = Get-Command ISCC.exe -ErrorAction SilentlyContinue
+    if ($pathHit -and $pathHit.Source -and (Test-Path $pathHit.Source)) {
+        return $pathHit.Source
     }
-    return $iscc
+
+    $candidatePaths = @(
+        (Join-Path $env:LOCALAPPDATA "Programs\Inno Setup 6\ISCC.exe"),
+        (Join-Path $env:ProgramFiles "Inno Setup 6\ISCC.exe"),
+        (Join-Path ${env:ProgramFiles(x86)} "Inno Setup 6\ISCC.exe"),
+        "C:\Program Files\Inno Setup 6\ISCC.exe",
+        "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
+    ) | Where-Object { $_ -and $_.Trim() -ne "" }
+
+    foreach ($candidate in $candidatePaths) {
+        if (Test-Path $candidate) {
+            return $candidate
+        }
+    }
+
+    throw "Could not find ISCC.exe in PATH or common install locations: $($candidatePaths -join '; ')"
 }
 
 function Invoke-InnoBuild([string]$RepoRoot, [string]$InstallersDir, [string]$AppDir) {
@@ -399,6 +414,7 @@ function Invoke-InnoBuild([string]$RepoRoot, [string]$InstallersDir, [string]$Ap
     Assert-DistPresent -AppDir $AppDir
 
     $iscc = Ensure-InnoSetup
+    Write-Host "Using ISCC.exe at: $iscc"
 
     Push-Location $RepoRoot
     try {
