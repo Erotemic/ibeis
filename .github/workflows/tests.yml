@@ -77,6 +77,33 @@ jobs:
       with:
         name: wheels-${{ matrix.os }}-${{ matrix.arch }}
         path: ./wheelhouse/ibeis*.whl
+  build_windows_installer:
+    name: Build Windows installer
+    runs-on: windows-latest
+    steps:
+    - name: Checkout source
+      uses: actions/checkout@v4.2.2
+      with:
+        submodules: recursive
+    - name: Setup Python
+      uses: actions/setup-python@v5.6.0
+      with:
+        python-version: '3.13'
+    - name: Build installer
+      shell: pwsh
+      run: .\\dev\\_installers\\build_installer.ps1 -Clean -Checks -SmokeTest -Inno
+    - name: Show installer outputs
+      shell: pwsh
+      run: |-
+        Get-ChildItem -Recurse dist | Format-Table FullName, Length, LastWriteTime
+    - uses: actions/upload-artifact@v4.4.0
+      name: Upload Windows installer artifact
+      with:
+        name: windows-installer-${{ github.run_id }}
+        if-no-files-found: error
+        path: |-
+          dist\\installer\\*
+          dist\\diagnostics\\*
   test_purepy_wheels:
     name: ${{ matrix.python-version }} on ${{ matrix.os }}, arch=${{ matrix.arch }} with ${{ matrix.install-extras }}
     if: "! startsWith(github.event.ref, 'refs/heads/release')"
