@@ -91,7 +91,7 @@ jobs:
         python-version: '3.13'
     - name: Build installer
       shell: pwsh
-      run: .\\dev\\_installers\\build_installer.ps1 -Clean -Checks -SmokeTest -Inno
+      run: .\\dev\\_installers\\build_installer.ps1 -Clean -PyInstaller -Checks -SmokeTest -Inno
     - name: Show installer outputs
       shell: pwsh
       run: |-
