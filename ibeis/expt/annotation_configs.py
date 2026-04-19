@@ -108,8 +108,7 @@ INDEPENDENT_DEFAULTS = {
 # HACK
 from ibeis import tag_funcs  # NOQA  #
 # Build Filters
-filter_keys = ut.get_func_kwargs(tag_funcs.filterflags_general_tags)
-for key in filter_keys:
+for key in tag_funcs.TAG_FILTERFLAG_KEYS:
     INDEPENDENT_DEFAULTS[key] = None
 
 for pi in INDEPENDENT_DEFAULTS_PARAM_INFO:
@@ -381,7 +380,7 @@ def print_acfg_list(acfg_list, expanded_aids_list=None, ibs=None,
     # get default kwkeys for annot info
     if ibs is not None:
         annotstats_kw = kwargs.copy()
-        kwkeys = ut.parse_func_kwarg_keys(ibs.get_annot_stats_dict)
+        kwkeys = ibs.parse_annot_stats_filter_kws()
         annotstats_kw.update(ut.argparse_dict(
             dict(zip(kwkeys, [None] * len(kwkeys))), only_specified=True))
 

@@ -1,0 +1,27 @@
+[submodule "tpl/utool"]
+	path = tpl/utool
+	url = https://github.com/Erotemic/utool.git
+[submodule "tpl/vtool_ibeis"]
+	path = tpl/vtool_ibeis
+	url = https://github.com/Erotemic/vtool_ibeis.git
+[submodule "tpl/dtool_ibeis"]
+	path = tpl/dtool_ibeis
+	url = https://github.com/Erotemic/dtool_ibeis.git
+[submodule "tpl/plottool_ibeis"]
+	path = tpl/plottool_ibeis
+	url = https://github.com/Erotemic/plottool_ibeis.git
+[submodule "tpl/guitool_ibeis"]
+	path = tpl/guitool_ibeis
+	url = https://github.com/Erotemic/guitool_ibeis.git
+[submodule "tpl/pyhesaff"]
+	path = tpl/pyhesaff
+	url = https://github.com/Erotemic/pyhesaff.git
+[submodule "tpl/pyflann_ibeis"]
+	path = tpl/pyflann_ibeis
+	url = https://github.com/Erotemic/pyflann_ibeis.git
+[submodule "tpl/futures_actors"]
+	path = tpl/futures_actors
+	url = https://github.com/Erotemic/futures_actors.git
+[submodule "tpl/vtool_ibeis_ext"]
+	path = tpl/vtool_ibeis_ext
+	url = https://github.com/Erotemic/vtool_ibeis_ext.git

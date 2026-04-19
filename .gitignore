@@ -49,3 +49,7 @@ nosetests.xml
 
 #*.ipynb
 .ipynb_checkpoints
+
+testdb1/
+ibeis_default_workdir/
+git-of-theseus/

@@ -64,10 +64,12 @@ def setup_menus(mainwin, back=None):
     setup_option_menu(mainwin, back)
     setup_refresh_menu(mainwin, back)
     #setup_wildbook_menu(mainwin, back)
-    setup_web_menu(mainwin, back)
+    if const.ENABLE_LEGACY_WEB:
+        setup_web_menu(mainwin, back)
     setup_help_menu(mainwin, back)
     setup_developer_menu(mainwin, back)
-    setup_zebra_menu(mainwin, back)
+    if const.ENABLE_LEGACY_ZEBRA:
+        setup_zebra_menu(mainwin, back)
 
 
 def setup_file_menu(mainwin, back):
@@ -241,15 +243,16 @@ def setup_actions_menu(mainwin, back):
                 ''')
         )
 
-    menu.addSeparator()  # ---------
-    menu.newAction(
-        name='actionShipProcessedOccurrences',
-        text='Ship Processed Occurrences',
-        tooltip='''This action will ship to WildBook any occurrences that have
-                    been marked as processed.  This can also be used to send
-                    processed imagesets that failed to ship correctly.''',
-        #shortcut='Ctrl+5',
-        triggered=back.send_unshipped_processed_imagesets)
+    if const.ENABLE_LEGACY_WEB:
+        menu.addSeparator()  # ---------
+        menu.newAction(
+            name='actionShipProcessedOccurrences',
+            text='Ship Processed Occurrences',
+            tooltip='''This action will ship to WildBook any occurrences that have
+                        been marked as processed.  This can also be used to send
+                        processed imagesets that failed to ship correctly.''',
+            #shortcut='Ctrl+5',
+            triggered=back.send_unshipped_processed_imagesets)
     menu.addSeparator()  # ---------
     menu.newAction(
         text='Override All Annotation Species',

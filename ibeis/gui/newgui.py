@@ -482,12 +482,6 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             fontkw=primary_fontkw
         )
 
-        ibswgt.reviewed_button = _NEWBUT(
-            '6) Complete',
-            ibswgt.back.commit_to_wb_step,
-            bgcolor=color_funcs.adjust_hsv_of_rgb255((0, 232, 211), 0., -.9, 0.),
-            fontkw=primary_fontkw,
-            enabled=True)
 
         ibswgt.control_widget_lists = [
             [
@@ -497,7 +491,6 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 ibswgt.detect_button,
                 ibswgt.batch_intra_occurrence_query_button,
                 ibswgt.batch_vsexemplar_query_button,
-                ibswgt.reviewed_button,
             ],
             [
                 _NEWBUT(
@@ -1254,11 +1247,6 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
                 context_options += [
                     ('----', lambda: None),
-                    ('View annotation in Web',
-                        #lambda: ibswgt.back.select_aid(aid, imgsetid, show=True)),
-                        lambda: ibswgt.back.show_annotation(aid, web=True)),
-                    ('View image in Web',
-                        lambda: ibswgt.back.select_gid_from_aid(aid, imgsetid, show=True, web=True)),
                     ('Set annotation species',
                         lambda: ibswgt.back.override_all_annotation_species(aid_list)),
                     ('----', lambda: None),
@@ -1275,8 +1263,6 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                     with_interact_image=False)
             else:
                 context_options += [
-                    ('View annotations in Web',
-                        lambda: ibswgt.back.show_aid_list_in_web(aid_list)),
                     ('Set annotation species',
                         lambda: ibswgt.back.override_all_annotation_species(aid_list)),
                     ('Unset annotations\' names', lambda: ibswgt.back.unset_names(aid_list)),
@@ -1316,7 +1302,6 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                     ibswgt.update_tables([gh.IMAGESET_TABLE], clear_view_selection=False)
 
                 context_options += [
-                    ('View name(s) in Web', lambda: ibswgt.back.show_nid_list_in_web(nid_list)),
                     ('----', lambda: None),
                     ('Check for splits', lambda: run_splits(ibs, nid_list)),
                     ('Export names', lambda: export_nids(ibs, nid_list)),
@@ -1345,9 +1330,6 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 fpaths = images.paths
                 ut.view_file_in_directory(fpaths)
 
-            def view_images_in_web(gid_list):
-                ibswgt.back.show_images_in_web(gid_list)
-
             fmt = {
                 'images': ut.pluralize('image', len(gid_list)),
                 'images\'s': ut.pluralize('image\'s', len(gid_list)),
@@ -1358,8 +1340,6 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             context_options = [
                 ('Edit {images\'s} {times}'.format(**fmt),
                  lambda: ibswgt.edit_image_time(gid_list)),
-                ('View {images} in Web'.format(**fmt),
-                 lambda: view_images_in_web(gid_list)),
                 ('View {images} in Directory'.format(**fmt),
                  lambda: view_images_in_directory(gid_list)),
                 ('---', lambda: None),
@@ -1460,10 +1440,6 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             # TODO: remove duplicate code
             if len(imgsetid_list) == 1:
                 context_options += [
-                    ('View imageset in Web', lambda: ibswgt.back.show_imgsetid_list_in_web(imgsetid_list)),
-                    ('Turk imageset\'s detections in Web', lambda: ibswgt.back.show_imgsetid_detection_turk_in_web(imgsetid_list)),
-                    ('Turk imageset\'s annotations in Web', lambda: ibswgt.back.show_imgsetid_annotation_turk_in_web(imgsetid_list)),
-                    ('----', lambda: None),
                     ('Run detection on imageset (can cause duplicates)',
                         lambda: ibswgt.back.run_detection_on_imageset(imgsetid_list)),
                     ('Merge %d imageset into %s' %  (len(imgsetid_list), (imagesettext)),
@@ -1476,8 +1452,6 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                     ('Delete imageset AND images',
                      lambda: ibswgt.back.delete_imageset_and_images(imgsetid_list)),
                     ('----', lambda: None),
-                    ('Mark imageset as Shipped to WildBook',
-                     lambda: ibswgt.back.mark_imageset_as_shipped(imgsetid_list)),
                 ]
             else:
                 context_options += [

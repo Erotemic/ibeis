@@ -104,6 +104,23 @@ AUTOLOAD_PLUGIN_MODNAMES = [
     #'ibeis.web.apis_engine',
 ]
 
+
+if not const.ENABLE_LEGACY_WEB:
+    _LEGACY_WEB_PLUGIN_MODNAMES = {
+        'ibeis.control.manual_wildbook_funcs',
+        'ibeis.web.apis_detect',
+        'ibeis.web.apis_engine',
+        'ibeis.web.apis_query',
+        'ibeis.web.apis_sync',
+        'ibeis.web.apis',
+    }
+    AUTOLOAD_PLUGIN_MODNAMES = [
+        modname for modname in AUTOLOAD_PLUGIN_MODNAMES
+        if not (
+            isinstance(modname, str) and modname in _LEGACY_WEB_PLUGIN_MODNAMES
+        )
+    ]
+
 """
 # Should import
 python -c "import ibeis"
