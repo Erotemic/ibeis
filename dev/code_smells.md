@@ -270,9 +270,10 @@ total; ~54 swallow with `pass`). Worst offenders (user-visible silent failure):
    `setuptools>=34.1.0` as a runtime dep, `cachetools` never imported directly.
 5. **P2 —** `conda_requires.py` (5 packages incl. torch) disagrees with pip
    requirements entirely.
-6. **P2 (partially fixed) —** pin style is inconsistent; ~~`pyzmq` overlapping
-   markers~~ (fixed 2026-07-16); a `networkx` comment says "Python 3.12" on the
-   `>=3.13` line.
+6. **P2 (mostly fixed) —** pin style was inconsistent; the pyzmq overlapping
+   markers, the stale networkx/pynmea2/pyqt5/coverage rung comments, and all dead
+   3.9/3.10 rungs were fixed 2026-07-16 when support was dropped to >=3.11
+   (validated: resolution unchanged on 3.11-3.14).
 7. **P2 —** `pip install ibeis` (runtime only) ≠ `pip install -r requirements.txt`
    (runtime+tests+optional).
 

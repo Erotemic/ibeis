@@ -121,14 +121,6 @@ jobs:
         # Xcookie generates an explicit list of environments that will be used
         # for testing instead of using the more concise matrix notation.
         include:
-        - python-version: '3.9'
-          install-extras: tests-strict,runtime-strict,headless-strict
-          os: ubuntu-latest
-          arch: auto
-        - python-version: '3.10'
-          install-extras: tests-strict,runtime-strict,headless-strict
-          os: ubuntu-latest
-          arch: auto
         - python-version: '3.11'
           install-extras: tests-strict,runtime-strict,headless-strict
           os: ubuntu-latest
@@ -141,16 +133,8 @@ jobs:
           install-extras: tests-strict,runtime-strict,headless-strict
           os: ubuntu-latest
           arch: auto
-        - python-version: '3.9'
+        - python-version: '3.11'
           install-extras: tests-strict,runtime-strict,optional-strict,headless-strict
-          os: ubuntu-latest
-          arch: auto
-        - python-version: '3.9'
-          install-extras: tests,optional,headless
-          os: ubuntu-latest
-          arch: auto
-        - python-version: '3.10'
-          install-extras: tests,optional,headless
           os: ubuntu-latest
           arch: auto
         - python-version: '3.11'
