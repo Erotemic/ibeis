@@ -22,7 +22,7 @@ Important:
 
 Packaging note:
   - If the venv is new (or has never had project deps installed), we run:
-      uv pip install -e .[headless]
+      <venv-python> -m pip install -e .[headless]
     so the editable project + runtime deps needed for packaging are present.
 
 .PARAMETER Clean
@@ -129,7 +129,7 @@ NOTES
 - If you specify no targets (-PyInstaller/-Checks/-Inno), the default is PyInstaller + Inno.
 - Checks/Inno require an existing dist output (dist\IBEIS-dist). Run -PyInstaller first.
 - This script always uses uv. If uv is missing it will install it via python -m pip install -U uv.
-- If project deps are not installed into the venv yet, it will run: uv pip install -e .[headless]
+- If project deps are not installed into the venv yet, it will run: <venv-python> -m pip install -e .[headless]
 - Diagnostics and logs go in: dist\diagnostics\
 ================================================================================
 '@
@@ -278,8 +278,8 @@ function Ensure-ProjectDepsForPackaging($Ctx) {
     Write-Section "Install project deps into venv (editable) .[headless]"
     Push-Location $Ctx.RepoRoot
     try {
-        # IMPORTANT: run from repo root so uv pip targets .venv there.
-        & $Ctx.Boot.Exe @($Ctx.Boot.Args) -m uv pip install -e ".[headless]" | Out-Host
+        & $Ctx.VenvPython -m pip install -U pip setuptools wheel | Out-Host
+        & $Ctx.VenvPython -m pip install -e ".[headless]" | Out-Host
         New-Item -ItemType File -Force $marker | Out-Null
     } finally {
         Pop-Location
@@ -287,10 +287,10 @@ function Ensure-ProjectDepsForPackaging($Ctx) {
 }
 
 function Install-BuildDeps($Ctx) {
-    Write-Section "Install build deps into venv (uv pip)"
+    Write-Section "Install build deps into venv"
     Push-Location $Ctx.RepoRoot
     try {
-        & $Ctx.Boot.Exe @($Ctx.Boot.Args) -m uv pip install -U setuptools wheel PyInstaller pywin32-ctypes pefile | Out-Host
+        & $Ctx.VenvPython -m pip install -U pip setuptools wheel PyInstaller pywin32-ctypes pefile | Out-Host
     } finally {
         Pop-Location
     }
@@ -388,16 +388,24 @@ function Invoke-Checks([string]$AppDir, [string]$DiagDir, [switch]$DoSmokeTest) 
 
 function Find-Iscc {
     # Machine-scope installs (winget default, and GitHub Actions runner images)
-    $candidates = @(
+    $candidatePaths = @(
         (Join-Path ${env:ProgramFiles(x86)} "Inno Setup 6\ISCC.exe"),
         (Join-Path $env:ProgramFiles "Inno Setup 6\ISCC.exe"),
-        (Join-Path $env:LOCALAPPDATA "Programs\Inno Setup 6\ISCC.exe")
-    )
-    foreach ($cand in $candidates) {
-        if ($cand -and (Test-Path $cand)) { return $cand }
+        (Join-Path $env:LOCALAPPDATA "Programs\Inno Setup 6\ISCC.exe"),
+        "C:\Program Files\Inno Setup 6\ISCC.exe",
+        "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
+    ) | Where-Object { $_ -and $_.Trim() -ne "" }
+
+    foreach ($candidate in $candidatePaths) {
+        if (Test-Path $candidate) {
+            return $candidate
+        }
     }
-    $cmd = Get-Command "ISCC.exe" -ErrorAction SilentlyContinue
-    if ($cmd) { return $cmd.Source }
+
+    $pathHit = Get-Command ISCC.exe -ErrorAction SilentlyContinue
+    if ($pathHit -and $pathHit.Source -and (Test-Path $pathHit.Source)) {
+        return $pathHit.Source
+    }
     return $null
 }
 
@@ -422,7 +430,7 @@ function Ensure-InnoSetup {
 
     $iscc = Find-Iscc
     if (-not $iscc) {
-        throw "Could not find ISCC.exe (checked Program Files, Program Files (x86), LOCALAPPDATA\Programs, and PATH)."
+        throw "Could not find ISCC.exe in PATH or common install locations (Program Files, Program Files (x86), LOCALAPPDATA\Programs)."
     }
     return $iscc
 }
@@ -432,6 +440,7 @@ function Invoke-InnoBuild([string]$RepoRoot, [string]$InstallersDir, [string]$Ap
     Assert-DistPresent -AppDir $AppDir
 
     $iscc = Ensure-InnoSetup
+    Write-Host "Using ISCC.exe at: $iscc"
 
     Push-Location $RepoRoot
     try {
