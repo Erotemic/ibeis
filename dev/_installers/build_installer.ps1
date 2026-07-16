@@ -337,6 +337,18 @@ function Invoke-Checks([string]$AppDir, [string]$DiagDir, [switch]$DoSmokeTest) 
         Write-Warning "No _internal dir found at $internal"
     }
 
+    Write-Section "Frozen selftest (source introspection)"
+    $SelftestLog = Join-Path $DiagDir "frozen_selftest.txt"
+    $env:IBEIS_FROZEN_SELFTEST = "1"
+    try {
+        & (Join-Path $AppDir "IBEIS-console.exe") 2>&1 | Tee-Object -FilePath $SelftestLog
+        if ($LASTEXITCODE -ne 0) {
+            throw "Frozen selftest FAILED (exit $LASTEXITCODE). See $SelftestLog"
+        }
+    } finally {
+        Remove-Item Env:IBEIS_FROZEN_SELFTEST -ErrorAction SilentlyContinue
+    }
+
     if ($DoSmokeTest) {
         Write-Section "Smoke test (IBEIS-console.exe)"
         $SmokeOut = Join-Path $DiagDir "smoke_test_stdout.txt"
@@ -374,8 +386,29 @@ function Invoke-Checks([string]$AppDir, [string]$DiagDir, [switch]$DoSmokeTest) 
     }
 }
 
+function Find-Iscc {
+    # Machine-scope installs (winget default, and GitHub Actions runner images)
+    $candidates = @(
+        (Join-Path ${env:ProgramFiles(x86)} "Inno Setup 6\ISCC.exe"),
+        (Join-Path $env:ProgramFiles "Inno Setup 6\ISCC.exe"),
+        (Join-Path $env:LOCALAPPDATA "Programs\Inno Setup 6\ISCC.exe")
+    )
+    foreach ($cand in $candidates) {
+        if ($cand -and (Test-Path $cand)) { return $cand }
+    }
+    $cmd = Get-Command "ISCC.exe" -ErrorAction SilentlyContinue
+    if ($cmd) { return $cmd.Source }
+    return $null
+}
+
 function Ensure-InnoSetup {
     Write-Section "Ensure Inno Setup"
+
+    $iscc = Find-Iscc
+    if ($iscc) {
+        Write-Host "Found ISCC.exe: $iscc"
+        return $iscc
+    }
 
     if (Test-Command "winget") {
         try {
@@ -387,9 +420,9 @@ function Ensure-InnoSetup {
         Write-Warning "winget not found; skipping auto-install attempt."
     }
 
-    $iscc = Join-Path $env:LOCALAPPDATA "Programs\Inno Setup 6\ISCC.exe"
-    if (-not (Test-Path $iscc)) {
-        throw "Could not find ISCC.exe at expected path: $iscc"
+    $iscc = Find-Iscc
+    if (-not $iscc) {
+        throw "Could not find ISCC.exe (checked Program Files, Program Files (x86), LOCALAPPDATA\Programs, and PATH)."
     }
     return $iscc
 }

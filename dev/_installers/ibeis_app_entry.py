@@ -8,8 +8,38 @@ import os
 import sys
 
 
+def _frozen_selftest() -> int:
+    """Verify runtime source-introspection works in the frozen app.
+
+    IBEIS/utool parse function source at runtime, so the bundle must ship
+    .py files (see SOURCE_INTROSPECTED_PKGS in ibeis_pyi_helper.py). This
+    reproduces the 'Advanced ID interface' crash path without a GUI.
+
+    Run via: IBEIS_FROZEN_SELFTEST=1 IBEIS-console.exe  (exit 0 = pass)
+    """
+    import traceback
+
+    try:
+        import utool as ut
+        from ibeis.other import ibsfuncs
+
+        src = ut.get_func_sourcecode(ibsfuncs.get_annot_stats_dict)
+        assert "get_annot_stats_dict" in src
+        keys = ut.parse_func_kwarg_keys(ibsfuncs.get_annot_stats_dict)
+        assert keys, "expected nonempty kwarg keys"
+    except Exception:
+        traceback.print_exc()
+        print("[selftest] FAILED: source introspection unavailable in frozen app")
+        return 1
+    print(f"[selftest] PASSED: source introspection OK ({len(keys)} kwarg keys)")
+    return 0
+
+
 def main() -> None:
     multiprocessing.freeze_support()
+
+    if os.environ.get("IBEIS_FROZEN_SELFTEST") == "1":
+        sys.exit(_frozen_selftest())
 
     if os.environ.get("IBEIS_BOOT_DEBUG") == "1":
         print("[IBEIS_BOOT_DEBUG] sys.executable =", sys.executable)

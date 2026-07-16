@@ -55,10 +55,18 @@ def _collect_dir_as_datas(src_dir: Path, dest_prefix: str, exts: set[str] | None
     return out
 
 
+def _is_shared_lib(p: Path) -> bool:
+    name = p.name.lower()
+    if name.endswith((".dll", ".pyd", ".dylib")):
+        return True
+    # Also match versioned unix sonames like libfoo.so.1.9
+    return ".so" in (s.lower() for s in p.suffixes)
+
+
 def _collect_dir_as_binaries(src_dir: Path, dest_prefix: str) -> List[BinaryTuple]:
     out: List[BinaryTuple] = []
     for p in _iter_files(src_dir):
-        if p.suffix.lower() in {".dll", ".pyd"}:
+        if _is_shared_lib(p):
             rel = p.relative_to(src_dir)
             destdir = str(Path(dest_prefix) / rel.parent).replace("\\", "/")
             out.append((str(p), destdir))
@@ -70,6 +78,40 @@ def _collect_pkg_binaries(pkgname: str) -> List[BinaryTuple]:
     if pkgdir is None:
         return []
     return _collect_dir_as_binaries(pkgdir, pkgname)
+
+
+# Packages whose function source code is parsed at RUNTIME (utool's
+# get_func_sourcecode / parse_func_kwarg_keys / doctest harvesting, etc).
+# PyInstaller normally ships only bytecode inside the PYZ archive, which
+# makes inspect.getsource raise "OSError: could not get source code"
+# (e.g. the Advanced ID interface crash on Windows). Shipping the real
+# .py files at the module __file__ paths under _internal/ fixes the whole
+# class of failures, because linecache/inspect find them on disk.
+SOURCE_INTROSPECTED_PKGS = [
+    "ibeis",
+    "utool",
+    "vtool_ibeis",
+    "dtool_ibeis",
+    "plottool_ibeis",
+    "guitool_ibeis",
+    "futures_actors",
+    "pyhesaff",
+    "pyflann_ibeis",
+    "vtool_ibeis_ext",
+    "ubelt",
+]
+
+
+def _collect_pkg_sources(pkgname: str) -> List[DataTuple]:
+    """Ship a package's .py files so inspect.getsource works when frozen."""
+    pkgdir = _find_pkg_dir(pkgname)
+    if pkgdir is not None:
+        return _collect_dir_as_datas(pkgdir, pkgname, exts={".py"})
+    # Single-file module fallback (no submodule_search_locations)
+    spec = importlib.util.find_spec(pkgname)
+    if spec is not None and spec.origin and spec.origin.endswith(".py"):
+        return [(spec.origin, ".")]
+    return []
 
 
 def _collect_sibling_dotlibs(pkgname: str) -> List[BinaryTuple]:
@@ -151,6 +193,10 @@ def collect_everything():
 
     # Dynamic imports in ibeis
     hiddenimports += _exclude_test_modules(_all_py_modules_in_package("ibeis"))
+
+    # Runtime source introspection support (see SOURCE_INTROSPECTED_PKGS)
+    for pkg in SOURCE_INTROSPECTED_PKGS:
+        datas += _collect_pkg_sources(pkg)
 
     # Custom binary packages
     for pkg in ["pyhesaff", "pyflann_ibeis", "vtool_ibeis_ext"]:
