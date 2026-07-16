@@ -26,11 +26,12 @@ colorama>=0.3.2
 IPython>=7.16.2
 parse>=1.19.0
 pyasn1>=0.4.8
-pyzmq>=26.0.0 ; python_version < '4.0'  and python_version >= '3.13'    # Python 3.13+
-pyzmq>=26.0.0 ; python_version < '3.13'  and python_version >= '3.12'    # Python 3.13+
-pyzmq>=25.0.0 ; python_version < '3.12'  
+pyzmq>=26.1.0 ; python_version < '4.0'  and python_version >= '3.13'    # Python 3.13+ (first release with cp313 wheels)
+pyzmq>=26.0.0 ; python_version < '3.13'  and python_version >= '3.12'    # Python 3.12
+pyzmq>=25.0.0 ; python_version < '3.12'
 setuptools>=34.1.0
-simplejson>=3.6.5
+simplejson>=3.19.3   ; python_version >= '3.13'    # Python 3.13+ (first release with cp313 wheels)
+simplejson>=3.6.5    ; python_version < '3.13'
 six>=1.16.0
 
 # TODO: this should be deprecated and removed in favor of fasteners

@@ -52,10 +52,10 @@ jobs:
     name: Build Windows installer
     runs-on: windows-latest
     steps:
+    # No submodules: CI builds against PyPI releases; tpl/ submodules are for
+    # local development only.
     - name: Checkout source
       uses: actions/checkout@v6.0.2
-      with:
-        submodules: recursive
     - name: Setup Python
       uses: actions/setup-python@v5.6.0
       with:

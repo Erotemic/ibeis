@@ -252,13 +252,13 @@ total; ~54 swallow with `pass`). Worst offenders (user-visible silent failure):
 
 ## 5. Dependency smells
 
-1. **P1 — Two sources of truth for the ecosystem deps.** `requirements/runtime.txt`
-   pins `utool>=2.2.0` etc. from PyPI while `tpl/` submodules pin specific mid-stream
-   commits (`utool v2.1.6-68`, `plottool_ibeis premerge-master-jan-26-625`). The CI
-   installer job checks out submodules recursively but then installs `.[headless]` —
-   i.e. **from PyPI, the submodules are ignored**. Decide: either the installer builds
-   from submodule sources (`uv pip install -e tpl/utool ...`) or the submodules are
-   documentation. Until then "works on my machine" and CI builds can differ.
+1. **P1 (policy decided 2026-07-16) — Two sources of truth for the ecosystem deps.**
+   Decision: **CI and installers build from PyPI releases; `tpl/` submodules are for
+   local development only** (`run_developer_setup.sh` wires them up editable). The CI
+   installer jobs no longer check out submodules. Consequence: an ecosystem fix made
+   in a submodule reaches CI only via a PyPI release of that package — cut releases
+   promptly (e.g. pyflann_ibeis needs one for the np.row_stack fix). Also keep
+   submodule pins pushed to their remotes so local recursive clones work.
 2. **P1 — `boto` (Python-2-era, v2) is a runtime dep never imported by ibeis** (only
    docstrings). utool lazily imports it in `util_grabdata` for s3:// grabs, so removal
    from ibeis requirements should be coordinated with deciding whether that utool
@@ -270,8 +270,9 @@ total; ~54 swallow with `pass`). Worst offenders (user-visible silent failure):
    `setuptools>=34.1.0` as a runtime dep, `cachetools` never imported directly.
 5. **P2 —** `conda_requires.py` (5 packages incl. torch) disagrees with pip
    requirements entirely.
-6. **P2 —** pin style is inconsistent; `pyzmq` has two overlapping `<3.13` markers;
-   a `networkx` comment says "Python 3.12" on the `>=3.13` line.
+6. **P2 (partially fixed) —** pin style is inconsistent; ~~`pyzmq` overlapping
+   markers~~ (fixed 2026-07-16); a `networkx` comment says "Python 3.12" on the
+   `>=3.13` line.
 7. **P2 —** `pip install ibeis` (runtime only) ≠ `pip install -r requirements.txt`
    (runtime+tests+optional).
 
@@ -328,6 +329,14 @@ total; ~54 swallow with `pass`). Worst offenders (user-visible silent failure):
 ---
 
 ## 8. Test-suite findings (2026-07-16 pytest run)
+
+0. **P1 (fixed 2026-07-16) — strict-minimum pins unbuildable on Python 3.13.** The
+   `*-strict` CI legs pin every dep to its minimum; `pyzmq==26.0.0`,
+   `simplejson==3.6.5`, and `coverage==7.3.0` have no cp313 wheels and their sdists
+   don't build on 3.13 (pyzmq's old scikit-build config is rejected outright).
+   Bumped the >=3.13 minimums to the first cp313-wheeled releases (26.1.0 / 3.19.3 /
+   7.6.1). Pattern to remember when adding a python version to the matrix: audit
+   every minimum for wheels on that version (script: hit PyPI JSON per pin).
 
 1. **P1 — CI only runs doctests, so plain pytest files rot.** CI's test job runs
    `python -m xdoctest <pkg> all`; the plain pytest modules
