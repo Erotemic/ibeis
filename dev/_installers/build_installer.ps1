@@ -435,6 +435,15 @@ function Ensure-InnoSetup {
     return $iscc
 }
 
+function Get-IbeisVersion([string]$RepoRoot) {
+    $initPath = Join-Path $RepoRoot "ibeis\__init__.py"
+    $match = Select-String -Path $initPath -Pattern "^__version__\s*=\s*'([^']+)'" | Select-Object -First 1
+    if (-not $match) {
+        throw "Could not parse __version__ from $initPath"
+    }
+    return $match.Matches[0].Groups[1].Value
+}
+
 function Invoke-InnoBuild([string]$RepoRoot, [string]$InstallersDir, [string]$AppDir) {
     Write-Section "Inno Setup build"
     Assert-DistPresent -AppDir $AppDir
@@ -442,9 +451,12 @@ function Invoke-InnoBuild([string]$RepoRoot, [string]$InstallersDir, [string]$Ap
     $iscc = Ensure-InnoSetup
     Write-Host "Using ISCC.exe at: $iscc"
 
+    $version = Get-IbeisVersion -RepoRoot $RepoRoot
+    Write-Host "AppVersion = $version (from ibeis/__init__.py)"
+
     Push-Location $RepoRoot
     try {
-        & $iscc (Join-Path $InstallersDir "win_installer_script.iss") | Out-Host
+        & $iscc "/DAppVersion=$version" (Join-Path $InstallersDir "win_installer_script.iss") | Out-Host
     } finally {
         Pop-Location
     }

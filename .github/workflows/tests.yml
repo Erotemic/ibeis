@@ -249,5 +249,14 @@ jobs:
         python -m ibeis --resetdbs
         python -m xdoctest $MOD_DPATH --style=google all
         echo "xdoctest command finished"
+    - name: Run non-doctest pytest suites
+      # These plain pytest modules are not covered by the xdoctest run and
+      # previously never ran on CI (they rotted; see dev/code_smells.md 8.1).
+      # Marked non-blocking until observed green across the matrix - promote
+      # by removing continue-on-error.
+      continue-on-error: true
+      shell: bash
+      run: |-
+        python -m pytest -v tests ibeis/algo/graph/tests
 
 

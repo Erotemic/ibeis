@@ -77,7 +77,10 @@ paths from `dirname(abspath(__file__))` with no frozen-app guard, unlike
 relative paths — verify the web UI in a frozen build before calling this fixed, and
 prefer the `controller_inject` pattern everywhere.
 
-### 1.4 P1 — Torch-importing modules are force-hidden-imported but torch is excluded
+### 1.4 ✅ P1 — Torch-importing modules are force-hidden-imported but torch is excluded
+
+Fixed 2026-07-16: `ibeis.algo.verif.torch*` is excluded from hiddenimports
+(`_exclude_torch_modules`). The broader "is torch optional?" story (5.3) is still open.
 
 `ibeis_pyi_helper.py` adds **every** `ibeis` module as a hiddenimport, including
 `ibeis/algo/verif/torch/*` (top-level `import torch`), while the spec `excludes=["torch"]`.
@@ -88,8 +91,9 @@ requirements never do (see 5.3).
 
 ### 1.5 P2 — `exec`/`eval` scaffolding in the production entry path
 
-`ibeis/__main__.py:125-138` (`run_ibeis`) ends in a `<DEBUG CODE>` block: it always does
-`ibs = main_locals['ibs']` (KeyError if no db is opened) and, under `--cmd`,
+`ibeis/__main__.py:125-138` (`run_ibeis`) ends in a `<DEBUG CODE>` block: it always did
+`ibs = main_locals['ibs']` (KeyError if no db is opened — softened to `.get` 2026-07-16)
+and, under `--cmd`,
 `exec(execstr)` on a utool-generated code string. `ibeis/dev.py` has ~6 more
 `eval`/`exec` sites. Dev conveniences living in the shipped entry point.
 
@@ -190,7 +194,10 @@ import-time parsing makes `import ibeis` behavior depend on the host process's c
 line (breaks embedding, pytest, Sphinx — which is why the env-var escape hatch below
 exists).
 
-### 3.2 P1 — The escape hatch env var is typo'd
+### 3.2 ✅ P1 — The escape hatch env var is typo'd
+
+Fixed 2026-07-16: `IBEIS_PARSE_ARGS` is now honored; the legacy typo
+`IBIES_PARSE_ARGS` still works as a fallback.
 
 Same block keys off `os.environ.get('IBIES_PARSE_ARGS', 'ON')` — **IBIES**, not IBEIS.
 Anyone "fixing" the spelling silently re-enables import-time parsing; anyone setting the
@@ -252,8 +259,10 @@ total; ~54 swallow with `pass`). Worst offenders (user-visible silent failure):
    i.e. **from PyPI, the submodules are ignored**. Decide: either the installer builds
    from submodule sources (`uv pip install -e tpl/utool ...`) or the submodules are
    documentation. Until then "works on my machine" and CI builds can differ.
-2. **P1 — `boto` (Python-2-era, v2) is a runtime dep but never imported** (only
-   mentioned in docstrings). Pure bloat in every install and the frozen exe.
+2. **P1 — `boto` (Python-2-era, v2) is a runtime dep never imported by ibeis** (only
+   docstrings). utool lazily imports it in `util_grabdata` for s3:// grabs, so removal
+   from ibeis requirements should be coordinated with deciding whether that utool
+   feature matters (boto2 is dead upstream either way).
 3. **P1 — Imported but missing from requirements:** `torch`/`torchvision`
    (`algo/verif/torch/*`, `algo/detect/lightnet.py`), `tqdm` (`lightnet.py:9`),
    `theano` (`web/apis_query.py:575` — abandoned upstream).
@@ -285,9 +294,9 @@ total; ~54 swallow with `pass`). Worst offenders (user-visible silent failure):
    the path; the helper is now cross-platform enough to try.
 4. **P1 — `release.yml` never builds/attaches the installer** — installer artifacts only
    exist as per-run CI artifacts (30-day expiry), never on releases.
-5. **P2 — Version duplication:** `win_installer_script.iss:4` hardcodes
-   `AppVersion "2.4.1"`, duplicating `ibeis/__init__.py::__version__`. Pass
-   `/DAppVersion=$(python -c ...)` from `build_installer.ps1` instead.
+5. ✅ **P2 — Version duplication:** fixed 2026-07-16 — `build_installer.ps1` parses
+   `__version__` from `ibeis/__init__.py` and passes `/DAppVersion`; the `.iss`
+   define is now an `#ifndef` fallback for direct ISCC runs.
 6. **P2 — Smoke test is weak:** launches the GUI exe for 20 s and only warns on
    failure. The new `IBEIS_FROZEN_SELFTEST` check is a real gate; extend it over time
    (import sweep, opendb on a temp dir, query on testdb1).
@@ -304,8 +313,10 @@ total; ~54 swallow with `pass`). Worst offenders (user-visible silent failure):
   `mydiff.diff`, `out` (a git-diff dump), `README.rst.patch` (a git-log dump),
   `ibies-and-tpl-src.zip` (**66 MB**, typo'd name), `testdb_dst/`, `synthetic_creatures/`,
   stale `build/pyinstaller-ibeis/` artifacts.
-- **P2 — `.gitignore` starts with a stray `'`** and the comment "idk why this exists".
-  `testdb_dst`, `synthetic_creatures`, `*.zip` are not ignored.
+- **P2 (partially fixed) — `.gitignore`**: stray `'` line removed and `testdb_dst/`,
+  `synthetic_creatures/`, `.venv/` added (2026-07-16). The loose junk files at the
+  repo root (66 MB zip, mydiff.diff, out, README.rst.patch, demo dirs) still need a
+  human decision to delete or keep.
 - **P2 — Duplicated demo code:** `ibeis/demo/version1.py` vs `v2.py` (near-identical,
   both untracked), `ibeis/demo/synthetic_creatures/` vs `synthetic_creatures1/`
   (generated outputs inside the package tree — keep generated data out of `ibeis/`).
@@ -324,8 +335,10 @@ total; ~54 swallow with `pass`). Worst offenders (user-visible silent failure):
    production bug (stale `nid_to_errors` after a dirty merge, fixed in
    `mixin_dynamic.py`) and multiple rotted assertions (`num_pccs` typo, removed
    networkx `Graph.selfloop_edges()` method, an `=` where `==` was meant) sat
-   undetected in `test_neg_metagraph.py`. Make CI run `pytest ibeis tests` (the
-   `run_tests.py` entry) instead of / in addition to raw xdoctest.
+   undetected in `test_neg_metagraph.py`. 2026-07-16: a non-blocking
+   `pytest tests ibeis/algo/graph/tests` step was added to the CI test job —
+   promote it to blocking (remove `continue-on-error`) once observed green
+   across the matrix.
 2. **P1 — Query-result caches are unversioned and can poison doctests.** Two
    doctests (`ChipMatch.take_annots:1`, `testdata_cm:0`) failed locally because
    `_ibeis_cache/qres_new` held an *empty* ChipMatch cached by some earlier broken

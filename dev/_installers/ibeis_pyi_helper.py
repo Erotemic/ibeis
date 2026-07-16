@@ -179,6 +179,13 @@ def _exclude_test_modules(mods: List[str]) -> List[str]:
     return [m for m in mods if ".tests" not in m and not m.endswith(".test") and ".testing" not in m]
 
 
+def _exclude_torch_modules(mods: List[str]) -> List[str]:
+    # These modules 'import torch' at the top level, but the spec excludes
+    # torch from the bundle. Forcing them in as hiddenimports ships modules
+    # that crash on import; anything needing them requires torch anyway.
+    return [m for m in mods if not m.startswith("ibeis.algo.verif.torch")]
+
+
 def collect_everything():
     datas: List[DataTuple] = []
     binaries: List[BinaryTuple] = []
@@ -192,7 +199,8 @@ def collect_everything():
     )
 
     # Dynamic imports in ibeis
-    hiddenimports += _exclude_test_modules(_all_py_modules_in_package("ibeis"))
+    hiddenimports += _exclude_torch_modules(
+        _exclude_test_modules(_all_py_modules_in_package("ibeis")))
 
     # Runtime source introspection support (see SOURCE_INTROSPECTED_PKGS)
     for pkg in SOURCE_INTROSPECTED_PKGS:
