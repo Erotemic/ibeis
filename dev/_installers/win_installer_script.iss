@@ -4,7 +4,7 @@
 ; AppVersion is normally passed by build_installer.ps1 (read from
 ; ibeis/__init__.py); this fallback is only for direct ISCC invocations.
 #ifndef AppVersion
-#define AppVersion "2.4.1"
+#define AppVersion "2.5.0"
 #endif
 #define AppPublisher "IBEIS"
 #define AppExeName "IBEIS.exe"

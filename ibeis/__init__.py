@@ -2,7 +2,7 @@
 IBEIS: main package init
 """
 
-__version__ = '2.4.1'
+__version__ = '2.5.0'
 
 try:
     import cv2  # NOQA
