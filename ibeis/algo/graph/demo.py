@@ -589,7 +589,11 @@ def demodata_infr(**kwargs):
         new_ccs.append(g)
         # (list(g.nodes()), new_edges))
 
-    pos_g = nx.union_all(new_ccs)
+    if new_ccs:
+        pos_g = nx.union_all(new_ccs)
+    else:
+        # newer networkx raises on union_all of an empty list
+        pos_g = nx.Graph()
     assert len(new_ccs) == len(list(nx.connected_components(pos_g)))
     assert num_pccs == len(new_ccs)
 

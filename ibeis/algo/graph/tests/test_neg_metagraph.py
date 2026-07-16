@@ -16,7 +16,7 @@ def test_neg_metagraph_simple_add_remove():
     from ibeis.algo.graph.state import (POSTV, NEGTV, INCMP, UNREV, UNKWN)  # NOQA
 
     # Create a graph with 5-sized CCs, with 3-pos-redun, and no negative edges
-    infr = demo.demodata_infr(num_pccs=2, pcc_size=5, pos_redun=3,
+    infr = demo.demodata_infr(num_pccs=4, pcc_size=5, pos_redun=3,
                               ignore_pair=True, infer=True)
     cc_a, cc_b, cc_c, cc_d = infr.positive_components()
     a1, a2, a3, a4, a5 = cc_a
@@ -122,7 +122,8 @@ def test_neg_metagraph_merge():
     # should not have a self-loop weight weight 2
     # (it decreased because we changed a previously neg edge to pos)
     assert nmg.edges[(AB, AB)]['weight'] == 2
-    assert len(list(nmg.selfloop_edges())) == 1
+    import networkx as nx
+    assert len(list(nx.selfloop_edges(nmg))) == 1
 
     # nothing should change between C and D
     assert nmg.edges[(C, D)]['weight'] == 1
@@ -150,7 +151,7 @@ def test_neg_metagraph_merge():
     ABCD = infr.node_label(c1)
     assert nmg.number_of_nodes() == 1
     assert nmg.number_of_edges() == 1
-    nmg.edges[(ABCD, ABCD)]['weight'] = 6
+    assert nmg.edges[(ABCD, ABCD)]['weight'] == 6
     infr.assert_neg_metagraph()
 
 

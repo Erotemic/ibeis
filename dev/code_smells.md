@@ -303,6 +303,36 @@ total; ~54 swallow with `pass`). Worst offenders (user-visible silent failure):
 
 ---
 
+## 8. Test-suite findings (2026-07-16 pytest run)
+
+1. **P1 — CI only runs doctests, so plain pytest files rot.** CI's test job runs
+   `python -m xdoctest <pkg> all`; the plain pytest modules
+   (`ibeis/algo/graph/tests/`, `tests/`) never execute there. Consequence: a real
+   production bug (stale `nid_to_errors` after a dirty merge, fixed in
+   `mixin_dynamic.py`) and multiple rotted assertions (`num_pccs` typo, removed
+   networkx `Graph.selfloop_edges()` method, an `=` where `==` was meant) sat
+   undetected in `test_neg_metagraph.py`. Make CI run `pytest ibeis tests` (the
+   `run_tests.py` entry) instead of / in addition to raw xdoctest.
+2. **P1 — Query-result caches are unversioned and can poison doctests.** Two
+   doctests (`ChipMatch.take_annots:1`, `testdata_cm:0`) failed locally because
+   `_ibeis_cache/qres_new` held an *empty* ChipMatch cached by some earlier broken
+   run; fresh compute was correct. There is no cache-schema/version salt and no
+   sanity check on load — a bad result, once cached, persists forever. Consider
+   salting cache cfgstrs with code version or validating loaded results.
+3. **P2 — `to_string_monkey` (utool `experimental/pandas_highlight.py`) is broken
+   under pandas >= 1.x** (monkey-patches `DataFrameFormatter` internals; pandas 3
+   removed `.to_string`). It degrades gracefully (warns, falls back to plain
+   `str(df)`), so column-max highlighting in verifier reports is silently gone.
+   Fix in utool or drop the highlighting.
+4. **P1 — upstream-version breakage fixed 2026-07-16** (keep patterns in mind for
+   the next dep bump): networkx raises on `union_all([])` (demo.py) and removed
+   `Graph.selfloop_edges()`; sklearn >= 1.9 rejects all-zero `sample_weight`
+   (sklearn_utils.py); numpy removed `np.row_stack` (pyflann_ibeis — fixed in the
+   `tpl/` submodule, but **CI installs pyflann_ibeis from PyPI, so it needs a
+   pyflann_ibeis release to go green**).
+
+---
+
 ## Suggested triage order
 
 1. **Rebuild + reship the Windows installer** from this branch (Nate's build predates
