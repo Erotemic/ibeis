@@ -3782,6 +3782,12 @@ class MainWindowBackend(GUIBACK_BASE):
 
     @slot_()
     def update_source_install(back):
+        if getattr(sys, 'frozen', False):
+            # In a frozen (installed) build sys.executable is the app itself
+            # and there is no source checkout to update.
+            back.user_info(msg='Update from source is not available in an '
+                               'installed build. Please install a new release.')
+            return
         import ibeis
         from os.path import dirname
         repo_path = dirname(ut.truepath(ut.get_modpath(ibeis, prefer_pkg=True)))

@@ -1409,7 +1409,7 @@ def get_imageset_smart_xml_contents(ibs, imageset_rowid_list):
         else:
             imageset_smart_xml_fpath = join(smart_patrol_dir, imageset_smart_xml_fname)
             if exists(imageset_smart_xml_fpath):
-                with open(imageset_smart_xml_fpath, 'r') as imageset_smart_xml:
+                with open(imageset_smart_xml_fpath, 'r', encoding='utf-8') as imageset_smart_xml:
                     content = imageset_smart_xml.read()
                     content_list.append(content)
             else:

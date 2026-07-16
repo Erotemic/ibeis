@@ -11,7 +11,7 @@ TODO: need to split up into sub modules:
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import zip
-from os.path import exists, expanduser, join, abspath
+from os.path import exists, expanduser, join, abspath, basename, splitext
 import numpy as np
 import vtool_ibeis as vt
 import utool as ut
@@ -143,9 +143,8 @@ def export_to_xml(ibs, species_list, species_mapping=None, offset='auto', enforc
         image_uri = ibs.get_image_uris(gid)
         image_path = ibs.get_image_paths(gid)
         if len(aid_list) > -1:
-            fulldir = image_path.split('/')
-            filename = fulldir.pop()
-            extension = filename.split('.')[-1]  # NOQA
+            filename = basename(image_path)
+            extension = splitext(filename)[1].lstrip('.')  # NOQA
             out_name = "%d_%06d" % (current_year, index, )
             out_img = out_name + ".jpg"
 

@@ -1188,10 +1188,10 @@ def set_name_texts(ibs, name_rowid_list, name_text_list, verbose=False,
                 'updates': [],
             }
             json_str = ut.to_json(json_dict, pretty=True)
-            with open(json_log_filepath, 'w') as json_log_file:
+            with open(json_log_filepath, 'w', encoding='utf-8') as json_log_file:
                 json_log_file.write(json_str)
         # Get current log state
-        with open(json_log_filepath, 'r') as json_log_file:
+        with open(json_log_filepath, 'r', encoding='utf-8') as json_log_file:
             json_str = json_log_file.read()
         json_dict = ut.from_json(json_str)
         db_name = ibs.get_db_name()
@@ -1209,7 +1209,7 @@ def set_name_texts(ibs, name_rowid_list, name_text_list, verbose=False,
             })
         # Write new log state
         json_str = ut.to_json(json_dict, pretty=True)
-        with open(json_log_filepath, 'w') as json_log_file:
+        with open(json_log_filepath, 'w', encoding='utf-8') as json_log_file:
             json_log_file.write(json_str)
 
 

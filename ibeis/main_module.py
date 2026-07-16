@@ -181,19 +181,25 @@ def set_newfile_permissions():
         >>> # ENABLE_DOCTEST
         >>> from ibeis.main_module import *  # NOQA
         >>> import os
-        >>> import utool as ut
+        >>> import shutil
+        >>> import tempfile
+        >>> import ubelt as ub
+        >>> dpath = tempfile.mkdtemp()
+        >>> fpath1 = os.path.join(dpath, 'tempfile1.txt')
+        >>> fpath2 = os.path.join(dpath, 'tempfile2.txt')
         >>> # write before umask
-        >>> ut.delete('tempfile1.txt')
-        >>> ut.write_to('tempfile1.txt', 'foo')
-        >>> stat_result1 = os.stat('tempfile1.txt')
+        >>> _ = ub.Path(fpath1).write_text('foo')
+        >>> stat_result1 = os.stat(fpath1)
         >>> # apply umask
-        >>> set_newfile_permissions()
-        >>> ut.delete('tempfile2.txt')
-        >>> ut.write_to('tempfile2.txt', 'foo')
-        >>> stat_result2 = os.stat('tempfile2.txt')
+        >>> prev_mask = set_newfile_permissions()
+        >>> _ = ub.Path(fpath2).write_text('foo')
+        >>> stat_result2 = os.stat(fpath2)
         >>> # verify results
         >>> print('old masked all bits = %o' % (stat_result1.st_mode))
         >>> print('new masked all bits = %o' % (stat_result2.st_mode))
+        >>> # restore process state and cleanup
+        >>> _ = os.umask(prev_mask)
+        >>> shutil.rmtree(dpath)
     """
     import os
     #import stat

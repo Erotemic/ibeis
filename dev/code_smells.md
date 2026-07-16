@@ -56,7 +56,10 @@ shipping sources is a workaround, not a cure):
   `control/manual_*_funcs.py`, `web/routes.py:3118`, ...). Doctests double as the test
   suite, so these keep the source-bundling requirement alive even for CI-built exes.
 
-### 1.2 P1 — Unconditional module reload in the annotation editor
+### 1.2 ✅ P1 — Unconditional module reload in the annotation editor
+
+Fixed 2026-07-16: the `if True: rrr()` blocks were removed from
+`interact_annotations2.py`. The explicit dev-reload menu/hotkey hooks remain.
 
 `ibeis/viz/interact/interact_annotations2.py:64,144` call `interact_annotations.rrr()`
 (an `importlib.reload`) inside `if True:` **every time the image annotation editor
@@ -94,7 +97,11 @@ requirements never do (see 5.3).
 
 ## 2. Windows-specific runtime hazards
 
-### 2.1 P0 — Default workdir is a *relative* path → resolves into `C:\Program Files\IBEIS`
+### 2.1 ✅ P0 — Default workdir is a *relative* path → resolves into `C:\Program Files\IBEIS`
+
+Fixed 2026-07-16: `sysres._default_workdir()` keeps the legacy CWD-relative dir
+only when it already exists, otherwise falls back to a per-user data dir
+(`ub.Path.appdir('ibeis', 'workdir', type='data')`).
 
 `ibeis/init/sysres.py:83-93`: `get_workdir()` reads the cached workdir with
 `default='.'`, and when unset returns the bare relative string
@@ -106,23 +113,26 @@ exact bug firing on Linux. Fix: default to a per-user location, e.g.
 `ub.Path.appdir('ibeis', type='data') / 'workdir'` or `~/Documents/IBEIS`.
 Everything in `IBEISControl._init_dirs` / `sysres.db_to_dbdir` inherits this.
 
-### 2.2 P1 — Text I/O without `encoding=` (locale is cp1252 on Windows)
+### 2.2 P1 (partially fixed) — Text I/O without `encoding=` (locale is cp1252 on Windows)
 
 No production `open()` call in the package passes `encoding=`. Worst case:
 `ibeis/control/manual_name_funcs.py:1191,1194,1212` — the name-change JSON audit log.
 Renaming an animal to any non-cp1252 string via the GUI raises `UnicodeEncodeError`
-inside the rename flow. Also `manual_imageset_funcs.py:1412` (smart XML read). Systemic
-audit needed; start with control/gui/dbio.
+inside the rename flow. Also `manual_imageset_funcs.py:1412` (smart XML read).
+2026-07-16: the name-log and smart-XML sites now pass `encoding='utf-8'`; the
+systemic audit of the remaining `open()` calls is still open (control/gui/dbio first).
 
-### 2.3 P1 — `open('/dev/null', 'w')`
+### 2.3 ✅ P1 — `open('/dev/null', 'w')`
+
+Fixed 2026-07-16: both sites now use `os.devnull`.
 
 `ibeis/algo/detect/selectivesearch.py:138`, `ibeis/algo/detect/darknet.py:212` — use
 `os.devnull` (on Windows this creates a literal file or errors).
 
-### 2.4 P1 — Path splitting on literal `'/'`
+### 2.4 P1 (partially fixed) — Path splitting on literal `'/'`
 
-`ibeis/other/detectcore.py:146` (`image_path.split('/')` → wrong filenames in export on
-Windows), `ibeis/dbio/ingest_ggr.py` (9 sites). Plus 28 uses of `ut.unixjoin` on
+~~`ibeis/other/detectcore.py:146`~~ (fixed 2026-07-16 with `basename`/`splitext`),
+`ibeis/dbio/ingest_ggr.py` (9 sites still open). Plus 28 uses of `ut.unixjoin` on
 GUI/control paths (`IBEISControl.py:980,1016`, `gui/guiback.py:372,515,1636`, ...) —
 usually tolerated by Windows but defeats path comparisons.
 
@@ -134,7 +144,10 @@ codegen paths, but they hard-fail if triggered from an installed app.
 Also `ibeis/viz/viz_graph.py:808-809` (`open('fig.html', 'w')`) and
 `ibeis/algo/verif/deploy.py:147` write to CWD.
 
-### 2.6 P1 — GUI menu action respawns the frozen exe
+### 2.6 ✅ P1 — GUI menu action respawns the frozen exe
+
+Fixed 2026-07-16: `update_source_install` now shows an info dialog and returns
+when `sys.frozen` is set.
 
 `ibeis/gui/guiback.py:3786-3790` `update_source_install()` runs
 `ut.python_executable() + ' super_setup.py pull'`. In a frozen app `sys.executable` is
@@ -149,9 +162,9 @@ Windows they will fail; gate them by platform.
 
 ### 2.8 P2 — Misc
 
-- `os.umask(0o000)` in `main_module.py:206` runs on every `main()`; its doctest also
-  drops `tempfile1.txt`/`tempfile2.txt` into CWD (the junk at repo root). World-writable
-  umask is a questionable default even on Linux.
+- `os.umask(0o000)` in `main_module.py:206` runs on every `main()`. World-writable
+  umask is a questionable default even on Linux. (Its doctest no longer drops
+  `tempfile1/2.txt` into CWD nor leaks the umask — fixed 2026-07-16.)
 - Deep cache trees (`<workdir>/<db>/_ibsdb/_ibeis_cache/...`) + long db names can reach
   MAX_PATH; `chip_match.py:27` already caps filename length (80 on win32) but directory
   depth is unbounded. Consider enabling long-path awareness in the installer
