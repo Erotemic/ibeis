@@ -25,9 +25,6 @@ from ibeis.viz.viz_nearest_descriptors import show_nearest_descriptors
 from ibeis.viz.viz_hough import show_hough_image, show_probability_chip
 from ibeis.viz.viz_other import chip_montage
 
-import utool
-print, rrr, profile = utool.inject2(__name__)
-
 
 __LOADED__ = False
 
@@ -36,67 +33,6 @@ def import_subs():
     from ibeis.viz import interact
     __LOADED__ = True
 
-
-def reassign_submodule_attributes(verbose=True):
-    """
-    why reloading all the modules doesnt do this I don't know
-    """
-    import sys
-    if verbose and '--quiet' not in sys.argv:
-        print('dev reimport')
-    # Self import
-    import ibeis.viz
-    # Implicit reassignment.
-    seen_ = set([])
-    for tup in IMPORT_TUPLES:
-        submodname, fromimports = tup
-        submod = getattr(ibeis.viz, submodname)
-        for attr in dir(submod):
-            if attr.startswith('_'):
-                continue
-            if attr in seen_:
-                # This just holds off bad behavior
-                # but it does mimic normal util_import behavior
-                # which is good
-                continue
-            seen_.add(attr)
-            setattr(ibeis.viz, attr, getattr(submod, attr))
-
-
-def reload_subs(verbose=True):
-    """ Reloads ibeis.viz and submodules """
-    rrr(verbose=verbose)
-    def fbrrr(*args, **kwargs):
-        """ fallback reload """
-        pass
-    getattr(viz_chip, 'rrr', fbrrr)(verbose=verbose)
-    getattr(viz_helpers, 'rrr', fbrrr)(verbose=verbose)
-    getattr(viz_hough, 'rrr', fbrrr)(verbose=verbose)
-    getattr(viz_image, 'rrr', fbrrr)(verbose=verbose)
-    getattr(viz_matches, 'rrr', fbrrr)(verbose=verbose)
-    getattr(viz_name, 'rrr', fbrrr)(verbose=verbose)
-    getattr(viz_nearest_descriptors, 'rrr', fbrrr)(verbose=verbose)
-    getattr(viz_qres, 'rrr', fbrrr)(verbose=verbose)
-    getattr(viz_sver, 'rrr', fbrrr)(verbose=verbose)
-    rrr(verbose=verbose)
-    try:
-        # hackish way of propogating up the new reloaded submodule attributes
-        reassign_submodule_attributes(verbose=verbose)
-    except Exception as ex:
-        print(ex)
-rrrr = reload_subs
-
-IMPORT_TUPLES = [
-    ('viz_chip', None),
-    ('viz_helpers', None),
-    ('viz_hough', None),
-    ('viz_image', None),
-    ('viz_matches', None),
-    ('viz_name', None),
-    ('viz_nearest_descriptors', None),
-    ('viz_qres', None),
-    ('viz_sver', None),
-]
 
 """
 Regen Command:

@@ -7,7 +7,7 @@ import random
 import time
 # from ibeis.web import futures_utils as futures_actors
 import futures_actors
-print, rrr, profile = ut.inject2(__name__)
+print = ut.inject2(__name__)[0]
 
 
 def double_review_test():
@@ -306,7 +306,6 @@ class GraphActor(GRAPH_ACTOR_CLASS):
             return match_state_verifier.extr
 
 
-@ut.reloadable_class
 class GraphClient(object):
     """
     CommandLine:

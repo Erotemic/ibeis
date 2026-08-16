@@ -21,7 +21,7 @@ from ibeis.viz import viz_hough
 from ibeis.viz import viz_chip
 from plottool_ibeis import interact_matches
 from ibeis.viz.interact.interact_chip import ishow_chip
-(print, rrr, profile) = ut.inject2(__name__, '[interact_matches]')
+print = ut.inject2(__name__, '[interact_matches]')[0]
 
 
 def testdata_match_interact(**kwargs):
@@ -257,11 +257,6 @@ class MatchInteraction(interact_matches.MatchInteraction2):
         pt.draw()
         #self.draw()
 
-    def dev_reload(self):
-        ih.disconnect_callback(self.fig, 'button_press_event')
-        self.rrr()
-        self.set_callbacks()
-
     def dev_embed(self):
         ut.embed()
 
@@ -314,7 +309,6 @@ class MatchInteraction(interact_matches.MatchInteraction2):
         #if self.H1 is not None:
         #    options.append(('Toggle homog', self.toggle_homog))
         if ut.is_developer():
-            options.append(('dev_reload', self.dev_reload))
             options.append(('dev_embed', self.dev_embed))
         #options.append(('cancel', lambda: print('cancel')))
         options += super(MatchInteraction, self).get_popup_options()

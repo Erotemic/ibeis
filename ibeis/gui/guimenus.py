@@ -553,10 +553,6 @@ def setup_depricated_menu(mainwin, back):
         text='Import Cropped Images As Annotations (select file(s))',
         triggered=back.import_images_as_annots_from_file)
     menu.addSeparator()
-    menu.newAction(
-        text='Developer Reload',
-        shortcut='Ctrl+Shift+R',
-        triggered=back.dev_reload)
 
     # TESTS
     mainwin.menuTests = menu.newMenu('Tests')

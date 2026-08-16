@@ -56,7 +56,7 @@ if ut.VERBOSE:
 #import plottool_ibeis
 
 
-ENABLE_WILDBOOK_SIGNAL = False
+ENABLE_WILDBOOK_SIGNAL = True
 
 
 try:
@@ -309,29 +309,8 @@ testdata_expanded_aids = main_helpers.testdata_expanded_aids
 testdata_aids = main_helpers.testdata_aids
 
 # Utool generated init makeinit.py
-print, rrr, profile = ut.inject2(__name__)
+print = ut.inject2(__name__)[0]
 
-
-def reload_subs(verbose=True):
-    """ Reloads ibeis and submodules """
-    import_subs()
-    rrr(verbose=verbose)
-    getattr(constants, 'rrr', lambda verbose: None)(verbose=verbose)
-    getattr(main_module, 'rrr', lambda verbose: None)(verbose=verbose)
-    getattr(params, 'rrr', lambda verbose: None)(verbose=verbose)
-    getattr(other, 'reload_subs', lambda verbose: None)(verbose=verbose)
-    getattr(dbio, 'reload_subs', lambda verbose: None)(verbose=verbose)
-    getattr(algo, 'reload_subs', lambda verbose: None)(verbose=verbose)
-    getattr(control, 'reload_subs', lambda verbose: None)(verbose=verbose)
-    getattr(viz, 'reload_subs', lambda: None)()  # NOQA
-
-    getattr(gui, 'reload_subs', lambda verbose: None)(verbose=verbose)  # NOQA
-    getattr(algo, 'reload_subs', lambda verbose: None)(verbose=verbose)
-    getattr(viz, 'reload_subs', lambda verbose: None)(verbose=verbose)  # NOQA
-    getattr(web, 'reload_subs', lambda verbose: None)(verbose=verbose)  # NOQA
-
-    rrr(verbose=verbose)
-rrrr = reload_subs
 
 from ibeis.control.DB_SCHEMA_CURRENT import VERSION_CURRENT  # NOQA
 

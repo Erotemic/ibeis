@@ -39,7 +39,7 @@ from ibeis.gui import newgui
 from ibeis.viz import interact
 from os.path import exists, join, dirname, normpath
 from plottool_ibeis import fig_presenter
-(print, rrr, profile) = ut.inject2(__name__, '[back]')
+print = ut.inject2(__name__, '[back]')[0]
 
 
 VERBOSE = ut.VERBOSE
@@ -760,12 +760,9 @@ class NewDatabaseWidget(gt.GuitoolWidget):
 #------------------------
 # Backend MainWindow Class
 #------------------------
-#QtReloadingMetaClass = ut.reloading_meta_metaclass_factory(gt.QtCore.pyqtWrapperType)
-
 GUIBACK_BASE = QtCore.QObject
 
 
-#@six.add_metaclass(QtReloadingMetaClass)  # cant do this quit yet
 class MainWindowBackend(GUIBACK_BASE):
     """
     Sends and recieves signals to and from the frontend
@@ -2410,14 +2407,6 @@ class MainWindowBackend(GUIBACK_BASE):
                             query_title='Annot Splits',
                             review_cfg=review_cfg)
 
-        if False:
-            from ibeis.viz import viz_graph2
-            import imp
-            imp.reload(viz_graph2)
-            win = viz_graph2.make_qt_graph_review(qreq_, cm_list,
-                                                  review_cfg=review_cfg)
-            win.show()
-
     def run_merge_checks(back):
         r"""
         Checks for missed matches within a group of annotations
@@ -2927,14 +2916,6 @@ class MainWindowBackend(GUIBACK_BASE):
         ut.delete(back.ibs.bigcachedir)
         ut.ensuredir(back.ibs.qresdir)
         ut.ensuredir(back.ibs.bigcachedir)
-
-    @blocking_slot()
-    def dev_reload(back):
-        """ Help -> Developer Reload"""
-        print('[back] dev_reload')
-        back.ibs.rrr()
-        #back.rrr()
-        #reload_all()
 
     @blocking_slot()
     def dev_mode(back):

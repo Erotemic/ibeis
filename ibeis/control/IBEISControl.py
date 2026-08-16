@@ -47,7 +47,7 @@ from ibeis.dbio import ingest_hsdb
 from ibeis import constants as const
 from ibeis.control import accessor_decors, controller_inject
 # Inject utool functions
-(print, rrr, profile) = ut.inject2(__name__)
+print, _, profile = ut.inject2(__name__)
 
 # Import modules which define injectable functions
 
@@ -423,11 +423,7 @@ class IBEISController(BASE_CLASS):
         return cachestats_str
 
     def _initialize_self(ibs):
-        """
-        Injects code from plugin modules into the controller
-
-        Used in utools auto reload.  Called after reload.
-        """
+        """Inject code from plugin modules into the controller."""
         if ut.VERBOSE:
             print('[ibs] _initialize_self()')
         ibs.reset_table_cache()
@@ -438,19 +434,6 @@ class IBEISController(BASE_CLASS):
         assert hasattr(ibs, 'get_annot_pair_timedelta'), (
             'issue with annotmatch_funcs')
         ibs.register_controller()
-
-    def _on_reload(ibs):
-        """
-        For utools auto reload (rrr).
-        Called before reload
-        """
-        # Reloading breaks flask, turn it off
-        controller_inject.GLOBAL_APP_ENABLED = False
-        # Only warn on first load. Overrideing while reloading is ok
-        ibs.allow_override = True
-        ibs.unregister_controller()
-        # Reload dependent modules
-        ut.reload_injected_modules(controller_inject.CONTROLLER_CLASSNAME)
 
     def load_plugin_module(ibs, module):
         ut.inject_instance(
