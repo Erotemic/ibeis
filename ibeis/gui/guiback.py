@@ -45,6 +45,22 @@ from plottool_ibeis import fig_presenter
 VERBOSE = ut.VERBOSE
 
 
+def _flush_legacy_stdout():
+    """Flush legacy console output when a stdout stream exists.
+
+    This compatibility hook is intentionally local to the GUI backend so it can
+    be removed once console-output behavior no longer depends on explicit
+    flushing. Windowed PyInstaller builds may not provide ``sys.stdout``.
+    """
+    stream = sys.stdout
+    flush = getattr(stream, 'flush', None)
+    if flush is not None:
+        try:
+            flush()
+        except (OSError, ValueError):
+            pass
+
+
 def backreport(func):
     """
     reports errors on backend functions
@@ -104,7 +120,7 @@ def blocking_slot(*types_):
         @functools.wraps(func)
         def wrapped_bslot(*args, **kwargs):
             result = func(*args, **kwargs)
-            sys.stdout.flush()
+            _flush_legacy_stdout()
             return result
         wrapped_bslot = ut.preserve_sig(wrapped_bslot, func)
         return wrapped_bslot
