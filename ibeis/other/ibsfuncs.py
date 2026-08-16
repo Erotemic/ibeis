@@ -2122,7 +2122,7 @@ def is_aid_unknown(ibs, aid_list):
 
 @register_ibs_method
 def batch_rename_consecutive_via_species(ibs, imgsetid=None, location_text=None,
-                                         notify_wildbook=True, assert_wildbook=True):
+                                         notify_wildbook=False, assert_wildbook=False):
     import ibeis
     wildbook_existing_name_list = []
     if notify_wildbook and ibeis.ENABLE_WILDBOOK_SIGNAL:

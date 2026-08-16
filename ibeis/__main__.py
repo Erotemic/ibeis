@@ -130,7 +130,7 @@ def run_ibeis():
         front = getattr(back, 'front', None)  # NOQA
         #front = back.front
         #ui = front.ui
-    ibs = main_locals['ibs']  # NOQA
+    ibs = main_locals.get('ibs')  # NOQA
     print('-- EXECSTR --')
     print(ub.codeblock(execstr))
     print('-- /EXECSTR --')

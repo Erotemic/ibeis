@@ -5,7 +5,27 @@ We are currently working on porting this changelog to the specifications in
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-## Version 2.4.1 - Unreleased
+## Version 2.5.0 - Unreleased
+
+### Changed
+
+* Dropped Python 3.9 and 3.10 support; the minimum is now Python 3.11.
+* The default workdir (when none is configured) is now a per-user data
+  directory instead of a CWD-relative path; an existing legacy
+  `ibeis_default_workdir` is still respected.
+* CI and installer builds install ecosystem dependencies from PyPI; the
+  `tpl/` submodules are for local development only.
+* `run_developer_setup.sh` reworked: creates/uses `.venv`, installs ibeis
+  editable with test deps, and wires the pure-python `tpl/` submodules in
+  as editable installs.
+
+### Added
+
+* Windows installer: bundle `.py` sources so runtime source introspection
+  works in frozen builds (fixes the Advanced ID interface crash), a frozen
+  self-test gate (`IBEIS_FROZEN_SELFTEST=1`), and the installer version is
+  now derived from `ibeis.__version__`.
+* CI runs the plain pytest suites (previously only doctests ran).
 
 ### Fixed
 
@@ -13,6 +33,13 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 * Issue when querying in a database without any species information
 * `safe_pdist` issues with scipy 1.17.0
 * Fix np.in1d issue
+* Stale inconsistency bookkeeping (`nid_to_errors`) when merging two
+  inconsistent PCCs in the graph identification algorithm.
+* Compatibility with new dependency releases: networkx (`union_all([])`,
+  `selfloop_edges`), scikit-learn >= 1.9 (all-zero sample weights), and
+  Python 3.13 minimum pins for pyzmq/simplejson/coverage.
+* Windows correctness: `os.devnull` instead of `/dev/null`, path splitting
+  on `os.sep`, UTF-8 encoding on the name-change log and smart-patrol XML.
 
 
 ### [Version 2.4.0] - Released 2025-08-24

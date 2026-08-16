@@ -209,7 +209,7 @@ def detect(gpath_list, config_filepath, weight_filepath, class_filepath, sensiti
         if verbose:
             print('Calling: %s' % (bash_str, ))
         bash_list = shlex.split(bash_str)
-        with open('/dev/null', 'w') as null:
+        with open(os.devnull, 'w') as null:
             process_id = subprocess.Popen(bash_list, stdout=null, cwd=SCRIPT_PATH)
             process_return_code = process_id.wait()
             if process_return_code != 0:

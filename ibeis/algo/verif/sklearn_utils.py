@@ -303,8 +303,16 @@ def classification_report2(y_true, y_pred, target_names=None,
     # Real data is on the rows,
     # Pred data is on the cols.
 
-    cm = sklearn.metrics.confusion_matrix(
-        y_true_, y_pred_, sample_weight=sample_weight)
+    if (sample_weight is not None and len(sample_weight) > 0 and
+            not np.any(sample_weight)):
+        # sklearn >= 1.9 rejects all-zero sample weights. Preserve the old
+        # behavior (an all-zero confusion matrix) so callers that weight by
+        # an empty subset still get a well-formed (if degenerate) report.
+        n_labels = len(np.unique(np.hstack([y_true_, y_pred_])))
+        cm = np.zeros((n_labels, n_labels), dtype=np.float64)
+    else:
+        cm = sklearn.metrics.confusion_matrix(
+            y_true_, y_pred_, sample_weight=sample_weight)
     confusion = cm  # NOQA
 
     k = len(cm)  # number of classes

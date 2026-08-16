@@ -156,8 +156,12 @@ We are also experimenting with a new web frontend that bypasses the older GUI co
 Self Installing Executables
 ---------------------------
 
-Unfortunately we have not released self-installing-executables for IBEIS yet.
-We hope to release these soon™, but developer support is needed (contributions welcome).
+A Windows installer (``IBEIS-Setup-<version>.exe``) can be built from source
+with a single PowerShell command, and is also built on CI as an artifact of
+every run. See `dev/_installers/README.md <dev/_installers/README.md>`_ for
+the full build-on-a-VM and testing guide.
+
+We have not published official installer releases yet (contributions welcome).
 
 However there are old [HotSpotter](https://github.com/Erotemic/hotspotter) (the
 predecessor to IBEIS) binaries available.

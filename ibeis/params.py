@@ -166,6 +166,9 @@ def parse_args():
 
 # Dont parse args if environment variable is off
 # We use this to turn off arg parsing when Sphinx is running
-if (os.environ.get('IBIES_PARSE_ARGS', 'ON') == 'ON' and
+# (IBIES_PARSE_ARGS is a legacy typo kept for backwards compatibility)
+_PARSE_ARGS = os.environ.get(
+    'IBEIS_PARSE_ARGS', os.environ.get('IBIES_PARSE_ARGS', 'ON'))
+if (_PARSE_ARGS == 'ON' and
      os.environ.get('UTOOL_AUTOGEN_SPHINX_RUNNING', 'OFF') == 'OFF'):
     parse_args()

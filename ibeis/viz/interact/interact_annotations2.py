@@ -60,8 +60,6 @@ class ANNOTATION_Interaction2(object):
         for metadata in metadata_list:
             # eager eval on name
             metadata['name']
-        if True:
-            interact_annotations.rrr()
         self.interact_ANNOTATIONS = interact_annotations.AnnotationInteraction(
             img,
             bbox_list=bbox_list,
@@ -140,8 +138,6 @@ class ANNOTATION_Interaction2(object):
                 rows_updated_callback=self.rows_updated_callback,
                 reset_window=False)
         else:
-            if True:
-                self.interact_ANNOTATIONS.rrr()
             ibs = self.ibs
             self.gid = gid
             img = ibs.get_images(self.gid)

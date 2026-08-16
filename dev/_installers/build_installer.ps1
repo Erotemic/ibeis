@@ -337,6 +337,18 @@ function Invoke-Checks([string]$AppDir, [string]$DiagDir, [switch]$DoSmokeTest) 
         Write-Warning "No _internal dir found at $internal"
     }
 
+    Write-Section "Frozen selftest (source introspection)"
+    $SelftestLog = Join-Path $DiagDir "frozen_selftest.txt"
+    $env:IBEIS_FROZEN_SELFTEST = "1"
+    try {
+        & (Join-Path $AppDir "IBEIS-console.exe") 2>&1 | Tee-Object -FilePath $SelftestLog
+        if ($LASTEXITCODE -ne 0) {
+            throw "Frozen selftest FAILED (exit $LASTEXITCODE). See $SelftestLog"
+        }
+    } finally {
+        Remove-Item Env:IBEIS_FROZEN_SELFTEST -ErrorAction SilentlyContinue
+    }
+
     if ($DoSmokeTest) {
         Write-Section "Smoke test (IBEIS-console.exe)"
         $SmokeOut = Join-Path $DiagDir "smoke_test_stdout.txt"
@@ -374,8 +386,37 @@ function Invoke-Checks([string]$AppDir, [string]$DiagDir, [switch]$DoSmokeTest) 
     }
 }
 
+function Find-Iscc {
+    # Machine-scope installs (winget default, and GitHub Actions runner images)
+    $candidatePaths = @(
+        (Join-Path ${env:ProgramFiles(x86)} "Inno Setup 6\ISCC.exe"),
+        (Join-Path $env:ProgramFiles "Inno Setup 6\ISCC.exe"),
+        (Join-Path $env:LOCALAPPDATA "Programs\Inno Setup 6\ISCC.exe"),
+        "C:\Program Files\Inno Setup 6\ISCC.exe",
+        "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
+    ) | Where-Object { $_ -and $_.Trim() -ne "" }
+
+    foreach ($candidate in $candidatePaths) {
+        if (Test-Path $candidate) {
+            return $candidate
+        }
+    }
+
+    $pathHit = Get-Command ISCC.exe -ErrorAction SilentlyContinue
+    if ($pathHit -and $pathHit.Source -and (Test-Path $pathHit.Source)) {
+        return $pathHit.Source
+    }
+    return $null
+}
+
 function Ensure-InnoSetup {
     Write-Section "Ensure Inno Setup"
+
+    $iscc = Find-Iscc
+    if ($iscc) {
+        Write-Host "Found ISCC.exe: $iscc"
+        return $iscc
+    }
 
     if (Test-Command "winget") {
         try {
@@ -387,26 +428,20 @@ function Ensure-InnoSetup {
         Write-Warning "winget not found; skipping auto-install attempt."
     }
 
-    $pathHit = Get-Command ISCC.exe -ErrorAction SilentlyContinue
-    if ($pathHit -and $pathHit.Source -and (Test-Path $pathHit.Source)) {
-        return $pathHit.Source
+    $iscc = Find-Iscc
+    if (-not $iscc) {
+        throw "Could not find ISCC.exe in PATH or common install locations (Program Files, Program Files (x86), LOCALAPPDATA\Programs)."
     }
+    return $iscc
+}
 
-    $candidatePaths = @(
-        (Join-Path $env:LOCALAPPDATA "Programs\Inno Setup 6\ISCC.exe"),
-        (Join-Path $env:ProgramFiles "Inno Setup 6\ISCC.exe"),
-        (Join-Path ${env:ProgramFiles(x86)} "Inno Setup 6\ISCC.exe"),
-        "C:\Program Files\Inno Setup 6\ISCC.exe",
-        "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
-    ) | Where-Object { $_ -and $_.Trim() -ne "" }
-
-    foreach ($candidate in $candidatePaths) {
-        if (Test-Path $candidate) {
-            return $candidate
-        }
+function Get-IbeisVersion([string]$RepoRoot) {
+    $initPath = Join-Path $RepoRoot "ibeis\__init__.py"
+    $match = Select-String -Path $initPath -Pattern "^__version__\s*=\s*'([^']+)'" | Select-Object -First 1
+    if (-not $match) {
+        throw "Could not parse __version__ from $initPath"
     }
-
-    throw "Could not find ISCC.exe in PATH or common install locations: $($candidatePaths -join '; ')"
+    return $match.Matches[0].Groups[1].Value
 }
 
 function Invoke-InnoBuild([string]$RepoRoot, [string]$InstallersDir, [string]$AppDir) {
@@ -416,9 +451,12 @@ function Invoke-InnoBuild([string]$RepoRoot, [string]$InstallersDir, [string]$Ap
     $iscc = Ensure-InnoSetup
     Write-Host "Using ISCC.exe at: $iscc"
 
+    $version = Get-IbeisVersion -RepoRoot $RepoRoot
+    Write-Host "AppVersion = $version (from ibeis/__init__.py)"
+
     Push-Location $RepoRoot
     try {
-        & $iscc (Join-Path $InstallersDir "win_installer_script.iss") | Out-Host
+        & $iscc "/DAppVersion=$version" (Join-Path $InstallersDir "win_installer_script.iss") | Out-Host
     } finally {
         Pop-Location
     }

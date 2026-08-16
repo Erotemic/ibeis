@@ -2,7 +2,7 @@
 IBEIS: main package init
 """
 
-__version__ = '2.4.1'
+__version__ = '2.5.0'
 
 try:
     import cv2  # NOQA
@@ -56,7 +56,7 @@ if ut.VERBOSE:
 #import plottool_ibeis
 
 
-ENABLE_WILDBOOK_SIGNAL = True
+ENABLE_WILDBOOK_SIGNAL = False
 
 
 try:

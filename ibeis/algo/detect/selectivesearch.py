@@ -135,7 +135,7 @@ def detect(gpath_list, matlab_command='selective_search', verbose=VERBOSE_SS, **
     bash_command = 'matlab -nojvm -r "try; %s; catch; exit; end; exit"'
     bash_str = bash_command % (matlab_command_str, )
     bash_list = shlex.split(bash_str)
-    with open('/dev/null', 'w') as null:
+    with open(os.devnull, 'w') as null:
         process_id = subprocess.Popen(bash_list, stdout=null, cwd=SCRIPT_PATH)
         process_return_code = process_id.wait()
         if process_return_code != 0:

@@ -4,7 +4,7 @@ Module for dealing with system resoureces in the context of IBEIS
 but without the need for an actual IBEIS Controller
 """
 import os
-from os.path import exists, join, realpath
+from os.path import abspath, exists, join, realpath
 import utool as ut
 import ubelt as ub
 from ibeis import constants as const
@@ -90,7 +90,23 @@ def get_workdir(allow_gui=True):
             return get_workdir(allow_gui=False)
         return None
     else:
-        return 'ibeis_default_workdir'
+        return _default_workdir()
+
+
+def _default_workdir():
+    """
+    Default workdir when the user has not configured one.
+
+    Prefer the legacy CWD-relative directory when it already exists (developer
+    checkouts run from the repo root rely on this). Otherwise use a stable
+    per-user directory: a bare relative default resolves against whatever the
+    CWD happens to be, which for an installed app can be an unwritable
+    location like ``C:\\Program Files\\IBEIS``.
+    """
+    legacy = abspath('ibeis_default_workdir')
+    if exists(legacy):
+        return legacy
+    return str(ub.Path.appdir('ibeis', 'workdir', type='data').ensuredir())
 
 
 def set_workdir(work_dir=None, allow_gui=ALLOW_GUI):

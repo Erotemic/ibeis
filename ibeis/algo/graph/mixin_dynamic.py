@@ -321,11 +321,19 @@ class DynamicUpdate(object):
                 else:
                     recover_edges = list(nxu.edges_inside(infr.pos_graph, cc2))
                 infr.recover_graph.add_edges_from(recover_edges)
+                # Purge error bookkeeping for both old nids; only one label
+                # survives the merge and _check_inconsistency only re-purges
+                # the surviving nid, so the other entry would go stale.
+                infr._purge_error_edges(nid1)
+                infr._purge_error_edges(nid2)
                 infr._purge_redun_flags(nid1)
                 infr._purge_redun_flags(nid2)
                 infr._add_review_edge(edge, decision)
                 infr.recover_graph.add_edge(*edge)
                 new_nid = infr.pos_graph.node_label(edge[0])
+                # Recompute the error hypothesis for the merged component
+                # (the purges above cleared the entries from both old nids)
+                infr._new_inconsistency(new_nid)
             elif any(nxu.edges_cross(infr.neg_graph, cc1, cc2)):
                 print_('pos-between-clean-merge-dirty')
                 infr._purge_redun_flags(nid1)
