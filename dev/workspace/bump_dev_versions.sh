@@ -73,27 +73,53 @@ ensure_version_file_clean() {
     fi
 }
 
+select_remote() {
+    local repo="$1"
+    local upstream remote
+    upstream="$(git -C "$repo" rev-parse --abbrev-ref --symbolic-full-name '@{upstream}' 2>/dev/null || true)"
+    if [[ "$upstream" == */* ]]; then
+        remote="${upstream%%/*}"
+        if git -C "$repo" remote get-url "$remote" >/dev/null 2>&1; then
+            printf '%s\n' "$remote"
+            return
+        fi
+    fi
+    for remote in origin Erotemic; do
+        if git -C "$repo" remote get-url "$remote" >/dev/null 2>&1; then
+            printf '%s\n' "$remote"
+            return
+        fi
+    done
+    remote="$(git -C "$repo" remote | head -n 1)"
+    [[ -n "$remote" ]] || fail "$repo has no Git remotes"
+    printf '%s\n' "$remote"
+}
+
 remote_branch_exists() {
     local repo="$1"
-    local branch="$2"
-    git -C "$repo" remote get-url origin >/dev/null 2>&1 || return 1
-    git -C "$repo" ls-remote --exit-code --heads origin "$branch" >/dev/null 2>&1
+    local remote="$2"
+    local branch="$3"
+    git -C "$repo" ls-remote --exit-code --heads "$remote" "$branch" >/dev/null 2>&1
 }
 
 switch_to_branch() {
     local repo="$1"
     local branch="$2"
-    local current
+    local current current_head remote
+    remote="$(select_remote "$repo")"
     current="$(git -C "$repo" branch --show-current)"
+    current_head="$(git -C "$repo" rev-parse HEAD)"
     if [[ "$current" == "$branch" ]]; then
         return
     fi
 
     if git -C "$repo" show-ref --verify --quiet "refs/heads/$branch"; then
+        git -C "$repo" merge-base --is-ancestor "$current_head" "refs/heads/$branch" ||             fail "$repo target branch $branch does not contain current HEAD $current_head; refusing to abandon local/detached work"
         git -C "$repo" switch "$branch"
     elif remote_branch_exists "$repo" "$branch"; then
-        git -C "$repo" fetch origin "$branch"
-        git -C "$repo" switch --track -c "$branch" "origin/$branch"
+        git -C "$repo" fetch "$remote" "$branch"
+        git -C "$repo" merge-base --is-ancestor "$current_head" "$remote/$branch" ||             fail "$repo remote target $remote/$branch does not contain current HEAD $current_head; refusing to abandon local/detached work"
+        git -C "$repo" switch --track -c "$branch" "$remote/$branch"
     else
         git -C "$repo" switch -c "$branch"
     fi

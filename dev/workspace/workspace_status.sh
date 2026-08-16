@@ -32,15 +32,24 @@ print(match.group(2))
 PY
 }
 
+next_minor_version() {
+    local version="$1"
+    python - "$version" <<'PY'
+import re
+import sys
+version = sys.argv[1]
+match = re.fullmatch(r"(\d+)\.(\d+)\.(\d+)", version)
+if not match:
+    raise SystemExit(1)
+major, minor, _patch = map(int, match.groups())
+print(f"{major}.{minor + 1}.0")
+PY
+}
+
 branch_name() {
-    local repo="$1"
     local branch
-    branch="$(git -C "$repo" branch --show-current)"
-    if [[ -n "$branch" ]]; then
-        printf '%s\n' "$branch"
-    else
-        printf 'DETACHED\n'
-    fi
+    branch="$(git -C "$1" branch --show-current)"
+    [[ -n "$branch" ]] && printf '%s\n' "$branch" || printf 'DETACHED\n'
 }
 
 short_head() {
@@ -48,11 +57,7 @@ short_head() {
 }
 
 tree_state() {
-    if [[ -n "$(git -C "$1" status --porcelain)" ]]; then
-        printf 'DIRTY\n'
-    else
-        printf 'clean\n'
-    fi
+    [[ -n "$(git -C "$1" status --porcelain)" ]] && printf 'DIRTY\n' || printf 'clean\n'
 }
 
 upstream_state() {
@@ -76,26 +81,61 @@ upstream_state() {
     fi
 }
 
+preferred_remote() {
+    local repo="$1"
+    local upstream remote
+    upstream="$(git -C "$repo" rev-parse --abbrev-ref --symbolic-full-name '@{upstream}' 2>/dev/null || true)"
+    if [[ "$upstream" == */* ]]; then
+        remote="${upstream%%/*}"
+        if git -C "$repo" remote get-url "$remote" >/dev/null 2>&1; then
+            printf '%s\n' "$remote"
+            return
+        fi
+    fi
+    for remote in origin Erotemic; do
+        if git -C "$repo" remote get-url "$remote" >/dev/null 2>&1; then
+            printf '%s\n' "$remote"
+            return
+        fi
+    done
+    remote="$(git -C "$repo" remote | head -n 1)"
+    printf '%s\n' "$remote"
+}
+
+main_state() {
+    local repo="$1"
+    local remote main_ref counts ahead behind
+    remote="$(preferred_remote "$repo")"
+    [[ -n "$remote" ]] || { printf '%s\n' 'no-remote'; return; }
+    main_ref="$remote/main"
+    git -C "$repo" rev-parse --verify --quiet "$main_ref^{commit}" >/dev/null 2>&1 || {
+        printf '%s\n' 'no-main-ref'
+        return
+    }
+    if git -C "$repo" merge-base --is-ancestor HEAD "$main_ref" 2>/dev/null; then
+        printf '%s\n' 'merged'
+        return
+    fi
+    counts="$(git -C "$repo" rev-list --left-right --count "HEAD...$main_ref" 2>/dev/null || true)"
+    [[ -n "$counts" ]] || { printf '%s\n' 'unknown'; return; }
+    read -r ahead behind <<< "$counts"
+    printf '+%s/-%s\n' "$ahead" "$behind"
+}
+
 root_pin() {
     local path="$1"
     local pin
     pin="$(git -C "$ROOT" ls-tree HEAD -- "$path" 2>/dev/null | awk '{print $3}')"
-    if [[ -n "$pin" ]]; then
-        printf '%.10s\n' "$pin"
-    else
-        printf '%s\n' '-'
-    fi
+    [[ -n "$pin" ]] && printf '%.10s\n' "$pin" || printf '%s\n' '-'
 }
 
 is_repo_root() {
     local repo="$1"
-    local top repo_real top_real
+    local top
     [[ -d "$repo" ]] || return 1
     top="$(git -C "$repo" rev-parse --show-toplevel 2>/dev/null || true)"
     [[ -n "$top" ]] || return 1
-    repo_real="$(cd "$repo" && pwd -P)"
-    top_real="$(cd "$top" && pwd -P)"
-    [[ "$repo_real" == "$top_real" ]]
+    [[ "$(cd "$repo" && pwd -P)" == "$(cd "$top" && pwd -P)" ]]
 }
 
 STATUS_PROBLEMS=0
@@ -107,65 +147,60 @@ print_managed() {
     local submodule_path="${4:-}"
 
     if ! is_repo_root "$repo"; then
-        printf '%-15s %-8s %-15s %-15s %-10s %-10s %-11s %-6s %s\n' \
-            "$label" '-' '-' '-' '-' '-' '-' '-' 'NOT-INITIALIZED'
+        printf '%-15s %-8s %-8s %-15s %-15s %-10s %-10s %-10s %-11s %-6s %s\n' \
+            "$label" '-' '-' '-' '-' '-' '-' '-' '-' '-' 'NOT-INITIALIZED'
         STATUS_PROBLEMS=$((STATUS_PROBLEMS + 1))
         return
     fi
 
-    local version expected branch head pin tree upstream sync check
+    local version target_version expected branch head pin tree upstream sync main check
     version="$(read_version "$repo/$version_file" 2>/dev/null || true)"
-    if [[ -n "$version" ]]; then
-        expected="dev/$version"
+    [[ -n "$version" ]] || version='?'
+    branch="$(branch_name "$repo")"
+
+    if [[ "$branch" == dev/* ]]; then
+        target_version="${branch#dev/}"
+        expected="$branch"
+    elif [[ "$version" != '?' ]]; then
+        target_version="$(next_minor_version "$version" 2>/dev/null || true)"
+        if [[ -n "$target_version" ]]; then
+            expected="dev/$target_version"
+        else
+            target_version='?'
+            expected='?'
+        fi
     else
-        version='?'
+        target_version='?'
         expected='?'
     fi
-    branch="$(branch_name "$repo")"
+
     head="$(short_head "$repo")"
     tree="$(tree_state "$repo")"
     IFS=$'\t' read -r upstream sync < <(upstream_state "$repo")
-
-    if [[ -n "$submodule_path" ]]; then
-        pin="$(root_pin "$submodule_path")"
-    else
-        pin='-'
-    fi
+    main="$(main_state "$repo")"
+    [[ -n "$submodule_path" ]] && pin="$(root_pin "$submodule_path")" || pin='-'
 
     check='OK'
     if [[ "$version" == '?' ]]; then
         check='NO-VERSION'
+    elif [[ "$target_version" == '?' ]]; then
+        check='BAD-VERSION'
     elif [[ "$branch" == 'DETACHED' ]]; then
         check='DETACHED'
+    elif [[ "$branch" == dev/* && "$version" != "$target_version" ]]; then
+        check="VERSION!=${target_version}"
     elif [[ "$branch" != "$expected" ]]; then
         check="BRANCH!=${expected}"
     fi
 
     if [[ -n "$submodule_path" && "$pin" != '-' && "$pin" != "$head" ]]; then
-        if [[ "$check" == 'OK' ]]; then
-            check='PIN!=HEAD'
-        else
-            check="${check},PIN!=HEAD"
-        fi
+        [[ "$check" == OK ]] && check='PIN!=HEAD' || check="${check},PIN!=HEAD"
     fi
+    [[ "$check" == OK ]] || STATUS_PROBLEMS=$((STATUS_PROBLEMS + 1))
 
-    if [[ "$tree" == 'DIRTY' ]]; then
-        if [[ "$check" == 'OK' ]]; then
-            check='DIRTY'
-        else
-            check="${check},DIRTY"
-        fi
-    fi
-
-    if [[ "$check" != 'OK' ]]; then
-        STATUS_PROBLEMS=$((STATUS_PROBLEMS + 1))
-    fi
-
-    printf '%-15s %-8s %-15s %-15s %-10s %-10s %-11s %-6s %s\n' \
-        "$label" "$version" "$branch" "$expected" "$head" "$pin" "$sync" "$tree" "$check"
-    if [[ "$upstream" != '-' ]]; then
-        printf '  upstream: %s\n' "$upstream"
-    fi
+    printf '%-15s %-8s %-8s %-15s %-15s %-10s %-10s %-10s %-11s %-6s %s\n' \
+        "$label" "$version" "$target_version" "$branch" "$expected" "$head" "$pin" "$main" "$sync" "$tree" "$check"
+    [[ "$upstream" == '-' ]] || printf '  upstream: %s\n' "$upstream"
 }
 
 print_other_submodule() {
@@ -184,9 +219,9 @@ print_other_submodule() {
 [[ -f "$ROOT/.gitmodules" ]] || fail "Missing $ROOT/.gitmodules"
 
 printf 'IBEIS workspace: %s\n\n' "$ROOT"
-printf '%-15s %-8s %-15s %-15s %-10s %-10s %-11s %-6s %s\n' \
-    PACKAGE VERSION BRANCH EXPECTED HEAD PIN SYNC TREE CHECK
-printf '%s\n' '----------------------------------------------------------------------------------------------------------------------'
+printf '%-15s %-8s %-8s %-15s %-15s %-10s %-10s %-10s %-11s %-6s %s\n' \
+    PACKAGE VERSION TARGET BRANCH EXPECTED HEAD PIN MAIN SYNC TREE CHECK
+printf '%s\n' '--------------------------------------------------------------------------------------------------------------------------------------------'
 
 print_managed 'utool'          "$ROOT/tpl/utool"          'utool/__init__.py'          'tpl/utool'
 print_managed 'vtool_ibeis'    "$ROOT/tpl/vtool_ibeis"    'vtool_ibeis/__init__.py'    'tpl/vtool_ibeis'
@@ -214,13 +249,16 @@ fi
 
 echo
 if (( STATUS_PROBLEMS == 0 )); then
-    echo 'Managed package branches match their declared versions.'
+    echo 'Managed package versions and branches match the release-preparation target.'
 else
     echo "$STATUS_PROBLEMS managed package(s) need attention."
 fi
 
+echo 'TARGET is the dev-branch version when already on dev/*; otherwise it is the next minor version of the declared package version.'
 echo 'PIN is the submodule commit recorded by the current IBEIS HEAD; PIN!=HEAD means the root gitlink has not caught up yet.'
+echo 'MAIN is the relation to the locally cached upstream main: merged means HEAD is already contained by main; +N/-M means branch-only/main-only commits.'
 echo 'SYNC is relative to the configured upstream and does not fetch from the network.'
+echo 'TREE is informational: unrelated tracked edits and untracked drafts are allowed and do not make CHECK fail.'
 
 if [[ "$STRICT" == 1 && "$STATUS_PROBLEMS" != 0 ]]; then
     exit 1

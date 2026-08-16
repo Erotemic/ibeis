@@ -4,7 +4,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 DEFAULT_ROOT="$(git -C "$SCRIPT_DIR" rev-parse --show-toplevel 2>/dev/null || true)"
 ROOT="${IBEIS_REPO:-$DEFAULT_ROOT}"
-REMOTE="${REMOTE:-origin}"
+REMOTE="${REMOTE:-}"
 INCLUDE_ROOT="${INCLUDE_ROOT:-0}"
 PULL_ANY_BRANCH="${PULL_ANY_BRANCH:-0}"
 DRY_RUN="${DRY_RUN:-0}"
@@ -21,6 +21,33 @@ run() {
     if [[ "$DRY_RUN" != 1 ]]; then
         "$@"
     fi
+}
+
+select_remote() {
+    local repo="$1"
+    local upstream remote
+    if [[ -n "$REMOTE" ]]; then
+        git -C "$repo" remote get-url "$REMOTE" >/dev/null 2>&1 || fail "$repo has no remote '$REMOTE'"
+        printf '%s\n' "$REMOTE"
+        return
+    fi
+    upstream="$(git -C "$repo" rev-parse --abbrev-ref --symbolic-full-name '@{upstream}' 2>/dev/null || true)"
+    if [[ "$upstream" == */* ]]; then
+        remote="${upstream%%/*}"
+        if git -C "$repo" remote get-url "$remote" >/dev/null 2>&1; then
+            printf '%s\n' "$remote"
+            return
+        fi
+    fi
+    for remote in origin Erotemic; do
+        if git -C "$repo" remote get-url "$remote" >/dev/null 2>&1; then
+            printf '%s\n' "$remote"
+            return
+        fi
+    done
+    remote="$(git -C "$repo" remote | head -n 1)"
+    [[ -n "$remote" ]] || fail "$repo has no Git remotes"
+    printf '%s\n' "$remote"
 }
 
 mapfile -t ALL_PATHS < <(
@@ -47,16 +74,16 @@ pull_repo() {
         echo "SKIP $label: branch '$branch' is not dev/* (set PULL_ANY_BRANCH=1 to override)"
         return
     fi
-    git -C "$repo" remote get-url "$REMOTE" >/dev/null 2>&1 || fail "$label has no remote '$REMOTE'"
+    local remote
+    remote="$(select_remote "$repo")"
 
     if [[ -n "$(git -C "$repo" status --porcelain)" ]]; then
-        echo "SKIP $label: dirty working tree"
-        return
+        echo "WARN $label: working tree is dirty; attempting fast-forward and letting Git protect conflicting files"
     fi
 
     echo "PULL $label: $branch"
-    run git -C "$repo" fetch "$REMOTE" "$branch"
-    run git -C "$repo" merge --ff-only "$REMOTE/$branch"
+    run git -C "$repo" fetch "$remote" "$branch"
+    run git -C "$repo" merge --ff-only "$remote/$branch"
 }
 
 [[ -d "$ROOT" ]] || fail "IBEIS root does not exist: $ROOT"

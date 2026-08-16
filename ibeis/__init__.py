@@ -3,7 +3,7 @@ IBEIS: main package init
 """
 from loguru import logger
 
-__version__ = '2.5.0'
+__version__ = '2.6.0'
 
 try:
     import cv2  # NOQA
