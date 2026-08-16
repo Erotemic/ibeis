@@ -232,7 +232,8 @@ def request_IBEISController(
                 dbdir=dbdir, ensure=ensure, wbaddr=wbaddr, verbose=verbose,
                 force_serial=force_serial, request_dbversion=request_dbversion,
                 request_stagingversion=request_stagingversion)
-        __IBEIS_CONTROLLER_CACHE__[dbdir] = ibs
+        if use_cache:
+            __IBEIS_CONTROLLER_CACHE__[dbdir] = ibs
     return ibs
 
 
