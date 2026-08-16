@@ -39,6 +39,42 @@ def _reset_signals():
     signal.signal(signal.SIGINT, signal.SIG_DFL)  # reset ctrl+c behavior
 
 
+def _ibeis_excepthook(exc_type, exc_value, tb):
+    """Report uncaught exceptions without relying on PyQt's default hook."""
+    import traceback
+
+    text = ''.join(traceback.format_exception(exc_type, exc_value, tb))
+
+    # Console builds have stderr.  PyInstaller windowed builds on Windows may
+    # not, so use the already-configured IBEIS file logger as a fallback.
+    stream = sys.stderr or getattr(sys, '__stderr__', None)
+    if stream is not None:
+        try:
+            stream.write(text)
+            stream.flush()
+            return
+        except Exception:
+            pass
+
+    try:
+        logger = ut.get_utool_logger()
+        if logger is not None:
+            logger.error(text.rstrip())
+    except Exception:
+        # An exception hook must never mask the exception it is reporting.
+        pass
+
+
+def _install_exception_hook():
+    """Install IBEIS exception reporting while preserving Unix coloring."""
+    if sys.platform.startswith('win32'):
+        # PyQt treats an untouched default sys.excepthook specially and may
+        # abort the process when an exception escapes a Qt callback.
+        sys.excepthook = _ibeis_excepthook
+    else:
+        ut.util_inject.inject_colored_exceptions()
+
+
 def _parse_args():
     from ibeis import params
     params.parse_args()
@@ -566,8 +602,8 @@ def _preload(mpl=True, par=True, logging=True):
         _init_parallel()
     # ctrl+c
     _init_signals()
-    # inject colored exceptions
-    ut.util_inject.inject_colored_exceptions()
+    # Install traceback reporting before the Qt event loop starts.
+    _install_exception_hook()
 
 
 def main_loop(main_locals, rungui=True, ipy=False, persist=True):
