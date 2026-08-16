@@ -56,7 +56,7 @@ if ut.VERBOSE:
 #import plottool_ibeis
 
 
-ENABLE_WILDBOOK_SIGNAL = True
+ENABLE_WILDBOOK_SIGNAL = False
 
 
 try:

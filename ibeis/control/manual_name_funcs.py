@@ -1146,6 +1146,7 @@ def set_name_texts(ibs, name_rowid_list, name_text_list, verbose=False,
 
     Example:
         >>> # DISABLE_DOCTEST
+        >>> # FIXME: Setter tests require an ephemeral database
         >>> from ibeis.control.manual_name_funcs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
