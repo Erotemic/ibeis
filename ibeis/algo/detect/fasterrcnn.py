@@ -3,6 +3,7 @@
 Interface to Faster R-CNN object proposals.
 """
 from __future__ import absolute_import, division, print_function
+from loguru import logger
 import utool as ut
 import vtool_ibeis as vt
 from six.moves import zip, range
@@ -10,7 +11,6 @@ from os.path import abspath, dirname, expanduser, join, exists  # NOQA
 import numpy as np
 import sys
 import cv2
-(print, rrr, profile) = ut.inject2(__name__, '[faster r-cnn]')
 
 # SCRIPT_PATH = abspath(dirname(__file__))
 SCRIPT_PATH = abspath(expanduser(join('~', 'code', 'py-faster-rcnn')))
@@ -37,12 +37,12 @@ if not ut.get_argflag('--no-faster-rcnn'):
         from fast_rcnn.test import im_detect
         # from fast_rcnn.nms_wrapper import nms
     except AssertionError as ex:
-        print('WARNING Failed to find py-faster-rcnn. '
+        logger.info('WARNING Failed to find py-faster-rcnn. '
               'Faster R-CNN is unavailable')
         # if ut.SUPER_STRICT:
         #     raise
     except ImportError as ex:
-        print('WARNING Failed to import fast_rcnn. '
+        logger.info('WARNING Failed to import fast_rcnn. '
               'Faster R-CNN is unavailable')
         # if ut.SUPER_STRICT:
         #     raise

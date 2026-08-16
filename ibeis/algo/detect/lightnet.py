@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 """Interface to Lightnet object proposals."""
 from __future__ import absolute_import, division, print_function
+from loguru import logger
 import utool as ut
 from six.moves import zip
 import numpy as np
 from os.path import abspath, dirname, expanduser, join, exists  # NOQA
 import cv2
 from tqdm import tqdm
-(print, rrr, profile) = ut.inject2(__name__, '[lightnet]')
 
 
 if not ut.get_argflag('--no-lightnet'):
@@ -16,7 +16,7 @@ if not ut.get_argflag('--no-lightnet'):
         from torchvision import transforms as tf
         import lightnet as ln
     except ImportError:
-        print('WARNING Failed to import lightnet. '
+        logger.info('WARNING Failed to import lightnet. '
               'PyDarknet YOLO detection is unavailable')
         if ut.SUPER_STRICT:
             raise

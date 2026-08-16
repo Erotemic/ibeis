@@ -11,6 +11,7 @@ CommandLine:
 
 
 """
+from loguru import logger
 import numpy as np
 import utool as ut
 from plottool_ibeis import interact_helpers as ih
@@ -22,7 +23,6 @@ from ibeis.viz import viz_helpers as vh
 from ibeis.other import ibsfuncs
 from ibeis.viz import viz_chip
 from plottool_ibeis.abstract_interaction import AbstractInteraction
-(print, rrr, profile) = ut.inject2(__name__, '[interact_name]', DEBUG=False)
 
 
 #==========================
@@ -33,7 +33,7 @@ MAX_COLS = 3
 
 
 def build_name_context_options(ibs, nids):
-    print('build_name_context_options nids = %r' % (nids,))
+    logger.info('build_name_context_options nids = %r' % (nids,))
     callback_list = []
     from ibeis.viz import viz_graph2
     callback_list.extend([
@@ -81,7 +81,7 @@ def ishow_name(ibs, nid, sel_aids=[], select_aid_callback=None, fnum=5, dodraw=T
             viztype = vh.get_ibsdat(ax, 'viztype')
             if viztype == 'chip':
                 aid = vh.get_ibsdat(ax, 'aid')
-                print('... aid=%r' % aid)
+                logger.info('... aid=%r' % aid)
                 if event.button == 3:   # right-click
                     import guitool_ibeis
                     from ibeis.viz.interact import interact_chip
@@ -146,9 +146,9 @@ class MatchVerificationInteraction(AbstractInteraction):
     def __init__(self, ibs, aid1, aid2, update_callback=None,
                  backend_callback=None, dodraw=True, max_cols=MAX_COLS, **kwargs):
         if ut.VERBOSE:
-            print('[matchver] __init__')
+            logger.info('[matchver] __init__')
         if ut.VERBOSE or ut.is_developer():
-            print('[matchver] __init__ aid1=%r, aid2=%r ' % (aid1, aid2))
+            logger.info('[matchver] __init__ aid1=%r, aid2=%r ' % (aid1, aid2))
         super(MatchVerificationInteraction, self).__init__(**kwargs)
         self.ibs = ibs
         self.max_cols = max_cols
@@ -209,12 +209,12 @@ class MatchVerificationInteraction(AbstractInteraction):
         # Grab not just the exemplars
 
         if ut.VERBOSE or ut.is_developer():
-            print('[matchver] __init__ nid1=%r, nid2=%r ' % (self.nid1, self.nid2))
-            print('[matchver] __init__ self.gts_list=%r ' % (self.gts_list))
+            logger.info('[matchver] __init__ nid1=%r, nid2=%r ' % (self.nid1, self.nid2))
+            logger.info('[matchver] __init__ self.gts_list=%r ' % (self.gts_list))
 
         if ut.VERBOSE or ut.is_developer():
-            print('[matchver] __init__ nid1=%r, nid2=%r ' % (self.nid1, self.nid2))
-            print('[matchver] __init__ self.gts_list=%r ' % (self.gts_list))
+            logger.info('[matchver] __init__ nid1=%r, nid2=%r ' % (self.nid1, self.nid2))
+            logger.info('[matchver] __init__ self.gts_list=%r ' % (self.gts_list))
 
     def get_other_nids(self):
         ibs = self.ibs
@@ -323,9 +323,9 @@ class MatchVerificationInteraction(AbstractInteraction):
         """
         if ut.VERBOSE:
             if not fulldraw:
-                print('[matchver] show_page(fulldraw=%r, onlyrows=%r)' % (fulldraw, onlyrows))
+                logger.info('[matchver] show_page(fulldraw=%r, onlyrows=%r)' % (fulldraw, onlyrows))
             else:
-                print('[matchver] show_page(fulldraw=%r)' % (fulldraw))
+                logger.info('[matchver] show_page(fulldraw=%r)' % (fulldraw))
         self.prepare_page(fulldraw=fulldraw)
         # Variables we will work with to paint a pretty picture
         ibs = self.ibs
@@ -341,7 +341,7 @@ class MatchVerificationInteraction(AbstractInteraction):
         row_aids_list = self.get_row_aids_list()
 
         if self.cm is not None:
-            print("DRAWING QRES")
+            logger.info("DRAWING QRES")
             pnum = (1, nCols, 1)
             if not fulldraw:
                 # not doing full draw so we have to clear any axes
@@ -368,8 +368,8 @@ class MatchVerificationInteraction(AbstractInteraction):
                         color = self.nid2_color[nid]
                 except Exception as ex:
                     ut.printex(ex)
-                    print('nid = %r' % (nid,))
-                    print('self.nid2_color = %s' % (ut.repr2(self.nid2_color),))
+                    logger.info('nid = %r' % (nid,))
+                    logger.info('self.nid2_color = %s' % (ut.repr2(self.nid2_color),))
                     raise
                 px = colx + offset
                 ax = self.plot_chip(int(aid), nRows, nCols, px, color=color, fulldraw=fulldraw)
@@ -571,7 +571,7 @@ class MatchVerificationInteraction(AbstractInteraction):
 
     def unname_annotation(self, aid, event=None):
         if ut.VERBOSE:
-            print('remove name')
+            logger.info('remove name')
         self.ibs.delete_annot_nids([aid])
         self.update_callback()
         self.backend_callback()
@@ -579,7 +579,7 @@ class MatchVerificationInteraction(AbstractInteraction):
 
     def mark_annotation_as_new_name(self, aid, event=None):
         if ut.VERBOSE:
-            print('new name')
+            logger.info('new name')
         self.ibs.set_annot_names_to_same_new_name([aid])
         self.update_callback()
         self.backend_callback()
@@ -587,7 +587,7 @@ class MatchVerificationInteraction(AbstractInteraction):
 
     def rename_annotation(self, aid, nid, event=None):
         if ut.VERBOSE:
-            print('rename nid1')
+            logger.info('rename nid1')
         self.ibs.set_annot_name_rowids([aid], [nid])
         self.update_callback()
         self.backend_callback()
@@ -601,11 +601,11 @@ class MatchVerificationInteraction(AbstractInteraction):
 
     def review(self, event=None):
         if ut.VERBOSE:
-            print('review pressed')
+            logger.info('review pressed')
         if self.qres_callback is not None:
             self.qres_callback()
         else:
-            print('Warning: no review callback connected.')
+            logger.info('Warning: no review callback connected.')
 
     def close_(self, event=None):
         # closing this gui with the button means you have reviewed the annotation.
@@ -614,7 +614,7 @@ class MatchVerificationInteraction(AbstractInteraction):
 
     def unname_all(self, event=None):
         if ut.VERBOSE:
-            print('unname_all')
+            logger.info('unname_all')
         self.ibs.delete_annot_nids(self.all_aid_list)
         self.show_page()
 

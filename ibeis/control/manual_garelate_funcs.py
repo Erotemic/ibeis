@@ -11,12 +11,12 @@ ToRegenerate:
     python -m ibeis.templates.template_generator --key gar --Tcfg with_web_api=True with_api_cache=False with_deleters=True no_extern_deleters=True --write
 """
 from __future__ import absolute_import, division, print_function
+from loguru import logger
 from six.moves import zip
 from ibeis import constants as const
 import utool as ut
 from ibeis.control import controller_inject
 from ibeis.control import accessor_decors
-print, rrr, profile = ut.inject2(__name__)
 
 # Create dectorator to inject functions in this module into the IBEISController
 CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(__name__)
@@ -116,7 +116,7 @@ def delete_gar(ibs, gar_rowid_list, config2_=None):
     #from ibeis.algo.preproc import preproc_gar
     # NO EXTERN IMPORT
     if ut.VERBOSE:
-        print('[ibs] deleting %d gar rows' %
+        logger.info('[ibs] deleting %d gar rows' %
               len(gar_rowid_list))
     # Prepare: Delete externally stored data (if any)
     #preproc_gar.on_delete(ibs, gar_rowid_list, config2_=config2_)

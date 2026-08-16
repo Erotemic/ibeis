@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 import numpy as np
 import warnings
 import utool as ut
@@ -8,7 +9,6 @@ import six
 import networkx as nx
 from ibeis.algo.graph.state import (POSTV, NEGTV, INCMP, UNREV, UNKWN)
 from ibeis.algo.graph.state import (SAME, DIFF, NULL)  # NOQA
-print, rrr, profile = ut.inject2(__name__)
 
 
 class GraphVisualization(object):
@@ -152,7 +152,6 @@ class GraphVisualization(object):
                     colors[idx] = pt.GRAY
         return edges, colors
 
-    @profile
     def get_colored_weights(infr, weights):
         import plottool_ibeis as pt
         #pt.rrrr()
@@ -226,7 +225,6 @@ class GraphVisualization(object):
             ]
         return GraphVizConfig
 
-    @profile
     def update_visual_attrs(infr, graph=None,
                             show_reviewed_edges=True,
                             show_unreviewed_edges=False,
@@ -517,7 +515,6 @@ class GraphVisualization(object):
             for key, node_to_attr in node_overrides.items():
                 nx.set_node_attributes(graph, name=key, values=node_to_attr)
 
-    @profile
     def show_graph(infr, graph=None, use_image=False, update_attrs=True,
                    with_colorbar=False, pnum=(1, 1, 1), zoomable=True,
                    pickable=False, **kwargs):
@@ -641,10 +638,10 @@ class GraphVisualization(object):
         return win
 
     def debug_edge_repr(infr):
-        print('DEBUG EDGE REPR')
+        logger.info('DEBUG EDGE REPR')
         for u, v, d in infr.graph.edges(data=True):
-            print('edge = %r, %r' % (u, v))
-            print(infr.repr_edge_data(d, visual=False))
+            logger.info('edge = %r, %r' % (u, v))
+            logger.info(infr.repr_edge_data(d, visual=False))
 
     def repr_edge_data(infr, all_edge_data, visual=True):
         visual_edge_data = {k: v for k, v in all_edge_data.items()
@@ -723,7 +720,7 @@ class GraphVisualization(object):
 
 def on_pick(event, infr=None):
     import plottool_ibeis as pt
-    print('ON PICK: %r' % (event,))
+    logger.info('ON PICK: %r' % (event,))
     artist = event.artist
     plotdat = pt.get_plotdat_dict(artist)
     if plotdat:
@@ -734,19 +731,19 @@ def on_pick(event, infr=None):
             node = plotdat['node']
             node_data['degree'] = infr.graph.degree(node)
             node_label = infr.pos_graph.node_label(node)
-            print('visual_node_data: ' + ut.repr2(visual_node_data, nl=1))
-            print('node_data: ' + ut.repr2(node_data, nl=1))
+            logger.info('visual_node_data: ' + ut.repr2(visual_node_data, nl=1))
+            logger.info('node_data: ' + ut.repr2(node_data, nl=1))
             ut.cprint('node: ' + ut.repr2(plotdat['node']), 'blue')
-            print('(pcc) node_label = %r' % (node_label,))
-            print('artist = %r' % (artist,))
+            logger.info('(pcc) node_label = %r' % (node_label,))
+            logger.info('artist = %r' % (artist,))
         elif 'edge' in plotdat:
             all_edge_data = ut.sort_dict(plotdat['edge_data'].copy())
-            print(infr.repr_edge_data(all_edge_data))
+            logger.info(infr.repr_edge_data(all_edge_data))
             ut.cprint('edge: ' + ut.repr2(plotdat['edge']), 'blue')
-            print('artist = %r' % (artist,))
+            logger.info('artist = %r' % (artist,))
         else:
-            print('???: ' + ut.repr2(plotdat))
-    print(ut.get_timestamp())
+            logger.info('???: ' + ut.repr2(plotdat))
+    logger.info(ut.get_timestamp())
 
 
 if __name__ == '__main__':

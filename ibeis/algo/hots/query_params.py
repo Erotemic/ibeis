@@ -3,7 +3,6 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import utool as ut
 from ibeis.algo.hots import hstypes
 from ibeis.algo import Config
-(print, rrr, profile) = ut.inject2(__name__)
 
 try:
     from collections import Mapping
@@ -14,7 +13,6 @@ except Exception:
 # This object will behave like a dictionary with ** capability
 class QueryParams(Mapping):
 
-    @profile
     def __init__(qparams, query_cfg=None, cfgdict=None):
         """
         DEPRICATE
@@ -99,7 +97,6 @@ class QueryParams(Mapping):
         # print(ut.repr3([c.asdict() for c in ibs.depc.get_config_trail('featweight', {})]))
         return lnbnn_trail
 
-    @profile
     def get_postsver_filtkey_list(qparams):
         """ HACK: gets columns of fsv post spatial verification.  This will
         eventually be incorporated into cmtup_old instead and will not be

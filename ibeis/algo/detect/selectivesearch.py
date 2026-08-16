@@ -3,6 +3,7 @@
 Interface to Selective Search object proposals.
 """
 from __future__ import absolute_import, division, print_function
+from loguru import logger
 import utool as ut
 import vtool_ibeis as vt
 from six.moves import zip
@@ -13,7 +14,6 @@ import os
 from os.path import abspath, dirname, expanduser, join, exists  # NOQA
 import numpy as np
 import scipy.io
-(print, rrr, profile) = ut.inject2(__name__, '[selective search]')
 
 # SCRIPT_PATH = abspath(dirname(__file__))
 SCRIPT_PATH = abspath(expanduser(join('~', 'code', 'selective_search_ijcv_with_python')))
@@ -22,7 +22,7 @@ if not ut.get_argflag('--no-selective-search'):
     try:
         assert exists(SCRIPT_PATH)
     except AssertionError as ex:
-        print('WARNING Failed to find selective_search_ijcv_with_python. '
+        logger.info('WARNING Failed to find selective_search_ijcv_with_python. '
               'Selective Search is unavailable')
         # if ut.SUPER_STRICT:
         #     raise
@@ -129,7 +129,7 @@ def detect(gpath_list, matlab_command='selective_search', verbose=VERBOSE_SS, **
     gpath_str = '{%s}' % (','.join([ "'%s'" % (gpath, ) for gpath in gpath_list ]))
     matlab_command_str = "%s(%s, '%s')" % (matlab_command, gpath_str, temp_filepath)
     if verbose:
-        print('Calling: %s' % (matlab_command_str, ))
+        logger.info('Calling: %s' % (matlab_command_str, ))
 
     # Execute command in MATLAB.
     bash_command = 'matlab -nojvm -r "try; %s; catch; exit; end; exit"'

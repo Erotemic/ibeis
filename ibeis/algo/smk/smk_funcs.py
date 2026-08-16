@@ -59,11 +59,11 @@ References:
     https://arxiv.org/pdf/1407.2170.pdf
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 from six.moves import zip
 import utool as ut
 import vtool_ibeis as vt
 import numpy as np
-(print, rrr, profile) = ut.inject2(__name__)
 
 
 def cast_residual_integer(rvecs):
@@ -236,7 +236,7 @@ def compute_stacked_agg_rvecs(words, flat_wxs_assign, flat_vecs, flat_offsets):
         all_agg_vecs[offsets, :] = agg_rvecs_
 
     assert not np.any(np.isnan(all_agg_vecs))
-    print('Apply normalization')
+    logger.info('Apply normalization')
     vt.normalize(all_agg_vecs, axis=1, out=all_agg_vecs)
     all_error_flags = np.all(np.isnan(all_agg_vecs), axis=1)
     all_agg_vecs[all_error_flags, :] = 0
@@ -430,10 +430,10 @@ def weight_multi_assigns(_idx_to_wx, _idx_to_wdist, massign_alpha=1.2,
         invalid = np.greater_equal(_idx_to_wdist, ma_thresh)
         if ut.VERBOSE:
             nInvalid = (invalid.size - invalid.sum(), invalid.size)
-            print('[maw] + massign_alpha = %r' % (massign_alpha,))
-            print('[maw] + massign_sigma = %r' % (massign_sigma,))
-            print('[maw] + massign_equal_weights = %r' % (massign_equal_weights,))
-            print('[maw] * Marked %d/%d assignments as invalid' % nInvalid)
+            logger.info('[maw] + massign_alpha = %r' % (massign_alpha,))
+            logger.info('[maw] + massign_sigma = %r' % (massign_sigma,))
+            logger.info('[maw] + massign_equal_weights = %r' % (massign_equal_weights,))
+            logger.info('[maw] * Marked %d/%d assignments as invalid' % nInvalid)
 
         if massign_equal_weights:
             # Performance hack from jegou paper: just give everyone equal weight
@@ -514,9 +514,9 @@ def assign_to_words(vocab, idx_to_vec, nAssign, massign_alpha=1.2,
     if verbose is None:
         verbose = ut.VERBOSE
     if verbose:
-        print('[vocab.assign] +--- Start Assign vecs to words.')
-        print('[vocab.assign] * nAssign=%r' % nAssign)
-        print('[vocab.assign] assign_to_words_. len(idx_to_vec) = %r' % len(idx_to_vec))
+        logger.info('[vocab.assign] +--- Start Assign vecs to words.')
+        logger.info('[vocab.assign] * nAssign=%r' % nAssign)
+        logger.info('[vocab.assign] assign_to_words_. len(idx_to_vec) = %r' % len(idx_to_vec))
     _idx_to_wx, _idx_to_wdist = vocab.nn_index(idx_to_vec, nAssign)
     if nAssign > 1:
         idx_to_wxs, idx_to_maws = weight_multi_assigns(
@@ -583,7 +583,7 @@ def invert_assigns_old(idx_to_wxs, idx_to_maws, verbose=False):
         idxs[:] = idxs[_sortx]
 
     if verbose:
-        print('[vocab] L___ End Assign vecs to words.')
+        logger.info('[vocab] L___ End Assign vecs to words.')
     return (wx_to_idxs, wx_to_maws)
 
 
@@ -657,7 +657,7 @@ def invert_assigns(idx_to_wxs, idx_to_maws, verbose=False):
         idxs[:] = idxs[_sortx]
 
     if verbose:
-        print('[vocab] L___ End Assign vecs to words.')
+        logger.info('[vocab] L___ End Assign vecs to words.')
     return (wx_to_idxs, wx_to_maws)
 
 
@@ -727,7 +727,6 @@ def inv_doc_freq(ndocs_total, ndocs_per_word):
     # return idf_per_word
 
 
-@profile
 def match_scores_agg(PhisX, PhisY, flagsX, flagsY, alpha, thresh):
     """
     Scores matches to multiple words using aggregate residual vectors
@@ -765,7 +764,6 @@ def match_scores_agg(PhisX, PhisY, flagsX, flagsY, alpha, thresh):
     return score_list
 
 
-@profile
 def match_scores_sep(phisX_list, phisY_list, flagsX_list, flagsY_list, alpha,
                      thresh):
     """
@@ -783,7 +781,6 @@ def match_scores_sep(phisX_list, phisY_list, flagsX_list, flagsY_list, alpha,
     return scores_list
 
 
-@profile
 def build_matches_agg(X_fxs, Y_fxs, X_maws, Y_maws, score_list):
     r"""
     Builds explicit features matches. Break and distribute up each aggregate
@@ -833,7 +830,6 @@ def build_matches_agg(X_fxs, Y_fxs, X_maws, Y_maws, score_list):
     return fm, fs
 
 
-@profile
 def build_matches_sep(X_fxs, Y_fxs, scores_list):
     r"""
     Just build matches. Scores have already been broken up. No need to do that.
@@ -872,7 +868,6 @@ def build_matches_sep(X_fxs, Y_fxs, scores_list):
     return fm, fs
 
 
-@profile
 def gamma_agg(phisX, flagsX, weight_list, alpha, thresh):
     r"""
     Computes gamma (self consistency criterion)
@@ -897,7 +892,6 @@ def gamma_agg(phisX, flagsX, weight_list, alpha, thresh):
     return sccw
 
 
-@profile
 def gamma_sep(phisX_list, flagsX_list, weight_list, alpha, thresh):
     scores_list = match_scores_sep(phisX_list, phisX_list, flagsX_list,
                                    flagsX_list, alpha, thresh)
@@ -913,7 +907,6 @@ def sccw_normalize(scores, weight_list):
     return sccw
 
 
-@profile
 def selective_match_score(phisX, phisY, flagsX, flagsY, alpha, thresh):
     """
     computes the score of each feature match
@@ -927,7 +920,6 @@ def selective_match_score(phisX, phisY, flagsX, flagsY, alpha, thresh):
     return score
 
 
-@profile
 def selectivity(u, alpha=3.0, thresh=0.0, out=None):
     r"""
     The selectivity function thresholds and applies a power law.

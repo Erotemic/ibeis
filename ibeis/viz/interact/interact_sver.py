@@ -1,8 +1,8 @@
+from loguru import logger
 import utool as ut
 from ibeis import viz
 from ibeis.viz import viz_helpers as vh
 from plottool_ibeis import interact_helpers as ih
-(print, rrr, profile) = ut.inject2(__name__, '[interact_sver]')
 
 
 def ishow_sver(ibs, aid1, aid2, chipmatch_FILT=None, aid2_svtup=None, fnum=None, **kwargs):
@@ -18,7 +18,7 @@ def ishow_sver(ibs, aid1, aid2, chipmatch_FILT=None, aid2_svtup=None, fnum=None,
     def _on_sv_click(event):
         ax = event.inaxes
         if ih.clicked_outside_axis(event):
-            print('... out of axis')
+            logger.info('... out of axis')
             mode_ptr[0] = (mode_ptr[0] + 1) % 3
             kwargs['show_kpts']  = mode_ptr[0] == 2
             kwargs['show_lines'] = mode_ptr[0] >= 1
@@ -28,7 +28,7 @@ def ishow_sver(ibs, aid1, aid2, chipmatch_FILT=None, aid2_svtup=None, fnum=None,
             if viztype in ['homogblend', 'affblend', 'source', 'dest']:
                 pass
             else:
-                print('...Unknown viztype: %r' % viztype)
+                logger.info('...Unknown viztype: %r' % viztype)
         viz.draw()
 
     _sv_view()

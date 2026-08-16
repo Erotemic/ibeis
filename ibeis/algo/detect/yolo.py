@@ -3,17 +3,17 @@
 Interface to pydarknet yolo object detection.
 """
 from __future__ import absolute_import, division, print_function
+from loguru import logger
 import utool as ut
 import vtool_ibeis as vt
 from six.moves import zip
-(print, rrr, profile) = ut.inject2(__name__, '[yolo]')
 
 if not ut.get_argflag('--no-pydarknet'):
     try:
         import pydarknet
     except ImportError:
         if 0:
-            print('WARNING Failed to import pydarknet. '
+            logger.info('WARNING Failed to import pydarknet. '
                   'PyDarknet YOLO detection is unavailable')
         if ut.SUPER_STRICT:
             raise

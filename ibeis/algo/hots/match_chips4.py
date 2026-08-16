@@ -3,12 +3,12 @@
 Runs functions in pipeline to get query reuslts and does some caching.
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 import ubelt as ub
 import utool as ut
 from os.path import exists
 from ibeis.algo.hots import chip_match
 from ibeis.algo.hots import pipeline
-(print, rrr, profile) = ut.inject2(__name__)
 
 
 # TODO: Move to params
@@ -27,7 +27,6 @@ HOTS_BATCH_SIZE = ut.get_argval('--hots-batch-size', type_=int, default=None)
 # Main Query Logic
 #----------------------
 
-@profile
 def submit_query_request(qreq_, use_cache=None, use_bigcache=None,
                          verbose=None, save_qcache=None, use_supercache=None,
                          invalidate_supercache=None):
@@ -67,7 +66,7 @@ def submit_query_request(qreq_, use_cache=None, use_bigcache=None,
     # Create new query request object to store temporary state
     if verbose:
         #print('[mc4] --- Submit QueryRequest_ --- ')
-        print(ub.color_text('[mc4] --- Submit QueryRequest_ --- ', 'yellow'))
+        logger.info(ub.color_text('[mc4] --- Submit QueryRequest_ --- ', 'yellow'))
     assert qreq_ is not None, 'query request must be prebuilt'
 
     # Check fo empty queries
@@ -109,7 +108,6 @@ def submit_query_request(qreq_, use_cache=None, use_bigcache=None,
     return cm_list
 
 
-@profile
 def execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose=True,
                               batch_size=None, use_supercache=False,
                               invalidate_supercache=False):
@@ -217,9 +215,9 @@ def execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose=True,
 
     if use_cache:
         if verbose:
-            print('[mc4] cache-query is on')
+            logger.info('[mc4] cache-query is on')
         if use_supercache:
-            print('[mc4] supercache-query is on')
+            logger.info('[mc4] supercache-query is on')
         # Try loading as many cached results as possible
         qaid2_cm_hit = {}
         external_qaids = qreq_.qaids
@@ -239,7 +237,7 @@ def execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose=True,
                 'inconsistent qaid and cm.qaid')
             qaid2_cm_hit = {cm.qaid: cm for cm in cm_hit_list}
         except chip_match.NeedRecomputeError:
-            print('NeedRecomputeError: Some cached chips need to recompute')
+            logger.info('NeedRecomputeError: Some cached chips need to recompute')
             fpath_iter = ut.ProgIter(
                 fpaths_hit, length=len(fpaths_hit), enabled=len(fpaths_hit) > 1,
                 label='checking chipmatch cache', adjust=True, freq=1)
@@ -252,20 +250,20 @@ def execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose=True,
                     pass
                 else:
                     qaid2_cm_hit[cm.qaid] = cm
-            print('%d / %d cached matches need to be recomputed' % (
+            logger.info('%d / %d cached matches need to be recomputed' % (
                 len(qaids_hit) - len(qaid2_cm_hit), len(qaids_hit)))
         if len(qaid2_cm_hit) == len(external_qaids):
             return qaid2_cm_hit
         else:
             if len(qaid2_cm_hit) > 0 and not ut.QUIET:
-                print('... partial cm cache hit %d/%d' % (
+                logger.info('... partial cm cache hit %d/%d' % (
                     len(qaid2_cm_hit), len(external_qaids)))
         cachehit_qaids = list(qaid2_cm_hit.keys())
         # mask queries that have already been executed
         qreq_.set_external_qaid_mask(cachehit_qaids)
     else:
         if ut.VERBOSE:
-            print('[mc4] cache-query is off')
+            logger.info('[mc4] cache-query is off')
         qaid2_cm_hit = {}
     qaid2_cm = execute_query2(qreq_, verbose, save_qcache, batch_size, use_supercache)
     # Merge cache hits with computed misses
@@ -275,7 +273,6 @@ def execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose=True,
     return qaid2_cm
 
 
-@profile
 def execute_query2(qreq_, verbose, save_qcache, batch_size=None, use_supercache=False):
     """
     Breaks up query request into several subrequests
@@ -291,7 +288,7 @@ def execute_query2(qreq_, verbose, save_qcache, batch_size=None, use_supercache=
     qreq_.lazy_preload(prog_hook=preload_hook, verbose=verbose and ut.NOT_QUIET)
 
     all_qaids = qreq_.qaids
-    print('len(missed_qaids) = %r' % (len(all_qaids),))
+    logger.info('len(missed_qaids) = %r' % (len(all_qaids),))
     qaid2_cm = {}
     # vsone must have a chunksize of 1
     if batch_size is None:
@@ -313,7 +310,7 @@ def execute_query2(qreq_, verbose, save_qcache, batch_size=None, use_supercache=
                                 prog_hook=qreq_.prog_hook)
     for sub_qreq_ in sub_qreq_iter:
         if ut.VERBOSE:
-            print('Generating vsmany chunk')
+            logger.info('Generating vsmany chunk')
         sub_cm_list = pipeline.request_ibeis_query_L0(qreq_.ibs, sub_qreq_,
                                                       verbose=verbose)
         assert len(sub_qreq_.qaids) == len(sub_cm_list), 'not aligned'
@@ -328,7 +325,7 @@ def execute_query2(qreq_, verbose, save_qcache, batch_size=None, use_supercache=
                 cm.save_to_fpath(fpath, verbose=False)
         else:
             if ut.VERBOSE:
-                print('[mc4] not saving vsmany chunk')
+                logger.info('[mc4] not saving vsmany chunk')
         qaid2_cm.update({cm.qaid: cm for cm in sub_cm_list})
     return qaid2_cm
 

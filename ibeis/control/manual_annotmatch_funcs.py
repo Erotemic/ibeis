@@ -10,11 +10,11 @@ ToRegenerate:
     python -m ibeis.templates.template_generator --key annotmatch --Tcfg with_web_api=False with_api_cache=False with_deleters=True no_extern_deleters=True --diff
     python -m ibeis.templates.template_generator --key annotmatch --Tcfg with_web_api=False with_api_cache=False with_deleters=True no_extern_deleters=True --write
 """
+from loguru import logger
 from ibeis import constants as const
 import utool as ut
 from ibeis.control import controller_inject
 from ibeis.control import accessor_decors
-print, rrr, profile = ut.inject2(__name__)
 
 # Create dectorator to inject functions in this module into the IBEISController
 CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(__name__)
@@ -151,7 +151,7 @@ def delete_annotmatch(ibs, annotmatch_rowid_list):
     #from ibeis.algo.preproc import preproc_annotmatch
     # NO EXTERN IMPORT
     if ut.VERBOSE:
-        print('[ibs] deleting %d annotmatch rows' % len(annotmatch_rowid_list))
+        logger.info('[ibs] deleting %d annotmatch rows' % len(annotmatch_rowid_list))
     # Prepare: Delete externally stored data (if any)
     #preproc_annotmatch.on_delete(ibs, annotmatch_rowid_list, config2_=config2_)
     # NO EXTERN DELETE

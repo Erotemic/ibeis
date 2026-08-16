@@ -1,3 +1,4 @@
+from loguru import logger
 import six
 from ibeis import constants as const
 from ibeis.control import accessor_decors, controller_inject
@@ -5,7 +6,6 @@ from ibeis.control.controller_inject import make_ibs_register_decorator
 import functools
 import utool as ut
 import uuid
-print, rrr, profile = ut.inject2(__name__)
 
 
 IMAGESET_END_TIME_POSIX   = 'imageset_end_time_posix'
@@ -124,7 +124,7 @@ def add_imagesets(ibs, imagesettext_list, imageset_uuid_list=None,
         URL:    /api/imageset/
     """
     if ut.VERBOSE:
-        print('[ibs] adding %d imagesets' % len(imagesettext_list))
+        logger.info('[ibs] adding %d imagesets' % len(imagesettext_list))
     # Add imageset text names to database
     if notes_list is None:
         notes_list = [''] * len(imagesettext_list)
@@ -486,7 +486,6 @@ def get_imageset_uuids(ibs, imgsetid_list):
 @accessor_decors.getter_1toM
 @accessor_decors.cache_getter(const.IMAGESET_TABLE, 'image_rowids')
 @register_api('/api/imageset/image/rowid/', methods=['GET'])
-@profile
 def get_imageset_gids(ibs, imgsetid_list):
     r"""
     Returns:
@@ -753,7 +752,7 @@ def delete_imagesets(ibs, imgsetid_list):
     #ibs.db.delete_rowids(const.GSG_RELATION_TABLE, gsgrid_list)
     #ibs.db.delete(const.GSG_RELATION_TABLE, imgsetid_list, id_colname='imageset_rowid')
     if ut.VERBOSE:
-        print('[ibs] deleting %d imagesets' % len(imgsetid_list))
+        logger.info('[ibs] deleting %d imagesets' % len(imgsetid_list))
     ibs.delete_gsgr_imageset_relations(imgsetid_list)
     ibs.db.delete_rowids(const.IMAGESET_TABLE, imgsetid_list)
 

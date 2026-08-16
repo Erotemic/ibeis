@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 import networkx as nx
 import pandas as pd
 import utool as ut
@@ -8,7 +9,6 @@ import vtool_ibeis as vt  # NOQA
 import six
 from ibeis.algo.graph import nx_utils as nxu
 from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN  # NOQA
-print, rrr, profile = ut.inject2(__name__)
 
 
 class IBEISIO(object):
@@ -101,8 +101,8 @@ class IBEISIO(object):
         df = pd.DataFrame.from_dict(stats, orient='index')
         df = df.loc[list(stats.keys())]
         if verbose:
-            print('Name Group stats:')
-            print(df.to_string(float_format='%.2f'))
+            logger.info('Name Group stats:')
+            logger.info(df.to_string(float_format='%.2f'))
         return df
 
     def name_group_delta_stats(infr, old_ccs, new_ccs, verbose=False):
@@ -124,8 +124,8 @@ class IBEISIO(object):
         df = pd.DataFrame.from_dict(stats, orient='index')
         df = df.loc[list(stats.keys())]
         if verbose:
-            print('Name Group changes:')
-            print(df.to_string(float_format='%.2f'))
+            logger.info('Name Group changes:')
+            logger.info(df.to_string(float_format='%.2f'))
         return df
 
     def find_unjustified_splits(infr):
@@ -187,7 +187,6 @@ class IBEISIO(object):
                     #     print(df)
         return unjustified
 
-    @profile
     def reset_labels_to_ibeis(infr):
         """ Sets to IBEIS de-facto labels if available """
         nids = infr.ibs.get_annot_nids(infr.aids)
@@ -928,9 +927,9 @@ class IBEISIO(object):
         df_a = ibs.db['annotmatch'].as_pandas(matches._rowids)
         df_s = ibs.staging['reviews'].as_pandas(review_ids)
 
-        print('=====')
+        logger.info('=====')
 
-        print('AnnotMatch Raw')
+        logger.info('AnnotMatch Raw')
         df_a = df_a.rename(columns={c: c.replace('annotmatch_', '')
                                     for c in df_a.columns})
         df_s = df_s.rename(columns={
@@ -940,14 +939,14 @@ class IBEISIO(object):
             'tag_text': 'tag',
             'posixtime_modified': 'ts_s2',
         })
-        print(df_a)
+        logger.info(df_a)
 
-        print('AnnotMatch Feedback')
-        print(infr._pandas_feedback_format(infr.read_ibeis_staging_feedback([edge])))
+        logger.info('AnnotMatch Feedback')
+        logger.info(infr._pandas_feedback_format(infr.read_ibeis_staging_feedback([edge])))
 
-        print('----')
+        logger.info('----')
 
-        print('Staging Raw')
+        logger.info('Staging Raw')
         df_s = df_s.rename(columns={c: c.replace('review_', '')
                                     for c in df_s.columns})
         df_s = df_s.rename(columns={
@@ -964,11 +963,11 @@ class IBEISIO(object):
             'rowid', 'aid1', 'aid2', 'count', 'evidence_decision', 'meta_decision',
             'tags', 'confidence', 'user_id', 'ts_s1', 'ts_c1',
             'ts_c2', 'ts_s2', 'uuid'])
-        print(df_s)
+        logger.info(df_s)
 
-        print('Staging Feedback')
-        print(infr._pandas_feedback_format(infr.read_ibeis_annotmatch_feedback([edge])))
-        print('____')
+        logger.info('Staging Feedback')
+        logger.info(infr._pandas_feedback_format(infr.read_ibeis_annotmatch_feedback([edge])))
+        logger.info('____')
 
 
 class IBEISGroundtruth(object):
@@ -976,7 +975,6 @@ class IBEISGroundtruth(object):
     Methods for generating training labels for classifiers
     """
 
-    @profile
     def ibeis_guess_if_comparable(infr, aid_pairs):
         """
         Takes a guess as to which annots are not comparable based on scores and
@@ -1045,7 +1043,7 @@ def _update_staging_to_annotmatch(infr):
     infr.reset_feedback('annotmatch', apply=True)
     infr.status()
     """
-    print('Finding entries in annotmatch that are missing in staging')
+    logger.info('Finding entries in annotmatch that are missing in staging')
     reverse_df = infr.match_state_delta('annotmatch', 'staging')
     if len(reverse_df) > 0:
         raise AssertionError(
@@ -1053,9 +1051,9 @@ def _update_staging_to_annotmatch(infr):
             'some staging items have not been commited.'
         )
     df = infr.match_state_delta('staging', 'annotmatch')
-    print('There are {}/{} annotmatch items that do not exist in staging'.format(
+    logger.info('There are {}/{} annotmatch items that do not exist in staging'.format(
         sum(df['is_new']), len(df)))
-    print(ut.repr4(infr.ibeis_edge_delta_info(df)))
+    logger.info(ut.repr4(infr.ibeis_edge_delta_info(df)))
 
     # Find places that exist in annotmatch but not in staging
     flags = pd.isnull(df['old_evidence_decision'])
@@ -1089,8 +1087,8 @@ def fix_annotmatch_to_undirected_upper(ibs):
     is_equal = df['annot_rowid1'] == df['annot_rowid2']
     assert not np.any(is_equal)
 
-    print(is_lower.sum())
-    print(is_upper.sum())
+    logger.info(is_lower.sum())
+    logger.info(is_upper.sum())
 
     upper_edges = ut.estarmap(nxu.e_, df[is_upper].index.tolist())
     lower_edges = ut.estarmap(nxu.e_, df[is_lower].index.tolist())

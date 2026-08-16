@@ -3,13 +3,13 @@
 Interface to SSD object proposals.
 """
 from __future__ import absolute_import, division, print_function
+from loguru import logger
 import utool as ut
 import vtool_ibeis as vt
 from six.moves import zip
 from os.path import abspath, dirname, expanduser, join, exists  # NOQA
 import numpy as np
 import sys
-(print, rrr, profile) = ut.inject2(__name__, '[ssd]')
 
 # SCRIPT_PATH = abspath(dirname(__file__))
 SCRIPT_PATH = abspath(expanduser(join('~', 'code', 'ssd')))
@@ -31,12 +31,12 @@ if not ut.get_argflag('--no-ssd'):
         from google.protobuf import text_format
         from caffe.proto import caffe_pb2
     except AssertionError:
-        print('WARNING Failed to find ssd. '
+        logger.info('WARNING Failed to find ssd. '
               'SSD is unavailable')
         # if ut.SUPER_STRICT:
         #     raise
     except ImportError:
-        print('WARNING Failed to import caffe. '
+        logger.info('WARNING Failed to import caffe. '
               'SSD is unavailable')
         # if ut.SUPER_STRICT:
         #     raise
@@ -251,7 +251,7 @@ def detect(gpath_list, config_filepath, weight_filepath, class_filepath, sensiti
         image_resize = int(line_[-1])
         # Check to make sure
         assert image_resize in [300, 500, 512]
-        print('FOUND image_resize = %r' % (image_resize, ))
+        logger.info('FOUND image_resize = %r' % (image_resize, ))
 
     # Input preprocessing: 'data' is the name of the input blob == net.inputs[0]
     transformer = caffe.io.Transformer({'data': net.blobs['data'].data.shape})

@@ -5,8 +5,8 @@ ibeis.opendb and ibeis.main are the main entry points
 import sys
 import multiprocessing
 
+from loguru import logger
 import utool as ut
-profile = ut.profile
 
 QUIET = '--quiet' in sys.argv
 NOT_QUIET = not QUIET
@@ -40,39 +40,17 @@ def _reset_signals():
 
 
 def _ibeis_excepthook(exc_type, exc_value, tb):
-    """Report uncaught exceptions without relying on PyQt's default hook."""
-    import traceback
-
-    text = ''.join(traceback.format_exception(exc_type, exc_value, tb))
-
-    # Console builds have stderr.  PyInstaller windowed builds on Windows may
-    # not, so use the already-configured IBEIS file logger as a fallback.
-    stream = sys.stderr or getattr(sys, '__stderr__', None)
-    if stream is not None:
-        try:
-            stream.write(text)
-            stream.flush()
-            return
-        except Exception:
-            pass
-
+    """Report uncaught exceptions through the application logging sinks."""
     try:
-        logger = ut.get_utool_logger()
-        if logger is not None:
-            logger.error(text.rstrip())
+        logger.opt(exception=(exc_type, exc_value, tb)).critical('Unhandled exception')
     except Exception:
-        # An exception hook must never mask the exception it is reporting.
-        pass
+        # Exception reporting must never hide the original failure.
+        sys.__excepthook__(exc_type, exc_value, tb)
 
 
 def _install_exception_hook():
-    """Install IBEIS exception reporting while preserving Unix coloring."""
-    if sys.platform.startswith('win32'):
-        # PyQt treats an untouched default sys.excepthook specially and may
-        # abort the process when an exception escapes a Qt callback.
-        sys.excepthook = _ibeis_excepthook
-    else:
-        ut.util_inject.inject_colored_exceptions()
+    """Ensure Qt callbacks and normal Python failures share one crash path."""
+    sys.excepthook = _ibeis_excepthook
 
 
 def _parse_args():
@@ -589,10 +567,11 @@ def _preload(mpl=True, par=True, logging=True):
         print('[ibeis] _preload')
     _parse_args()
     # mpl backends
-    if logging and not params.args.nologging:
-        # Log in the configured ibeis log dir (which is maintained by utool)
-        # fix this to be easier to figure out where the logs actually are
-        ut.start_logging(appname='ibeis')
+    from ibeis import logging_config
+    logging_config.configure_logging(
+        enable_file=bool(logging and not params.args.nologging),
+        appname='ibeis',
+    )
     if mpl:
         _init_matplotlib()
     # numpy print settings

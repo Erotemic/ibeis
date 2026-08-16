@@ -1,3 +1,4 @@
+from loguru import logger
 import utool as ut
 import vtool_ibeis as vt
 from ibeis.viz import viz_helpers as vh
@@ -5,14 +6,13 @@ from ibeis.algo.detect import randomforest
 from os.path import splitext
 from plottool_ibeis import viz_image2
 import plottool_ibeis as pt
-(print, rrr, profile) = ut.inject2(__name__)
 
 
 def show_hough_image(ibs, gid, species=None, fnum=None, **kwargs):
     if fnum is None:
         fnum = pt.next_fnum()
     title = 'Hough Image: ' + vh.get_image_titles(ibs, gid)
-    print(title)
+    logger.info(title)
 
     if species is None:
         species = ibs.get_
@@ -24,13 +24,13 @@ def show_hough_image(ibs, gid, species=None, fnum=None, **kwargs):
     config = {
         'output_gpath_list': hough_gpath_list,
     }
-    print('-' * 80)
-    print('')
-    print('WARNING!!!')
-    print('Hough image is not used often and not worth putting into depcache.')
-    print('This image is computed as needed and not cached to disk.')
-    print('')
-    print('-' * 80)
+    logger.info('-' * 80)
+    logger.info('')
+    logger.info('WARNING!!!')
+    logger.info('Hough image is not used often and not worth putting into depcache.')
+    logger.info('This image is computed as needed and not cached to disk.')
+    logger.info('')
+    logger.info('-' * 80)
     results_list = list(randomforest.detect_gpath_list_with_species(  # NOQA
         ibs, src_gpath_list, species, **config))
     # Get path

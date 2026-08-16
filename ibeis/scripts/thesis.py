@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals  # NOQA
+from loguru import logger
 from ibeis.algo.verif import vsone
 from ibeis.scripts._thesis_helpers import DBInputs
 from ibeis.scripts._thesis_helpers import Tabular, upper_one, ave_str
@@ -18,7 +19,6 @@ import matplotlib as mpl
 import random
 import sys
 from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV  # NOQA
-(print, rrr, profile) = ut.inject2(__name__)
 
 
 class Chap5(DBInputs):
@@ -160,10 +160,10 @@ class Chap5(DBInputs):
         graph_thresh = res.get_pos_threshes(*self.thresh_targets['graph'])
         rankclf_thresh = res.get_pos_threshes(*self.thresh_targets['rankclf'])
 
-        print('\n--- Graph thresholds ---')
+        logger.info('\n--- Graph thresholds ---')
         graph_report = res.report_auto_thresholds(graph_thresh, verbose=0)
 
-        print('\n --- Ranking thresholds ---')
+        logger.info('\n --- Ranking thresholds ---')
         rankclf_report = res.report_auto_thresholds(rankclf_thresh, verbose=0)
 
         ut.writeto(join(self.dpath, 'thresh_reports.txt'),
@@ -287,9 +287,9 @@ class Chap5(DBInputs):
         actual_fpr = []
         actual_nums = []
         for c, est, t in zip(estimate, confusions, thresh):
-            print(t)
-            print(est)
-            print(c)
+            logger.info(t)
+            logger.info(est)
+            logger.info(c)
             # n_total = c.sum().sum()
             # n_true = np.diag(c).sum()
             # n_false = n_total - n_true
@@ -316,7 +316,6 @@ class Chap5(DBInputs):
             pt.plot(x, class_actual, 'o--', label='actual ' + class_name)
             pt.legend()
 
-    @profile
     def measure_simulation(self):
         """
         CommandLine:
@@ -424,8 +423,8 @@ class Chap5(DBInputs):
         pred_confusion = pd.DataFrame(infr.test_state['confusion'])
         pred_confusion.index.name = 'real'
         pred_confusion.columns.name = 'pred'
-        print('Edge confusion')
-        print(pred_confusion)
+        logger.info('Edge confusion')
+        logger.info(pred_confusion)
 
         expt_data = {
             'real_ccs': list(infr.nid_to_gt_cc.values()),
@@ -437,7 +436,6 @@ class Chap5(DBInputs):
         }
         return expt_data
 
-    @profile
     def measure_dbstats(self):
         """
         python -m ibeis Chap5.draw dbstats GZ_Master1
@@ -526,8 +524,8 @@ class Chap5(DBInputs):
         tabular = Tabular(df)
         tabular.colfmt = 'numeric'
         tabular.caption = self.species_nice.capitalize()
-        print(tabular.as_table())
-        print(tabular.as_tabular())
+        logger.info(tabular.as_table())
+        logger.info(tabular.as_tabular())
 
         ut.writeto(join(self.dpath, 'dbstats.tex'), tabular.as_tabular())
         fpath = ut.render_latex(tabular.as_table(), dpath=self.dpath,
@@ -555,8 +553,8 @@ class Chap5(DBInputs):
         ignore = ['timestamp', 'num_reviews', 'confidence', 'default_priority',
                   'review_id']
 
-        print('\nsplits = ' + ut.repr4(splits))
-        print('\nmerges = ' + ut.repr4(merges))
+        logger.info('\nsplits = ' + ut.repr4(splits))
+        logger.info('\nmerges = ' + ut.repr4(merges))
         def print_edge_df(df, parts):
             if len(df):
                 order = ['truth', 'decision', 'tags', 'prob_match']
@@ -569,18 +567,18 @@ class Chap5(DBInputs):
                 df_str = ut.highlight_multi_regex(df_str, {
                     ut.regex_or(ut.regex_word(str(a)) for a in part): col
                     for part, col in zip(parts, cols)})
-                print(df_str)
+                logger.info(df_str)
             else:
-                print(df)
+                logger.info(df)
         for parts in merges:
-            print('\n\n')
-            print('Merge Row: ' + ut.repr2(parts))
+            logger.info('\n\n')
+            logger.info('Merge Row: ' + ut.repr2(parts))
             sub = graph.subgraph(ut.flatten(parts))
             df = nxu.edge_df(graph, sub.edges(), ignore=ignore)
             print_edge_df(df, parts)
         for parts in splits:
-            print('\n\n')
-            print('Split Row: ' + ut.repr2(parts))
+            logger.info('\n\n')
+            logger.info('Split Row: ' + ut.repr2(parts))
             sub = graph.subgraph(ut.flatten(parts))
             df = nxu.edge_df(graph, sub.edges(), ignore=ignore)
             print_edge_df(df, parts)
@@ -649,7 +647,7 @@ class Chap5(DBInputs):
         ])
 
         for k, v in sampled_errors.items():
-            print('Sampled {} {} cases'.format(len(v), k))
+            logger.info('Sampled {} {} cases'.format(len(v), k))
 
         err_items = []
         for case_type, cases in sampled_errors.items():
@@ -794,7 +792,7 @@ class Chap5(DBInputs):
         df = pd.concat(ut.take(dfs, keys), axis=0, keys=keys)
         tabular = Tabular(df, index=True, escape=True, colfmt='numeric')
         error_size_text = tabular.as_tabular()
-        print(error_size_text)
+        logger.info(error_size_text)
 
         # Inspect error sizes only for the graph
         caseinfo = infos['graph']
@@ -814,7 +812,7 @@ class Chap5(DBInputs):
 
         tabular = Tabular(df, index=True, escape=True, colfmt='numeric')
         error_group_text = tabular.as_tabular()
-        print(error_group_text)
+        logger.info(error_group_text)
 
         fname = 'error_size_details'
         ut.write_to(join(self.dpath, fname + '.tex'), error_size_text)
@@ -1355,7 +1353,7 @@ class Chap4(DBInputs):
             if False:
                 infr = ibeis.AnnotInference(ibs, aids='all')
                 infr.reset_feedback('staging', apply=True)
-                print(ut.repr4(infr.status()))
+                logger.info(ut.repr4(infr.status()))
 
                 pblm = vsone.OneVsOneProblem.from_aids(ibs, self.aids_pool)
                 pblm.load_samples()
@@ -1563,7 +1561,7 @@ class Chap4(DBInputs):
         clf_key = pblm.default_clf_key
 
         featinfo = vt.AnnotPairFeatInfo(pblm.samples.X_dict[data_key])
-        print(featinfo.get_infostr())
+        logger.info(featinfo.get_infostr())
 
         labels = pblm.samples.subtasks[task_key]
         # X = pblm.samples.X_dict[data_key]
@@ -1732,9 +1730,9 @@ class Chap4(DBInputs):
             >>> self._setup()
         """
         if getattr(self, 'pblm', None) is None:
-            print('Need to setup before measuring hard cases')
+            logger.info('Need to setup before measuring hard cases')
             self._setup()
-        print('Measuring hard cases')
+        logger.info('Measuring hard cases')
 
         pblm = self.pblm
 
@@ -1742,14 +1740,14 @@ class Chap4(DBInputs):
 
         res = pblm.task_combo_res[task_key][self.clf_key][self.data_key]
 
-        print('task_key = %r' % (task_key,))
+        logger.info('task_key = %r' % (task_key,))
         if task_key == 'photobomb_state':
             method = 'max-mcc'
             method = res.get_thresholds('mcc', 'maximize')
-            print('Using thresholds: ' + ut.repr4(method))
+            logger.info('Using thresholds: ' + ut.repr4(method))
         else:
             method = 'argmax'
-            print('Using argmax')
+            logger.info('Using argmax')
 
         case_df = res.hardness_analysis(pblm.samples, pblm.infr, method=method)
         # group = case_df.sort_values(['real_conf', 'easiness'])
@@ -1758,10 +1756,10 @@ class Chap4(DBInputs):
         # failure_cases = case_df[(case_df['real_conf'] > 0) & case_df['failed']]
         failure_cases = case_df[case_df['failed']]
         if len(failure_cases) == 0:
-            print('No reviewed failures exist. Do pblm.qt_review_hardcases')
+            logger.info('No reviewed failures exist. Do pblm.qt_review_hardcases')
 
-        print('There are {} failure cases'.format(len(failure_cases)))
-        print('With average hardness {}'.format(
+        logger.info('There are {} failure cases'.format(len(failure_cases)))
+        logger.info('With average hardness {}'.format(
             ut.repr2(ut.stats_dict(failure_cases['hardness']), strkeys=True,
                      precision=2)))
 
@@ -1772,7 +1770,7 @@ class Chap4(DBInputs):
             flags = ut.flag_percentile_parts(group['easiness'], front, mid, back)
             subgroup = group[flags]
 
-            print('Selected {} r({})-p({}) cases'.format(
+            logger.info('Selected {} r({})-p({}) cases'.format(
                 len(subgroup), res.class_names[real], res.class_names[pred]
             ))
             # ut.take_percentile_parts(group['easiness'], front, mid, back)
@@ -1794,7 +1792,7 @@ class Chap4(DBInputs):
                     'edge_data': pblm.infr.get_edge_data(edge),
                 })
 
-        print('Selected %d cases in total' % (len(cases)))
+        logger.info('Selected %d cases in total' % (len(cases)))
 
         # Augment cases with their one-vs-one matches
         infr = pblm.infr
@@ -1819,7 +1817,7 @@ class Chap4(DBInputs):
 
         fpath = join(str(self.dpath), task_key + '_hard_cases.pkl')
         ut.save_data(fpath, cases)
-        print('Hard case space on disk: {}'.format(ut.get_file_nBytes_str(fpath)))
+        logger.info('Hard case space on disk: {}'.format(ut.get_file_nBytes_str(fpath)))
 
         # if False:
         #     ybin_df = res.target_bin_df
@@ -1902,7 +1900,7 @@ class Chap4(DBInputs):
             >>> self.draw_hard_cases(task_key)
         """
         cases = self.ensure_results(task_key + '_hard_cases')
-        print('Loaded {} {} hard cases'.format(len(cases), task_key))
+        logger.info('Loaded {} {} hard cases'.format(len(cases), task_key))
 
         subdir = 'cases_{}'.format(task_key)
         dpath = join(str(self.dpath), subdir)
@@ -1995,8 +1993,8 @@ class Chap4(DBInputs):
         metric_df = report['metrics']
         confusion_df = report['confusion']
 
-        print(metric_df)
-        print(confusion_df)
+        logger.info(metric_df)
+        logger.info(confusion_df)
 
         # df = self.task_confusion[task_key]
         df = confusion_df
@@ -2015,7 +2013,7 @@ class Chap4(DBInputs):
         latex_str = latex_str.replace(sum_pred, r'$\sum$ predicted')
         latex_str = latex_str.replace(sum_real, r'$\sum$ real')
         confusion_tex = ut.align(latex_str, '&', pos=None)
-        print(confusion_tex)
+        logger.info(confusion_tex)
 
         df = metric_df
         # df = self.task_metrics[task_key]
@@ -2036,7 +2034,7 @@ class Chap4(DBInputs):
         latex_str = tabular.as_tabular()
         latex_str = re.sub(' -0.00 ', '  0.00 ', latex_str)
         metrics_tex = latex_str
-        print(metrics_tex)
+        logger.info(metrics_tex)
 
         dpath = str(self.dpath)
         confusion_fname = 'confusion2_{}'.format(task_key)
@@ -2082,8 +2080,8 @@ class Chap4(DBInputs):
         metric_df = report['metrics']
         confusion_df = report['confusion']
 
-        print(metric_df)
-        print(confusion_df)
+        logger.info(metric_df)
+        logger.info(confusion_df)
 
         # df = self.task_confusion[task_key]
         df = confusion_df
@@ -2102,7 +2100,7 @@ class Chap4(DBInputs):
         latex_str = latex_str.replace(sum_pred, r'$\sum$ predicted')
         latex_str = latex_str.replace(sum_real, r'$\sum$ real')
         confusion_tex = ut.align(latex_str, '&', pos=None)
-        print(confusion_tex)
+        logger.info(confusion_tex)
 
         df = metric_df
         # df = self.task_metrics[task_key]
@@ -2123,7 +2121,7 @@ class Chap4(DBInputs):
         latex_str = tabular.as_tabular()
         latex_str = re.sub(' -0.00 ', '  0.00 ', latex_str)
         metrics_tex = latex_str
-        print(metrics_tex)
+        logger.info(metrics_tex)
 
         dpath = str(self.dpath)
         confusion_fname = 'confusion_{}'.format(task_key)
@@ -2198,10 +2196,10 @@ class Chap4(DBInputs):
 
         fname = 'feat_importance_{}'.format(task_key)
 
-        print('TOP {} importances for {}'.format(num_top, task_key))
-        print('# of dimensions: %d' % (len(importances)))
-        print(latex_str)
-        print()
+        logger.info('TOP {} importances for {}'.format(num_top, task_key))
+        logger.info('# of dimensions: %d' % (len(importances)))
+        logger.info(latex_str)
+        logger.info('')
         extra_ = ut.codeblock(
             r'''
             \begin{{table}}[h]
@@ -2302,8 +2300,8 @@ class Chap4(DBInputs):
 
         increase = u[idx] - u[0]
 
-        print(latex_str)
-        print()
+        logger.info(latex_str)
+        logger.info('')
         extra_ = ut.codeblock(
             r'''
             \begin{{table}}[h]
@@ -2326,8 +2324,8 @@ class Chap4(DBInputs):
         fpath = ut.render_latex(extra_, dpath=self.dpath, fname=fname)
         ut.write_to(join(str(self.dpath), fname + '.tex'), latex_str)
 
-        print(ut.repr4(ut.sort_dict(n_to_mid[n_dims[idx]], 'vals', reverse=True)))
-        print(ut.repr4(ut.sort_dict(n_to_mid[n_dims[-1]], 'vals', reverse=True)))
+        logger.info(ut.repr4(ut.sort_dict(n_to_mid[n_dims[idx]], 'vals', reverse=True)))
+        logger.info(ut.repr4(ut.sort_dict(n_to_mid[n_dims[-1]], 'vals', reverse=True)))
 
     def measure_thresh(self, pblm):
         task_key = 'match_state'
@@ -2538,7 +2536,7 @@ class Chap4(DBInputs):
                 for want_metric in ['fpr', 'n_false_pos', 'n_true_pos']:
                     key = '{}_@_{}={:.2f}'.format(want_metric, at_metric, at_value)
                     info[key] = c3.get_metric_at_metric(want_metric, at_metric, at_value)
-                print(ut.repr4(info, align=True, precision=8))
+                logger.info(ut.repr4(info, align=True, precision=8))
         else:
             target_class = 'pb'
             res = task_combo_res[task_key][clf_key][data_key]
@@ -2586,7 +2584,7 @@ class Chap4(DBInputs):
         rowids = ibs._get_all_annotmatch_rowids()
         texts = ['' if t is None else t for t in ibs.get_annotmatch_tag_text(rowids)]
         tags = [[] if t is None else t.split(';') for t in texts]
-        print(ut.repr4(ut.dict_hist(ut.flatten(tags))))
+        logger.info(ut.repr4(ut.dict_hist(ut.flatten(tags))))
 
         flags = [query_tag in t.lower() for t in texts]
         filtered_rowids = ut.compress(rowids, flags)
@@ -2953,9 +2951,9 @@ class Chap3Measures(object):
             name_ranks2 = [cm.get_name_ranks([cm.qnid])[0] for cm in cm_list2]
 
             idxs = np.where(np.array(name_ranks1) != np.array(name_ranks2))[0]
-            print('idxs = %r' % (idxs,))
-            print('ranks1 = {}'.format(ut.take(name_ranks1, idxs)))
-            print('ranks2 = {}'.format(ut.take(name_ranks2, idxs)))
+            logger.info('idxs = %r' % (idxs,))
+            logger.info('ranks1 = {}'.format(ut.take(name_ranks1, idxs)))
+            logger.info('ranks2 = {}'.format(ut.take(name_ranks2, idxs)))
             if len(idxs) > 0:
                 cm1 = cm_list1[idxs[0]]  # NOQA
                 cm2 = cm_list2[idxs[0]]  # NOQA
@@ -3024,7 +3022,7 @@ class Chap3Measures(object):
             delta = times.max() - times.min()
             enc_deltas.append(delta)
         max_enc_timedelta = max(enc_deltas)
-        print('max enc timedelta = %r' % (
+        logger.info('max enc timedelta = %r' % (
             ut.get_unix_timedelta_str(max_enc_timedelta)))
 
         multi_stats = self.ibs.get_annot_stats_dict(multi_aids)
@@ -3364,13 +3362,13 @@ class Chap3Draw(object):
             space = np.linspace(day, day * 14, 14).tolist()
             grid_params = {'bandwidth': space}
             searcher = ut.partial(RandomizedSearchCV, n_iter=5, n_jobs=8)
-            print('Searching for best bandwidth')
+            logger.info('Searching for best bandwidth')
             grid = searcher(KernelDensity(kernel='gaussian'), grid_params,
                             cv=2, verbose=0)
             grid.fit(unixtimes[:, None])
             bw = grid.best_params_['bandwidth']
-            print('bw = %r' % (bw,))
-            print('bw(days) = %r' % (bw / day,))
+            logger.info('bw = %r' % (bw,))
+            logger.info('bw(days) = %r' % (bw / day,))
 
         kde = KernelDensity(kernel='gaussian', bandwidth=bw)
         kde.fit(unixtimes[:, None])
@@ -3496,7 +3494,7 @@ class Chap3(DBInputs, Chap3Draw, Chap3Measures):
         tabular = Tabular(df, colfmt='numeric')
         tabular.theadify = 16
         enc_text = tabular.as_tabular()
-        print(enc_text)
+        logger.info(enc_text)
 
         df = pd.DataFrame(infos['qual'])
         df = df.rename(columns={'species_nice': 'Database'})
@@ -3510,7 +3508,7 @@ class Chap3(DBInputs, Chap3Draw, Chap3Measures):
         df.columns = ut.emap(upper_one, df.columns)
         tabular = Tabular(df, colfmt='numeric')
         qual_text = tabular.as_tabular()
-        print(qual_text)
+        logger.info(qual_text)
 
         df = pd.DataFrame(infos['view'])
         df = df.rename(columns={
@@ -3530,7 +3528,7 @@ class Chap3(DBInputs, Chap3Draw, Chap3Measures):
         df = df.astype(int)
         tabular = Tabular(df, colfmt='numeric')
         view_text = tabular.as_tabular()
-        print(view_text)
+        logger.info(view_text)
 
         ut.render_latex(enc_text, dpath=self.base_dpath, fname='agg-enc',
                         preamb_extra=['\\usepackage{makecell}'])
@@ -4026,10 +4024,10 @@ class Sampler(object):
         import pandas as pd
         verbose = 0
         if verbose:
-            print(pd.DataFrame.from_records(info_list))
-            print('#qaids = %r' % (len(qaids),))
-            print('num_need = %r' % (n_need,))
-            print('max_dsize = %r' % (max_dsize,))
+            logger.info(pd.DataFrame.from_records(info_list))
+            logger.info('#qaids = %r' % (len(qaids),))
+            logger.info('num_need = %r' % (n_need,))
+            logger.info('max_dsize = %r' % (max_dsize,))
             if False:
                 for daids in daids_list:
                     ibs.print_annotconfig_stats(qaids, daids)

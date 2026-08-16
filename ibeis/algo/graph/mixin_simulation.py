@@ -4,6 +4,7 @@ This includes recordings measures used to generate plots in JC's thesis.
 """
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 import six
 import utool as ut
 import ubelt as ub
@@ -11,7 +12,6 @@ import pandas as pd
 import itertools as it
 from ibeis.algo.graph import nx_utils as nxu
 from ibeis.algo.graph.state import (POSTV, NEGTV, INCMP, UNREV, UNKWN, NULL)
-print, rrr, profile = ut.inject2(__name__)
 
 
 class SimulationHelpers(object):
@@ -99,7 +99,6 @@ class SimulationHelpers(object):
                                       ('pred', pred_state)])
                     yield edge, error
 
-    @profile
     def measure_metrics(infr):
         real_pos_edges = []
 
@@ -146,8 +145,8 @@ class SimulationHelpers(object):
                         if not ut.allsame(ut.take(infr.node_truth, cc)):
                             num_undetectable_fp += 1
 
-            print('num_undetectable_fn = %r' % (num_undetectable_fn,))
-            print('num_undetectable_fp = %r' % (num_undetectable_fp,))
+            logger.info('num_undetectable_fn = %r' % (num_undetectable_fn,))
+            logger.info('num_undetectable_fp = %r' % (num_undetectable_fp,))
 
         if 0:
             n_error_edges2 = 0
@@ -251,7 +250,6 @@ class SimulationHelpers(object):
                 ut.take_column(history, 'user_id')
             ), si=True)), color='yellow')
 
-    @profile
     def _dynamic_test_callback(infr, edge, decision, prev_decision, user_id):
         was_gt_pos = infr.test_gt_pos_graph.has_edge(*edge)
 
@@ -280,13 +278,13 @@ class SimulationHelpers(object):
             num = infr.recover_graph.number_of_components()
             old_data = infr.get_nonvisual_edge_data(edge)
             # print('old_data = %s' % (ut.repr4(old_data, stritems=True),))
-            print('n_prev_reviews = %r' % (old_data['num_reviews'],))
-            print('prev_decision = %r' % (prev_decision,))
-            print('decision = %r' % (decision,))
-            print('was_gt_pos = %r' % (was_gt_pos,))
-            print('was_within_pred = %r' % (was_within_pred,))
-            print('was_within_gt = %r' % (was_within_gt,))
-            print('num inconsistent = %r' % (num,))
+            logger.info('n_prev_reviews = %r' % (old_data['num_reviews'],))
+            logger.info('prev_decision = %r' % (prev_decision,))
+            logger.info('decision = %r' % (decision,))
+            logger.info('was_gt_pos = %r' % (was_gt_pos,))
+            logger.info('was_within_pred = %r' % (was_within_pred,))
+            logger.info('was_within_gt = %r' % (was_within_gt,))
+            logger.info('num inconsistent = %r' % (num,))
             # is_recovering = infr.is_recovering()
 
         if decision == POSTV:

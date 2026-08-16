@@ -11,12 +11,12 @@ TODO: need to cache the total number of annotations or something about
 imagesets on disk to help startuptime.
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 import six
 from six.moves import zip, map, range
 from ibeis import constants as const
 import utool as ut
 from functools import partial
-(print, rrr, profile) = ut.inject2(__name__)
 
 IMAGESET_TABLE  = const.IMAGESET_TABLE
 IMAGE_TABLE      = const.IMAGE_TABLE
@@ -351,7 +351,7 @@ def make_ibeis_headers_dict(ibs):
         for colname in TABLE_COLNAMES[tablename]:
             if colname not in getters[tablename]:
                 if ut.VERBOSE:
-                    print('[guiheaders] infering getter for tablename=%r, colname=%r' % (
+                    logger.info('[guiheaders] infering getter for tablename=%r, colname=%r' % (
                         tablename, colname,))
                     #print('[guiheaders] infering %r' % (getters[tablename][colname],))
                 try:

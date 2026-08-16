@@ -1,11 +1,11 @@
 """
 Extracts parts chips from image and applies optional image normalizations.
 """
+from loguru import logger
 import utool as ut
 import numpy as np
 from ibeis.control.controller_inject import register_preprocs, register_subprops
 from ibeis import core_annots
-(print, rrr, profile) = ut.inject2(__name__)
 
 
 derived_attribute = register_preprocs['part']
@@ -61,8 +61,8 @@ def compute_part_chip(depc, part_rowid_list, config=None):
         >>>     assert chip.shape == (h, w, 3)
         >>> ibs.delete_parts(part_rowid_list)
     """
-    print('Preprocess Part Chips')
-    print('config = %r' % (config,))
+    logger.info('Preprocess Part Chips')
+    logger.info('config = %r' % (config,))
 
     ibs = depc.controller
 
@@ -75,7 +75,7 @@ def compute_part_chip(depc, part_rowid_list, config=None):
                                                              bbox_list, theta_list, config)
     for result in result_list:
         yield result
-    print('Done Preprocessing Part Chips')
+    logger.info('Done Preprocessing Part Chips')
 
 
 if __name__ == '__main__':

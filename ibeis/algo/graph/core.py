@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 import numpy as np  # NOQA
 import utool as ut
 # import logging
@@ -26,7 +27,6 @@ from ibeis.algo.graph.state import UNINFERABLE
 from ibeis.algo.graph.state import SAME, DIFF, NULL
 import networkx as nx
 import logging
-print, rrr, profile = ut.inject2(__name__)
 
 
 DEBUG_CC = False
@@ -141,7 +141,6 @@ class Feedback(object):
         ibs.overwrite_annot_case_tags([aid], [attrs['case_tags']])
         ibs.set_annot_multiple([aid], [attrs['multiple']])
 
-    @profile
     def add_feedback(infr, edge, evidence_decision=None, tags=None,
                      user_id=None, meta_decision=None, confidence=None,
                      timestamp_c1=None, timestamp_c2=None, timestamp_s1=None,
@@ -278,7 +277,7 @@ class Feedback(object):
             if infr.is_consistent(cc) else
             ut.highlight_text(repr(cc), 'red')
             for cc in sorted_ccs]) + ']'
-        print(msg)
+        logger.info(msg)
 
     @ut.classproperty
     def feedback_keys(Infr):
@@ -294,7 +293,6 @@ class Feedback(object):
             'timestamp_s1', 'timestamp', 'confidence'
         ]
 
-    @profile
     def apply_feedback_edges(infr):
         r"""
         Transforms the feedback dictionaries into nx graph edge attributes
@@ -557,7 +555,6 @@ class NameRelabel(object):
                 new_labels[idx] = infr._next_nid()
         return new_labels
 
-    @profile
     def relabel_using_reviews(infr, graph=None, rectify=True):
         r"""
         Relabels nodes in graph based on positive connected components
@@ -827,7 +824,6 @@ class MiscHelpers(object):
 
         infr.update_node_attributes()
 
-    @profile
     def log_message(infr, msg, level=1, color=None):
         if color is None:
             color = 'blue'
@@ -853,7 +849,7 @@ class MiscHelpers(object):
             # Send the message to a python logger
             infr.logger.log(loglevel, msg)
 
-        print(msg)
+        logger.info(msg)
 
     print = log_message
 
@@ -866,10 +862,10 @@ class MiscHelpers(object):
             return [infr.logs[x][0] for x in range(index, len(infr.logs))]
 
     def dump_logs(infr):
-        print('--- <LOG DUMP> ---')
+        logger.info('--- <LOG DUMP> ---')
         for msg, color in infr.logs:
             ut.cprint('[infr] ' + msg, color)
-        print(r'--- <\LOG DUMP> ---')
+        logger.info(r'--- <\LOG DUMP> ---')
 
 
 class AltConstructors(object):
@@ -1145,14 +1141,17 @@ class AnnotInference(ut.NiceRepr,
                 # logdir = ibs.get_logdir_local()
                 logdir = '.'
                 logname = 'AnnotInference' + ut.timestamp()
-                logger = logging.getLogger(logname)
-                if not logger.handlers:
+                file_logger = logging.getLogger(logname)
+                file_logger.propagate = False
+                if not file_logger.handlers:
                     fh = logging.FileHandler(join(logdir, logname + '.log'))
-                    print('logger.handlers = {!r}'.format(logger.handlers))
-                    logger.addHandler(fh)
-                # logger.setLevel(logging.INFO)
-                logger.setLevel(logging.DEBUG)
-                infr.logger = logger
+                    file_logger.info(
+                        'logger.handlers = {!r}'.format(file_logger.handlers)
+                    )
+                    file_logger.addHandler(fh)
+                # file_logger.setLevel(logging.INFO)
+                file_logger.setLevel(logging.DEBUG)
+                infr.logger = file_logger
 
         infr.logs = collections.deque(maxlen=10000)
         infr.log_index = 0

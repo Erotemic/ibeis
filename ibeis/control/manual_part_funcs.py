@@ -6,6 +6,7 @@ Autogen:
     sh Tgen.sh --key part --invert --Tcfg with_getters=True with_setters=True --modfname manual_part_funcs --funcname-filter=is_  # NOQA
     sh Tgen.sh --key part --invert --Tcfg with_getters=True with_setters=True --modfname manual_part_funcs --funcname-filter=is_ --diff  # NOQA
 """
+from loguru import logger
 import uuid
 import numpy as np
 from ibeis import constants as const
@@ -13,7 +14,6 @@ from ibeis.control import accessor_decors, controller_inject
 import utool as ut
 from ibeis.util import util_decor
 from ibeis.control.controller_inject import make_ibs_register_decorator
-print, rrr, profile = ut.inject2(__name__)
 
 
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
@@ -158,7 +158,7 @@ def add_parts(ibs, aid_list, bbox_list=None, theta_list=None,
     #ut.embed()
     from vtool_ibeis import geometry
     if ut.VERBOSE:
-        print('[ibs] adding parts')
+        logger.info('[ibs] adding parts')
     # Prepare the SQL input
     # For import only, we can specify both by setting import_override to True
     assert bool(bbox_list is None) != bool(vert_list is None), (
@@ -188,8 +188,8 @@ def add_parts(ibs, aid_list, bbox_list=None, theta_list=None,
 
     if len(aid_list) == 0:
         # nothing is being added
-        print('[ibs] WARNING: 0 parts are being added!')
-        print(ut.repr2(locals()))
+        logger.info('[ibs] WARNING: 0 parts are being added!')
+        logger.info(ut.repr2(locals()))
         return []
 
     if detect_confidence_list is None:
@@ -282,7 +282,7 @@ def delete_parts(ibs, part_rowid_list):
         part_rowid_list (int):  list of part ids
     """
     if ut.VERBOSE:
-        print('[ibs] deleting %d parts' % len(part_rowid_list))
+        logger.info('[ibs] deleting %d parts' % len(part_rowid_list))
     # delete parent rowid column if exists in part table
     return ibs.db.delete_rowids(const.PART_TABLE, part_rowid_list)
 

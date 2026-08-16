@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 import utool as ut
-print, rrr, profile = ut.inject2(__name__)
 
 
 VERB_PIPELINE = ut.get_argflag(('--verb-pipeline', '--verb-pipe')) or ut.VERYVERBOSE
@@ -36,9 +36,9 @@ def testrun_pipeline_upto(qreq_, stop_node='end', verbose=True):
         # vsone_reranking,
         build_impossible_daids_list)
 
-    print('RUN PIPELINE UPTO: %s' % (stop_node,))
+    logger.info('RUN PIPELINE UPTO: %s' % (stop_node,))
 
-    print(qreq_)
+    logger.info(qreq_)
 
     qreq_.lazy_load(verbose=verbose)
     #---

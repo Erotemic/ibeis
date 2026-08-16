@@ -33,7 +33,6 @@ except AttributeError:
         return func
 
 
-@profile
 def get_image_uuid(img_bytes_):
     # hash the bytes using sha1
     bytes_sha1 = hashlib.sha1(img_bytes_)
@@ -44,7 +43,6 @@ def get_image_uuid(img_bytes_):
     return uuid_
 
 
-@profile
 def make_uuid_PIL_bytes(gpath):
     pil_img = Image.open(gpath, 'r')  # NOQA
     # Read PIL image data
@@ -53,7 +51,6 @@ def make_uuid_PIL_bytes(gpath):
     return uuid_
 
 
-@profile
 def make_uuid_NUMPY_bytes(gpath):
     pil_img = Image.open(gpath, 'r')  # NOQA
     # Read PIL image data
@@ -64,7 +61,6 @@ def make_uuid_NUMPY_bytes(gpath):
     return uuid_
 
 
-@profile
 def make_uuid_NUMPY_STRIDE_16_bytes(gpath):
     pil_img = Image.open(gpath, 'r')  # NOQA
     # Read PIL image data
@@ -75,7 +71,6 @@ def make_uuid_NUMPY_STRIDE_16_bytes(gpath):
     return uuid_
 
 
-@profile
 def make_uuid_NUMPY_STRIDE_64_bytes(gpath):
     pil_img = Image.open(gpath, 'r')  # NOQA
     # Read PIL image data
@@ -84,7 +79,6 @@ def make_uuid_NUMPY_STRIDE_64_bytes(gpath):
     return uuid_
 
 
-@profile
 def make_uuid_CONTIG_NUMPY_bytes(gpath):
     pil_img = Image.open(gpath, 'r')  # NOQA
     # Read PIL image data
@@ -96,7 +90,6 @@ def make_uuid_CONTIG_NUMPY_bytes(gpath):
     return uuid_
 
 
-@profile
 def make_uuid_CONTIG_NUMPY_STRIDE_16_bytes(gpath):
     pil_img = Image.open(gpath, 'r')  # NOQA
     # Read PIL image data
@@ -107,7 +100,6 @@ def make_uuid_CONTIG_NUMPY_STRIDE_16_bytes(gpath):
     return uuid_
 
 
-@profile
 def make_uuid_CONTIG_NUMPY_STRIDE_64_bytes(gpath):
     pil_img = Image.open(gpath, 'r')  # NOQA
     # Read PIL image data

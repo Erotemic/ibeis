@@ -3,6 +3,7 @@
 DEPRICATE FOR CORE ANNOT AND CORE IMAGE DEFS
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 import utool as ut
 import six
 import copy
@@ -12,7 +13,6 @@ from os.path import splitext
 from six.moves import zip, map, range, filter  # NOQA
 from ibeis import constants as const
 from utool._internal.meta_util_six import get_funcname
-(print, rrr, profile) = ut.inject2(__name__, '[cfg]')
 
 ConfigBase = ut.Pref
 
@@ -46,7 +46,7 @@ def parse_config_items(cfg):
             pass
         else:
             if key in seen:
-                print('[Config] WARNING: key=%r appears more than once' %
+                logger.info('[Config] WARNING: key=%r appears more than once' %
                       (key,))
             seen.add(key)
             param_list.append(item)
@@ -112,8 +112,8 @@ def make_config_metaclass():
                 else:
                     itemstr_list = [key + '=' + six.text_type(val) for key, val in item_list if key not in ignore_keys]
             except Exception as ex:
-                print(ignore_keys is None)
-                print(ignore_keys)
+                logger.info(ignore_keys is None)
+                logger.info(ignore_keys)
                 ut.printex(ex, keys=['item_list', 'ignore_keys'])
                 raise
         filtered_itemstr_list = list(filter(len, itemstr_list))
@@ -123,7 +123,6 @@ def make_config_metaclass():
         return cfgstr
 
     @_register
-    @profile
     def initialize_params(cfg):
         """ Initializes config class attributes based on params info list """
         for pi in cfg.get_param_info_list():
@@ -431,13 +430,11 @@ class NNWeightConfig(ConfigBase):
         _NNWeight(ratio_thresh=0.625,fg,last,nosqrd_dist)
         _NNWeight(ratio_thresh=0.625,lnbnn,fg,last,lnbnn_normer=foobarstr,lnbnn_norm_thresh=0.5,nosqrd_dist)
     """
-    @profile
     def __init__(nnweight_cfg, **kwargs):
         super(NNWeightConfig, nnweight_cfg).__init__(name='nnweight_cfg')
         nnweight_cfg.initialize_params()
         nnweight_cfg.update(**kwargs)
 
-    @profile
     def get_param_info_list(nnweight_cfg):
         # new way to try and specify config options.
         # not sure if i like it yet
@@ -489,7 +486,6 @@ class FeatureWeightConfig(ConfigBase):
 
     """
 
-    @profile
     def __init__(featweight_cfg, **kwargs):
         super(FeatureWeightConfig, featweight_cfg).__init__(
             name='featweight_cfg')
@@ -521,7 +517,6 @@ class QueryConfig(ConfigBase):
     _todo_subconfig_list = [NNConfig, NNWeightConfig, SpatialVerifyConfig,
                             FlannConfig, FeatureWeightConfig]
 
-    @profile
     def __init__(query_cfg, **kwargs):
         super(QueryConfig, query_cfg).__init__(name='query_cfg')
         query_cfg.nn_cfg         = NNConfig(**kwargs)
@@ -544,7 +539,7 @@ class QueryConfig(ConfigBase):
         # Depends on feature config
         query_cfg.update_query_cfg(**kwargs)
         if ut.VERYVERBOSE:
-            print('[config] NEW QueryConfig')
+            logger.info('[config] NEW QueryConfig')
 
     def get_cfgstr_list(query_cfg, **kwargs):
         # Ensure feasibility of the configuration
@@ -606,7 +601,7 @@ class QueryConfig(ConfigBase):
         try:
             query_cfg.make_feasible()
         except AssertionError as ex:
-            print(ut.repr2(cfgdict, sorted_=True))
+            logger.info(ut.repr2(cfgdict, sorted_=True))
             ut.printex(ex)
             raise
 
@@ -902,7 +897,6 @@ def update_query_config(cfg, **kwargs):
     cfg.chip_cfg       = cfg.query_cfg._featweight_cfg._feat_cfg._chip_cfg
 
 
-@profile
 def load_named_config(cfgname, dpath, use_config_cache=False,
                       verbose=ut.VERBOSE and ut.NOT_QUIET):
     """ hack 12-30-2014
@@ -944,7 +938,7 @@ def load_named_config(cfgname, dpath, use_config_cache=False,
         cfgname = 'cfg'
     fpath = join(dpath, cfgname) + '.cPkl'
     if verbose:
-        print('[Config] loading named config fpath=%r' % (fpath,))
+        logger.info('[Config] loading named config fpath=%r' % (fpath,))
     # Always a fresh object
     cfg = GenericConfig(cfgname, fpath=fpath)
     try:
@@ -983,7 +977,7 @@ def load_named_config(cfgname, dpath, use_config_cache=False,
         #    # TODO: Finishme update the out of data preferences
         #    pass
         if verbose:
-            print('[Config] successfully loaded config cfgname=%r' % (cfgname,))
+            logger.info('[Config] successfully loaded config cfgname=%r' % (cfgname,))
     except Exception as ex:
         if ut.VERBOSE:
             ut.printex(ex, iswarning=True)
@@ -992,16 +986,15 @@ def load_named_config(cfgname, dpath, use_config_cache=False,
         cfg.save()
     # Hack in cfgname
     if verbose:
-        print('[Config] hack in z_cfgname=%r' % (cfgname,))
+        logger.info('[Config] hack in z_cfgname=%r' % (cfgname,))
     cfg.z_cfgname = cfgname
     return cfg
 
 
-@profile
 def _default_config(cfg, cfgname=None, new=True):
     """ hack 12-30-2014 """
     if ut.VERBOSE:
-        print('[Config] building default config')
+        logger.info('[Config] building default config')
     if cfgname is None:
         cfgname = cfg.z_cfgname
     if new:
@@ -1020,7 +1013,6 @@ def _default_config(cfg, cfgname=None, new=True):
     return cfg
 
 
-@profile
 def _default_named_config(cfg, cfgname):
     """ hack 12-30-2014
 
@@ -1063,7 +1055,7 @@ def _default_named_config(cfg, cfgname):
         cfg.query_cfg.nn_cfg.checks = 316
     else:
         if ut.VERBOSE:
-            print('WARNING: UNKNOWN CFGNAME=%r' % (cfgname,))
+            logger.info('WARNING: UNKNOWN CFGNAME=%r' % (cfgname,))
 
 
 if __name__ == '__main__':

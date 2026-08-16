@@ -1,9 +1,9 @@
+from loguru import logger as loguru_logger
 import utool as ut
 import ubelt as ub  # NOQA
 import numpy as np
 from functools import partial  # NOQA
 from ibeis.control import controller_inject
-print, rrr, profile = ut.inject2(__name__)
 
 # Create dectorator to inject functions in this module into the IBEISController
 CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(__name__)
@@ -14,7 +14,6 @@ CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_deco
 
 
 @register_ibs_method
-@profile
 def get_annotmatch_rowids_from_aid1(ibs, aid1_list, eager=True, nInput=None):
     """
     TODO autogenerate
@@ -51,7 +50,6 @@ def get_annotmatch_rowids_from_aid1(ibs, aid1_list, eager=True, nInput=None):
 
 
 @register_ibs_method
-@profile
 def get_annotmatch_rowids_from_aid2(ibs, aid2_list, eager=True, nInput=None,
                                     force_method=None):
     """
@@ -80,7 +78,6 @@ def get_annotmatch_rowids_from_aid2(ibs, aid2_list, eager=True, nInput=None,
 
 
 @register_ibs_method
-@profile
 def get_annotmatch_rowids_from_aid(ibs, aid_list, eager=True, nInput=None,
                                    force_method=None):
     """
@@ -119,7 +116,6 @@ def get_annotmatch_rowids_from_aid(ibs, aid_list, eager=True, nInput=None,
 
 
 @register_ibs_method
-@profile
 def get_annotmatch_rowid_from_undirected_superkey(ibs, aids1, aids2):
     # The directed nature of this makes a few things difficult and may cause
     # odd behavior
@@ -430,7 +426,7 @@ def set_annot_pair_as_reviewed(ibs, aid1, aid2):
     user_id = ut.get_user_name() + '@' + ut.get_computer_name()
     ibs.set_annotmatch_reviewer(annotmatch_rowids, ['user:' + user_id])
     ibs.set_annotmatch_confidence(annotmatch_rowids, [confidence])
-    print('... set truth=%r' % (truth,))
+    loguru_logger.info('... set truth=%r' % (truth,))
 
 
 @register_ibs_method
@@ -470,8 +466,8 @@ def set_annot_pair_as_positive_match(ibs, aid1, aid2, dryrun=False,
     """
     def _set_annot_name_rowids(aid_list, nid_list):
         if not ut.QUIET:
-            print('... _set_annot_name_rowids(aids=%r, nids=%r)' % (aid_list, nid_list))
-            print('... names = %r' % (ibs.get_name_texts(nid_list)))
+            loguru_logger.info('... _set_annot_name_rowids(aids=%r, nids=%r)' % (aid_list, nid_list))
+            loguru_logger.info('... names = %r' % (ibs.get_name_texts(nid_list)))
         assert len(aid_list) == len(nid_list), 'list must correspond'
         if not dryrun:
             if logger is not None:
@@ -494,11 +490,11 @@ def set_annot_pair_as_positive_match(ibs, aid1, aid2, dryrun=False,
         _combo_aids_list = [_aids + [aid] for _aids, aid, in zip(_aids_list, aid_list)]
         status = _combo_aids_list
         return status
-    print('[marking_match] aid1 = %r, aid2 = %r' % (aid1, aid2))
+    loguru_logger.info('[marking_match] aid1 = %r, aid2 = %r' % (aid1, aid2))
 
     nid1, nid2 = ibs.get_annot_name_rowids([aid1, aid2])
     if nid1 == nid2:
-        print('...images already matched')
+        loguru_logger.info('...images already matched')
         status = None
         ibs.set_annot_pair_as_reviewed(aid1, aid2)
         if logger is not None:
@@ -508,11 +504,11 @@ def set_annot_pair_as_positive_match(ibs, aid1, aid2, dryrun=False,
     else:
         isunknown1, isunknown2 = ibs.is_aid_unknown([aid1, aid2])
         if isunknown1 and isunknown2:
-            print('...match unknown1 to unknown2 into 1 new name')
+            loguru_logger.info('...match unknown1 to unknown2 into 1 new name')
             next_nids = ibs.make_next_nids(num=1)
             status =  _set_annot_name_rowids([aid1, aid2], next_nids * 2)
         elif not isunknown1 and not isunknown2:
-            print('...merge known1 into known2')
+            loguru_logger.info('...merge known1 into known2')
             aid1_and_groundtruth = ibs.get_annot_groundtruth(aid1, noself=False)
             aid2_and_groundtruth = ibs.get_annot_groundtruth(aid2, noself=False)
             trivial_merge = len(aid1_and_groundtruth) == 1 and len(aid2_and_groundtruth) == 1
@@ -524,10 +520,10 @@ def set_annot_pair_as_positive_match(ibs, aid1, aid2, dryrun=False,
             status =  _set_annot_name_rowids(aid1_and_groundtruth, [nid2] *
                                              len(aid1_and_groundtruth))
         elif isunknown2 and not isunknown1:
-            print('...match unknown2 into known1')
+            loguru_logger.info('...match unknown2 into known1')
             status =  _set_annot_name_rowids([aid2], [nid1])
         elif isunknown1 and not isunknown2:
-            print('...match unknown1 into known2')
+            loguru_logger.info('...match unknown1 into known2')
             status =  _set_annot_name_rowids([aid1], [nid2])
         else:
             raise AssertionError('impossible state')
@@ -562,7 +558,7 @@ def set_annot_pair_as_negative_match(ibs, aid1, aid2, dryrun=False,
         >>> print(result)
     """
     def _set_annot_name_rowids(aid_list, nid_list):
-        print('... _set_annot_name_rowids(%r, %r)' % (aid_list, nid_list))
+        loguru_logger.info('... _set_annot_name_rowids(%r, %r)' % (aid_list, nid_list))
         if not dryrun:
             if logger is not None:
                 log = logger.info
@@ -580,7 +576,7 @@ def set_annot_pair_as_negative_match(ibs, aid1, aid2, dryrun=False,
             ibs.set_annot_pair_as_reviewed(aid1, aid2)
     nid1, nid2 = ibs.get_annot_name_rowids([aid1, aid2])
     if nid1 == nid2:
-        print('images are marked as having the same name... we must tread carefully')
+        loguru_logger.info('images are marked as having the same name... we must tread carefully')
         aid1_groundtruth = ibs.get_annot_groundtruth(aid1, noself=True)
         if len(aid1_groundtruth) == 1 and aid1_groundtruth == [aid2]:
             # this is the only safe case for same name split
@@ -596,11 +592,11 @@ def set_annot_pair_as_negative_match(ibs, aid1, aid2, dryrun=False,
     else:
         isunknown1, isunknown2 = ibs.is_aid_unknown([aid1, aid2])
         if isunknown1 and isunknown2:
-            print('...nomatch unknown1 and unknown2 into 2 new names')
+            loguru_logger.info('...nomatch unknown1 and unknown2 into 2 new names')
             next_nids = ibs.make_next_nids(num=2)
             status =  _set_annot_name_rowids([aid1, aid2], next_nids)
         elif not isunknown1 and not isunknown2:
-            print('...nomatch known1 and known2... nothing to do (yet)')
+            loguru_logger.info('...nomatch known1 and known2... nothing to do (yet)')
             ibs.set_annot_pair_as_reviewed(aid1, aid2)
             status = None
             if logger is not None:
@@ -608,11 +604,11 @@ def set_annot_pair_as_negative_match(ibs, aid1, aid2, dryrun=False,
                 annot_uuid_pair = ibs.get_annot_uuids((aid1, aid2))
                 log('REVIEW_PAIR AS FALSE: (annot_uuid_pair=%r) NO CHANGE' % annot_uuid_pair)
         elif isunknown2 and not isunknown1:
-            print('...nomatch unknown2 -> newname and known1')
+            loguru_logger.info('...nomatch unknown2 -> newname and known1')
             next_nids = ibs.make_next_nids(num=1)
             status =  _set_annot_name_rowids([aid2], next_nids)
         elif isunknown1 and not isunknown2:
-            print('...nomatch unknown1 -> newname and known2')
+            loguru_logger.info('...nomatch unknown1 -> newname and known2')
             next_nids = ibs.make_next_nids(num=1)
             status =  _set_annot_name_rowids([aid1], next_nids)
         else:

@@ -1,3 +1,4 @@
+from loguru import logger
 from os.path import basename, join, splitext, exists, isdir, islink, abspath
 import pandas as pd
 import re
@@ -6,7 +7,6 @@ import numpy as np
 import utool as ut
 import matplotlib as mpl
 from ibeis.algo.graph.state import POSTV, NEGTV, INCMP  # NOQA
-(print, rrr, profile) = ut.inject2(__name__)
 
 DPI = 300
 
@@ -171,7 +171,7 @@ class DBInputs(object):
                     self._precollect()
                 ut.cprint('Checking new fpath', 'yellow')
                 fpath = join(str(self.dpath), expt_name + '.pkl')
-                print('fpath = %r' % (fpath,))
+                logger.info('fpath = %r' % (fpath,))
                 if not exists(fpath):
                     ut.cprint('Results still missing need to re-measure', 'red')
                     # assert False
@@ -180,7 +180,7 @@ class DBInputs(object):
                 else:
                     ut.cprint('Re-setup fixed it', 'gren')
             else:
-                print('Experiment results {} exist'.format(expt_name))
+                logger.info('Experiment results {} exist'.format(expt_name))
             self.expt_results[expt_name] = ut.load_data(fpath)
             return self.expt_results[expt_name]
 
@@ -201,9 +201,9 @@ class DBInputs(object):
         #     >>> dbnames = ut.get_argval(('--dbs', '--db'), type_=list, default=[])
         #     >>> ChapX.measure(expt_name, dbnames)
         """
-        print('expt_name = %r' % (expt_name,))
-        print('dbnames = %r' % (dbnames,))
-        print('args = %r' % (args,))
+        logger.info('expt_name = %r' % (expt_name,))
+        logger.info('dbnames = %r' % (dbnames,))
+        logger.info('args = %r' % (args,))
         dbnames = ut.smart_cast(dbnames, list)
         for dbname in dbnames:
             self = ChapX(dbname)
@@ -237,9 +237,9 @@ class DBInputs(object):
         #     >>> dbnames = ut.get_argval(('--dbs', '--db'), type_=list, default=[])
         #     >>> Chap3.draw(expt_name, dbnames)
         """
-        print('expt_name = %r' % (expt_name,))
-        print('dbnames = %r' % (dbnames,))
-        print('args = %r' % (args,))
+        logger.info('expt_name = %r' % (expt_name,))
+        logger.info('dbnames = %r' % (dbnames,))
+        logger.info('args = %r' % (args,))
         dbnames = ut.smart_cast(dbnames, list)
 
         if len(dbnames) > 1:
@@ -251,7 +251,7 @@ class DBInputs(object):
                     executor.submit(ChapX.draw_serial, expt_name, *fsargs)
                     for fsargs in ut.product(dbnames, *multi_args)
                 ]))
-            print('\n\n Completed multiple tasks')
+            logger.info('\n\n Completed multiple tasks')
         else:
             ChapX.draw_serial(expt_name, dbnames, *args)
 
@@ -287,7 +287,6 @@ class DBInputs(object):
         """
         ut.vd(ChapX.base_dpath)
 
-    @profile
     def _precollect(self):
         """
         Sets up an ibs object with an aids_pool
@@ -357,7 +356,7 @@ class DBInputs(object):
 
         # ibs.print_annot_stats(aids, prefix='P')
         main_helpers.monkeypatch_encounters(ibs, aids, minutes=30)
-        print('post monkey patch')
+        logger.info('post monkey patch')
         # if False:
         #     ibs.print_annot_stats(aids, prefix='P')
         self.ibs = ibs
@@ -515,10 +514,10 @@ class ExpandingSample(ut.NiceRepr):
         import pandas as pd
         verbose = 0
         if verbose:
-            print(pd.DataFrame.from_records(info_list))
-            print('#qaids = %r' % (len(sample.qaids),))
-            print('num_need = %r' % (n_need,))
-            print('max_dsize = %r' % (max_dsize,))
+            logger.info(pd.DataFrame.from_records(info_list))
+            logger.info('#qaids = %r' % (len(sample.qaids),))
+            logger.info('num_need = %r' % (n_need,))
+            logger.info('max_dsize = %r' % (max_dsize,))
         return sample.qaids, daids_list, info_list
 
 

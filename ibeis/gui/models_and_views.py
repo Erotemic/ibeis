@@ -4,10 +4,10 @@ This provides concrete classes which inherit from abstract
 api_item_models/api_table_models/api_tree_models in guitool_ibeis.
 """
 from __future__ import absolute_import, division, print_function
+from loguru import logger
 import utool as ut
 from guitool_ibeis import (APIItemModel, APITableView, APITreeView, APIItemWidget,
                      StripeProxyModel, ChangeLayoutContext)
-print, rrr, profile = ut.inject2(__name__)
 
 #---------------------
 # --- IBEIS Tables ---
@@ -58,7 +58,7 @@ class IBEISStripeModel(IBEISSTRIPEMODEL_BASE):
             model.sourcemodel = APIItemModel(parent=parent)
             model.setSourceModel(model.sourcemodel)
             if ut.VERBOSE:
-                print('[ibs_model] just set the sourcemodel')
+                logger.info('[ibs_model] just set the sourcemodel')
 
     def _update_headers(model, **headers):
         def _null_ider(**kwargs):
@@ -94,7 +94,7 @@ class IBEISTableView(APITableView):
 
     def _change_imageset(tblview, imgsetid):
         if VERBOSE_GUI:
-            print('[gui.IBEISTableView] _change_imageset(%r)' % (imgsetid))
+            logger.info('[gui.IBEISTableView] _change_imageset(%r)' % (imgsetid))
         tblview.verticalScrollBar().setSliderPosition(0)
         model = tblview.model()
         if model is not None:
@@ -132,7 +132,7 @@ class IBEISItemModel(IBEISITEMMODEL_BASE):
 
     def _change_imageset(model, imgsetid):
         if VERBOSE_GUI:
-            print('[gui.IBEISItemModel] _change_imageset(%r)' % (imgsetid))
+            logger.info('[gui.IBEISItemModel] _change_imageset(%r)' % (imgsetid))
         model.imgsetid = imgsetid
         with ChangeLayoutContext([model]):
             super(IBEISItemModel, model)._update_rows()
@@ -151,7 +151,7 @@ class IBEISTreeView(APITreeView):
 
     def _change_imageset(treeview, imgsetid):
         if VERBOSE_GUI:
-            print('[gui.IBEISTreeView] _change_imageset(%r)' % (imgsetid))
+            logger.info('[gui.IBEISTreeView] _change_imageset(%r)' % (imgsetid))
         treeview.verticalScrollBar().setSliderPosition(0)
         model = treeview.model()
         if model is not None:

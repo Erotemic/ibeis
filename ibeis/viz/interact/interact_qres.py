@@ -1,3 +1,4 @@
+from loguru import logger
 import utool as ut
 import plottool_ibeis as pt
 from plottool_ibeis import plot_helpers as ph
@@ -5,7 +6,6 @@ from plottool_ibeis import abstract_interaction
 from ibeis import viz
 from ibeis.viz.interact.interact_sver import ishow_sver
 
-(print, rrr, profile) = ut.inject2(__name__, '[interact_qres]')
 
 
 def ishow_analysis(ibs, cm, qreq_=None, **kwargs):
@@ -60,7 +60,7 @@ class InteractQres(BASE_CLASS):
         self.verbose = True
         super(InteractQres, self).__init__(**kwargs)
         self.fnum
-        print('self.fnum = %r' % (self.fnum,))
+        logger.info('self.fnum = %r' % (self.fnum,))
 
     def plot(self, *args, **kwargs):
         if self.analysis:
@@ -78,7 +78,7 @@ class InteractQres(BASE_CLASS):
     def _analysis_view(self, toggle=0):
         # Toggle if the click is not in any axis
         if self.verbose:
-            print('clicked none')
+            logger.info('clicked none')
         self.kwargs['annot_mode'] = self.kwargs.get('annot_mode', 0) + toggle
         self.kwargs['fnum'] = self.fnum
         #if isinstance(self.cm, chip_match.ChipMatch):
@@ -90,7 +90,7 @@ class InteractQres(BASE_CLASS):
 
     def show_sver_process_to_aid(self, aid2):
         if self.verbose:
-            print('ctrl+clicked aid2=%r' % aid2)
+            logger.info('ctrl+clicked aid2=%r' % aid2)
         fnum_ = pt.next_fnum()
         ishow_sver(self.ibs, self.cm.qaid, aid2, qreq_=self.qreq_, fnum=fnum_)
         self.draw()
@@ -98,7 +98,7 @@ class InteractQres(BASE_CLASS):
 
     def show_matches_to_aid(self, aid2):
         if self.verbose:
-            print('clicked aid2=%r' % aid2)
+            logger.info('clicked aid2=%r' % aid2)
         fnum_ = pt.next_fnum()
         #if isinstance(self.cm, chip_match.ChipMatch):
         self.cm.ishow_match(self.qreq_, aid2, fnum=fnum_)
@@ -118,9 +118,9 @@ class InteractQres(BASE_CLASS):
         viztype = ph.get_plotdat(ax, 'viztype', '')
         #if verbose:
         #    print(str(event.__dict__))
-        print('viztype=%r' % viztype)
+        logger.info('viztype=%r' % viztype)
         # Clicked a specific matches
-        print('plodat_dict = ' + ut.repr2(ph.get_plotdat_dict(ax)))
+        logger.info('plodat_dict = ' + ut.repr2(ph.get_plotdat_dict(ax)))
         if viztype.startswith('chip'):
             from ibeis.viz.interact import interact_chip
             options = interact_chip.build_annot_context_options(
@@ -134,8 +134,8 @@ class InteractQres(BASE_CLASS):
             if event.button == 3:   # right-click
                 # TODO; this functionality should be in viz.interact
                 from ibeis.gui import inspect_gui
-                print('right click')
-                print('qreq_ = %r' % (self.qreq_,))
+                logger.info('right click')
+                logger.info('qreq_ = %r' % (self.qreq_,))
                 options = inspect_gui.get_aidpair_context_menu_options(
                     self.ibs, self.cm.qaid, aid2, self.cm,
                     qreq_=self.qreq_, update_callback=self.show_page,
@@ -144,13 +144,13 @@ class InteractQres(BASE_CLASS):
             else:
                 # Ctrl-Click
                 key = '' if event.key is None else event.key
-                print('key = %r' % key)
+                logger.info('key = %r' % key)
                 if key.find('control') == 0:
-                    print('[viz] result control clicked')
+                    logger.info('[viz] result control clicked')
                     self.show_sver_process_to_aid(aid2)
                 # Left-Click
                 else:
-                    print('[viz] result clicked')
+                    logger.info('[viz] result clicked')
                     self.show_matches_to_aid(aid2)
         self.draw()
 

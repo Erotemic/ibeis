@@ -51,6 +51,7 @@ Notes:
         python -m ibeis.web.job_engine job_engine_tester --fg
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 #if False:
 #    import os
 #    os.environ['UTOOL_NOCNN'] = 'True'
@@ -64,7 +65,6 @@ import random
 from os.path import join
 from functools import partial
 from ibeis.control import controller_inject
-print, rrr, profile = ut.inject2(__name__)
 
 
 CLASS_INJECT_KEY, register_ibs_method = (
@@ -82,16 +82,16 @@ VERBOSE_JOBS = ut.get_argflag('--bg') or ut.get_argflag('--fg') or ut.get_argfla
 def update_proctitle(procname):
     try:
         import setproctitle
-        print('CHANGING PROCESS TITLE')
+        logger.info('CHANGING PROCESS TITLE')
         old_title = setproctitle.getproctitle()
-        print('old_title = %r' % (old_title,))
+        logger.info('old_title = %r' % (old_title,))
         #new_title = 'IBEIS_' + procname + ' ' + old_title
         #new_title = procname + ' ' + old_title
         new_title = 'ibeis_zmq_loop'
-        print('new_title = %r' % (new_title,))
+        logger.info('new_title = %r' % (new_title,))
         setproctitle.setproctitle(new_title)
     except ImportError:
-        print('pip install setproctitle')
+        logger.info('pip install setproctitle')
 
 
 @register_ibs_method
@@ -160,7 +160,7 @@ def initialize_job_manager(ibs):
     # Wait until the collector becomes live
     while 0 and True:
         result = ibs.get_job_status(-1)
-        print('result = %r' % (result,))
+        logger.info('result = %r' % (result,))
         if result['status'] == 'ok':
             break
 
@@ -298,7 +298,7 @@ def job_engine_tester():
         dbdir = sysres.get_args_dbdir(defaultdb='cache', allow_newdir=False,
                                       db=None, dbdir=None)
         reciever.initialize_background_processes(dbdir)
-        print('[testzmq] parent process is looping forever')
+        logger.info('[testzmq] parent process is looping forever')
         while True:
             time.sleep(1)
     elif ut.get_argflag('--fg'):
@@ -310,12 +310,12 @@ def job_engine_tester():
         jobiface.initialize_client_thread()
 
     # Foreground test script
-    print('... waiting for jobs')
+    logger.info('... waiting for jobs')
     if ut.get_argflag('--cmd'):
         ut.embed()
         #jobiface.queue_job()
     else:
-        print('[test] ... emit test1')
+        logger.info('[test] ... emit test1')
         callback_url = None
         callback_method = None
         args = (1,)
@@ -333,7 +333,7 @@ def job_engine_tester():
             jobiface.wait_for_job_result(jobid)
 
         jobiface.wait_for_job_result(identify_jobid)
-    print('FINISHED TEST SCRIPT')
+    logger.info('FINISHED TEST SCRIPT')
 
 
 class JobBackend(object):
@@ -353,12 +353,12 @@ class JobBackend(object):
         # Find ports
         self.port_dict = None
         self._initialize_job_ports(**kwargs)
-        print('JobBackend ports:')
+        logger.info('JobBackend ports:')
         ut.print_dict(self.port_dict)
 
     def __del__(self):
         if VERBOSE_JOBS:
-            print('Cleaning up job backend')
+            logger.info('Cleaning up job backend')
         if self.engine_procs is not None:
             for i in self.engine_procs:
                 i.terminate()
@@ -369,7 +369,7 @@ class JobBackend(object):
         if self.collect_queue_proc is not None:
             self.collect_queue_proc.terminate()
         if VERBOSE_JOBS:
-            print('Killed external procs')
+            logger.info('Killed external procs')
 
     def _initialize_job_ports(self, use_static_ports=False, static_root=51381):
         # _portgen = functools.partial(six.next, itertools.count(51381))
@@ -452,7 +452,7 @@ class JobInterface(object):
         jobiface.id_ = id_
         jobiface.verbose = 2 if VERBOSE_JOBS else 1
         jobiface.port_dict = port_dict
-        print('JobInterface ports:')
+        logger.info('JobInterface ports:')
         ut.print_dict(jobiface.port_dict)
 
     # def init(jobiface):
@@ -598,7 +598,7 @@ class JobInterface(object):
             elif reply['jobstatus'] == 'exception':
                 result = jobiface.get_unpacked_result(jobid)
                 #raise Exception(result)
-                print('Exception occured in engine')
+                logger.info('Exception occured in engine')
                 return result
             elif reply['jobstatus'] == 'working':
                 pass
@@ -832,7 +832,7 @@ def on_engine_request(ibs, jobid, action, args, kwargs):
     """ Run whenever the engine recieves a message """
     # Start working
     if VERBOSE_JOBS:
-        print('starting job=%r' % (jobid,))
+        logger.info('starting job=%r' % (jobid,))
     # Map actions to IBEISController calls here
     if action == 'helloworld':
         def helloworld(time_=0, *args, **kwargs):
@@ -844,7 +844,7 @@ def on_engine_request(ibs, jobid, action, args, kwargs):
         # check for ibs func
         action_func = getattr(ibs, action)
         if VERBOSE_JOBS:
-            print('resolving action=%r to ibeis function=%r' % (action, action_func))
+            logger.info('resolving action=%r to ibeis function=%r' % (action, action_func))
     try:
         result = action_func(*args, **kwargs)
         exec_status = 'ok'
@@ -912,7 +912,7 @@ def on_collect_request(collect_request, collecter_data, awaiting_data, shelve_pa
     reply = {}
     action = collect_request['action']
     if VERBOSE_JOBS:
-        print('...building action=%r response' % (action,))
+        logger.info('...building action=%r response' % (action,))
     if action == 'notification':
         # From the Queue
         jobid = collect_request['jobid']
@@ -952,7 +952,7 @@ def on_collect_request(collect_request, collecter_data, awaiting_data, shelve_pa
             else:
                 callback_method = callback_method.lower()
             if VERBOSE_JOBS:
-                print('calling callback_url using callback_method')
+                logger.info('calling callback_url using callback_method')
             try:
                 # requests.get(callback_url)
                 data_dict = {'jobid': jobid}
@@ -970,16 +970,16 @@ def on_collect_request(collect_request, collecter_data, awaiting_data, shelve_pa
                 except:
                     text = None
                 args = (callback_url, callback_method, data_dict, response, text, )
-                print('WILDBOOK CALLBACK TO %r\n\tMETHOD: %r\n\tDATA: %r\n\tRESPONSE: %r\n\tTEXT: %r' % args)
+                logger.info('WILDBOOK CALLBACK TO %r\n\tMETHOD: %r\n\tDATA: %r\n\tRESPONSE: %r\n\tTEXT: %r' % args)
             except Exception as ex:
                 msg = (('ERROR in collector. '
                         'Tried to call callback_url=%r with callback_method=%r')
                        % (callback_url, callback_method, ))
-                print(msg)
+                logger.info(msg)
                 ut.printex(ex, msg)
             #requests.post(callback_url)
         if VERBOSE_JOBS:
-            print('stored result')
+            logger.info('stored result')
     elif action == 'job_status':
         # From a Client
         jobid = collect_request['jobid']
@@ -1025,7 +1025,7 @@ def on_collect_request(collect_request, collecter_data, awaiting_data, shelve_pa
             reply['json_result'] = None
     else:
         # Other
-        print('...error unknown action=%r' % (action,))
+        logger.info('...error unknown action=%r' % (action,))
         reply['status'] = 'error'
         reply['text'] = 'unknown action'
     return reply
@@ -1038,7 +1038,7 @@ def send_multipart_json(sock, idents, reply):
     sock.send_multipart(multi_reply)
 
 
-def rcv_multipart_json(sock, num=2, print=print):
+def rcv_multipart_json(sock, num=2, print=logger.info):
     """ helper """
     # note that the first two parts will be ['Controller.ROUTER', 'Client.<id_>']
     # these are needed for the reply to propagate up to the right client
@@ -1053,8 +1053,8 @@ def rcv_multipart_json(sock, num=2, print=print):
 
 
 def _on_ctrl_c(signal, frame):
-    print('[ibeis.zmq] Caught ctrl+c')
-    print('[ibeis.zmq] sys.exit(0)')
+    logger.info('[ibeis.zmq] Caught ctrl+c')
+    logger.info('[ibeis.zmq] sys.exit(0)')
     import sys
     sys.exit(0)
 

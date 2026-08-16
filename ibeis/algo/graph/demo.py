@@ -3,12 +3,12 @@
 TODO: separate out the tests and make this file just generate the demo data
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 import itertools as it
 import numpy as np
 import utool as ut
 from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV
 from ibeis.algo.graph.state import SAME, DIFF, NULL  # NOQA
-print, rrr, profile = ut.inject2(__name__)
 
 
 def make_dummy_infr(annots_per_name):
@@ -214,18 +214,18 @@ def demo2():
         infr.update_visual_attrs(groupby='name_label')
         infr.set_node_attrs('pin', 'true')
         node_dict = ut.nx_node_dict(infr.graph)
-        print(ut.repr4(node_dict[1]))
+        logger.info(ut.repr4(node_dict[1]))
 
     if VISUALIZE:
         infr.latest_logs()
         # Pin Nodes into the target groundtruth position
         show_graph(infr, 'target-gt')
 
-    print(ut.repr4(infr.status()))
+    logger.info(ut.repr4(infr.status()))
     infr.clear_feedback()
     infr.clear_name_labels()
     infr.clear_edges()
-    print(ut.repr4(infr.status()))
+    logger.info(ut.repr4(infr.status()))
     infr.latest_logs()
 
     if VISUALIZE:
@@ -245,7 +245,7 @@ def demo2():
     infr.refresh_candidate_edges()
 
     VIZ_ALL = (VISUALIZE and TARGET_REVIEW is None and START is None)
-    print('VIZ_ALL = %r' % (VIZ_ALL,))
+    logger.info('VIZ_ALL = %r' % (VIZ_ALL,))
 
     if VIZ_ALL or TARGET_REVIEW == 0:
         show_graph(infr, 'find-candidates')
@@ -260,7 +260,7 @@ def demo2():
     first = 1
     for edge, priority in infr._generate_reviews(data=True):
         msg = 'review #%d, priority=%.3f' % (count, priority)
-        print('\n----------')
+        logger.info('\n----------')
         infr.print('pop edge {} with priority={:.3f}'.format(edge, priority))
         # print('remaining_reviews = %r' % (infr.remaining_reviews()),)
         # Make the next review
@@ -434,7 +434,6 @@ def make_demo_infr(ccs, edges=[], nodes=[], infer=True):
     return infr
 
 
-@profile
 def demodata_infr(**kwargs):
     """
     kwargs = {}
@@ -442,7 +441,7 @@ def demodata_infr(**kwargs):
     CommandLine:
         python -m ibeis.algo.graph.demo demodata_infr --show
         python -m ibeis.algo.graph.demo demodata_infr --num_pccs=25
-        python -m ibeis.algo.graph.demo demodata_infr --profile --num_pccs=100
+        python -m ibeis.algo.graph.demo demodata_infr --num_pccs=100
 
     Ignore:
         >>> from ibeis.algo.graph.demo import *  # NOQA
@@ -561,7 +560,7 @@ def demodata_infr(**kwargs):
 
             incon_idxs = np.where(states == 0)[0]
             if len(incon_idxs) > max_n_incon:
-                print('max_n_incon = %r' % (max_n_incon,))
+                logger.info('max_n_incon = %r' % (max_n_incon,))
                 chosen = rng.choice(incon_idxs, max_n_incon, replace=False)
                 states[np.setdiff1d(incon_idxs, chosen)] = len(probs)
 
@@ -601,7 +600,7 @@ def demodata_infr(**kwargs):
     neg_edges = []
 
     if not kwalias('ignore_pair', False):
-        print('making pairs')
+        logger.info('making pairs')
 
         pair_attrs_lookup = {
             0: {'evidence_decision': NEGTV, 'truth': NEGTV},
@@ -647,9 +646,9 @@ def demodata_infr(**kwargs):
                 attrs = pair_attrs_lookup[state]
                 for (u, v) in edges:
                     neg_edges.append((u, v, attrs))
-        print('Made {} neg_edges between PCCS'.format(len(neg_edges)))
+        logger.info('Made {} neg_edges between PCCS'.format(len(neg_edges)))
     else:
-        print('ignoring pairs')
+        logger.info('ignoring pairs')
 
     import ibeis
     G = ibeis.AnnotInference._graph_cls()

@@ -8,13 +8,13 @@
 6) human in loop
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 import six  # NOQA
 import utool as ut
 import numpy as np
 from six.moves import zip
 from ibeis.algo.hots import pgm_ext
 
-print, rrr, profile = ut.inject2(__name__)
 
 #SPECIAL_BASIS_POOL = ['fred', 'sue', 'tom']
 SPECIAL_BASIS_POOL = []
@@ -73,22 +73,22 @@ def temp_model(num_annots, num_names, score_evidence=[], name_evidence=[],
 
     if verbose:
         if verbose:
-            print('+--------')
+            logger.info('+--------')
         semtypes = [model.var2_cpd[f.variables[0]].ttype
                     for f in factor_list]
         for type_, factors in ut.group_items(factor_list, semtypes).items():
-            print('Result Factors (%r)' % (type_,))
+            logger.info('Result Factors (%r)' % (type_,))
             factors = ut.sortedby(factors, [f.variables[0] for f in factors])
             for fs_ in ut.ichunks(factors, 4):
                 ut.colorprint(ut.hz_str([f._str('phi', 'psql') for f in fs_]),
                               'yellow')
-        print('MAP assignments')
+        logger.info('MAP assignments')
         top_assignments = query_results.get('top_assignments', [])
         tmp = []
         for lbl, val in top_assignments:
             tmp.append('%s : %.4f' % (ut.repr2(lbl), val))
-        print(ut.align('\n'.join(tmp), ' :'))
-        print('L_____\n')
+        logger.info(ut.align('\n'.join(tmp), ' :'))
+        logger.info('L_____\n')
 
     showkw = dict(evidence=evidence,
                   soft_evidence=soft_evidence,
@@ -209,7 +209,7 @@ def make_name_model(num_annots, num_names=None, verbose=True, mode=1,
 
     # L___ End CPD Definitions ___
 
-    print('score_cpds = %r' % (ut.list_getattr(score_cpds, 'variable'),))
+    logger.info('score_cpds = %r' % (ut.list_getattr(score_cpds, 'variable'),))
 
     # Make Model
     model = pgm_ext.define_model(cpd_list)
@@ -385,7 +385,7 @@ def collapse_labels(model, evidence, reduced_variables, reduced_row_idxs,
         data_ids = np.array(
             vt.compute_unique_data_ids_(list(map(tuple, tmp_state_idxs))))
         unique_ids, groupxs = vt.group_indices(data_ids)
-        print('Collapsed %r states into %r states' % (
+        logger.info('Collapsed %r states into %r states' % (
             len(data_ids), len(unique_ids),))
         # Sum the values in the cpd to marginalize the duplicate probs
         new_values = np.array([
@@ -481,7 +481,7 @@ def report_partitioning_statistics(new_reduced_joint):
 
     #print(sorted([(b, a) for a, b in ut.map_dict_vals(sum, x)]).items())
     #z = sorted([(b, a) for a, b in ut.map_dict_vals(sum, grouped_vals).items()])
-    print(ut.repr2(probs_assigned_to_clustertype, nl=2, precision=2, sorted_=True))
+    logger.info(ut.repr2(probs_assigned_to_clustertype, nl=2, precision=2, sorted_=True))
 
     #group_numperlbl = [
     #    [sorted(list(ut.dict_hist(ut.get_list_column(a, 1)).values())) for a in assigns]
@@ -504,13 +504,13 @@ def _test_compute_reduced_joint(model, query_vars, evidence, method):
     joint_bp.reorder()
 
     assert np.allclose(joint_ve.values, joint_bp.values)
-    print('VE and BP are the same')
+    logger.info('VE and BP are the same')
 
     joint_bf = model.joint_distribution()
     reduce_marginalize(joint_bf, query_vars, evidence, inplace=True)
 
     assert np.allclose(joint_bf.values, joint_bp.values)
-    print('BF and BP are the same')
+    logger.info('BF and BP are the same')
 
 
 def compute_reduced_joint(model, query_vars, evidence, method,
@@ -519,9 +519,9 @@ def compute_reduced_joint(model, query_vars, evidence, method,
     if method == 'approx':
         # TODO: incorporate operation?
         query_states = model.get_number_of_states(query_vars)
-        print('model.number_of_states = %r' % (
+        logger.info('model.number_of_states = %r' % (
             model.get_number_of_states(),))
-        print('query_states = %r' % (query_states,))
+        logger.info('query_states = %r' % (query_states,))
         # Try to approximatly sample the map inference
         infr = pgmpy.inference.Sampling.BayesianModelSampling(model)
 
@@ -559,16 +559,16 @@ def compute_reduced_joint(model, query_vars, evidence, method,
         M_chernoff_hueristic = 3 * (np.log(2 / delta) / (Py_hueristic * eps ** 2))
         hueristic_size = 2 ** (len(query_vars) + 2)
         size = min(100000, max(hueristic_size, 128))
-        print('\n-----')
-        print('u = %r' % (u,))
-        print('thresh = %r' % (thresh,))
-        print('k = %r' % (k,))
-        print('gamma = %r' % (gamma,))
-        print('M_chernoff_hueristic = %r' % (M_chernoff_hueristic,))
-        print('hueristic_size = %r' % (hueristic_size,))
-        print('M_hoffding = %r' % (M_hoffding,))
-        print('M_chernoff = %r' % (M_chernoff,))
-        print('size = %r' % (size,))
+        logger.info('\n-----')
+        logger.info('u = %r' % (u,))
+        logger.info('thresh = %r' % (thresh,))
+        logger.info('k = %r' % (k,))
+        logger.info('gamma = %r' % (gamma,))
+        logger.info('M_chernoff_hueristic = %r' % (M_chernoff_hueristic,))
+        logger.info('hueristic_size = %r' % (hueristic_size,))
+        logger.info('M_hoffding = %r' % (M_hoffding,))
+        logger.info('M_chernoff = %r' % (M_chernoff,))
+        logger.info('size = %r' % (size,))
         #np.log(2 / .1) / (2 * (.2 ** 2))
         sampled = infr.likelihood_weighted_sample(evidence=evidence_,
                                                   size=size)
@@ -582,7 +582,7 @@ def compute_reduced_joint(model, query_vars, evidence, method,
         num_raw_states = len(reduced_joint.state_idxs)
         reduced_joint.consolidate()
         num_unique_states = len(reduced_joint.state_idxs)
-        print('[pgm] %r / %r initially sampled states are unique' % (
+        logger.info('[pgm] %r / %r initially sampled states are unique' % (
             num_unique_states, num_raw_states,))
         reduced_joint.normalize()
         reduced_joint.reorder()
@@ -708,7 +708,7 @@ def cluster_query(model, query_vars=None, evidence=None, soft_evidence=None,
         'map_assign': map_assign,
         'method': method,
     }
-    print('query_results = %s' % (ut.repr3(query_results, nl=2),))
+    logger.info('query_results = %s' % (ut.repr3(query_results, nl=2),))
     return query_results
 
 
@@ -803,7 +803,7 @@ def get_hacked_pos(netx_graph, name_nodes=None, prog='dot'):
             xx, yy = node_.attr["pos"].split(',')
             node_pos[n] = (float(xx), float(yy))
         except:
-            print("no position for node", n)
+            logger.info('{}, {}', "no position for node", n)
             node_pos[n] = (0.0, 0.0)
     return node_pos
 
@@ -1090,7 +1090,7 @@ if __name__ == '__main__':
         python -m ibeis.algo.hots.bayes --allexamples
     """
     if ut.VERBOSE:
-        print('[hs] bayes')
+        logger.info('[hs] bayes')
     import multiprocessing
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA

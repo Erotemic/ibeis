@@ -3,6 +3,7 @@
 Small GUI for asking the user to enter the clock time shown, and moving along a gid list if the first image isn't a clock
 """
 from __future__ import absolute_import, division, print_function
+from loguru import logger
 from functools import partial
 from six.moves import range
 from time import mktime
@@ -12,14 +13,13 @@ import guitool_ibeis as gt
 from guitool_ibeis.__PYQT__ import QtWidgets
 from guitool_ibeis.__PYQT__.QtCore import Qt
 import plottool_ibeis as pt
-(print, rrr, profile) = ut.inject2(__name__, '[co_gui]')
 
 
 class ClockOffsetWidget(QtWidgets.QWidget):
 
     def __init__(co_wgt, ibs, gid_list, parent=None, hack=False):
-        print('[co_gui] Initializing')
-        print('[co_gui] gid_list = %r' % (gid_list,))
+        logger.info('[co_gui] Initializing')
+        logger.info('[co_gui] gid_list = %r' % (gid_list,))
 
         QtWidgets.QWidget.__init__(co_wgt, parent=parent)
 
@@ -245,7 +245,7 @@ class ClockOffsetWidget(QtWidgets.QWidget):
         input_time = mktime(co_wgt.dtime.timetuple())
         # Go through gid list, and add that offset to every unixtime
         offset = input_time - image_time
-        print("[co_gui] Unixtime offset is %d" % offset)
+        logger.info("[co_gui] Unixtime offset is %d" % offset)
         # Set the unixtimes with the new ones
         utimes = co_wgt.ibs.get_image_unixtime(co_wgt.gid_list)
         new_utimes = [time + offset for time in utimes]
@@ -259,7 +259,7 @@ class ClockOffsetWidget(QtWidgets.QWidget):
     @gt.slot_(str, int, str)
     def change_dt(co_wgt, attr, val_ind, val):
         co_wgt.dtime = co_wgt.dtime.replace(**{attr: co_wgt.opt_list[attr][val_ind][1]})
-        print("[co_gui] Base datetime is %r" % co_wgt.dtime)
+        logger.info("[co_gui] Base datetime is %r" % co_wgt.dtime)
 
 
 def clock_offset_test():

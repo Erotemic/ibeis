@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals  # NOQA
+from loguru import logger
 from os.path import join, exists, basename
 from ibeis.algo.verif import sklearn_utils
 from ibeis.algo.verif import verifier
 import utool as ut
-print, rrr, profile = ut.inject2(__name__)
 
 
 class Deployer(object):
@@ -303,7 +303,7 @@ class Deployer(object):
             fname = df.loc[idxs[max_idx]]['Name']
             task_clf_fnames[species][task_key] = fname
 
-        print('published = ' + ut.repr2(task_clf_fnames, nl=2))
+        logger.info('published = ' + ut.repr2(task_clf_fnames, nl=2))
         return task_clf_fnames
 
     def find_latest_local(self):

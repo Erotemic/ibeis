@@ -15,6 +15,7 @@ Zebra Experiment:
            :proot=vsmany,fg_on=False,SV=[False] \
         -a ctrl:qmingt=2
 """
+from loguru import logger
 import dtool_ibeis
 import utool as ut
 import numpy as np
@@ -25,7 +26,6 @@ from ibeis.algo.smk import inverted_index
 from ibeis.algo.smk import smk_funcs
 from ibeis import core_annots
 from ibeis.algo import Config as old_config
-(print, rrr, profile) = ut.inject2(__name__)
 
 
 class MatchHeuristicsConfig(dtool_ibeis.Config):
@@ -63,7 +63,7 @@ class SMKRequest(mc5.EstimatorRequest):
     qreq_-like object. Trying to work on becoming more scikit-ish
 
     CommandLine:
-        python -m ibeis.algo.smk.smk_pipeline SMKRequest --profile
+        python -m ibeis.algo.smk.smk_pipeline SMKRequest
         python -m ibeis.algo.smk.smk_pipeline SMKRequest --show
 
         python -m ibeis draw_rank_cmc --db GZ_ALL --show \
@@ -86,11 +86,11 @@ class SMKRequest(mc5.EstimatorRequest):
 
         python -m ibeis draw_rank_cmc --db PZ_Master1 \
             -p :proot=smk,num_words=[64000],nAssign=[1],sv_on=[True] \
-            -a ctrl:qmingt=2,qindex=60:80 --profile
+            -a ctrl:qmingt=2,qindex=60:80
 
         python -m ibeis draw_rank_cmc --db GZ_ALL \
             -p :proot=smk,num_words=[64000],nAssign=[1],sv_on=[True] \
-            -a ctrl:qmingt=2,qindex=40:60 --profile
+            -a ctrl:qmingt=2,qindex=40:60
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -185,7 +185,7 @@ class SMKRequest(mc5.EstimatorRequest):
             #     defaultdb='Oxford', a='oxford',
             #     p='default:proot=smk,nAssign=1,num_words=64000,SV=False,can_match_sameimg=True,dim_size=None')
         """
-        print('Ensure data for %s' % (qreq_,))
+        logger.info('Ensure data for %s' % (qreq_,))
 
         #qreq_.cachedir = ut.ensuredir((ibs.cachedir, 'smk'))
         qreq_.ensure_nids()
@@ -274,12 +274,12 @@ class SMKRequest(mc5.EstimatorRequest):
         qreq_.qinva = qinva
         qreq_.dinva = dinva
 
-        print('loading keypoints')
+        logger.info('loading keypoints')
         if qreq_.qparams.sv_on:
             qreq_.data_kpts = qreq_.ibs.get_annot_kpts(
                 qreq_.daids, config2_=qreq_.extern_data_config2)
 
-        print('building aid index')
+        logger.info('building aid index')
         qreq_.daid_to_didx = ut.make_index_lookup(qreq_.daids)
 
     def execute_pipeline(qreq_):
@@ -316,7 +316,7 @@ class SMK(ut.NiceRepr):
         >>> ibs, smk, qreq_ = testdata_smk()
         >>> verbose = True
         """
-        print('Predicting matches')
+        logger.info('Predicting matches')
         #assert qreq_.qinva.vocab is qreq_.dinva.vocab
         #X_list = qreq_.qinva.inverted_annots(qreq_.qaids)
         #Y_list = qreq_.dinva.inverted_annots(qreq_.daids)
@@ -327,15 +327,14 @@ class SMK(ut.NiceRepr):
                    for qaid in _prog(qreq_.qaids)]
         return cm_list
 
-    @profile
     def match_single(smk, qaid, daids, qreq_, verbose=True):
         """
         CommandLine:
-            python -m ibeis.algo.smk.smk_pipeline SMK.match_single --profile
+            python -m ibeis.algo.smk.smk_pipeline SMK.match_single
             python -m ibeis.algo.smk.smk_pipeline SMK.match_single --show
 
-            python -m ibeis SMK.match_single -a ctrl:qmingt=2 --profile --db PZ_Master1
-            python -m ibeis SMK.match_single -a ctrl --profile --db GZ_ALL
+            python -m ibeis SMK.match_single -a ctrl:qmingt=2 --db PZ_Master1
+            python -m ibeis SMK.match_single -a ctrl --db GZ_ALL
 
         Example:
             >>> # FUTURE_ENABLE

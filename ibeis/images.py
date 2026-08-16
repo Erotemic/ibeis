@@ -2,7 +2,6 @@ import utool as ut
 import six
 from ibeis import _ibeis_object
 from ibeis.control.controller_inject import make_ibs_register_decorator
-(print, rrr, profile) = ut.inject2(__name__, '[images]')
 
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 
@@ -50,7 +49,6 @@ def imagesets(ibs, gsids=None, text=None):
 class ImageIBEISPropertyInjector(BASE_TYPE):
     def __init__(metaself, name, bases, dct):
         super(ImageIBEISPropertyInjector, metaself).__init__(name, bases, dct)
-        metaself.rrr = rrr
         #misc = [ 'instancelist', 'gids_with_aids', 'lazydict', ]  #
         attrs = [
             'aids', 'aids_of_species', 'annot_uuids',
@@ -151,7 +149,6 @@ class ImageSetAttrInjector(BASE_TYPE):
     """
     def __init__(metaself, name, bases, dct):
         super(ImageSetAttrInjector, metaself).__init__(name, bases, dct)
-        metaself.rrr = rrr
         #misc = [ 'instancelist', 'gids_with_aids', 'lazydict', ]  #
         attrs = ['aids', 'configid', 'custom_filtered_aids', 'duration',
                  'end_time_posix', 'fraction_annotmatch_reviewed',

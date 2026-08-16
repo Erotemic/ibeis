@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
+from loguru import logger
 import six
 import utool as ut
-print, rrr, profile = ut.inject2(
-    __name__, '[expt_harn]')
 
 
 class ResultMetadata(object):
@@ -82,7 +81,7 @@ class ResultMetadata(object):
             for colname in col_name_list]
         col_name_list = ['qaids'] + col_name_list
         column_list = [qaids] + column_list
-        print('depth_profile(column_list) = %r' % (ut.depth_profile(column_list),))
+        logger.info('depth_profile(column_list) = %r' % (ut.depth_profile(column_list),))
         return col_name_list, column_list
 
 
@@ -114,15 +113,15 @@ def make_metadata_custom_api(metadata):
 
         @guitool_ibeis.slot_(QtCore.QModelIndex)
         def _on_doubleclick(wgt, qtindex):
-            print('[wgt] _on_doubleclick: ')
+            logger.info('[wgt] _on_doubleclick: ')
             col = qtindex.column()
             if wgt.api.col_edit_list[col]:
-                print('do nothing special for editable columns')
+                logger.info('do nothing special for editable columns')
                 return
             model = qtindex.model()
             colname = model.get_header_name(col)
             if colname.endswith('fpath'):
-                print('showing fpath')
+                logger.info('showing fpath')
                 fpath = model.get_header_data(colname, qtindex)
                 ut.startfile(fpath)
 
@@ -146,8 +145,8 @@ def make_metadata_custom_api(metadata):
     column_list = ut.take(column_list, sortx)
 
     col_lens = list(map(len, column_list))
-    print('col_name_list = %r' % (col_name_list,))
-    print('col_lens = %r' % (col_lens,))
+    logger.info('col_name_list = %r' % (col_name_list,))
+    logger.info('col_lens = %r' % (col_lens,))
     assert len(col_lens) > 0, 'no columns'
     assert col_lens[0] > 0, 'no rows'
     assert all([len_ == col_lens[0] for len_ in col_lens]), 'inconsistant data'
@@ -225,7 +224,6 @@ def make_test_result_custom_api(ibs, testres):
     return wgt
 
 
-@profile
 def draw_results(ibs, testres):
     r"""
     Draws results from an experiment harness run.
@@ -263,7 +261,7 @@ def draw_results(ibs, testres):
         >>> # verify results
         >>> print(result)
     """
-    print(' --- DRAW RESULTS ---')
+    logger.info(' --- DRAW RESULTS ---')
 
     # It is very inefficient to turn off caching when view_all is true
 
@@ -311,7 +309,7 @@ def draw_results(ibs, testres):
     metadata.close()
 
     if ut.NOT_QUIET:
-        print('[DRAW_RESULT] EXIT EXPERIMENT HARNESS')
+        logger.info('[DRAW_RESULT] EXIT EXPERIMENT HARNESS')
 
 
 if __name__ == '__main__':

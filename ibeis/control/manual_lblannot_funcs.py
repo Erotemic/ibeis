@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
+from loguru import logger
 import uuid
 from six.moves import range
 from ibeis import constants as const
@@ -8,7 +9,6 @@ from ibeis.control.accessor_decors import (
     adder, deleter, setter, getter_1to1, getter_1toM, default_decorator, ider)
 import utool as ut
 from ibeis.control.controller_inject import make_ibs_register_decorator
-print, rrr, profile = ut.inject2(__name__)
 
 
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
@@ -108,7 +108,7 @@ def delete_annot_relations_oftype(ibs, aid_list, _lbltype):
 def delete_lblannots(ibs, lblannot_rowid_list):
     """ deletes lblannots from the database """
     if ut.VERBOSE:
-        print('[ibs] deleting %d lblannots' % len(lblannot_rowid_list))
+        logger.info('[ibs] deleting %d lblannots' % len(lblannot_rowid_list))
     ibs.db.delete_rowids(const.LBLANNOT_TABLE, lblannot_rowid_list)
 
 

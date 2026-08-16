@@ -3,11 +3,11 @@
 TODO: use graph_iden.py instead.  Need to encapsulate some of this functionality.
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 import numpy as np
 import utool as ut
 import vtool_ibeis as vt  # NOQA
 import six
-print, rrr, profile = ut.inject2(__name__)
 
 
 class OrigAnnotInference(object):
@@ -190,8 +190,8 @@ class OrigAnnotInference(object):
         qxs, nxs = np.where(postcut)
         if False:
             kw = dict(precision=2, max_line_width=140, suppress_small=True)
-            print(ut.hz_str('prob_names = ', ut.repr2((prob_names), **kw)))
-            print(ut.hz_str('postcut = ', ut.repr2((postcut).astype(int), **kw)))
+            logger.info(ut.hz_str('prob_names = ', ut.repr2((prob_names), **kw)))
+            logger.info(ut.hz_str('postcut = ', ut.repr2((postcut).astype(int), **kw)))
         matching_qaids = ut.take(qaid_list, qxs)
         matched_nids = ut.take(unique_nids, nxs)
 

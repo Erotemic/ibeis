@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function
+from loguru import logger
 import utool as ut
 import numpy as np
-(print, rrr, profile) = ut.inject2(__name__)
 
 
 def nx_makenode(graph, name, **attrkw):
@@ -43,7 +43,7 @@ def multidb_montage():
             minqual='good', sample_size=sample_size)
         aids_list.append(aids)
 
-    print(ut.depth_profile(aids_list))
+    logger.info(ut.depth_profile(aids_list))
 
     chip_lists = []
     for ibs, aids in zip(ibs_list, aids_list):
@@ -694,8 +694,8 @@ def setcover_example():
         # ibeis.testdata_aids('testdb2', a='default:mingt=2')
         aids = [a for a in aids if len(a) > 1]
         for a in aids:
-            print(ut.repr3(ibs.get_annot_stats_dict(a)))
-        print(aids[-2])
+            logger.info(ut.repr3(ibs.get_annot_stats_dict(a)))
+        logger.info(aids[-2])
     #aids = [78, 79, 80, 81, 88, 91]
     aids = [78, 79, 81, 88, 91]
     qreq_ = ibs.depc.new_request('vsone', aids, aids)
@@ -704,7 +704,7 @@ def setcover_example():
     infr = orig_graph_iden.OrigAnnotInference(cm_list)
     unique_aids, prob_annots = infr.make_prob_annots()
     import numpy as np
-    print(ut.hz_str('prob_annots = ', ut.repr2(prob_annots, precision=2, max_line_width=140, suppress_small=True)))
+    logger.info(ut.hz_str('prob_annots = ', ut.repr2(prob_annots, precision=2, max_line_width=140, suppress_small=True)))
     # ut.setcover_greedy(candidate_sets_dict)
     max_weight = 3
     prob_annots[np.diag_indices(len(prob_annots))] = np.inf
@@ -998,7 +998,7 @@ def show_id_graph():
                     # print(a.yaw_texts)
                     if any(t is not None and 'left' in t for t in a.yaw_texts):
                         if any(t is not None and 'right' in t for t in a.yaw_texts):
-                            print(a.yaw_texts)
+                            logger.info(a.yaw_texts)
                             if len(cc) <= MAX_SIZE:
                                 pccs.append(cc)
                         # break
@@ -1533,7 +1533,7 @@ def event_space():
         (120, 'Same', None), [
             ((50, 'comparable', None), []),
             ((50, 'incomparable', None), [])
-        ]
+        ],
         (120, 'Diff', None), [
             ((50, 'comparable', None), []),
             ((50, 'incomparable', None), [])
@@ -1811,7 +1811,7 @@ def redun_demo3():
     infr.add_feedback((4, 14), evidence_decision=NEGTV)
     import networkx as nx
     for e in nxu.edges_between(nx.complement(infr.graph), ccs[0], ccs[1]):
-        print('e = %r' % (e,))
+        logger.info('e = %r' % (e,))
         infr.add_feedback(e, evidence_decision=INCMP)
     infr.graph.graph.update(graphkw)
     infr.show(pnum=pnum_(), **showkw)

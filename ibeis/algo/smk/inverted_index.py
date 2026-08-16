@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 from six.moves import zip, range
 import dtool_ibeis
 import utool as ut
@@ -7,7 +8,6 @@ import vtool_ibeis as vt
 import numpy as np
 from ibeis.algo.smk import smk_funcs
 from ibeis.control.controller_inject import register_preprocs
-(print, rrr, profile) = ut.inject2(__name__)
 
 
 derived_attribute = register_preprocs['annot']
@@ -92,8 +92,8 @@ class InvertedAnnotsExtras(object):
         sizes = inva.get_size_info()
         sizes = ut.sort_dict(sizes, 'vals', ut.identity)
         total_nbytes =  sum(sizes.values())
-        print(ut.align(ut.repr3(ut.map_dict_vals(ut.byte_str2, sizes), strvals=True), ':'))
-        print('total_nbytes = %r' % (ut.byte_str2(total_nbytes),))
+        logger.info(ut.align(ut.repr3(ut.map_dict_vals(ut.byte_str2, sizes), strvals=True), ':'))
+        logger.info('total_nbytes = %r' % (ut.byte_str2(total_nbytes),))
 
     def get_nbytes(inva):
         sizes = inva.get_size_info()
@@ -309,7 +309,7 @@ class InvertedAnnots(InvertedAnnotsExtras):
                                      _hack_rootmost=True, _debug=False)
         # input_tuple = (aids, [vocab_aids])
         # tbl_rowids = depc.get_rowids(tablename, input_tuple, config=config)
-        print('Reading data')
+        logger.info('Reading data')
         inva.aids = aids
         inva.wx_lists = [np.array(wx_list_, dtype=np.int32)
                          for wx_list_ in table.get_row_data(
@@ -354,7 +354,6 @@ class InvertedAnnots(InvertedAnnotsExtras):
     def __setstate__(inva, state):
         inva.__dict__.update(**state)
 
-    @profile
     @ut.memoize
     def get_annot(inva, aid):
         idx = inva.aid_to_idx[aid]
@@ -366,7 +365,6 @@ class InvertedAnnots(InvertedAnnotsExtras):
             wx_to_aids = smk_funcs.invert_lists(inva.aids, inva.wx_lists)
             return wx_to_aids
 
-    @profile
     def compute_word_weights(inva, method='idf'):
         """
         Compute a per-word weight like idf
@@ -402,7 +400,6 @@ class InvertedAnnots(InvertedAnnotsExtras):
             wx_to_weight = ut.DefaultValueDict(0, wx_to_weight)
         return wx_to_weight
 
-    @profile
     def compute_gammas(inva, alpha, thresh):
         """
         Example:
@@ -476,13 +473,11 @@ class SingleAnnot(ut.NiceRepr):
     def words(X):
         return X.wx_set
 
-    @profile
     def fxs(X, c):
         idx = X.wx_to_idx[c]
         fxs = X.fxs_list[idx]
         return fxs
 
-    @profile
     def maws(X, c):
         idx = X.wx_to_idx[c]
         maws = X.maws_list[idx]
@@ -621,23 +616,23 @@ def compute_residual_assignments(depc, fid_list, vocab_id_list, config):
         if this_table._hack_chunk_cache is not None:
             this_table._hack_chunk_cache[vocabid] = vocab
 
-    print('Grab Vecs')
+    logger.info('Grab Vecs')
     vecs_list = depc.get_native('feat', fid_list, 'vecs')
     nAssign = config['nAssign']
     int_rvec = config['int_rvec']
 
     from concurrent import futures
-    print('Building residual args')
+    logger.info('Building residual args')
     worker = residual_worker
     args_gen = gen_residual_args(vocab, vecs_list, nAssign, int_rvec)
     args_gen = [args for args in ut.ProgIter(args_gen, length=len(vecs_list),
                                              lbl='building args')]
     # nprocs = ut.num_unused_cpus(thresh=10) - 1
     nprocs = ut.num_cpus()
-    print('Creating %d processes' % (nprocs,))
+    logger.info('Creating %d processes' % (nprocs,))
     executor = futures.ProcessPoolExecutor(nprocs)
     try:
-        print('Submiting workers')
+        logger.info('Submiting workers')
         fs_chunk = [executor.submit(worker, args)
                     for args in ut.ProgIter(args_gen, lbl='submit proc')]
         for fs in ut.ProgIter(fs_chunk, lbl='getting phi result'):

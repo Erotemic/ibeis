@@ -36,6 +36,7 @@ CommandLine:
 """
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
+from loguru import logger
 # import multiprocessing
 import sys
 import numpy as np
@@ -64,7 +65,6 @@ from ibeis.other import dbinfo  # NOQA
 from ibeis.expt import experiment_configs  # NOQA
 from ibeis.expt import harness  # NOQA
 from ibeis import params  # NOQA
-print, rrr, profile = utool.inject2(__name__)
 
 
 #------------------
@@ -132,7 +132,7 @@ def tune_flann(ibs, qaid_list, daid_list=None):
     """
     all_aids = ibs.get_valid_aids()
     vecs = np.vstack(ibs.get_annot_vecs(all_aids))
-    print('Tunning flann for species={species}:'.format(species=ibs.get_database_species(all_aids)))
+    logger.info('Tunning flann for species={species}:'.format(species=ibs.get_database_species(all_aids)))
     import vtool_ibeis as vt
     tuned_params = vt.tune_flann(vecs,
                                  target_precision=.98,
@@ -188,13 +188,13 @@ def incremental_test(ibs, qaid_list, daid_list=None):
 
 @devcmd('inspect')
 def inspect_matches(ibs, qaid_list, daid_list):
-    print('<inspect_matches>')
+    logger.info('<inspect_matches>')
     from ibeis.gui import inspect_gui
     return inspect_gui.test_review_widget(ibs, qaid_list, daid_list)
 
 
 def get_ibslist(ibs):
-    print('[dev] get_ibslist')
+    logger.info('[dev] get_ibslist')
     ibs_GV  = ibs
     ibs_RI  = ibs.clone_handle(nogravity_hack=True)
     ibs_RIW = ibs.clone_handle(nogravity_hack=True, gravity_weighting=True)
@@ -204,7 +204,7 @@ def get_ibslist(ibs):
 
 @devcmd('gv_scores')
 def compgrav_draw_score_sep(ibs, qaid_list, daid_list):
-    print('[dev] compgrav_draw_score_sep')
+    logger.info('[dev] compgrav_draw_score_sep')
     from ibeis.expt.experiment_drawing import draw_annot_scoresep
     ibs_list = get_ibslist(ibs)
     for ibs_ in ibs_list:
@@ -241,19 +241,17 @@ def run_devprecmds():
                     input_precmd_list.remove(precmd_name)
                 else:
                     ret = ret2
-                print('+===================')
-                print('| running precmd = %s' % (args,))
+                logger.info('+===================')
+                logger.info('| running precmd = %s' % (args,))
                 return ret
         return False
-
-    ut.start_logging(appname='ibeis')
 
     # Implicit (decorated) test functions
     for (func_aliases, func) in DEVPRECMD_FUNCTIONS:
         if intest(*func_aliases):
             #with utool.Indenter('[dev.' + get_funcname(func) + ']'):
             func()
-            print('Exiting after first precommand')
+            logger.info('Exiting after first precommand')
             sys.exit(1)
     if len(input_precmd_list) > 0:
         raise AssertionError('Unhandled tests: ' + repr(input_precmd_list))
@@ -264,13 +262,13 @@ def run_devcmds(ibs, qaid_list, daid_list, acfg=None):
     """
     This function runs tests passed in with the -t flag
     """
-    print('\n')
+    logger.info('\n')
     #print('[dev] run_devcmds')
-    print('==========================')
-    print('[DEV] RUN EXPERIMENTS %s' % ibs.get_dbname())
-    print('==========================')
+    logger.info('==========================')
+    logger.info('[DEV] RUN EXPERIMENTS %s' % ibs.get_dbname())
+    logger.info('==========================')
     input_test_list = params.args.tests[:]
-    print('input_test_list = %s' % (ut.repr2(input_test_list),))
+    logger.info('input_test_list = %s' % (ut.repr2(input_test_list),))
     # fnum = 1
 
     valid_test_list = []  # build list for printing in case of failure
@@ -291,9 +289,9 @@ def run_devcmds(ibs, qaid_list, daid_list, acfg=None):
                     mark_test_handled(testname)
                 else:
                     ret = ret2
-                print('\n+===================')
-                print(' [dev] running testname = %s' % (args,))
-                print('+-------------------\n')
+                logger.info('\n+===================')
+                logger.info(' [dev] running testname = %s' % (args,))
+                logger.info('+-------------------\n')
                 return ret
         return False
 
@@ -307,7 +305,7 @@ def run_devcmds(ibs, qaid_list, daid_list, acfg=None):
     if intest('headers', 'schema'):
         ibs.db.print_schema()
     if intest('info'):
-        print(ibs.get_infostr())
+        logger.info(ibs.get_infostr())
     if intest('printcfg'):
         raise NotImplementedError('printcfg')
         # printcfg(ibs)
@@ -368,13 +366,13 @@ def run_devcmds(ibs, qaid_list, daid_list, acfg=None):
     valid_test_helpstr_list.append('    # --- Help ---')
 
     if intest('help'):
-        print('valid tests are:')
-        print('\n'.join(valid_test_helpstr_list))
+        logger.info('valid tests are:')
+        logger.info('\n'.join(valid_test_helpstr_list))
         return locals_
 
     if len(input_test_list) > 0:
-        print('valid tests are: \n')
-        print('\n'.join(valid_test_list))
+        logger.info('valid tests are: \n')
+        logger.info('\n'.join(valid_test_list))
         raise Exception('Unknown tests: %r ' % input_test_list)
     return locals_
 
@@ -390,7 +388,7 @@ def run_devcmds(ibs, qaid_list, daid_list, acfg=None):
 
 def dev_snippets(main_locals):
     """ Common variables for convineince when interacting with IPython """
-    print('[dev] dev_snippets')
+    logger.info('[dev] dev_snippets')
     species = 'zebra_grevys'
     quick = True
     fnum = 1
@@ -508,13 +506,13 @@ def run_dev(ibs):
     CommandLine:
         python dev.py --db PZ_Master0 --controlled --print-rankhist
     """
-    print('[dev] --- RUN DEV ---')
+    logger.info('[dev] --- RUN DEV ---')
     # Get reference to controller
     if ibs is not None:
         # Get aids marked as test cases
         if ut.get_argflag('--expanded-aids'):
             ibs, qaid_list, daid_list = main_helpers.testdata_expanded_aids(ibs=ibs)
-            print('[run_def] Test Annotations:')
+            logger.info('[run_def] Test Annotations:')
             #print('[run_dev] * qaid_list = %s' % ut.packstr(qaid_list, 80, nlprefix='[run_dev]     '))
         else:
             qaid_list = []
@@ -681,15 +679,15 @@ def devmain():
     EXAMPLE_STR = ut.msgblock('dev.py Examples', ut.codeblock(EXAMPLE_TEXT))
 
     if ut.NOT_QUIET:
-        print(INTRO_STR)
+        logger.info(INTRO_STR)
     if ut.get_argflag(('--help', '--verbose')):
-        print(EXAMPLE_STR)
+        logger.info(EXAMPLE_STR)
 
     CMD   = ut.get_argflag('--cmd')
     NOGUI = not ut.get_argflag('--gui')
 
     if len(sys.argv) == 1:
-        print('Run dev.py with arguments!')
+        logger.info('Run dev.py with arguments!')
         sys.exit(1)
 
     # Run Precommands
@@ -698,7 +696,7 @@ def devmain():
     #
     #
     # Run IBEIS Main, create controller, and possibly gui
-    print('++dev')
+    logger.info('++dev')
     main_locals = ibeis.main(gui=ut.get_argflag('--gui'))
     #utool.set_process_title('IBEIS_dev')
 
@@ -723,7 +721,7 @@ def devmain():
     command = ut.get_argval('--eval', type_=str, default=None)
     if command is not None:
         result = eval(command, globals(), locals())
-        print('result = %r' % (result,))
+        logger.info('result = %r' % (result,))
         #ibs.search_annot_notes('360')
 
     #
@@ -744,7 +742,7 @@ def devmain():
         utool.print_resource_usage()
         utool.memory_profile()
 
-    print('exiting dev')
+    logger.info('exiting dev')
 
 
 def ggr_random_name_splits():
@@ -796,7 +794,7 @@ def ggr_random_name_splits():
         import quantumrandom
         data = quantumrandom.uint16()
         seed = data.sum()
-        print('seed = %r' % (seed,))
+        logger.info('seed = %r' % (seed,))
         #import Crypto.Random
         #from Crypto import Random
         #quantumrandom.get_data()
@@ -846,12 +844,12 @@ def ggr_random_name_splits():
     groups = ibeis.annots.AnnotGroups(grouped_annots, ibs)
     match_tags = [ut.unique(ut.flatten(t)) for t in groups.match_tags]
     tag_case_hist = ut.dict_hist(ut.flatten(match_tags))
-    print('name_pop = %r' % (pop,))
-    print('Annots per Multiton Name' + ut.repr3(
+    logger.info('name_pop = %r' % (pop,))
+    logger.info('Annots per Multiton Name' + ut.repr3(
         ut.get_stats(pername_list, use_median=True)))
-    print('Name Tag Hist ' + ut.repr3(tag_case_hist))
-    print('Percent Photobomb: %.2f%%' % (tag_case_hist['photobomb'] / pop * 100))
-    print('Percent Split: %.2f%%' % (tag_case_hist['splitcase'] / pop * 100))
+    logger.info('Name Tag Hist ' + ut.repr3(tag_case_hist))
+    logger.info('Percent Photobomb: %.2f%%' % (tag_case_hist['photobomb'] / pop * 100))
+    logger.info('Percent Split: %.2f%%' % (tag_case_hist['splitcase'] / pop * 100))
 
     # Remove the ok part from this sample
     remain_unique_nids = ut.setdiff(unique_nids, ok_part_orig_nids)
@@ -882,23 +880,23 @@ def ggr_random_name_splits():
             win.close()
         win = viz_graph2.make_qt_graph_interface(ibs, aids=annots.aids,
                                                  init_mode='rereview')
-        print(win)
+        logger.info(win)
 
     sample_groups = ibeis.annots.AnnotGroups(annot_sample, ibs)
 
     flat_tags = [ut.unique(ut.flatten(t)) for t in sample_groups.match_tags]
 
-    print('Using Split and Photobomb')
+    logger.info('Using Split and Photobomb')
     is_positive = ['photobomb' in t or 'splitcase' in t for t in flat_tags]
     num_positive = sum(is_positive)
     vt.calc_error_bars_from_sample(sample_size, num_positive, pop, conf_level=.95)
 
-    print('Only Photobomb')
+    logger.info('Only Photobomb')
     is_positive = ['photobomb' in t for t in flat_tags]
     num_positive = sum(is_positive)
     vt.calc_error_bars_from_sample(sample_size, num_positive, pop, conf_level=.95)
 
-    print('Only SplitCase')
+    logger.info('Only SplitCase')
     is_positive = ['splitcase' in t for t in flat_tags]
     num_positive = sum(is_positive)
     vt.calc_error_bars_from_sample(sample_size, num_positive, pop, conf_level=.95)

@@ -11,7 +11,6 @@ import vtool_ibeis as vt  # NOQA
 # import ibeis.algo.graph.nx_edge_kconnectivity as nx_ec
 from ibeis.algo.graph import nx_edge_augmentation as nx_aug
 from collections import defaultdict
-print, rrr, profile = ut.inject2(__name__)
 
 
 def _dz(a, b):

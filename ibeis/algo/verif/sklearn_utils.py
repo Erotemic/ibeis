@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 # import warning
 import numpy as np
 import utool as ut
@@ -11,7 +12,6 @@ from six.moves import zip
 # from sklearn.externals.six.moves import zip
 # from sklearn.model_selection._split import (_BaseKFold, KFold)
 from sklearn.model_selection._split import (_BaseKFold,)
-print, rrr, profile = ut.inject2(__name__)
 
 
 # from sklearn.utils.fixes import bincount
@@ -184,9 +184,9 @@ def temp(samples):
     from ibeis.algo.verif import sklearn_utils
     def check_balance(idxs):
         # from sklearn.utils.fixes import bincount
-        print('-------')
+        logger.info('-------')
         for count, (test, train) in enumerate(idxs):
-            print('split %r' % (count))
+            logger.info('split %r' % (count))
             groups_train = set(groups.take(train))
             groups_test = set(groups.take(test))
             n_group_isect = len(groups_train.intersection(groups_test))
@@ -195,10 +195,10 @@ def temp(samples):
             y_test_ratio = y_test_freq / y_test_freq.sum()
             y_train_ratio = y_train_freq / y_train_freq.sum()
             balance_error = np.sum((y_test_ratio - y_train_ratio) ** 2)
-            print('n_group_isect = %r' % (n_group_isect,))
-            print('y_test_ratio = %r' % (y_test_ratio,))
-            print('y_train_ratio = %r' % (y_train_ratio,))
-            print('balance_error = %r' % (balance_error,))
+            logger.info('n_group_isect = %r' % (n_group_isect,))
+            logger.info('y_test_ratio = %r' % (y_test_ratio,))
+            logger.info('y_train_ratio = %r' % (y_train_ratio,))
+            logger.info('balance_error = %r' % (balance_error,))
 
     X = np.empty((len(samples), 0))
     y = samples.encoded_1d().values
@@ -496,15 +496,15 @@ def classification_report2(y_true, y_pred, target_names=None,
 
     if verbose:
         cfsm_str = confusion_df.to_string(float_format=lambda x: '%.1f' % (x,))
-        print('Confusion Matrix (real × pred) :')
-        print(ut.hz_str('    ', cfsm_str))
+        logger.info('Confusion Matrix (real × pred) :')
+        logger.info(ut.hz_str('    ', cfsm_str))
 
         # ut.cprint('\nExtended Report', 'turquoise')
-        print('\nEvaluation Metric Report:')
+        logger.info('\nEvaluation Metric Report:')
         float_precision = 2
         float_format = '%.' + str(float_precision) + 'f'
         ext_report = metric_df.to_string(float_format=float_format)
-        print(ut.hz_str('    ', ext_report))
+        logger.info(ut.hz_str('    ', ext_report))
 
     report = {
         'metrics': metric_df,
@@ -564,11 +564,11 @@ def classification_report2(y_true, y_pred, target_names=None,
         for k, v in mcc_significance_scales.items():
             if np.abs(mcc) >= k:
                 if verbose:
-                    print('classifier correlation is %s' % (v,))
+                    logger.info('classifier correlation is %s' % (v,))
                 break
         if verbose:
             float_precision = 2
-            print(('MCC\' = %.' + str(float_precision) + 'f') % (mcc,))
+            logger.info(('MCC\' = %.' + str(float_precision) + 'f') % (mcc,))
         report['mcc'] = mcc
     except ValueError:
         pass

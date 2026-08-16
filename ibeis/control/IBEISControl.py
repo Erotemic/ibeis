@@ -34,6 +34,7 @@ Note:
       resides in the injected modules.
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 import six
 import dtool_ibeis
 import atexit
@@ -47,7 +48,6 @@ from ibeis.dbio import ingest_hsdb
 from ibeis import constants as const
 from ibeis.control import accessor_decors, controller_inject
 # Inject utool functions
-(print, rrr, profile) = ut.inject2(__name__)
 
 # Import modules which define injectable functions
 
@@ -217,7 +217,7 @@ def request_IBEISController(
     """
     if use_cache and dbdir in __IBEIS_CONTROLLER_CACHE__:
         if verbose:
-            print('[request_IBEISController] returning cached controller')
+            logger.info('[request_IBEISController] returning cached controller')
         ibs = __IBEIS_CONTROLLER_CACHE__[dbdir]
         if force_serial:
             assert ibs.force_serial, 'set use_cache=False in ibeis.opendb'
@@ -247,7 +247,7 @@ def __cleanup():
         del __ALL_CONTROLLERS__
         del __IBEIS_CONTROLLER_CACHE__
     except NameError:
-        print('cannot cleanup IBEISController')
+        logger.info('cannot cleanup IBEISController')
         pass
 
 
@@ -274,13 +274,12 @@ class IBEISController(BASE_CLASS):
     # --- CONSTRUCTOR / PRIVATES ---
     #-------------------------------
 
-    @profile
     def __init__(ibs, dbdir=None, ensure=True, wbaddr=None, verbose=True,
                  request_dbversion=None, request_stagingversion=None,
                  force_serial=None):
         """ Creates a new IBEIS Controller associated with one database """
         #if verbose and ut.VERBOSE:
-        print('\n[ibs.__init__] new IBEISController')
+        logger.info('\n[ibs.__init__] new IBEISController')
 
         ENABLE_FLUKEMATCH = False
         if ENABLE_FLUKEMATCH:
@@ -330,15 +329,15 @@ class IBEISController(BASE_CLASS):
 
         ibs.containerized = ut.get_argflag('--containerized')
         if ibs.containerized:
-            print('[ibs.__init__] CONTAINERIZED: True\n')
+            logger.info('[ibs.__init__] CONTAINERIZED: True\n')
 
-        print('[ibs.__init__] END new IBEISController\n')
+        logger.info('[ibs.__init__] END new IBEISController\n')
 
     def reset_table_cache(ibs):
         ibs.table_cache = accessor_decors.init_tablecache()
 
     def clear_table_cache(ibs, tablename=None):
-        print('[ibs] clearing table_cache[%r]' % (tablename,))
+        logger.info('[ibs] clearing table_cache[%r]' % (tablename,))
         if tablename is None:
             ibs.reset_table_cache()
         else:
@@ -418,18 +417,14 @@ class IBEISController(BASE_CLASS):
 
     def print_cachestats_str(ibs):
         cachestats_str = ibs.get_cachestats_str()
-        print('IBEIS Controller Cache Stats:')
-        print(cachestats_str)
+        logger.info('IBEIS Controller Cache Stats:')
+        logger.info(cachestats_str)
         return cachestats_str
 
     def _initialize_self(ibs):
-        """
-        Injects code from plugin modules into the controller
-
-        Used in utools auto reload.  Called after reload.
-        """
+        """Inject code from plugin modules into the controller."""
         if ut.VERBOSE:
-            print('[ibs] _initialize_self()')
+            logger.info('[ibs] _initialize_self()')
         ibs.reset_table_cache()
         ut.util_class.inject_all_external_modules(
             ibs, controller_inject.CONTROLLER_CLASSNAME,
@@ -438,19 +433,6 @@ class IBEISController(BASE_CLASS):
         assert hasattr(ibs, 'get_annot_pair_timedelta'), (
             'issue with annotmatch_funcs')
         ibs.register_controller()
-
-    def _on_reload(ibs):
-        """
-        For utools auto reload (rrr).
-        Called before reload
-        """
-        # Reloading breaks flask, turn it off
-        controller_inject.GLOBAL_APP_ENABLED = False
-        # Only warn on first load. Overrideing while reloading is ok
-        ibs.allow_override = True
-        ibs.unregister_controller()
-        # Reload dependent modules
-        ut.reload_injected_modules(controller_inject.CONTROLLER_CLASSNAME)
 
     def load_plugin_module(ibs, module):
         ut.inject_instance(
@@ -485,21 +467,21 @@ class IBEISController(BASE_CLASS):
 
     def cleanup(ibs):
         """ call on del? """
-        print('[ibs.cleanup] Observers (if any) notified [controller killed]')
+        logger.info('[ibs.cleanup] Observers (if any) notified [controller killed]')
         for observer_weakref in ibs.observer_weakref_list:
             observer_weakref().notify_controller_killed()
 
     def register_observer(ibs, observer):
-        print('[register_observer] Observer registered: %r' % observer)
+        logger.info('[register_observer] Observer registered: %r' % observer)
         observer_weakref = weakref.ref(observer)
         ibs.observer_weakref_list.append(observer_weakref)
 
     def remove_observer(ibs, observer):
-        print('[remove_observer] Observer removed: %r' % observer)
+        logger.info('[remove_observer] Observer removed: %r' % observer)
         ibs.observer_weakref_list.remove(observer)
 
     def notify_observers(ibs):
-        print('[notify_observers] Observers (if any) notified')
+        logger.info('[notify_observers] Observers (if any) notified')
         for observer_weakref in ibs.observer_weakref_list:
             observer_weakref().notify()
 
@@ -523,7 +505,6 @@ class IBEISController(BASE_CLASS):
         lbltype_ids = ibs.add_lbltype(lbltype_names, lbltype_defaults)
         ibs.lbltype_ids = dict(zip(lbltype_names, lbltype_ids))
 
-    @profile
     def _init_sql(ibs, request_dbversion=None, request_stagingversion=None):
         """ Load or create sql database """
         from ibeis.other import duct_tape  # NOQA
@@ -549,7 +530,6 @@ class IBEISController(BASE_CLASS):
             needs_backup = False
         return needs_backup
 
-    @profile
     def _init_sqldbcore(ibs, request_dbversion=None):
         """
         Example:
@@ -580,9 +560,9 @@ class IBEISController(BASE_CLASS):
         sqldb_fpath = None
         if backup_idx is not None:
             backups = _sql_helpers.get_backup_fpaths(ibs)
-            print('backups = %r' % (backups,))
+            logger.info('backups = %r' % (backups,))
             sqldb_fpath = backups[backup_idx]
-            print('CHOSE BACKUP sqldb_fpath = %r' % (sqldb_fpath,))
+            logger.info('CHOSE BACKUP sqldb_fpath = %r' % (sqldb_fpath,))
         if backup_idx is None and ibs._needs_backup():
             try:
                 _sql_helpers.ensure_daily_database_backup(ibs.get_ibsdir(),
@@ -634,7 +614,6 @@ class IBEISController(BASE_CLASS):
         #import sys
         #sys.exit(1)
 
-    @profile
     def _init_sqldbstaging(ibs, request_stagingversion=None):
         """
         Example:
@@ -665,9 +644,9 @@ class IBEISController(BASE_CLASS):
         sqlstaging_fpath = None
         if backup_idx is not None:
             backups = _sql_helpers.get_backup_fpaths(ibs)
-            print('backups = %r' % (backups,))
+            logger.info('backups = %r' % (backups,))
             sqlstaging_fpath = backups[backup_idx]
-            print('CHOSE BACKUP sqlstaging_fpath = %r' % (sqlstaging_fpath,))
+            logger.info('CHOSE BACKUP sqlstaging_fpath = %r' % (sqlstaging_fpath,))
         # HACK
         if backup_idx is None and ibs._needs_backup():
             try:
@@ -716,7 +695,6 @@ class IBEISController(BASE_CLASS):
         #import sys
         #sys.exit(1)
 
-    @profile
     def _init_depcache(ibs):
         # Initialize dependency cache for images
         image_root_getters = {}
@@ -781,7 +759,7 @@ class IBEISController(BASE_CLASS):
         ibs.depc_part = None
 
     def disconnect_sqldatabase(ibs):
-        print('disconnecting from sql database')
+        logger.info('disconnecting from sql database')
         ibs._close_depcache()
         ibs.db.close()
         ibs.db = None
@@ -816,7 +794,7 @@ class IBEISController(BASE_CLASS):
         #     print('[ibs._send_wildbook_request] Invalid URL: %r' % wbaddr)
         #     return None
         except requests.ConnectionError:
-            print('[ibs.wb_reqst] Could not connect to Wildbook server at %r' %
+            logger.info('[ibs.wb_reqst] Could not connect to Wildbook server at %r' %
                   wbaddr)
             return None
         return response
@@ -830,7 +808,7 @@ class IBEISController(BASE_CLASS):
         REL_PATHS = const.REL_PATHS
 
         if not ut.QUIET:
-            print('[ibs._init_dirs] ibs.dbdir = %r' % dbdir)
+            logger.info('[ibs._init_dirs] ibs.dbdir = %r' % dbdir)
         if dbdir is not None:
             workdir, dbname = split(dbdir)
         ibs.workdir  = ut.truepath(workdir)
@@ -1209,7 +1187,7 @@ class IBEISController(BASE_CLASS):
             row['polygon'] = poly.to_coco(style='new')
             dset.add_annotation(**row)
 
-        print(ibs.db.get_table_csv('images'))
+        logger.info(ibs.db.get_table_csv('images'))
 
         fpath = dump_dir / 'ibsdb.kwcoco.zip'
         dset.fpath = fpath
@@ -1334,9 +1312,9 @@ class IBEISController(BASE_CLASS):
                 response = requests.get(candidate_url)
             except (requests.ConnectionError):
                 if verbose:
-                    print('Failed to find IA server at %s' % (candidate_url, ))
+                    logger.info('Failed to find IA server at %s' % (candidate_url, ))
                 continue
-            print('Found IA server at %s' % (candidate_url, ))
+            logger.info('Found IA server at %s' % (candidate_url, ))
             try:
                 response = ut.from_json(response.text)
                 candidate_uuid = response.get('response')
@@ -1344,7 +1322,7 @@ class IBEISController(BASE_CLASS):
                 return candidate_port
             except (AssertionError):
                 if verbose:
-                    print('Invalid response from IA server at %s' % (candidate_url, ))
+                    logger.info('Invalid response from IA server at %s' % (candidate_url, ))
                 continue
 
         return None

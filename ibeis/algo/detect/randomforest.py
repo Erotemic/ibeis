@@ -3,6 +3,7 @@
 Interface to pyrf random forest object detection.
 """
 from __future__ import absolute_import, division, print_function
+from loguru import logger
 from os.path import exists, join
 from ibeis.algo.detect import grabmodels
 import utool as ut
@@ -10,14 +11,13 @@ import vtool_ibeis as vt
 from six.moves import zip, map
 import cv2
 import random
-(print, rrr, profile) = ut.inject2(__name__, '[randomforest]')
 
 if not ut.get_argflag('--no-pyrf'):
     try:
         import pyrf
     except ImportError:
         if 0:
-            print('WARNING Failed to import pyrf. '
+            logger.info('WARNING Failed to import pyrf. '
                   'Randomforest detection is unavailable')
         if ut.SUPER_STRICT:
             raise
@@ -41,7 +41,7 @@ def train_gid_list(ibs, gid_list, trees_path=None, species=None, setup=True,
     Returns:
         None
     """
-    print("[randomforest.train()] training with %d gids and species=%r" % (
+    logger.info("[randomforest.train()] training with %d gids and species=%r" % (
         len(gid_list), species, ))
     if trees_path is None and species is not None:
         trees_path = join(ibs.get_cachedir(), 'trees', species)
@@ -80,7 +80,7 @@ def train_gid_list(ibs, gid_list, trees_path=None, species=None, setup=True,
             ut.remove_dirs(negatives_cache)
         ut.ensuredir(negatives_cache)
         # Get negative chip paths
-        print("[randomforest.train()] Mining %d negative patches" % (len(train_pos_cpath_list), ))
+        logger.info("[randomforest.train()] Mining %d negative patches" % (len(train_pos_cpath_list), ))
         train_neg_cpath_list = []
         while len(train_neg_cpath_list) < len(train_pos_cpath_list):
             sample = random.randint(0, len(gid_list) - 1)
@@ -100,7 +100,7 @@ def train_gid_list(ibs, gid_list, trees_path=None, species=None, setup=True,
             ymax = ymin + square
             if _valid_candidate((xmin, xmax, ymin, ymax), annot_bbox_list):
                 if VERBOSE_RF:
-                    print("[%d / %d] MINING NEGATIVE PATCH (%04d, %04d, %04d, %04d) FROM GID %d" % (
+                    logger.info("[%d / %d] MINING NEGATIVE PATCH (%04d, %04d, %04d, %04d) FROM GID %d" % (
                         len(train_neg_cpath_list), len(train_pos_cpath_list), xmin, xmax, ymin, ymax, gid, ))
                 img = ibs.get_images(gid)
                 img_path = join(negatives_cache, "neg_%07d.JPEG" % (len(train_neg_cpath_list), ))
@@ -269,7 +269,7 @@ def detect(ibs, gpath_list, tree_path_list, **kwargs):
 
     verbose = kwargs.get('verbose', ut.VERBOSE)
     if verbose:
-        print('[randomforest.detect()] Detecting with %d trees with scale_list=%r' % (
+        logger.info('[randomforest.detect()] Detecting with %d trees with scale_list=%r' % (
             len(tree_path_list), kwargs['scale_list'], ))
 
     # Run detection

@@ -1,6 +1,7 @@
 """
 IBEIS: main package init
 """
+from loguru import logger
 
 __version__ = '2.5.0'
 
@@ -39,14 +40,14 @@ try:
     import utool as ut
     import dtool_ibeis  # NOQA
 except ImportError as ex:
-    print(f'ex={ex}')
-    print('[ibeis !!!] ERROR: Unable to load all core utility modules.')
-    print('[ibeis !!!] Perhaps try super_setup.py pull')
+    logger.info(f'ex={ex}')
+    logger.info('[ibeis !!!] ERROR: Unable to load all core utility modules.')
+    logger.info('[ibeis !!!] Perhaps try super_setup.py pull')
     raise
 
 ut.noinject(__name__, '[ibeis.__init__]')
 if ut.VERBOSE:
-    print('[ibeis] importing ibeis __init__')
+    logger.info('[ibeis] importing ibeis __init__')
 
 
 # If we dont initialize plottool_ibeis before <something>
@@ -56,7 +57,7 @@ if ut.VERBOSE:
 #import plottool_ibeis
 
 
-ENABLE_WILDBOOK_SIGNAL = False
+ENABLE_WILDBOOK_SIGNAL = True
 
 
 try:
@@ -211,8 +212,8 @@ def run_experiment(e='print', db='PZ_MTEST', dbdir=None, a=['unctrl'], t=['defau
 
         command_line_str = ' '.join(command_parts)
         # Warning, not always equivalent
-        print('Equivalent Command Line:')
-        print(command_line_str)
+        logger.info('Equivalent Command Line:')
+        logger.info(command_line_str)
         return command_line_str
     command_line_str = build_commandline(**kwargs)  # NOQA
 
@@ -309,29 +310,7 @@ testdata_expanded_aids = main_helpers.testdata_expanded_aids
 testdata_aids = main_helpers.testdata_aids
 
 # Utool generated init makeinit.py
-print, rrr, profile = ut.inject2(__name__)
 
-
-def reload_subs(verbose=True):
-    """ Reloads ibeis and submodules """
-    import_subs()
-    rrr(verbose=verbose)
-    getattr(constants, 'rrr', lambda verbose: None)(verbose=verbose)
-    getattr(main_module, 'rrr', lambda verbose: None)(verbose=verbose)
-    getattr(params, 'rrr', lambda verbose: None)(verbose=verbose)
-    getattr(other, 'reload_subs', lambda verbose: None)(verbose=verbose)
-    getattr(dbio, 'reload_subs', lambda verbose: None)(verbose=verbose)
-    getattr(algo, 'reload_subs', lambda verbose: None)(verbose=verbose)
-    getattr(control, 'reload_subs', lambda verbose: None)(verbose=verbose)
-    getattr(viz, 'reload_subs', lambda: None)()  # NOQA
-
-    getattr(gui, 'reload_subs', lambda verbose: None)(verbose=verbose)  # NOQA
-    getattr(algo, 'reload_subs', lambda verbose: None)(verbose=verbose)
-    getattr(viz, 'reload_subs', lambda verbose: None)(verbose=verbose)  # NOQA
-    getattr(web, 'reload_subs', lambda verbose: None)(verbose=verbose)  # NOQA
-
-    rrr(verbose=verbose)
-rrrr = reload_subs
 
 from ibeis.control.DB_SCHEMA_CURRENT import VERSION_CURRENT  # NOQA
 

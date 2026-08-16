@@ -2,12 +2,12 @@
 CommandLine:
     xdoctest -m ibeis.gui.inspect_gui test_review_widget --show
 """
+from loguru import logger
 from functools import partial
 from ibeis.viz import viz_helpers as vh
 import guitool_ibeis as gt
 import numpy as np
 import utool as ut
-(print, rrr, profile) = ut.inject2(__name__, '[id_review_api]')
 
 
 MATCHED_STATUS_TEXT  = 'Matched'
@@ -26,7 +26,6 @@ REVIEW_CFG_DEFAULTS = {
 }
 
 
-@profile
 def get_review_edges(cm_list, ibs=None, review_cfg={}):
     r"""
     Needs to be moved to a better file. Maybe something to do with
@@ -94,8 +93,8 @@ def get_review_edges(cm_list, ibs=None, review_cfg={}):
     from ibeis.algo.hots import chip_match
     automatch_kw = REVIEW_CFG_DEFAULTS.copy()
     automatch_kw = ut.update_existing(automatch_kw, review_cfg)
-    print('[resorg] get_review_edges(%s)' % (ut.repr2(automatch_kw)))
-    print('[resorg] len(cm_list) = %d' % (len(cm_list)))
+    logger.info('[resorg] get_review_edges(%s)' % (ut.repr2(automatch_kw)))
+    logger.info('[resorg] len(cm_list) = %d' % (len(cm_list)))
     qaids_stack  = []
     daids_stack  = []
     ranks_stack  = []
@@ -245,7 +244,7 @@ def make_review_api(ibs, cm_list, review_cfg, qreq_=None):
     """
     # TODO: Add in timedelta to column info
     if ut.VERBOSE:
-        print('[inspect] make_review_api')
+        logger.info('[inspect] make_review_api')
 
     review_edges = get_review_edges(cm_list, ibs=ibs, review_cfg=review_cfg)
     # Get extra info

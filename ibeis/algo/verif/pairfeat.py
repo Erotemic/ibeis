@@ -23,6 +23,7 @@ Example:
     ...         results[(aid1, aid2)] = score
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 import utool as ut
 import vtool_ibeis as vt
 import numpy as np
@@ -32,7 +33,6 @@ import dtool_ibeis as dt
 from os.path import join
 from ibeis.algo.graph import nx_utils as nxu
 from ibeis.core_annots import ChipConfig
-print, rrr, profile = ut.inject2(__name__)
 
 
 class PairFeatureConfig(dt.Config):
@@ -189,7 +189,7 @@ class PairwiseFeatureExtractor(object):
             >>> ut.show_if_requested()
         """
         if extr.verbose:
-            print('[extr] executing pairwise one-vs-one matching')
+            logger.info('[extr] executing pairwise one-vs-one matching')
         ibs = extr.ibs
         match_config = extr.match_config
         edges = ut.lmap(tuple, ut.aslist(edges))
@@ -318,7 +318,7 @@ class PairwiseFeatureExtractor(object):
         if extr.need_lnbnn:
             extr._enrich_matches_lnbnn(matches, inplace=True)
         if extr.verbose:
-            print('[extr] enriching match attributes')
+            logger.info('[extr] enriching match attributes')
         # Ensure matches know about relavent metadata
         for match in matches:
             vt.matching.ensure_metadata_normxy(match.annot1)
@@ -385,7 +385,7 @@ class PairwiseFeatureExtractor(object):
         matches = extr._enriched_pairwise_matches(edges)
         # ---------------
         # Try different feature constructions
-        print('[extr] building pairwise features')
+        logger.info('[extr] building pairwise features')
         pairfeat_cfg = extr.pairfeat_cfg.copy()
         use_na = pairfeat_cfg.pop('use_na')
         pairfeat_cfg['summary_ops'] = set(pairfeat_cfg['summary_ops'])
@@ -451,8 +451,8 @@ class PairwiseFeatureExtractor(object):
                 alt = feats.columns.difference(extr.feat_dims)
                 mis_msg = ('Missing feature dims: ' + ut.repr4(missing))
                 alt_msg = ('Did you mean? ' + ut.repr4(alt))
-                print(mis_msg)
-                print(alt_msg)
+                logger.info(mis_msg)
+                logger.info(alt_msg)
                 raise KeyError(mis_msg)
             feats = feats[extr.feat_dims]
         return feats
@@ -480,7 +480,7 @@ class PairwiseFeatureExtractor(object):
         """
         edges = list(edges)
         if extr.verbose:
-            print('[pairfeat] Requesting {} cached pairwise features'.format(
+            logger.info('[pairfeat] Requesting {} cached pairwise features'.format(
                 len(edges)))
 
         # TODO: use object properties

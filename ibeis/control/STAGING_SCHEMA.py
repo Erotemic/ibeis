@@ -21,7 +21,6 @@ except:
     VERSION_CURRENT = None
     print("[dbcache] NO STAGING_SCHEMA_CURRENT AUTO-GENERATED!")
 import utool as ut
-profile = ut.profile
 
 
 REVIEW_ROWID        = 'review_rowid'
@@ -33,7 +32,6 @@ TEST_ROWID          = 'test_rowid'
 # =======================
 
 
-@profile
 def update_1_0_0(db, ibs=None):
     db.add_table(const.REVIEW_TABLE, (
         ('review_rowid',                 'INTEGER PRIMARY KEY'),

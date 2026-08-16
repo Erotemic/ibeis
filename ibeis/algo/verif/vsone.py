@@ -10,6 +10,7 @@ CommandLine:
     python -m ibeis.algo.verif.vsone deploy --db GZ_Master1
 
 """
+from loguru import logger
 import utool as ut
 import ubelt as ub
 import itertools as it
@@ -29,7 +30,6 @@ from ibeis.algo.verif import deploy
 from ibeis.algo.verif import pairfeat, verifier
 from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV
 from os.path import basename
-print, rrr, profile = ut.inject2(__name__)
 
 
 class PairSampleConfig(dt.Config):
@@ -52,7 +52,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
     CommandLine:
         python -m ibeis.algo.verif.vsone evaluate_classifiers
         python -m ibeis.algo.verif.vsone evaluate_classifiers --db PZ_PB_RF_TRAIN
-        python -m ibeis.algo.verif.vsone evaluate_classifiers --db PZ_PB_RF_TRAIN --profile
+        python -m ibeis.algo.verif.vsone evaluate_classifiers --db PZ_PB_RF_TRAIN
         python -m ibeis.algo.verif.vsone evaluate_classifiers --db PZ_MTEST --show
         python -m ibeis.algo.verif.vsone evaluate_classifiers --db PZ_Master1 --show
         python -m ibeis.algo.verif.vsone evaluate_classifiers --db GZ_Master1 --show
@@ -128,7 +128,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         hyper_params['vsone_kpts']['augment_orientation'] = True
 
         species = infr.ibs.get_primary_database_species()
-        print('species = {!r}'.format(species))
+        logger.info('species = {!r}'.format(species))
 
         # Parameters from manta matcher
         hyper_params['chip']['resize_dim'] = 'maxwh'
@@ -211,7 +211,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         multi_species = infr.ibs.get_database_species(infr.aids)
         # if infr.ibs.has_species_detector(species):
         if 0 and all(infr.ibs.has_species_detector(s) for s in multi_species):
-            print("HACKING FGWEIGHTS ON")
+            logger.info("HACKING FGWEIGHTS ON")
             hyper_params.vsone_match['weight'] = 'fgweights'
             hyper_params.pairwise_feats['sorters'] = ut.unique(
                 hyper_params.pairwise_feats['sorters'] +
@@ -221,7 +221,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                 ]
             )
         else:
-            print("HACKING FGWEIGHTS OFF")
+            logger.info("HACKING FGWEIGHTS OFF")
             hyper_params.vsone_match['weight'] = None
 
         # global_keys = ['yaw', 'qual', 'gps', 'time']
@@ -244,9 +244,9 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         pblm.hyper_params = hyper_params
         updated = pblm.hyper_params.update2(params)
 
-        print('hyper_params: ' + ut.repr4(pblm.hyper_params.asdict(), nl=4))
+        logger.info('hyper_params: ' + ut.repr4(pblm.hyper_params.asdict(), nl=4))
         if updated:
-            print('Externally updated params = %r' % (updated,))
+            logger.info('Externally updated params = %r' % (updated,))
 
     @classmethod
     def from_aids(OneVsOneProblem, ibs, aids, verbose=None, **params):
@@ -354,7 +354,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         infr = pblm.infr
         ibs = pblm.infr.ibs
         if pblm.verbose > 0:
-            print('[pblm] gather lnbnn match-state cases')
+            logger.info('[pblm] gather lnbnn match-state cases')
 
         aids = ibs.filter_annots_general(
             infr.aids, min_pername=3, species='primary')
@@ -380,7 +380,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         if HACK_LOAD_STATIC_DATASET:
             # Just take anything, I dont care if it changed
             if data is None:
-                print('HACKING STATIC DATASET')
+                logger.info('HACKING STATIC DATASET')
                 infos = []
                 for fpath in cacher1.existing_versions():
                     finfo = ut.get_file_info(fpath)
@@ -392,12 +392,12 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                     df = df.drop(['owner', 'created', 'last_accessed'], axis=1)
                     df = df.sort_values('last_modified').reindex()
                     fpath = df['fpath'][0]
-                    print(df)
-                    print('HACKING STATIC DATASET')
+                    logger.info(df)
+                    logger.info('HACKING STATIC DATASET')
                     data = ut.load_data(fpath)
 
         if data is None:
-            print('Using LNBNN to compute pairs')
+            logger.info('Using LNBNN to compute pairs')
             cm_list = qreq_.execute()
             infr._set_vsmany_info(qreq_, cm_list)  # hack
 
@@ -408,9 +408,9 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                 rng=rng, **pblm.hyper_params.pair_sample)
             cacher1.save(aid_pairs_)
             data = aid_pairs_
-            print('Finished using LNBNN to compute pairs')
+            logger.info('Finished using LNBNN to compute pairs')
         else:
-            print('Loaded previous LNBNN pairs')
+            logger.info('Loaded previous LNBNN pairs')
         aid_pairs_ = data
         return aid_pairs_
 
@@ -420,7 +420,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         """
 
         if pblm.verbose > 0:
-            print('[pblm] Using randomized training pairs')
+            logger.info('[pblm] Using randomized training pairs')
         # from ibeis.algo.graph import nx_utils as nxu
         infr = pblm.infr
         infr.status()
@@ -431,8 +431,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             pair_sample, ['top_gt', 'mid_gt', 'bot_gt', 'rand_gt']))
         n_neg = sum(ut.take(
             pair_sample, ['top_gf', 'mid_gf', 'bot_gf', 'rand_gf']))
-        print('n_neg = {!r}'.format(n_neg))
-        print('n_pos = {!r}'.format(n_pos))
+        logger.info('n_neg = {!r}'.format(n_neg))
+        logger.info('n_pos = {!r}'.format(n_pos))
 
         cfgstr = pair_sample.get_cfgstr()
         ibs = pblm.infr.ibs
@@ -462,7 +462,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             num_pcc = infr.pos_graph.number_of_components()
             per_cc = int(n_need / num_pcc / 2)
             per_cc = max(2, per_cc)
-            print('per_cc = {!r}'.format(per_cc))
+            logger.info('per_cc = {!r}'.format(per_cc))
 
             rng = ut.ensure_rng(2039141610)
 
@@ -572,7 +572,6 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         ])))
         return aid_pairs
 
-    @profile
     def make_training_pairs(pblm):
         """
         CommandLine:
@@ -586,7 +585,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         """
         infr = pblm.infr
         if pblm.verbose > 0:
-            print('[pblm] gathering training pairs')
+            logger.info('[pblm] gathering training pairs')
 
         sample_method = pblm.hyper_params['sample_method']
 
@@ -613,11 +612,10 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         aid_pairs = sorted(set(it.starmap(infr.e_, ub.flatten(aid_pairs_))))
         return aid_pairs
 
-    @profile
     def load_samples(pblm):
         r"""
         CommandLine:
-            python -m ibeis.algo.verif.vsone load_samples --profile
+            python -m ibeis.algo.verif.vsone load_samples
 
         Example:
             >>> # DISABLE_DOCTEST
@@ -642,11 +640,10 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             ut.cprint('[pblm] apply_multi_task_multi_label', color='blue')
         pblm.samples.apply_multi_task_multi_label()
 
-    @profile
     def load_features(pblm, use_cache=True, with_simple=False):
         """
         CommandLine:
-            python -m ibeis.algo.verif.vsone load_features --profile
+            python -m ibeis.algo.verif.vsone load_features
 
         Example:
             >>> # DISABLE_DOCTEST
@@ -792,7 +789,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         # pblm.samples.print_info()
         ut.cprint('\n[pblm] --- CURATING DATA ---', 'blue')
         pblm.samples.print_info()
-        print('---------------')
+        logger.info('---------------')
 
         ut.cprint('\n[pblm] --- FEATURE INFO ---', 'blue')
         pblm.build_feature_subsets()
@@ -815,7 +812,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         # Remove any tasks that cant be done
         unsupported = set(task_keys) - set(pblm.samples.supported_tasks())
         for task_key in unsupported:
-            print('No data to train task_key = %r' % (task_key,))
+            logger.info('No data to train task_key = %r' % (task_key,))
             task_keys.remove(task_key)
 
     def setup_evaluation(pblm, with_simple=False):
@@ -829,8 +826,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             ut.cprint('\n--- EVALUTE SIMPLE SCORES ---', 'blue')
             pblm.evaluate_simple_scores(task_keys)
         else:
-            print('no simple scores')
-            print('...skipping simple evaluation')
+            logger.info('no simple scores')
+            logger.info('...skipping simple evaluation')
 
         ut.cprint('\n--- LEARN CROSS-VALIDATED RANDOM FORESTS ---', 'blue')
         pblm.learn_evaluation_classifiers(task_keys, clf_keys, data_keys)
@@ -887,14 +884,14 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             pass
         clf_keys = pblm.eval_clf_keys
         data_keys = pblm.eval_data_keys
-        print('data_keys = %r' % (data_keys,))
+        logger.info('data_keys = %r' % (data_keys,))
         ut.cprint('--- TASK = %s' % (ut.repr2(task_key),), 'turquoise')
         labels = pblm.samples.subtasks[task_key]
         if getattr(pblm, 'simple_aucs', None) is not None:
             pblm.report_simple_scores(task_key)
         for clf_key in clf_keys:
             # Combine results over datasets
-            print('clf_key = %s' % (ut.repr2(clf_key),))
+            logger.info('clf_key = %s' % (ut.repr2(clf_key),))
             data_combo_res = pblm.task_combo_res[task_key][clf_key]
             df_auc_ovr = pd.DataFrame(dict([
                 (datakey, list(data_combo_res[datakey].roc_scores_ovr()))
@@ -902,9 +899,9 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             ]), index=labels.one_vs_rest_task_names())
             ut.cprint('[%s] ROC-AUC(OVR) Scores' % (clf_key,), 'yellow')
             if to_string_monkey is None:
-                print(df_auc_ovr)
+                logger.info(df_auc_ovr)
             else:
-                print(to_string_monkey(df_auc_ovr, highlight_cols='all'))
+                logger.info(to_string_monkey(df_auc_ovr, highlight_cols='all'))
 
             if clf_key.endswith('-OVR') and labels.n_classes > 2:
                 # Report un-normalized ovr measures if they available
@@ -916,9 +913,9 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                     for datakey in data_keys
                 ]), index=labels.one_vs_rest_task_names())
                 if to_string_monkey is None:
-                    print(df_auc_ovr_hat)
+                    logger.info(df_auc_ovr_hat)
                 else:
-                    print(to_string_monkey(df_auc_ovr_hat, highlight_cols='all'))
+                    logger.info(to_string_monkey(df_auc_ovr_hat, highlight_cols='all'))
 
             roc_scores = dict(
                 [(datakey, [data_combo_res[datakey].roc_score()])
@@ -926,9 +923,9 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             df_auc = pd.DataFrame(roc_scores)
             ut.cprint('[%s] ROC-AUC(MacroAve) Scores' % (clf_key,), 'yellow')
             if to_string_monkey is None:
-                print(df_auc)
+                logger.info(df_auc)
             else:
-                print(to_string_monkey(df_auc, highlight_cols='all'))
+                logger.info(to_string_monkey(df_auc, highlight_cols='all'))
 
             # best_data_key = 'learn(sum,glob,3)'
             best_data_key = df_auc.columns[df_auc.values.argmax(axis=1)[0]]
@@ -990,8 +987,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         y_true = labels.encoded_df.loc[probs.index.tolist()]
         y_pred = probs.idxmax(axis=1).apply(labels.lookup_class_idx)
         target_names = probs.columns
-        print('----------------------')
-        print('Want Photobomb Report')
+        logger.info('----------------------')
+        logger.info('Want Photobomb Report')
         clf_helpers.classification_report2(
             y_true, y_pred, target_names=target_names)
 
@@ -1004,17 +1001,17 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         y_pred = primary_probs.idxmax(axis=1).apply(
             primary_labels.lookup_class_idx)
         target_names = primary_probs.columns
-        print('----------------------')
-        print('Want Match Report')
+        logger.info('----------------------')
+        logger.info('Want Match Report')
         clf_helpers.classification_report2(
             y_true, y_pred, target_names=target_names)
-        print('----------------------')
-        print('Autoclassification Report')
+        logger.info('----------------------')
+        logger.info('Autoclassification Report')
         auto_edges = is_auto[is_auto].index
         clf_helpers.classification_report2(
             y_true.loc[auto_edges], y_pred.loc[auto_edges],
             target_names=target_names)
-        print('----------------------')
+        logger.info('----------------------')
 
     def auto_decisions_at_threshold(pblm, primary_task, task_probs,
                                     task_thresh, task_keys, clf_key,
@@ -1288,7 +1285,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         keep_cols = keep_cols[:len(keep_cols) - len(extra)].tolist() + extra.tolist()
         # Now print them
         ut.cprint('\n[None] ROC-AUC of simple scoring measures for %s' % (task_key,), 'yellow')
-        print(to_string_monkey(df_simple_auc[keep_cols], highlight_cols='all'))
+        logger.info(to_string_monkey(df_simple_auc[keep_cols], highlight_cols='all'))
 
     def feature_importance(pblm, task_key=None, clf_key=None, data_key=None):
         r"""
@@ -1330,7 +1327,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         # ut.qtensure()
         # import plottool_ibeis as pt  # NOQA
         if clf_key != 'RF':
-            print('Can only report importance for RF not %r' % (clf_key,))
+            logger.info('Can only report importance for RF not %r' % (clf_key,))
             return
 
         importances = pblm.feature_info(task_key, clf_key, data_key)
@@ -1339,10 +1336,10 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         # Take average feature importance
         ut.cprint('MARGINAL IMPORTANCE INFO for %s on task %s' % (
             data_key, task_key), 'yellow')
-        print(' Caption:')
-        print(' * The NaN row ensures that `weight` always sums to 1')
-        print(' * `num` indicates how many dimensions the row groups')
-        print(' * `ave_w` is the average importance a single feature in the row')
+        logger.info(' Caption:')
+        logger.info(' * The NaN row ensures that `weight` always sums to 1')
+        logger.info(' * `num` indicates how many dimensions the row groups')
+        logger.info(' * `ave_w` is the average importance a single feature in the row')
         # with ut.Indenter('[%s] ' % (data_key,)):
 
         featinfo.print_margins('feature')
@@ -1611,7 +1608,6 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples, ub.NiceRepr):
         >>> assert np.all(samples.index == indica_index)
     """
 
-    @profile
     def __init__(samples, ibs, aid_pairs, infr=None, apply=False):
         assert aid_pairs is not None
         super(AnnotPairSamples, samples).__init__(aid_pairs)
@@ -1632,7 +1628,6 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples, ub.NiceRepr):
     def __nice__(self):
         return len(self.aid_pairs)
 
-    @profile
     def edge_set_hashid(samples):
         """
         Faster than using ut.combine_uuids, because we condense and don't
@@ -1652,7 +1647,6 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples, ub.NiceRepr):
         return edge_hashid
 
     @ub.memoize
-    @profile
     def sample_hashid(samples):
         visual_hash = samples.edge_set_hashid()
         # visual_hash = samples.edge_hashid()
@@ -1667,7 +1661,6 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples, ub.NiceRepr):
         return label_hashid
 
     @ub.memoize
-    @profile
     def task_sample_hashid(samples, task_key):
         labels = samples.subtasks[task_key]
         edge_hashid = samples.edge_set_hashid()
@@ -1690,7 +1683,6 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples, ub.NiceRepr):
                 assert np.all(edges == X.index.tolist())
         samples.X_dict = X_dict
 
-    @profile
     def compress(samples, flags):
         assert len(flags) == len(samples), 'mask has incorrect size'
         infr = samples.infr
@@ -1704,7 +1696,6 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples, ub.NiceRepr):
         return new_labels
 
     @ub.memoize
-    @profile
     def is_same(samples):
         infr = samples.infr
         edges = samples.aid_pairs
@@ -1736,7 +1727,6 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples, ub.NiceRepr):
         # return samples.infr.is_same(samples.aid_pairs)
 
     @ub.memoize
-    @profile
     def is_photobomb(samples):
         infr = samples.infr
         edges = samples.aid_pairs
@@ -1749,7 +1739,6 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples, ub.NiceRepr):
         # return samples.infr.is_photobomb(samples.aid_pairs)
 
     @ub.memoize
-    @profile
     def is_comparable(samples):
         infr = samples.infr
         edges = samples.aid_pairs
@@ -1776,7 +1765,6 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples, ub.NiceRepr):
         return np.array(flags, dtype=bool)
         # return samples.infr.is_comparable(samples.aid_pairs, allow_guess=True)
 
-    @profile
     def apply_multi_task_multi_label(samples):
         # multioutput-multiclass / multi-task
         tasks_to_indicators = ut.odict([
@@ -1794,7 +1782,6 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples, ub.NiceRepr):
         samples['match_state'].default_class_name = POSTV
         samples['photobomb_state'].default_class_name = 'pb'
 
-    @profile
     def apply_multi_task_binary_label(samples):
         assert False
         # multioutput-multiclass / multi-task
@@ -1812,7 +1799,6 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples, ub.NiceRepr):
         ])
         samples.apply_indicators(tasks_to_indicators)
 
-    @profile
     def apply_single_task_multi_label(samples):
         assert False
         is_comp = samples.is_comparable()
@@ -1848,9 +1834,9 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples, ub.NiceRepr):
 
     def print_featinfo(samples):
         for data_key in samples.X_dict.keys():
-            print('\nINFO(samples.X_dict[%s])' % (data_key,))
+            logger.info('\nINFO(samples.X_dict[%s])' % (data_key,))
             featinfo = vt.AnnotPairFeatInfo(samples.X_dict[data_key])
-            print(ut.indent(featinfo.get_infostr()))
+            logger.info(ut.indent(featinfo.get_infostr()))
 
 
 if __name__ == '__main__':

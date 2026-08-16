@@ -2,7 +2,6 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import six
-print, rrr, profile = ut.inject2(__name__)
 
 
 class AlignedListDictProxy(ut.DictLike_old):

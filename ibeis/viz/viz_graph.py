@@ -635,10 +635,6 @@ class AnnotGraphInteraction(AbstractInteraction):
             self.show_page()
             self.draw()
 
-        if event.key == 'l':
-            self.infr.rrr()
-            self.show_page()
-
         if event.key == 'i':
             ut.embed()
 

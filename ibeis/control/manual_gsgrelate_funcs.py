@@ -7,11 +7,11 @@ CommandLine:
     python -m ibeis.templates.template_generator --key imageset_image_relationship --onlyfn
 """
 from __future__ import absolute_import, division, print_function
+from loguru import logger
 from ibeis import constants as const
 from ibeis.control import accessor_decors
 from ibeis.control.controller_inject import make_ibs_register_decorator
 import utool as ut
-print, rrr, profile = ut.inject2(__name__)
 
 
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
@@ -136,7 +136,7 @@ def unrelate_images_and_imagesets(ibs, gid_list, imgsetid_list):
     """
     # WHAT IS THIS FUNCTION? FIXME CALLS WEIRD FUNCTION
     if ut.VERBOSE:
-        print('[ibs] deleting %r image\'s imageset ids' % len(gid_list))
+        logger.info('[ibs] deleting %r image\'s imageset ids' % len(gid_list))
     gsgrid_list = ut.flatten(ibs.get_imageset_gsgrids(imgsetid_list=imgsetid_list, gid_list=gid_list))
     ibs.db.delete_rowids(const.GSG_RELATION_TABLE, gsgrid_list)
 

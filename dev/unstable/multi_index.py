@@ -6,13 +6,13 @@ module which uses multiple flann indexes as a way of working around adding
 points to a single flann structure which seems to cause crashes.
 """
 from __future__ import absolute_import, division, print_function
+from loguru import logger
 from six.moves import zip, map, range
 import numpy as np
 import utool as ut
 import vtool_ibeis as vt
 from ibeis.algo.hots import neighbor_index_cache
 from ibeis.algo.hots import hstypes
-(print, rrr, profile) = ut.inject(__name__)
 
 
 USE_FORGROUND_REINDEX = ut.get_argflag(('--use-foreground-reindex', '--fg-reindex'))
@@ -29,7 +29,6 @@ def testdata_mindexer():
     return mxer, qreq_, ibs
 
 
-@profile
 def group_daids_for_indexing_by_name(ibs, daid_list, num_indexers=8,
                                      verbose=True):
     """
@@ -40,9 +39,9 @@ def group_daids_for_indexing_by_name(ibs, daid_list, num_indexers=8,
     largest_groupsize = max(map(len, aidgroup_list))
     num_bins = min(largest_groupsize, num_indexers)
     if verbose or ut.VERYVERBOSE:
-        print('[mindex] num_indexers = %d ' % (num_indexers,))
-        print('[mindex] largest_groupsize = %d ' % (largest_groupsize,))
-        print('[mindex] num_bins = %d ' % (num_bins,))
+        logger.info('[mindex] num_indexers = %d ' % (num_indexers,))
+        logger.info('[mindex] largest_groupsize = %d ' % (largest_groupsize,))
+        logger.info('[mindex] num_bins = %d ' % (num_bins,))
     # Group annotations for indexing according to the split criteria
     aids_list, overflow_aids = ut.sample_zip(
         aidgroup_list, num_bins, allow_overflow=True, per_bin=1)
@@ -64,7 +63,6 @@ def group_daids_for_indexing_by_name(ibs, daid_list, num_indexers=8,
     return aids_list, overflow_aids, num_bins
 
 
-@profile
 def request_ibeis_mindexer(qreq_, index_method='multi', verbose=True):
     """
 
@@ -139,8 +137,8 @@ def request_ibeis_mindexer(qreq_, index_method='multi', verbose=True):
     max_subindexers = qreq_.qparams.max_subindexers
 
     daid_list = qreq_.get_internal_daids()
-    print('[mindex] make MultiNeighborIndex over %d annots' % (len(daid_list),))
-    print('[mindex] index_method=%r' % index_method)
+    logger.info('[mindex] make MultiNeighborIndex over %d annots' % (len(daid_list),))
+    logger.info('[mindex] index_method=%r' % index_method)
 
     # Split annotations into groups accorindg to index_method
     ibs = qreq_.ibs
@@ -158,7 +156,7 @@ def request_ibeis_mindexer(qreq_, index_method='multi', verbose=True):
         # in the background
         num_subindexers = len(covered_aids_list) + (len(uncovered_aids) > 1)
         if num_subindexers > max_subindexers:
-            print('need to reindex something')
+            logger.info('need to reindex something')
             if USE_FORGROUND_REINDEX:
                 aids_list = [sorted(ut.flatten(covered_aids_list))]
                 #ut.embed()
@@ -177,7 +175,7 @@ def request_ibeis_mindexer(qreq_, index_method='multi', verbose=True):
     nn_indexer_list = []
     #extra_indexes = []
     for tx, aids in enumerate(aids_list):
-        print('[mindex] building forest %d/%d with %d aids' %
+        logger.info('[mindex] building forest %d/%d with %d aids' %
                 (tx + 1, num_bins, len(aids)))
         if len(aids) > 0:
             # Dont bother shallow copying qreq_ here.
@@ -198,7 +196,6 @@ def request_ibeis_mindexer(qreq_, index_method='multi', verbose=True):
     return mxer
 
 
-#@profile
 def sort_along_rows(qfx2_xxx, qfx2_sortx):
     """
     sorts each row in qfx2_xxx with the corresponding row in qfx2_sortx
@@ -231,7 +228,6 @@ class MultiNeighborIndex(object):
     def get_dtype(mxer):
         return mxer.nn_indexer_list[0].get_dtype()
 
-    #@profile
     def multi_knn(mxer, qfx2_vec, K):
         """
         Does a query on each of the subindexer kdtrees
@@ -260,7 +256,6 @@ class MultiNeighborIndex(object):
             qfx2_dist_list.append(_qfx2_dist)
         return qfx2_idx_list, qfx2_dist_list
 
-    @profile
     def knn(mxer, qfx2_vec, K):
         """
         Polymorphic interface to knn, but uses the multindex backend
@@ -395,7 +390,7 @@ class MultiNeighborIndex(object):
         """
         Chooses indexer with smallest number of annotations and reindexes it.
         """
-        print('adding multi-indexer support')
+        logger.info('adding multi-indexer support')
         raise NotImplementedError()
 
     def add_ibeis_support(mxer, qreq_, new_aid_list):
@@ -419,7 +414,7 @@ class MultiNeighborIndex(object):
             >>> # verify results
             >>> print(result)
         """
-        print('adding multi-indexer support')
+        logger.info('adding multi-indexer support')
         # Assert that the aids are indeed new
         mxer.assert_can_add_aids(new_aid_list)
         # Find the indexer to add to

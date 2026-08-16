@@ -1,10 +1,10 @@
+from loguru import logger
 import os
 from os.path import splitext, basename, isabs
 import warnings
 import vtool_ibeis.exif as vtexif
 import utool as ut
 import six
-(print, rrr, profile) = ut.inject2(__name__)
 
 
 def parse_exif(pil_img):
@@ -24,7 +24,6 @@ def get_standard_ext(gpath):
     return '.jpg' if ext == '.jpeg' else ext
 
 
-@profile
 def parse_imageinfo(gpath):
     """ Worker function: gpath must be in UNIX-PATH format!
 
@@ -77,7 +76,7 @@ def parse_imageinfo(gpath):
                 suffix = '.%s' % (basename(gpath), )
                 temp_file, temp_filepath = tempfile.mkstemp(suffix=suffix)
                 args = (gpath, temp_filepath, )
-                print('[preproc] Caching remote %s file to temporary file %r' % args)
+                logger.info('[preproc] Caching remote %s file to temporary file %r' % args)
 
                 if isproto(gpath, s3_proto):
                     s3_dict = ut.s3_str_decode_to_dict(gpath)
@@ -99,7 +98,7 @@ def parse_imageinfo(gpath):
             # We cannot use pixel data as libjpeg is not determenistic (even for reads!)
             image_uuid = ut.get_file_uuid(gpath_)  # Read file ]-hash-> guid = gid
         except IOError as ex:
-            print('[preproc] IOError: %s' % (str(ex),))
+            logger.info('[preproc] IOError: %s' % (str(ex),))
             return None
         if len(w) > 0:
             # for warn in w:
@@ -108,7 +107,7 @@ def parse_imageinfo(gpath):
             #                          warn.line)
             #     warnstr = warnings.formatwarning
             #     print(warnstr)
-            print('%d warnings issued by %r' % (len(w), gpath,))
+            logger.info('%d warnings issued by %r' % (len(w), gpath,))
     # Parse out the data
     width, height  = pil_img.size         # Read width, height
     time, lat, lon, orient = parse_exif(pil_img)  # Read exif tags
@@ -143,7 +142,7 @@ def parse_imageinfo(gpath):
 
 
 def on_delete(ibs, featweight_rowid_list, qreq_=None):
-    print('Warning: Not Implemented')
+    logger.info('Warning: Not Implemented')
 
 
 if __name__ == '__main__':

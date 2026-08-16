@@ -1,10 +1,10 @@
+from loguru import logger
 import utool as ut
 import plottool_ibeis as pt
 from plottool_ibeis import plot_helpers as ph
 from plottool_ibeis import viz_image2
 import numpy as np
 from ibeis.viz import viz_helpers as vh
-(print, rrr, profile) = ut.inject2(__name__, '[viz_img]')
 
 
 def draw_image_overlay(ibs, ax, gid, sel_aids, draw_lbls=True, annote=True):
@@ -69,15 +69,15 @@ def drive_test_script(ibs):
     """
     import ibeis
     aid_list = ibeis.testdata_aids(a='default:pername=1')
-    print('Running with (annot) aid_list = %r' % (aid_list))
+    logger.info('Running with (annot) aid_list = %r' % (aid_list))
     gid_list = ibs.get_annot_gids(aid_list)
-    print('Running with (image) gid_list = %r' % (gid_list))
+    logger.info('Running with (image) gid_list = %r' % (gid_list))
     avuuid_list = ibs.get_annot_visual_uuids(aid_list)
     guuid_list = ibs.get_image_uuids(gid_list)
-    print('Running with annot_visual_uuid_list = %s' % (ut.repr2(zip(aid_list, avuuid_list))))
-    print('Running with image_uuid_list = %s' % (ut.repr2(zip(gid_list, guuid_list))))
+    logger.info('Running with annot_visual_uuid_list = %s' % (ut.repr2(zip(aid_list, avuuid_list))))
+    logger.info('Running with image_uuid_list = %s' % (ut.repr2(zip(gid_list, guuid_list))))
     for gid, aid in ut.ProgressIter(zip(gid_list, aid_list), lbl='progress '):
-        print('\ngid, aid, nid = %r, %r, %r' % (gid, aid, ibs.get_annot_nids(aid),))
+        logger.info('\ngid, aid, nid = %r, %r, %r' % (gid, aid, ibs.get_annot_nids(aid),))
         show_image(ibs, gid, annote=False, rich_title=True)
         pt.show_if_requested()
 
@@ -137,7 +137,7 @@ def show_multi_images(ibs, gid_list, fnum=None, **kwargs):
     fig = pt.figure(fnum=fnum, pnum=pnum_(0), **kwargs)
     fig.clf()
     for px, gid in enumerate(gid_list):
-        print(pnum_(px))
+        logger.info(pnum_(px))
         _fig, _ax1 = show_image(ibs, gid, fnum=fnum, pnum=pnum_(px), **kwargs)
         #ax = pt.gca()
         #if aid in sel_aids:

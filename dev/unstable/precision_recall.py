@@ -5,9 +5,9 @@ TODO: DEPRICATE WITH QRES
 IBEIS AGNOSTIC DEFINITIONS ARE NOW IN VTOOL
 """
 from __future__ import absolute_import, division, print_function
+from loguru import logger
 import utool as ut
 import numpy as np
-(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[precision_recall]', DEBUG=False)
 
 
 def get_nTruePositive(atrank, was_retrieved, gt_ranks):
@@ -176,8 +176,8 @@ def draw_precision_recall_curve_(recall_range_, p_interp_curve, title_pref=None,
               x_label='recall', y_label='precision', unitbox=True,
               flipx=False, color='r',
               title='Interplated Precision Vs Recall\n' + 'avep = %r'  % ave_p)
-    print('Interplated Precision')
-    print(ut.repr2(list(zip(recall_range_, p_interp_curve))))
+    logger.info('Interplated Precision')
+    logger.info(ut.repr2(list(zip(recall_range_, p_interp_curve))))
     #fig.show()
 
 

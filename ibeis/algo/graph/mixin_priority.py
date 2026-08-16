@@ -1,4 +1,5 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 import six
 import numpy as np
 import utool as ut
@@ -7,7 +8,6 @@ from ibeis import constants as const
 from ibeis.algo.graph import nx_utils as nxu
 from ibeis.algo.graph.state import (POSTV, NEGTV)
 from ibeis.algo.graph.state import (SAME, DIFF, NULL)  # NOQA
-print, rrr, profile = ut.inject2(__name__)
 
 
 ENABLE_PRIORITY_PCC_CORRECTION = True
@@ -134,7 +134,6 @@ class Priority(object):
 
         return corrected_priority
 
-    @profile
     def prioritize(infr, metric=None, edges=None, scores=None,
                    force_inconsistent=True, reset=False):
         """
@@ -259,7 +258,6 @@ class Priority(object):
         # Use edge-nids to break ties for determenistic behavior
         infr._push(edge, priority)
 
-    @profile
     def pop(infr):
         """
         Main interface to the priority queue used by the algorithm loops.
@@ -358,7 +356,7 @@ class Priority(object):
                         if pred == NEGTV and nid1 != nid2:
                             continue  # Loop instead of recursive (infr.pop())
                     else:
-                        print('in error recover mode')
+                        logger.info('in error recover mode')
                 infr.assert_edge(edge)
                 return edge, priority
 

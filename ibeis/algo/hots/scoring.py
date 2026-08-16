@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 import numpy as np
 import vtool_ibeis as vt
 import utool as ut
 from ibeis.algo.hots import _pipeline_helpers as plh  # NOQA
-print, rrr, profile = ut.inject2(__name__)
 
 
 def score_chipmatch_list(qreq_, cm_list, score_method, progkw=None):
@@ -46,7 +46,7 @@ def score_chipmatch_list(qreq_, cm_list, score_method, progkw=None):
         progkw = dict(freq=1, time_thresh=30.0, adjust=True)
     lbl = 'scoring %s' % (score_method)
     # Choose the appropriate scoring mechanism
-    print('[scoring] score %d chipmatches with %s' % (len(cm_list), score_method,))
+    logger.info('[scoring] score %d chipmatches with %s' % (len(cm_list), score_method,))
     if score_method == 'sumamech':
         for cm in ut.ProgressIter(cm_list, lbl=lbl, **progkw):
             cm.score_name_sumamech(qreq_)
@@ -143,7 +143,7 @@ def make_chipmatch_shortlists(qreq_, cm_list, nNameShortList, nAnnotPerName, sco
         >>> cm.show_single_annotmatch(qreq_, daid=top_aid_list[0])
         >>> ut.show_if_requested()
     """
-    print('[scoring] Making shortlist nNameShortList=%r, nAnnotPerName=%r' % (nNameShortList, nAnnotPerName))
+    logger.info('[scoring] Making shortlist nNameShortList=%r, nAnnotPerName=%r' % (nNameShortList, nAnnotPerName))
     cm_shortlist = []
     for cm in cm_list:
         assert cm.score_list is not None, 'score list must be computed'

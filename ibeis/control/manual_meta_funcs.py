@@ -3,13 +3,13 @@
 controller functions for contributors, versions, configs, and other metadata
 """
 from __future__ import absolute_import, division, print_function
+from loguru import logger
 import functools
 import utool as ut
 from ibeis import constants as const
 from ibeis.control import accessor_decors, controller_inject
 from ibeis.algo import Config
 from ibeis.control.controller_inject import make_ibs_register_decorator
-print, print_, profile = ut.inject2(__name__)
 
 
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
@@ -43,7 +43,7 @@ def add_contributors(ibs, tag_list, uuid_list=None, name_first_list=None, name_l
         return default
 
     if ut.VERBOSE:
-        print('[ibs] adding %d imagesets' % len(tag_list))
+        logger.info('[ibs] adding %d imagesets' % len(tag_list))
     # Add contributors to database
     if name_first_list is None:
         name_first_list = [''] * len(tag_list)
@@ -156,8 +156,8 @@ def add_new_temp_contributor(ibs, user_prompt=False, offset=None, autolocate=Fal
     """
     name_first = ibs.get_dbname()
     name_last = ut.get_computer_name() + ':' + ut.get_user_name() + ':' + ibs.get_dbdir()
-    print('[collect_transfer_data] Contributor default first name: %s' % (name_first, ))
-    print('[collect_transfer_data] Contributor default last name:  %s' % (name_last, ))
+    logger.info('[collect_transfer_data] Contributor default first name: %s' % (name_first, ))
+    logger.info('[collect_transfer_data] Contributor default last name:  %s' % (name_last, ))
     if user_prompt:
         name_first = input('\n[collect_transfer_data] Change first name (Enter to use default): ')
         name_last  = input('\n[collect_transfer_data] Change last name (Enter to use default): ')
@@ -168,11 +168,11 @@ def add_new_temp_contributor(ibs, user_prompt=False, offset=None, autolocate=Fal
         success = False
 
     if success:
-        print('\n[collect_transfer_data] Your location was be determined automatically.')
-        print('[collect_transfer_data] Contributor default city: %s'    % (location_city, ))
-        print('[collect_transfer_data] Contributor default state: %s'   % (location_state, ))
-        print('[collect_transfer_data] Contributor default zip: %s'     % (location_country, ))
-        print('[collect_transfer_data] Contributor default country: %s' % (location_zip, ))
+        logger.info('\n[collect_transfer_data] Your location was be determined automatically.')
+        logger.info('[collect_transfer_data] Contributor default city: %s'    % (location_city, ))
+        logger.info('[collect_transfer_data] Contributor default state: %s'   % (location_state, ))
+        logger.info('[collect_transfer_data] Contributor default zip: %s'     % (location_country, ))
+        logger.info('[collect_transfer_data] Contributor default country: %s' % (location_zip, ))
         if user_prompt:
             location_city    = input('\n[collect_transfer_data] Change default location city (Enter to use default): ')
             location_state   = input('\n[collect_transfer_data] Change default location state (Enter to use default): ')
@@ -180,8 +180,8 @@ def add_new_temp_contributor(ibs, user_prompt=False, offset=None, autolocate=Fal
             location_country = input('\n[collect_transfer_data] Change default location country (Enter to use default): ')
     else:
         if user_prompt:
-            print('\n')
-        print('[collect_transfer_data] Your location could not be determined automatically.')
+            logger.info('\n')
+        logger.info('[collect_transfer_data] Your location could not be determined automatically.')
         if user_prompt:
             location_city    = input('[collect_transfer_data] Enter your location city (Enter to skip): ')
             location_state   = input('[collect_transfer_data] Enter your location state (Enter to skip): ')
@@ -244,11 +244,11 @@ def ensure_contributor_rowids(ibs, user_prompt=False, autolocate=False):
     """
     # TODO: Alter this check to support merging databases with more than one contributor, but none assigned to the manual config
     if not ut.QUIET:
-        print('[ensure_contributor_rowids] Ensuring all images have contributors for dbname=%r' % (ibs.get_dbname()))
+        logger.info('[ensure_contributor_rowids] Ensuring all images have contributors for dbname=%r' % (ibs.get_dbname()))
     contributor_rowid_list = ibs.get_valid_contributor_rowids()
     unassigned_gid_list = ibs.get_all_uncontributed_images()
     if not ut.QUIET:
-        print('[ensure_contributor_rowids] %d Contributors exist. %d images are unassigned' %
+        logger.info('[ensure_contributor_rowids] %d Contributors exist. %d images are unassigned' %
               (len(contributor_rowid_list), len(unassigned_gid_list)))
     if len(unassigned_gid_list) > 0:
         new_contributor_rowid = ibs.add_new_temp_contributor(offset=len(contributor_rowid_list), user_prompt=user_prompt, autolocate=autolocate)
@@ -701,7 +701,7 @@ def delete_contributors(ibs, contributor_rowid_list):
     """
     # TODO: FIXME TESTME
     if ut.VERBOSE:
-        print('[ibs] deleting %d contributors' % len(contributor_rowid_list))
+        logger.info('[ibs] deleting %d contributors' % len(contributor_rowid_list))
 
     # Delete configs (UNSURE IF THIS IS CORRECT)
     # CONTRIBUTORS SHOULD NOT DELETE IMAGES
@@ -832,7 +832,7 @@ def add_metadata(ibs, metadata_key_list, metadata_value_list, db):
         URL:    /api/metadata/
     """
     if ut.VERBOSE:
-        print('[ibs] adding %d metadata' % len(metadata_key_list))
+        logger.info('[ibs] adding %d metadata' % len(metadata_key_list))
     # Add imageset text names to database
     colnames = ['metadata_key', 'metadata_value']
     params_iter = list(zip(metadata_key_list, metadata_value_list))
@@ -842,7 +842,6 @@ def add_metadata(ibs, metadata_key_list, metadata_value_list, db):
 
 
 @register_ibs_method
-@profile
 def _init_config(ibs):
     r"""
     Loads the database's algorithm configuration
@@ -860,7 +859,7 @@ def _init_config(ibs):
         general_config = {}
     current_species = general_config.get('current_species', None)
     if ut.VERBOSE and ut.NOT_QUIET:
-        print('[_init_config] general_config.current_species = %r' % (current_species,))
+        logger.info('[_init_config] general_config.current_species = %r' % (current_species,))
     # </GENERAL CONFIG>
     #####
     #species_list = ibs.get_database_species()
@@ -872,7 +871,7 @@ def _init_config(ibs):
     cfgname = 'cfg' if current_species is None else current_species
     if ut.VERBOSE and ut.NOT_QUIET:
         #print('[_init_config] Loading database with species_list = %r ' % (species_list,))
-        print('[_init_config] Using cfgname=%r' % (cfgname,))
+        logger.info('[_init_config] Using cfgname=%r' % (cfgname,))
     # try to be intelligent about the default speceis
     ibs._load_named_config(cfgname)
 
@@ -905,11 +904,10 @@ def _init_burned_in_species(ibs):
         'PZ',
     ]
     ibs.add_species(species_nice_list, species_text_list, species_code_list)
-    print('[_init_burned_in_species] Burned in mising species...')
+    logger.info('[_init_burned_in_species] Burned in mising species...')
 
 
 @register_ibs_method
-@profile
 def _load_named_config(ibs, cfgname=None):
     r"""
     """

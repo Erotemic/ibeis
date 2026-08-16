@@ -3,12 +3,12 @@
 helpers for controller manual_annot_funcs
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 from six.moves import zip, range, filter, map  # NOQA
 import six
 import utool as ut
 import uuid
 from vtool_ibeis import geometry
-(print, rrr, profile) = ut.inject2(__name__, '[preproc_annot]')
 
 
 def make_annotation_uuids(image_uuid_list, bbox_list, theta_list, deterministic=True):
@@ -20,7 +20,7 @@ def make_annotation_uuids(image_uuid_list, bbox_list, theta_list, deterministic=
                 assert isinstance(bbox_list[0][0], int), 'Bounding boxes must be tuples of ints!'
             except AssertionError as ex:
                 ut.printex(ex)
-                print('bbox_list = %r' % (bbox_list,))
+                logger.info('bbox_list = %r' % (bbox_list,))
                 raise
         annotation_uuid_list = [ut.augment_uuid(img_uuid, bbox, theta)
                                 for img_uuid, bbox, theta
@@ -84,8 +84,8 @@ def generate_annot_properties(ibs, gid_list, bbox_list=None, theta_list=None,
 
     if len(gid_list) == 0:
         # nothing is being added
-        print('[ibs] WARNING: 0 annotations are beign added!')
-        print(ut.repr2(locals()))
+        logger.info('[ibs] WARNING: 0 annotations are beign added!')
+        logger.info(ut.repr2(locals()))
         return []
 
     # Build ~~deterministic?~~ random and unique ANNOTATION ids

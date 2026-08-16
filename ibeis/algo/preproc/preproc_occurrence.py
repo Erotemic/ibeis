@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 import utool as ut
 import numpy as np
 import vtool_ibeis as vt
@@ -7,7 +8,6 @@ from six.moves import zip, map, range
 from scipy.spatial import distance
 import scipy.cluster.hierarchy
 import sklearn.cluster
-(print, rrr, profile) = ut.inject2(__name__, '[preproc_occurrence]')
 
 
 def ibeis_compute_occurrences(ibs, gid_list, config=None, verbose=None):
@@ -84,8 +84,8 @@ def compute_occurrence_groups(ibs, gid_list, config={}, use_gps=False,
     # Config info
     gid_list = np.unique(gid_list)
     if verbose:
-        print('[occur] Computing occurrences on %r images.' % (len(gid_list)))
-        print('[occur] config = ' + ut.repr3(config))
+        logger.info('[occur] Computing occurrences on %r images.' % (len(gid_list)))
+        logger.info('[occur] config = ' + ut.repr3(config))
 
     use_gps = config['use_gps']
     datas = prepare_X_data(ibs, gid_list, use_gps=use_gps)
@@ -130,9 +130,9 @@ def compute_occurrence_groups(ibs, gid_list, config={}, use_gps=False,
     occur_labels, occur_gids = filter_and_relabel(
         labels, label_gids, min_imgs_per_occurence, occur_unixtimes)
     if verbose:
-        print('[occur] Found %d clusters.' % len(occur_labels))
+        logger.info('[occur] Found %d clusters.' % len(occur_labels))
     if len(label_gids) > 0 and verbose:
-        print('[occur] Cluster image size stats:')
+        logger.info('[occur] Cluster image size stats:')
         ut.print_dict(
             ut.get_stats(list(map(len, occur_gids)), use_median=True,
                          use_sum=True),

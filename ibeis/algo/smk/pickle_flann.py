@@ -6,7 +6,6 @@ import uuid
 import six
 from os.path import exists, join
 import lockfile
-(print, rrr, profile) = ut.inject2(__name__)
 
 
 class Win32CompatTempFile(object):

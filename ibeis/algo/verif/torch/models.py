@@ -1,7 +1,7 @@
+from loguru import logger
 import torch
 import torchvision
 import utool as ut
-print, rrr, profile = ut.inject2(__name__)
 
 
 class Siamese(torch.nn.Module):
@@ -39,7 +39,7 @@ def visualize():
 
     def make_nx(var, params):
         param_map = {id(v): k for k, v in params.items()}
-        print(param_map)
+        logger.info(param_map)
         node_attr = dict(style='filled', shape='box', align='left',
                          fontsize='12', ranksep='0.1', height='0.2')
         seen = set()

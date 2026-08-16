@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 from os.path import join, dirname, split, basename, splitext
 import re
 import utool as ut
 from six.moves import map, range
-print, rrr, profile = ut.inject2(__name__)
 
 
 class IndividualResultsCopyTaskQueue(object):
@@ -29,7 +29,7 @@ class IndividualResultsCopyTaskQueue(object):
     def flush_copy_tasks(self):
         # Execute all copy tasks and empty the lists
         if ut.NOT_QUIET:
-            print('[DRAW_RESULT] copying %r summaries' % (len(self.cp_task_list)))
+            logger.info('[DRAW_RESULT] copying %r summaries' % (len(self.cp_task_list)))
         for src, dst in self.cp_task_list:
             ut.copy(src, dst, verbose=False)
         del self.cp_task_list[:]
@@ -41,7 +41,7 @@ def make_individual_latex_figures(ibs, fpaths_list, flat_case_labels,
     # HACK MAKE LATEX CONVINENCE STUFF
     #print('LATEX HACK')
     if len(fpaths_list) == 0:
-        print('nothing to render')
+        logger.info('nothing to render')
         return
     RENDER = ut.get_argflag('--render')
     DUMP_FIGDEF = ut.get_argflag(('--figdump', '--dump-figdef', '--figdef'))

@@ -4,7 +4,6 @@ import utool as ut
 import networkx as nx
 import itertools as it
 from ibeis.algo.graph.nx_utils import edges_inside, e_
-print, rrr, profile = ut.inject2(__name__)
 
 
 class GraphHelperMixin(ut.NiceRepr):
@@ -371,7 +370,6 @@ class DynConnGraph(nx.Graph, GraphHelperMixin):
         self._remove_node(n)
         super(DynConnGraph, self).remove_node(n)
 
-    @profile
     def subgraph(self, nbunch, dynamic=False):
         if dynamic is False:
             H = nx.Graph()

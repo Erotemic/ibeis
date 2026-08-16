@@ -11,12 +11,12 @@ ToRegenerate:
     python -m ibeis.templates.template_generator --key annotgroup --Tcfg with_web_api=True with_api_cache=False with_deleters=True no_extern_deleters=True --write
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 from six.moves import zip
 from ibeis import constants as const
 import utool as ut
 from ibeis.control import controller_inject
 from ibeis.control import accessor_decors  # NOQA
-print, rrr, profile = ut.inject2(__name__)
 
 # Create dectorator to inject functions in this module into the IBEISController
 CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(__name__)
@@ -117,7 +117,7 @@ def delete_annotgroup(ibs, annotgroup_rowid_list, config2_=None):
     #from ibeis.algo.preproc import preproc_annotgroup
     # NO EXTERN IMPORT
     if ut.VERBOSE:
-        print('[ibs] deleting %d annotgroup rows' % len(annotgroup_rowid_list))
+        logger.info('[ibs] deleting %d annotgroup rows' % len(annotgroup_rowid_list))
     # Prepare: Delete externally stored data (if any)
     #preproc_annotgroup.on_delete(ibs, annotgroup_rowid_list, config2_=config2_)
     # NO EXTERN DELETE

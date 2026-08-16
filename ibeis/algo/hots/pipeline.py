@@ -42,6 +42,7 @@ TODO:
     been computed?
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 from six.moves import zip, range, map
 import numpy as np
 import vtool_ibeis as vt
@@ -52,7 +53,6 @@ from ibeis.algo.hots import scoring
 from ibeis.algo.hots import _pipeline_helpers as plh  # NOQA
 from collections import namedtuple
 import utool as ut
-print, rrr, profile = ut.inject2(__name__)
 
 
 #=================
@@ -122,7 +122,6 @@ class Neighbors(ut.NiceRepr):
         return self.__dict__.update(**state)
 
 
-#@profile
 def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
     r""" Driver logic of query pipeline
 
@@ -170,8 +169,8 @@ def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
     # Load data for nearest neighbors
     if verbose:
         assert ibs is qreq_.ibs
-        print('\n\n[hs] +--- STARTING HOTSPOTTER PIPELINE ---')
-        print(ut.indent(qreq_.get_infostr(), '[hs] '))
+        logger.info('\n\n[hs] +--- STARTING HOTSPOTTER PIPELINE ---')
+        logger.info(ut.indent(qreq_.get_infostr(), '[hs] '))
 
     ibs.assert_valid_aids(qreq_.get_internal_qaids(), msg='pipeline qaids')
     ibs.assert_valid_aids(qreq_.get_internal_daids(), msg='pipeline daids')
@@ -218,7 +217,7 @@ def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
                                          filtkey_list, filtweights_list, filtvalids_list,
                                          filtnormks_list, verbose=verbose)
     else:
-        print('invalid pipeline root %r' % (qreq_.qparams.pipeline_root))
+        logger.info('invalid pipeline root %r' % (qreq_.qparams.pipeline_root))
 
     # Spatial verification (cm_list) (TODO: cython)
     # * prunes chip results and feature matches
@@ -235,7 +234,7 @@ def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
     scoring.score_chipmatch_list(qreq_, cm_list, score_method)
 
     if VERB_PIPELINE:
-        print('[hs] L___ FINISHED HOTSPOTTER PIPELINE ___')
+        logger.info('[hs] L___ FINISHED HOTSPOTTER PIPELINE ___')
 
     return cm_list
 
@@ -272,7 +271,7 @@ def build_impossible_daids_list(qreq_, verbose=VERB_PIPELINE):
         >>> assert np.all(qreq_.daids == [1, 2, 3, 4, 5, 6])
     """
     if verbose:
-        print('[hs] Step 0) Build impossible matches')
+        logger.info('[hs] Step 0) Build impossible matches')
 
     can_match_sameimg  = qreq_.qparams.can_match_sameimg
     can_match_samename = qreq_.qparams.can_match_samename
@@ -340,7 +339,6 @@ def build_impossible_daids_list(qreq_, verbose=VERB_PIPELINE):
 #============================
 
 
-@profile
 def nearest_neighbor_cacheid2(qreq_, Kpad_list):
     r"""
     Returns a hacky cacheid for neighbor configs.
@@ -428,7 +426,7 @@ def nearest_neighbor_cacheid2(qreq_, Kpad_list):
                   else '')
     nn_mid_cacheid = ''.join([data_hashid, nn_cfgstr, chip_cfgstr, feat_cfgstr,
                               flann_cfgstr, aug_cfgstr])
-    print('nn_mid_cacheid = %r' % (nn_mid_cacheid,))
+    logger.info('nn_mid_cacheid = %r' % (nn_mid_cacheid,))
 
     if HACK_KCFG:
         kbase = qreq_.qparams.K + int(qreq_.qparams.Knorm)
@@ -444,12 +442,11 @@ def nearest_neighbor_cacheid2(qreq_, Kpad_list):
     # ut.unixjoin(qreq_.ibs.get_cachedir(), 'neighborcache2')
     ut.ensuredir(nn_cachedir)
     if ut.VERBOSE:
-        print('nn_mid_cacheid = %r' % (nn_mid_cacheid,))
+        logger.info('nn_mid_cacheid = %r' % (nn_mid_cacheid,))
         pass
     return nn_cachedir, nn_mid_cacheid_list
 
 
-@profile
 def cachemiss_nn_compute_fn(flags_list, qreq_, Kpad_list,
                             impossible_daids_list, K, Knorm, requery,
                             verbose):
@@ -510,7 +507,7 @@ def cachemiss_nn_compute_fn(flags_list, qreq_, Kpad_list,
 
     if verbose:
         if len(qvecs_list) == 1:
-            print('[hs] depth(qvecs_list) = %r' %
+            logger.info('[hs] depth(qvecs_list) = %r' %
                   (ut.depth_profile(qvecs_list),))
     # Mark progress ane execute nearest indexer nearest neighbor code
     prog_hook = (None if qreq_.prog_hook is None else
@@ -557,7 +554,6 @@ def cachemiss_nn_compute_fn(flags_list, qreq_, Kpad_list,
     return nns_list
 
 
-@profile
 def nearest_neighbors(qreq_, Kpad_list, impossible_daids_list=None,
                       verbose=VERB_PIPELINE):
     """
@@ -668,7 +664,7 @@ def nearest_neighbors(qreq_, Kpad_list, impossible_daids_list=None,
     #checks = qreq_.qparams.checks
     # Get both match neighbors (including padding) and normalizing neighbors
     if verbose:
-        print('[hs] Step 1) Assign nearest neighbors: %s' %
+        logger.info('[hs] Step 1) Assign nearest neighbors: %s' %
               (qreq_.qparams.nn_cfgstr,))
 
     prog_hook = (None if qreq_.prog_hook is None else
@@ -699,7 +695,6 @@ def nearest_neighbors(qreq_, Kpad_list, impossible_daids_list=None,
 #============================
 
 
-@profile
 def baseline_neighbor_filter(qreq_, nns_list, impossible_daids_list, verbose=VERB_PIPELINE):
     """
     Removes matches to self, the same image, or the same name.
@@ -727,7 +722,7 @@ def baseline_neighbor_filter(qreq_, nns_list, impossible_daids_list, verbose=VER
         >>> ut.assert_inbounds(nnvalid0_list[0].sum(), 1000, 10000)
     """
     if verbose:
-        print('[hs] Step 2) Baseline neighbor filter')
+        logger.info('[hs] Step 2) Baseline neighbor filter')
     Knorm = qreq_.qparams.Knorm
     # Find which annotations each query matched against
     neighb_aids_iter = (
@@ -750,7 +745,6 @@ def baseline_neighbor_filter(qreq_, nns_list, impossible_daids_list, verbose=VER
 #============================
 
 
-@profile
 def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
     """
     pipeline step 3 -
@@ -819,9 +813,9 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
         >>> ut.show_if_requested()
     """
     if verbose:
-        print('[hs] Step 3) Weight neighbors: ' + qreq_.qparams.nnweight_cfgstr)
+        logger.info('[hs] Step 3) Weight neighbors: ' + qreq_.qparams.nnweight_cfgstr)
         if len(nns_list) == 1:
-            print('[hs] depth(nns_list) ' + str(ut.depth_profile(nns_list)))
+            logger.info('[hs] depth(nns_list) ' + str(ut.depth_profile(nns_list)))
 
     #print(WEIGHT_LBL)
     #intern_qaid_iter = ut.ProgressIter(internal_qaids, lbl=BUILDCM_LBL,
@@ -849,7 +843,7 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
             nns_list, nnvalid0_list, qreq_)
 
         if config2_.lnbnn_normer is not None:
-            print('[hs] normalizing feat scores')
+            logger.info('[hs] normalizing feat scores')
             if qreq_.lnbnn_normer is None:
                 qreq_.lnbnn_normer = vt.ScoreNormalizer()
                 # qreq_.lnbnn_normer.load(cfgstr=config2_.lnbnn_normer)
@@ -955,7 +949,6 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
 #============================
 
 
-#@profile
 def build_chipmatches(qreq_, nns_list, nnvalid0_list, filtkey_list,
                       filtweights_list, filtvalids_list, filtnormks_list,
                       verbose=VERB_PIPELINE):
@@ -1037,7 +1030,7 @@ def build_chipmatches(qreq_, nns_list, nnvalid0_list, filtkey_list,
     Knorm = qreq_.qparams.Knorm
     if verbose:
         pipeline_root = qreq_.qparams.pipeline_root
-        print('[hs] Step 4) Building chipmatches %s' % (pipeline_root,))
+        logger.info('[hs] Step 4) Building chipmatches %s' % (pipeline_root,))
 
     # Iterate over INTERNAL query annotation ids
     prog_hook = None if qreq_.prog_hook is None else qreq_.prog_hook.next_subhook()
@@ -1055,7 +1048,6 @@ def build_chipmatches(qreq_, nns_list, nnvalid0_list, filtkey_list,
     return cm_list
 
 
-#@profile
 def get_sparse_matchinfo_nonagg(qreq_, nns, neighb_valid0,
                                 neighb_score_list, neighb_valid_list,
                                 neighb_normk_list, Knorm, fsv_col_lbls):
@@ -1225,21 +1217,20 @@ def spatial_verification(qreq_, cm_list_FILT, verbose=VERB_PIPELINE):
     cm_list = cm_list_FILT
     if not qreq_.qparams.sv_on or qreq_.qparams.xy_thresh is None:
         if verbose:
-            print('[hs] Step 5) Spatial verification: off')
+            logger.info('[hs] Step 5) Spatial verification: off')
         return cm_list
     else:
         cm_list_SVER = _spatial_verification(qreq_, cm_list, verbose=verbose)
         return cm_list_SVER
 
 
-#@profile
 def _spatial_verification(qreq_, cm_list, verbose=VERB_PIPELINE):
     """
     make only spatially valid features survive
         >>> from ibeis.algo.hots.pipeline import *  # NOQA
     """
     if verbose:
-        print('[hs] Step 5) Spatial verification: ' + qreq_.qparams.sv_cfgstr)
+        logger.info('[hs] Step 5) Spatial verification: ' + qreq_.qparams.sv_cfgstr)
 
     # dbg info (can remove if there is a speed issue)
     score_method = qreq_.qparams.score_method
@@ -1261,7 +1252,6 @@ def _spatial_verification(qreq_, cm_list, verbose=VERB_PIPELINE):
     return cm_list_SVER
 
 
-#@profile
 def sver_single_chipmatch(qreq_, cm, verbose=False):
     r"""
     Spatially verifies a shortlist of a single chipmatch

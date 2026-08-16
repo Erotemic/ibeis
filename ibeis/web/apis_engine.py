@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 #if False:
 #    import os
 #    os.environ['UTOOL_NOCNN'] = 'True'
@@ -7,7 +8,6 @@ import six
 import utool as ut
 import uuid  # NOQA
 from ibeis.control import accessor_decors, controller_inject
-print, rrr, profile = ut.inject2(__name__)
 
 
 CLASS_INJECT_KEY, register_ibs_method = (
@@ -33,7 +33,7 @@ def ensure_simple_server(port=5832):
     else:
         bgserver = ut.DynStruct()
         bgserver.terminate2 = lambda: None
-        print('server is running elsewhere')
+        logger.info('server is running elsewhere')
     return bgserver
 
 

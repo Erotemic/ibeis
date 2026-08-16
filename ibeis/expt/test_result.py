@@ -1,4 +1,5 @@
 # TODO: find unused functions and kill them
+from loguru import logger
 import ubelt as ub
 import copy
 import operator
@@ -10,7 +11,6 @@ from functools import partial
 from six.moves import reduce
 from ibeis.expt import cfghelpers
 from ibeis.expt import experiment_helpers
-print, rrr, profile = ut.inject2(__name__)
 
 
 def build_cmsinfo(cm_list, qreq_):
@@ -1127,8 +1127,8 @@ class TestResult(ut.NiceRepr):
                 if len(pipeline_cfgname) < 64:
                     title_aug += ' t=' + pipeline_cfgname
             except Exception as ex:
-                print(ut.repr2(testres.common_acfg))
-                print(ut.repr2(testres.common_cfgdict))
+                logger.info(ut.repr2(testres.common_acfg))
+                logger.info(ut.repr2(testres.common_cfgdict))
                 ut.printex(ex)
                 raise
         if with_size:
@@ -1256,21 +1256,21 @@ class TestResult(ut.NiceRepr):
         unique_daids = ut.compress(testres.cfgx2_daids,
                                         ut.flag_unique_items(cfx2_dannot_hashid))
         with ut.Indenter('[acfgstats]'):
-            print('+====')
-            print('Printing %d unique annotconfig stats' % (len(unique_daids)))
+            logger.info('+====')
+            logger.info('Printing %d unique annotconfig stats' % (len(unique_daids)))
             common_acfg = testres.common_acfg
             common_acfg['common'] = ut.dict_filter_nones(common_acfg['common'])
-            print('testres.common_acfg = ' + ut.repr2(common_acfg))
-            print('param_basis(len(daids)) = %r' % (
+            logger.info('testres.common_acfg = ' + ut.repr2(common_acfg))
+            logger.info('param_basis(len(daids)) = %r' % (
                 testres.get_param_basis('len(daids)'),))
             for count, daids in enumerate(unique_daids):
-                print('+---')
-                print('acfgx = %r/%r' % (count, len(unique_daids)))
+                logger.info('+---')
+                logger.info('acfgx = %r/%r' % (count, len(unique_daids)))
                 if testres.has_constant_qaids():
                     ibs.print_annotconfig_stats(testres.qaids, daids)
                 else:
                     ibs.print_annot_stats(daids, prefix='d')
-                print('L___')
+                logger.info('L___')
 
     def report(testres):
         testres.print_results()
@@ -1494,7 +1494,7 @@ class TestResult(ut.NiceRepr):
         if verbose is None:
             verbose = ut.NOT_QUIET
         if verbose:
-            print('[testres] case_sample2')
+            logger.info('[testres] case_sample2')
 
         if isinstance(filt_cfg, str):
             filt_cfg = [filt_cfg]
@@ -1613,10 +1613,10 @@ class TestResult(ut.NiceRepr):
 
             def print_pre(self, is_valid, filt_cfg_):
                 num_valid = is_valid.sum()
-                print('[testres] Sampling from is_valid.size=%r with filt=%r' %
+                logger.info('[testres] Sampling from is_valid.size=%r with filt=%r' %
                       (is_valid.size, ut.get_cfg_lbl(filt_cfg_)))
-                print('  * is_valid.shape = %r' % (is_valid.shape,))
-                print('  * num_valid = %r' % (num_valid,))
+                logger.info('  * is_valid.shape = %r' % (is_valid.shape,))
+                logger.info('  * num_valid = %r' % (num_valid,))
                 self.prev_num_valid = num_valid
 
             def print_post(self, is_valid, flags, msg):
@@ -1624,14 +1624,14 @@ class TestResult(ut.NiceRepr):
                     num_passed = flags.sum()
                 num_valid = is_valid.sum()
                 num_invalidated = self.prev_num_valid - num_valid
-                print(msg)
+                logger.info(msg)
                 if num_invalidated == 0:
                     if flags is not None:
-                        print('  * num_passed = %r' % (num_passed,))
-                    print('  * num_invalided = %r' % (num_invalidated,))
+                        logger.info('  * num_passed = %r' % (num_passed,))
+                    logger.info('  * num_invalided = %r' % (num_invalidated,))
                 else:
-                    print('  * prev_num_valid = %r' % (self.prev_num_valid,))
-                    print('  * num_valid = %r' % (num_valid,))
+                    logger.info('  * prev_num_valid = %r' % (self.prev_num_valid,))
+                    logger.info('  * num_valid = %r' % (num_valid,))
                     #print('  * is_valid.shape = %r' % (is_valid.shape,))
                 self.prev_num_valid = num_valid
 
@@ -1661,10 +1661,10 @@ class TestResult(ut.NiceRepr):
 
         # Assert that only valid configurations were given
         if len(filt_cfg_) > 0:
-            print('ERROR')
-            print('filtcfg valid rules are = %s' % (ut.repr2(valid_rules, nl=1),))
+            logger.info('ERROR')
+            logger.info('filtcfg valid rules are = %s' % (ut.repr2(valid_rules, nl=1),))
             for key in filt_cfg_.keys():
-                print('did you mean %r instead of %r?' % (ut.closet_words(key, valid_rules)[0], key))
+                logger.info('did you mean %r instead of %r?' % (ut.closet_words(key, valid_rules)[0], key))
             raise NotImplementedError('Unhandled filt_cfg.keys() = %r' % (filt_cfg_.keys()))
 
         # Remove test cases that do not satisfy chosen rules
@@ -1719,7 +1719,7 @@ class TestResult(ut.NiceRepr):
                     truth = prefix_pattern[1:3]
                     propname = orderby[prefix_match.end():]
                     if verbose:
-                        print('Ordering by truth=%s propname=%s' % (truth, propname))
+                        logger.info('Ordering by truth=%s propname=%s' % (truth, propname))
                     order_values = truth2_prop[truth][propname]
                     break
             if order_values is None:
@@ -1732,9 +1732,9 @@ class TestResult(ut.NiceRepr):
         # Flat sorting indeices in a matrix
         if verbose:
             if verbose:
-                print('Reversing ordering (descending)')
+                logger.info('Reversing ordering (descending)')
             else:
-                print('Normal ordering (ascending)')
+                logger.info('Normal ordering (ascending)')
         if reverse:
             sortx = flat_order.argsort()[::-1]
         else:
@@ -1745,7 +1745,7 @@ class TestResult(ut.NiceRepr):
         # Return at most ``max_pername`` annotation examples per name
         if max_pername is not None:
             if verbose:
-                print('Returning at most %d cases per name ' % (max_pername,))
+                logger.info('Returning at most %d cases per name ' % (max_pername,))
             # FIXME: multiple configs
             _qaid_list = np.take(qaids, qx_list)
             _qnid_list = ibs.get_annot_nids(_qaid_list)
@@ -1765,8 +1765,8 @@ class TestResult(ut.NiceRepr):
         if require_all_cfg:
             if verbose:
                 prev_num_valid = is_valid.sum()
-                print('Enforcing that all configs must pass filters')
-                print('  * prev_num_valid = %r' % (prev_num_valid,))
+                logger.info('Enforcing that all configs must pass filters')
+                logger.info('  * prev_num_valid = %r' % (prev_num_valid,))
             qx2_valid_cfgs = ut.group_items(cfgx_list, qx_list)
             hasall_cfg = [len(qx2_valid_cfgs[qx]) == testres.nConfig for qx in qx_list]
             _qx_list = qx_list.compress(hasall_cfg)
@@ -1799,14 +1799,14 @@ class TestResult(ut.NiceRepr):
             case_identifier = case_pos_list
         else:
             if verbose:
-                print('Converting cases indicies to a 2d-mask')
+                logger.info('Converting cases indicies to a 2d-mask')
             case_identifier = is_valid
         if verbose:
-            print('Finished case filtering')
-            print('Final case stats:')
+            logger.info('Finished case filtering')
+            logger.info('Final case stats:')
             qx_hist = ut.dict_hist(qx_list)
-            print('config per query stats: %r' % (ut.get_stats_str(qx_hist.values()),))
-            print('query per config stats: %r' % (ut.get_stats_str(ut.dict_hist(cfgx_list).values()),))
+            logger.info('config per query stats: %r' % (ut.get_stats_str(qx_hist.values()),))
+            logger.info('query per config stats: %r' % (ut.get_stats_str(ut.dict_hist(cfgx_list).values()),))
 
         return case_identifier
 
@@ -2043,7 +2043,7 @@ class TestResult(ut.NiceRepr):
             label = kwargs.get('label', '')
             label += ' ' + ut.get_funcname(ave)
             kwargs['label'] = label
-            print(label + 'score stats : ' +
+            logger.info(label + 'score stats : ' +
                   ut.repr2(ut.get_jagged_stats(arr_list, use_median=True), nl=1, precision=1))
             return ydata_, spread_, kwargs, sizes_
 
@@ -2089,7 +2089,7 @@ class TestResult(ut.NiceRepr):
             spread_list = ut.get_list_column(args_list, 1)
             kwargs_list = ut.get_list_column(args_list, 2)
             sizes_list = ut.get_list_column(args_list, 3)
-            print('sizes_list = %s' % (ut.repr2(sizes_list, nl=1),))
+            logger.info('sizes_list = %s' % (ut.repr2(sizes_list, nl=1),))
 
             # Pack kwargs list for multi_plot
             plotkw = ut.dict_stack2(kwargs_list, '_list')
@@ -2139,7 +2139,7 @@ class TestResult(ut.NiceRepr):
         #import plottool_ibeis as pt
         import vtool_ibeis as vt
         if ut.VERBOSE:
-            print('[dev] FIX DUPLICATE CODE find_thresh_cutoff')
+            logger.info('[dev] FIX DUPLICATE CODE find_thresh_cutoff')
         #from ibeis.expt import cfghelpers
 
         assert len(testres.cfgx2_qreq_) == 1, 'can only specify one config here'
@@ -2205,11 +2205,11 @@ class TestResult(ut.NiceRepr):
             for scores in vt.apply_grouping(qx2_gf_raw_score, groupxs)])
 
         cfgx2_success = (nx2_gt_raw_score > nx2_gf_raw_score).T
-        print('Identification success (names identified / names queried)')
+        logger.info('Identification success (names identified / names queried)')
         for cfgx, success in enumerate(cfgx2_success):
             pipelbl = testres.cfgx2_lbl[cfgx]
             percent = 100 * success.sum() / len(success)
-            print('%2d) success = %r/%r = %.2f%% -- %s' % (
+            logger.info('%2d) success = %r/%r = %.2f%% -- %s' % (
                 cfgx, success.sum(), len(success), percent, pipelbl))
 
     def print_config_overlap(testres, with_plot=True):
@@ -2219,7 +2219,7 @@ class TestResult(ut.NiceRepr):
         cfgx2_num_correct = np.nansum(qx2_success, axis=0)
         best_cfgx = cfgx2_num_correct.argmax()
 
-        print('Config Overlap')
+        logger.info('Config Overlap')
 
         # Matrix version
         #disjoint_mat = np.zeros((testres.nConfig, testres.nConfig), dtype=np.int32)
@@ -2248,19 +2248,19 @@ class TestResult(ut.NiceRepr):
         improves_mat = n_success_list[:, None] - isect_mat
 
         disjoint_mat = union_mat - isect_mat
-        print('n_success_list = %r' % (n_success_list,))
-        print('union_mat =\n%s' % (union_mat,))
-        print('isect_mat =\n%s' % (isect_mat,))
-        print('cfgx1 and cfgx2 have <x> not in common')
-        print('disjoint_mat =\n%s' % (disjoint_mat,))
-        print('cfgx1 helps cfgx2 by <x>')
-        print('improves_mat =\n%s' % (improves_mat,))
-        print('improves_mat.sum(axis=1) = \n%s' % (improves_mat.sum(axis=1),))
+        logger.info('n_success_list = %r' % (n_success_list,))
+        logger.info('union_mat =\n%s' % (union_mat,))
+        logger.info('isect_mat =\n%s' % (isect_mat,))
+        logger.info('cfgx1 and cfgx2 have <x> not in common')
+        logger.info('disjoint_mat =\n%s' % (disjoint_mat,))
+        logger.info('cfgx1 helps cfgx2 by <x>')
+        logger.info('improves_mat =\n%s' % (improves_mat,))
+        logger.info('improves_mat.sum(axis=1) = \n%s' % (improves_mat.sum(axis=1),))
         bestx_by_improves = improves_mat.sum(axis=1).argmax()
-        print('bestx_by_improves = %r' % (bestx_by_improves,))
+        logger.info('bestx_by_improves = %r' % (bestx_by_improves,))
 
         # Numbered version
-        print('best_cfgx = %r' % (best_cfgx,))
+        logger.info('best_cfgx = %r' % (best_cfgx,))
         for cfgx in range(testres.nConfig):
             if cfgx == best_cfgx:
                 continue
@@ -2268,7 +2268,7 @@ class TestResult(ut.NiceRepr):
             qx2_anysuccess = np.logical_or(qx2_success.T[cfgx], qx2_success.T[best_cfgx])
             # Queries that other got right that best did not get right
             qx2_othersuccess = np.logical_and(qx2_anysuccess, np.logical_not(qx2_success.T[best_cfgx]))
-            print('cfgx %d) has %d success cases that that the best config does not have -- %s' % (cfgx, qx2_othersuccess.sum(), pipelbl))
+            logger.info('cfgx %d) has %d success cases that that the best config does not have -- %s' % (cfgx, qx2_othersuccess.sum(), pipelbl))
 
         qx2_success.T[cfgx]
 
@@ -2425,9 +2425,9 @@ class TestResult(ut.NiceRepr):
             #mean_ave_precision = np.mean(avep_list, axis=0)
             name_to_ave = [np.mean(a) for a in ut.apply_grouping(avep_list, groupxs)]
             name_to_ave_ = dict(zip(unique_names, name_to_ave))
-            print('name_to_ave_ = %s' % (ut.align(ut.repr3(name_to_ave_, precision=3), ':')))
+            logger.info('name_to_ave_ = %s' % (ut.align(ut.repr3(name_to_ave_, precision=3), ':')))
             mean_ave_precision = np.mean(name_to_ave)
-            print('mean_ave_precision = %r' % (mean_ave_precision,))
+            logger.info('mean_ave_precision = %r' % (mean_ave_precision,))
             map_list.append(mean_ave_precision)
         return map_list
 
@@ -2471,9 +2471,9 @@ class TestResult(ut.NiceRepr):
         funcname_list = [ut.get_funcname(func) for func in func_list]
         cmdstr_list = [' '.join([prefix, funcname, suffix]) for funcname in funcname_list]
         ut.cprint('Available Functions:', 'blue')
-        print(', '.join(funcname_list))
+        logger.info(', '.join(funcname_list))
         ut.cprint('Available Commandline:', 'blue')
-        print('\n'.join(cmdstr_list))
+        logger.info('\n'.join(cmdstr_list))
 
 
 if __name__ == '__main__':

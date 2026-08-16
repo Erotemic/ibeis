@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 import numpy as np
 import utool as ut
 import vtool_ibeis.keypoint as ktool
@@ -8,7 +9,6 @@ from six.moves import zip, map
 from plottool_ibeis import plot_helpers as ph
 from ibeis.other import ibsfuncs
 from ibeis.control.accessor_decors import getter, getter_vector_output
-(print, rrr, profile) = ut.inject2(__name__)
 
 
 NO_LBL_OVERRIDE = ut.get_argval('--no-lbl-override', type_=bool, default=None)
@@ -43,7 +43,7 @@ def get_annot_kpts_in_imgspace(ibs, aid_list, config2_=None, ensure=True):
         chipsz_list = ibs.get_annot_chip_sizes(aid_list, ensure=ensure)
     except AssertionError as ex:
         ut.printex(ex, '[!ibs.get_annot_kpts_in_imgspace]')
-        print('[!ibs.get_annot_kpts_in_imgspace] aid_list = %r' % (aid_list,))
+        logger.info('[!ibs.get_annot_kpts_in_imgspace] aid_list = %r' % (aid_list,))
         raise
     kpts_list    = ibs.get_annot_kpts(aid_list, ensure=ensure, config2_=config2_)
     imgkpts_list = [ktool.transform_kpts_to_imgspace(kpts, bbox, theta, chipsz)

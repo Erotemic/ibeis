@@ -5,6 +5,7 @@ TODO:
 
     python -m utool.util_inspect check_module_usage --pat="query_request.py"
 """
+from loguru import logger
 from os.path import join
 import dtool_ibeis
 import itertools as it
@@ -17,7 +18,6 @@ from ibeis.util import util_decor
 from ibeis.algo.hots import query_params
 from ibeis.algo.hots import chip_match
 from ibeis.algo.hots import _pipeline_helpers as plh  # NOQA
-(print, rrr, profile) = ut.inject2(__name__)
 
 VERBOSE_QREQ, VERYVERBOSE_QREQ = ut.get_module_verbosity_flags('qreq')
 
@@ -34,7 +34,6 @@ def testdata_newqreq(defaultdb='testdb1'):
     return ibs, qaid_list, daid_list
 
 
-@profile
 def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
                             verbose=None, unique_species=None,
                             use_memcache=True,
@@ -130,7 +129,7 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         verbose = int(ut.NOT_QUIET)
         # verbose = VERBOSE_QREQ
     if verbose:
-        print('[qreq] +--- New IBEIS QRequest --- ')
+        logger.info('[qreq] +--- New IBEIS QRequest --- ')
 
     if ut.SUPER_STRICT:
         ibs.assert_valid_aids(qaid_list, msg='error in new qreq qaids')
@@ -150,7 +149,7 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
     #     piperoot = None
 
     if verbose > 2:
-        print('[qreq] piperoot = %r' % (piperoot,))
+        logger.info('[qreq] piperoot = %r' % (piperoot,))
     if piperoot is not None and piperoot in ['smk']:
         from ibeis.algo.smk import smk_pipeline
         if query_cfg is None:
@@ -165,7 +164,7 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
     # HACK FOR DEPC REQUESTS including flukes
     elif query_cfg is not None and isinstance(query_cfg, dtool_ibeis.Config):
         if verbose > 2:
-            print('[qreq] dtool_ibeis.Config HACK')
+            logger.info('[qreq] dtool_ibeis.Config HACK')
         tablename = query_cfg.get_config_name()
         cfgdict = dict(query_cfg.parse_items())
         requestclass = ibs.depc_annot.requestclass_dict[tablename]
@@ -175,7 +174,7 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
     elif piperoot is not None and piperoot not in ['vsmany']:
         # Hack to ensure that correct depcache style request gets called
         if verbose > 2:
-            print('[qreq] piperoot HACK')
+            logger.info('[qreq] piperoot HACK')
         requestclass = ibs.depc_annot.requestclass_dict[piperoot]
         assert custom_nid_lookup is None, 'unsupported'
         qreq_ = request = requestclass.new(  # NOQA
@@ -183,11 +182,11 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         # assert qreq_.qparams.pipeline_root != 'vsone', 'pipeline vsone is depricated'
     else:
         if verbose > 2:
-            print('[qreq] default hots config HACK')
+            logger.info('[qreq] default hots config HACK')
 
         # <HACK>
         if not hasattr(ibs, 'generate_species_background_mask'):
-            print('HACKING FG OFF')
+            logger.info('HACKING FG OFF')
             cfgdict['fg_on'] = False
 
         if unique_species is None:
@@ -223,16 +222,15 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         #qreq_.data_config2_ = data_config2_
         qreq_.unique_species = unique_species_  # HACK
         if verbose > 1:
-            print('[qreq] * unique_species = %s' % (qreq_.unique_species,))
+            logger.info('[qreq] * unique_species = %s' % (qreq_.unique_species,))
     if verbose:
-        print('[qreq] * pipe_cfg = %s' % (qreq_.get_pipe_cfgstr()))
-        print('[qreq] * data_hashid  = %s' % (qreq_.get_data_hashid(),))
-        print('[qreq] * query_hashid = %s' % (qreq_.get_query_hashid(),))
-        print('[qreq] L___ New IBEIS QRequest ___ ')
+        logger.info('[qreq] * pipe_cfg = %s' % (qreq_.get_pipe_cfgstr()))
+        logger.info('[qreq] * data_hashid  = %s' % (qreq_.get_data_hashid(),))
+        logger.info('[qreq] * query_hashid = %s' % (qreq_.get_query_hashid(),))
+        logger.info('[qreq] L___ New IBEIS QRequest ___ ')
     return qreq_
 
 
-@profile
 def apply_species_with_detector_hack(ibs, cfgdict, qaids, daids,
                                      verbose=None):
     """
@@ -257,9 +255,9 @@ def apply_species_with_detector_hack(ibs, cfgdict, qaids, daids,
                 'yellow')
             if verbose > 1:
                 if len(unique_species) != 1:
-                    print('[qreq]  * len(unique_species) = %r' % len(unique_species))
+                    logger.info('[qreq]  * len(unique_species) = %r' % len(unique_species))
                 else:
-                    print('[qreq]  * unique_species = %r' % (unique_species,))
+                    logger.info('[qreq]  * unique_species = %r' % (unique_species,))
         #print('[qreq]  * valid species = %r' % (
         #    ibs.get_species_with_detectors(),))
         #cfg._featweight_cfg.featweight_enabled = 'ERR'
@@ -268,7 +266,7 @@ def apply_species_with_detector_hack(ibs, cfgdict, qaids, daids,
     else:
         #print(ibs.get_annot_species_texts(aid_list))
         if verbose:
-            print('[qreq] Using fgweights of unique_species=%r' % (
+            logger.info('[qreq] Using fgweights of unique_species=%r' % (
                 unique_species,))
     return unique_species
 
@@ -320,7 +318,6 @@ class QueryRequest(ut.NiceRepr):
         qreq_.nid_to_groupuuid = None
 
     @classmethod
-    @profile
     def new_query_request(cls, qaid_list, daid_list, qparams, qresdir, ibs,
                           query_config2_, data_config2_,
                           _indexer_request_params, custom_nid_lookup=None):
@@ -373,7 +370,6 @@ class QueryRequest(ut.NiceRepr):
         qreq_.dnid_to_grouphash = qreq_._make_namegroup_data_hashes()
         return qreq_
 
-    @profile
     def _make_namegroup_data_hashes(qreq_):
         """
         Makes dynamically created uuid groups only for database annotations
@@ -384,7 +380,6 @@ class QueryRequest(ut.NiceRepr):
         nid_to_grouphash = qreq_._make_anygroup_hashes(annots, nids)
         return nid_to_grouphash
 
-    @profile
     def _make_namegroup_hashes(qreq_):
         """
         dynamically creates uuid groups
@@ -429,7 +424,6 @@ class QueryRequest(ut.NiceRepr):
         visual_uuids = qreq_._unique_annots.view(aids).visual_uuids
         return visual_uuids
 
-    @profile
     def get_qreq_pcc_uuids(qreq_, aids):
         """
         TODO. dont use uuids anymore. they are slow
@@ -438,7 +432,6 @@ class QueryRequest(ut.NiceRepr):
         for bytes_ in qreq_.get_qreq_pcc_hashes(aids):
             yield uuid.UUID(bytes=bytes_[0:16])
 
-    @profile
     def get_qreq_pcc_hashes(qreq_, aids):
         """
         aids = [1, 2, 3]
@@ -456,7 +449,6 @@ class QueryRequest(ut.NiceRepr):
             bytes_ = ut.combine_hashes((vuuid, nuuid), hasher=hashlib.sha1())
             yield bytes_
 
-    @profile
     def get_qreq_pcc_hashid(qreq_, aids, prefix='', with_nids=False):
         """
         Gets a combined hash of a group of aids. Each aid hash represents
@@ -613,7 +605,6 @@ class QueryRequest(ut.NiceRepr):
         cacher = ut.Cacher(bc_fname, bc_cfgstr, cache_dir=bc_dpath)
         return cacher
 
-    @profile
     def get_bigcache_info(qreq_):
         bc_dpath = qreq_.ibs.get_big_cachedir()
         bc_fname = 'BIG_MC4_' + qreq_.get_shortinfo_cfgstr()
@@ -922,7 +913,6 @@ class QueryRequest(ut.NiceRepr):
         pipe_hashstr = ut.hashstr27(qreq_.get_pipe_cfgstr())
         return pipe_hashstr
 
-    @profile
     def get_cfgstr(qreq_, with_input=False, with_data=True, with_pipe=True,
                    hash_pipe=False):
         r"""
@@ -971,7 +961,6 @@ class QueryRequest(ut.NiceRepr):
 
     # --- Lazy Loading ---
 
-    @profile
     def lazy_preload(qreq_, prog_hook=None, verbose=ut.NOT_QUIET):
         """
         feature weights and normalizers should be loaded before vsone queries
@@ -980,7 +969,7 @@ class QueryRequest(ut.NiceRepr):
         Load non-query specific normalizers / weights
         """
         if verbose >= 2:
-            print('[qreq] lazy preloading')
+            logger.info('[qreq] lazy preloading')
         if prog_hook is not None:
             prog_hook.initialize_subhooks(4)
 
@@ -1006,19 +995,17 @@ class QueryRequest(ut.NiceRepr):
         #if hook is not None:
         #    hook.set_progress(4, 4, lbl='preloading features')
 
-    @profile
     def lazy_load(qreq_, verbose=ut.NOT_QUIET):
         """
         Performs preloading of all data needed for a batch of queries
         """
-        print('[qreq] lazy loading')
+        logger.info('[qreq] lazy loading')
         qreq_.hasloaded = True
         qreq_.lazy_preload(verbose=verbose)
         if qreq_.qparams.pipeline_root in ['vsmany']:
             qreq_.load_indexer(verbose=verbose)
 
     # load query data structures
-    @profile
     def ensure_chips(qreq_, verbose=ut.NOT_QUIET, num_retries=1):
         r"""
         ensure chips are computed (used in expt, not used in pipeline)
@@ -1049,7 +1036,7 @@ class QueryRequest(ut.NiceRepr):
             >>> print(result)
         """
         if verbose:
-            print('[qreq] ensure_chips')
+            logger.info('[qreq] ensure_chips')
         external_qaids = qreq_.qaids
         external_daids = qreq_.daids
         #np.union1d(external_qaids, external_daids)
@@ -1066,7 +1053,6 @@ class QueryRequest(ut.NiceRepr):
             external_daids,
             config2_=qreq_.extern_data_config2, **externgetkw)
 
-    @profile
     def ensure_features(qreq_, verbose=ut.NOT_QUIET, prog_hook=None):
         r""" ensure features are computed
         Args:
@@ -1091,7 +1077,7 @@ class QueryRequest(ut.NiceRepr):
         """
         #with ut.EmbedOnException():
         if verbose:
-            print('[qreq] ensure_features')
+            logger.info('[qreq] ensure_features')
         if prog_hook is not None:
             prog_hook(0, 3, 'ensure features')
         if prog_hook is not None:
@@ -1103,15 +1089,13 @@ class QueryRequest(ut.NiceRepr):
         if prog_hook is not None:
             prog_hook(3, 3, 'computed features')
 
-    @profile
     def ensure_featweights(qreq_, verbose=ut.NOT_QUIET):
         """ ensure feature weights are computed """
         if verbose:
-            print('[qreq] ensure_featweights')
+            logger.info('[qreq] ensure_featweights')
         qreq_.qannots.preload('fgweights')
         qreq_.dannots.preload('fgweights')
 
-    @profile
     def load_indexer(qreq_, verbose=ut.NOT_QUIET, force=False, prog_hook=None):
         if not force and qreq_.indexer is not None:
             if prog_hook is not None:
@@ -1124,7 +1108,7 @@ class QueryRequest(ut.NiceRepr):
             if index_method == 'single':
                 # TODO: SYSTEM updatable indexer
                 if ut.VERYVERBOSE or verbose:
-                    print('[qreq] loading single indexer normalizer')
+                    logger.info('[qreq] loading single indexer normalizer')
                 indexer = neighbor_index_cache.request_ibeis_nnindexer(
                     qreq_, verbose=verbose, prog_hook=prog_hook,
                     **qreq_._indexer_request_params)

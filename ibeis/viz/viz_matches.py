@@ -1,8 +1,8 @@
+from loguru import logger
 import utool as ut
 import plottool_ibeis as pt
 import plottool_ibeis.plot_helpers as ph
 from ibeis.viz import viz_helpers as vh
-(print, rrr, profile) = ut.inject2(__name__)
 
 
 def _get_annot_pair_info(ibs, aid1, aid2, qreq_, draw_fmatches, **kwargs):
@@ -494,7 +494,7 @@ def show_matches2(ibs, aid1, aid2, fm=None, fs=None, fm_norm=None, sel_fm=[],
         >>> ut.show_if_requested()
     """
     if qreq_ is None:
-        print('[viz_matches] WARNING: qreq_ is None')
+        logger.info('[viz_matches] WARNING: qreq_ is None')
     kwargs = kwargs.copy()
     in_image = kwargs.get('in_image', False)
     draw_fmatches = kwargs.pop('draw_fmatches', True)
@@ -522,7 +522,7 @@ def show_matches2(ibs, aid1, aid2, fm=None, fs=None, fm_norm=None, sel_fm=[],
     except Exception as ex:
         ut.printex(ex, 'consider qr.remove_corrupted_queries',
                       '[viz_matches]')
-        print('')
+        logger.info('')
         raise
     # Moved the code into show_chipmatch
     #if len(sel_fm) > 0:
@@ -567,7 +567,6 @@ def show_matches(ibs, cm, aid2, sel_fm=[], qreq_=None, **kwargs):
     return show_matches2(ibs, aid1, aid2, fm, fs, qreq_=qreq_, **kwargs)
 
 
-@profile
 def show_multichip_match(rchip1, rchip2_list, kpts1, kpts2_list, fm_list,
                          fs_list, featflag_list, fnum=None, pnum=None,
                          **kwargs):

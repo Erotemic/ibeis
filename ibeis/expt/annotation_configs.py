@@ -3,9 +3,9 @@ Definitions for common aid configurations
 
 Rename to annot_cfgdef
 """
+from loguru import logger
 import utool as ut
 import numpy as np  # NOQA
-print, rrr, profile = ut.inject2(__name__)
 
 
 # easier to type names to alias some of these options
@@ -374,7 +374,7 @@ def print_acfg_list(acfg_list, expanded_aids_list=None, ibs=None,
 
     ut.colorprint('+=== <Info acfg_list> ===', 'white')
     #print('Printing acfg_list info. len(acfg_list) = %r' % (len(acfg_list),))
-    print('non-varied aidcfg = ' + ut.repr2(nonvaried_compressed_dict))
+    logger.info('non-varied aidcfg = ' + ut.repr2(nonvaried_compressed_dict))
     seen_ = ut.ddict(list)
 
     # get default kwkeys for annot info
@@ -393,7 +393,7 @@ def print_acfg_list(acfg_list, expanded_aids_list=None, ibs=None,
         if not only_summary:
             ut.colorprint('+--- acfg %d / %d -- %s ---- ' %
                           (acfgx + 1, len(acfg_list), title), 'lightgray')
-            print('acfg = ' + ut.repr2(varied_compressed_dict_list[acfgx],
+            logger.info('acfg = ' + ut.repr2(varied_compressed_dict_list[acfgx],
                                        si=True))
 
         if expanded_aids_list is not None:
@@ -412,19 +412,19 @@ def print_acfg_list(acfg_list, expanded_aids_list=None, ibs=None,
                     stats_str2 = ut.repr2(stats_, si=True, nl=True,
                                           explicit=False, nobraces=False)
                     if not only_summary:
-                        print('annot_config_stats = ' + stats_str2)
+                        logger.info('annot_config_stats = ' + stats_str2)
             else:
                 dupindex = seen_[key]
                 dupdict = varied_compressed_dict_list[dupindex[0]]
                 if not only_summary:
-                    print('DUPLICATE of index %r' % (dupindex,))
-                    print('DUP OF acfg = ' + ut.repr2(dupdict, si=True))
-    print('hashid summary = ' + ut.repr2(hashid_list, nl=1))
+                    logger.info('DUPLICATE of index %r' % (dupindex,))
+                    logger.info('DUP OF acfg = ' + ut.repr2(dupdict, si=True))
+    logger.info('hashid summary = ' + ut.repr2(hashid_list, nl=1))
     ut.colorprint('L___ </Info acfg_list> ___', 'white')
 
 
 def print_acfg(acfg, expanded_aids=None, ibs=None, **kwargs):
-    print('acfg = ' + ut.repr2(compress_aidcfg(acfg)))
+    logger.info('acfg = ' + ut.repr2(compress_aidcfg(acfg)))
     if expanded_aids is not None:
         ibs.print_annot_stats(expanded_aids, label='expanded_aids = ', **kwargs)
 

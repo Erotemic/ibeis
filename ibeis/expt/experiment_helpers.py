@@ -2,6 +2,7 @@
 Helper module that helps expand parameters for grid search
 TODO: move into custom pipe_cfg and annot_cfg modules
 """
+from loguru import logger
 import utool as ut
 import sys
 import six
@@ -10,7 +11,6 @@ from ibeis.expt import experiment_configs
 from ibeis.expt import cfghelpers
 from ibeis.algo import Config
 from ibeis.init import filter_annots
-print, rrr, profile = ut.inject2(__name__)
 
 
 def get_varied_pipecfg_lbls(cfgdict_list, pipecfg_list=None):
@@ -83,7 +83,7 @@ def get_pipecfg_list(test_cfg_name_list, ibs=None, verbose=None):
     if verbose is None:
         verbose = ut.VERBOSE
     if ut.VERBOSE:
-        print('[expt_help.get_pipecfg_list] building pipecfg_list using: %s' %
+        logger.info('[expt_help.get_pipecfg_list] building pipecfg_list using: %s' %
               test_cfg_name_list)
     if isinstance(test_cfg_name_list, six.string_types):
         test_cfg_name_list = [test_cfg_name_list]
@@ -93,7 +93,7 @@ def get_pipecfg_list(test_cfg_name_list, ibs=None, verbose=None):
     # HACK: Parse out custom configs first
     for test_cfg_name in test_cfg_name_list:
         if test_cfg_name.startswith('custom:') or test_cfg_name == 'custom':
-            print('[expthelpers] Parsing nonstandard custom config')
+            logger.info('[expthelpers] Parsing nonstandard custom config')
             assert False, 'custom is no longer supported'
             #if test_cfg_name.startswith('custom:'):
             #    # parse out modifications to custom
@@ -163,7 +163,7 @@ def get_pipecfg_list(test_cfg_name_list, ibs=None, verbose=None):
         #for cfg in _pipecfg_list:
         #    print(cfg.get_cfgstr())
         #    print(cfg)
-        print('[harn.help] return %d / %d unique pipeline configs from: %r' %
+        logger.info('[harn.help] return %d / %d unique pipeline configs from: %r' %
               (len(cfgdict_list), len(_pcfgdict_list), test_cfg_name_list))
 
     if ut.get_argflag(('--pcfginfo', '--pinfo', '--pipecfginfo')):
@@ -179,10 +179,10 @@ def print_pipe_configs(cfgdict_list, pipecfg_list):
     #pipecfg_lbls = pipecfg_list
     #assert len(pipecfg_lbls) == len(pipecfg_lbls), 'unequal lens'
     for pcfgx, (pipecfg, lbl) in enumerate(zip(pipecfg_list, pipecfg_lbls)):
-        print('+--- %d / %d ===' % (pcfgx, (len(pipecfg_list))))
+        logger.info('+--- %d / %d ===' % (pcfgx, (len(pipecfg_list))))
         ut.colorprint(lbl, 'white')
-        print(pipecfg.get_cfgstr())
-        print('L___')
+        logger.info(pipecfg.get_cfgstr())
+        logger.info('L___')
 
 
 def testdata_acfg_names(default_acfg_name_list=['default']):
@@ -314,24 +314,24 @@ def filter_duplicate_acfgs(expanded_aids_list, acfg_list, acfg_name_list,
         duplicate_configs = dict(
             [(key_, val_) for key_, val_ in seen_.items() if len(val_) > 1])
         if len(duplicate_configs) > 0:
-            print('The following configs produced duplicate annnotation configs')
+            logger.info('The following configs produced duplicate annnotation configs')
             for key, val in duplicate_configs.items():
                 # Print the difference between the duplicate configs
                 _tup = annotation_configs.compress_acfg_list_for_printing(val)
                 nonvaried_compressed_dict, varied_compressed_dict_list = _tup
-                print('+--')
-                print('key = %r' % (key,))
-                print('duplicate_varied_cfgs = %s' % (
+                logger.info('+--')
+                logger.info('key = %r' % (key,))
+                logger.info('duplicate_varied_cfgs = %s' % (
                     ut.repr2(varied_compressed_dict_list),))
-                print('duplicate_nonvaried_cfgs = %s' % (
+                logger.info('duplicate_nonvaried_cfgs = %s' % (
                     ut.repr2(nonvaried_compressed_dict),))
-                print('L__')
+                logger.info('L__')
 
         if verbose >= 1:
-            print('[harn.help] parsed %d / %d unique annot configs' %
+            logger.info('[harn.help] parsed %d / %d unique annot configs' %
                   (len(acfg_list_), len(acfg_list),))
         if verbose > 2:
-            print('[harn.help] parsed from: %r' % (acfg_name_list,))
+            logger.info('[harn.help] parsed from: %r' % (acfg_name_list,))
     return expanded_aids_list_, acfg_list_
 
 
@@ -395,7 +395,7 @@ def get_annotcfg_list(ibs, acfg_name_list, filter_dups=True,
         >>> main_helpers.unmonkeypatch_encounters(ibs)
     """
     if ut.VERBOSE:
-        print('[harn.help] building acfg_list using %r' % (acfg_name_list,))
+        logger.info('[harn.help] building acfg_list using %r' % (acfg_name_list,))
     from ibeis.expt import annotation_configs
     acfg_combo_list = parse_acfg_combo_list(acfg_name_list)
 
@@ -445,8 +445,8 @@ def get_annotcfg_list(ibs, acfg_name_list, filter_dups=True,
 
     if ut.get_argflag(('--acfginfo', '--ainfo', '--aidcfginfo', '--print-acfg', '--printacfg')):
         ut.colorprint('[experiment_helpers] Requested AcfgInfo ... ', 'red')
-        print('combo_slice = %r' % (combo_slice,))
-        print('acfg_slice = %r' % (acfg_slice,))
+        logger.info('combo_slice = %r' % (combo_slice,))
+        logger.info('acfg_slice = %r' % (acfg_slice,))
         annotation_configs.print_acfg_list(acfg_list, expanded_aids_list, ibs)
         ut.colorprint('[experiment_helpers] exiting due to AcfgInfo info request', 'red')
         sys.exit(0)

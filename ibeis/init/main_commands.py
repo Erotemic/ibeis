@@ -5,6 +5,7 @@ TODO: Rename to ibeis/init/commands.py
 TODO; remove params module
 """
 from __future__ import absolute_import, division, print_function
+from loguru import logger
 import utool as ut
 import sys
 from ibeis import constants as const
@@ -12,7 +13,6 @@ from ibeis import params
 from ibeis.other import ibsfuncs
 from ibeis.init import sysres
 from os.path import join
-print, rrr, profile = ut.inject2(__name__)
 
 
 def vdq(dbdir):
@@ -42,18 +42,18 @@ def preload_commands(dbdir, **kwargs):
     """ Preload commands work with command line arguments and global caches """
     #print('[main_cmd] preload_commands')
     if params.args.dump_argv:
-        print(ut.repr2(vars(params.args), sorted_=False))
+        logger.info(ut.repr2(vars(params.args), sorted_=False))
     if params.args.dump_global_cache:
         ut.global_cache_dump()  # debug command, dumps to stdout
     if params.args.set_workdir is not None:
         sysres.set_workdir(params.args.set_workdir)
     if params.args.get_workdir:
-        print(' Current work dir = %s' % sysres.get_workdir())
+        logger.info(' Current work dir = %s' % sysres.get_workdir())
     if params.args.logdir is not None:
         sysres.set_logdir(params.args.logdir)
     if params.args.get_logdir:
-        print(' Current local  log dir = %s' % (sysres.get_logdir_local(),))
-        print(' Current global log dir = %s' % (sysres.get_logdir_global(),))
+        logger.info(' Current local  log dir = %s' % (sysres.get_logdir_local(),))
+        logger.info(' Current global log dir = %s' % (sysres.get_logdir_global(),))
     if params.args.view_logdir:
         ut.view_directory(sysres.get_logdir_local())
         ut.view_directory(sysres.get_logdir_global())
@@ -64,12 +64,12 @@ def preload_commands(dbdir, **kwargs):
     if ut.get_argflag('--vwd'):
         vwd()
     if ut.get_argflag('--vdq'):
-        print('got arg --vdq')
+        logger.info('got arg --vdq')
         vdq(dbdir)
     if kwargs.get('delete_ibsdir', False):
         ibsfuncs.delete_ibeis_database(dbdir)
     if params.args.preload_exit:
-        print('[main_cmd] preload exit')
+        logger.info('[main_cmd] preload exit')
         sys.exit(0)
 
 
@@ -82,17 +82,17 @@ def postload_commands(ibs, back):
 
     """
     if ut.NOT_QUIET:
-        print('\n[main_cmd] postload_commands')
+        logger.info('\n[main_cmd] postload_commands')
     if params.args.view_database_directory:
-        print('got arg --vdd')
+        logger.info('got arg --vdd')
         vdd(ibs)
     if params.args.set_default_dbdir:
         sysres.set_default_dbdir(ibs.get_dbdir())
     if params.args.update_query_cfg is not None:
         # Set query parameters from command line using the --cfg flag
         cfgdict = ut.parse_cfgstr_list(params.args.update_query_cfg)
-        print('Custom cfgdict specified')
-        print(ut.repr2(cfgdict))
+        logger.info('Custom cfgdict specified')
+        logger.info(ut.repr2(cfgdict))
         ibs.update_query_cfg(**cfgdict)
     if params.args.edit_notes:
         ut.editfile(ibs.get_dbnotes_fpath(ensure=True))
@@ -112,20 +112,20 @@ def postload_commands(ibs, back):
 
     select_imgsetid = ut.get_argval(('--select-imgsetid', '--imgsetid', '--occur', '--gsid'), None)
     if select_imgsetid is not None:
-        print('\n+ --- CMD SELECT IMGSETID=%r ---' % (select_imgsetid,))
+        logger.info('\n+ --- CMD SELECT IMGSETID=%r ---' % (select_imgsetid,))
         # Whoa: this doesnt work. weird.
         #back.select_imgsetid(select_imgsetid)
         # This might be the root of gui problems
         #back.front._change_imageset(select_imgsetid)
         back.front.select_imageset_tab(select_imgsetid)
-        print('L ___ CMD SELECT IMGSETID=%r ___\n' % (select_imgsetid,))
+        logger.info('L ___ CMD SELECT IMGSETID=%r ___\n' % (select_imgsetid,))
     # Send commands to GUIBack
     if params.args.select_aid is not None:
         if back is not None:
             try:
                 ibsfuncs.assert_valid_aids(ibs, (params.args.select_aid,))
             except AssertionError:
-                print('Valid RIDs are: %r' % (ibs.get_valid_aids(),))
+                logger.info('Valid RIDs are: %r' % (ibs.get_valid_aids(),))
                 raise
             back.select_aid(params.args.select_aid)
     if params.args.select_gid is not None:
@@ -166,7 +166,7 @@ def postload_commands(ibs, back):
         metadata = ibs.get_annot_lazy_dict(aid)
         annot_context_options = metadata['annot_context_options']
         aidcmd_dict = dict(annot_context_options)
-        print('aidcmd_dict = %s' % (ut.repr3(aidcmd_dict),))
+        logger.info('aidcmd_dict = %s' % (ut.repr3(aidcmd_dict),))
         command = aidcmd_dict[aidcmd]
         command()
         #import utool
@@ -200,17 +200,17 @@ def postload_commands(ibs, back):
         def delayed_screenshot_func():
             if done[0] == 500:
                 #back.mainwin.menubar.triggered.emit(back.mainwin.menuFile)
-                print('Mouseclick')
+                logger.info('Mouseclick')
                 QTest.mouseClick(back.mainwin.menuFile, Qt.LeftButton)
                 # This works
                 #QTest.mouseClick(back.front.import_button, Qt.LeftButton)
             if done[0] == 1:
                 timer2.stop()
-                print('screengrab to %r' % (fpath,))
+                logger.info('screengrab to %r' % (fpath,))
                 screenimg = QPixmap.grabWindow(back.mainwin.winId())
                 screenimg.save(fpath, 'jpg')
                 ut.startfile(fpath)
-                print('lub dub2')
+                logger.info('lub dub2')
             done[0] -= 1
             return None
         CLICK_FILE_MENU = True
@@ -229,5 +229,5 @@ def postload_commands(ibs, back):
         pass
 
     if params.args.postload_exit:
-        print('[main_cmd] postload exit')
+        logger.info('[main_cmd] postload exit')
         sys.exit(0)

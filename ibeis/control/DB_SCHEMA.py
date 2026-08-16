@@ -27,7 +27,6 @@ except Exception:
     VERSION_CURRENT = None
     print("[dbcache] NO DB_SCHEMA_CURRENT AUTO-GENERATED!")
 import utool as ut
-profile = ut.profile
 
 
 ANNOTMATCH_TABLE     = 'annotmatch'
@@ -63,7 +62,6 @@ CONFIG_SUFFIX       = 'config_suffix'
 # =======================
 
 
-@profile
 def update_1_0_0(db, ibs=None):
     db.add_table(const.IMAGE_TABLE, (
         (IMAGE_ROWID,                   'INTEGER PRIMARY KEY'),
@@ -541,7 +539,6 @@ def pre_1_3_1(db, ibs=None):
 # =======================
 
 
-@profile
 def update_1_0_1(db, ibs=None):
     # Add a contributor's table
     db.add_table(const.CONTRIBUTOR_TABLE, (
@@ -581,7 +578,6 @@ def update_1_0_1(db, ibs=None):
 # =======================
 
 
-@profile
 def update_1_0_2(db, ibs=None):
     # Fix the contibutor table's constraint
     db.modify_table(const.CONTRIBUTOR_TABLE, (
@@ -596,7 +592,6 @@ def update_1_0_2(db, ibs=None):
 # =======================
 
 
-@profile
 def update_1_1_0(db, ibs=None):
     # Moving chips and features to their own cache database
     db.drop_table(const.CHIP_TABLE)
@@ -635,7 +630,6 @@ def update_1_1_0(db, ibs=None):
 # =======================
 
 
-@profile
 def update_1_1_1(db, ibs=None):
     # Change name of column
     db.modify_table(const.CONFIG_TABLE, (
@@ -659,7 +653,6 @@ def update_1_1_1(db, ibs=None):
     ))
 
 
-@profile
 def update_1_2_0(db, ibs=None):
     # Add columns to annotaiton table
     tablename = const.ANNOTATION_TABLE
@@ -679,7 +672,6 @@ def update_1_2_0(db, ibs=None):
     assert aid_before == aid_after
 
 
-@profile
 def update_1_2_1(db, ibs=None):
     # Names and species are taken away from lblannot table and upgraded
     # to their own thing

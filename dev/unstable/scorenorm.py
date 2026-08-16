@@ -29,6 +29,7 @@ TODO:
     * One class SVM http://scikit-learn.org/stable/auto_examples/svm/plot_oneclass.html
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 import re
 import dtool_ibeis
 import numpy as np
@@ -39,7 +40,6 @@ from functools import partial
 from os.path import join
 from ibeis import constants as const
 from ibeis.init import sysres
-print, rrr, profile = ut.inject2(__name__)
 
 
 def compare_score_pdfs(testres):
@@ -137,7 +137,7 @@ def draw_feat_scoresep(testres, f=None, disttype=None):
         >>> testres.draw_feat_scoresep(f=f)
         >>> ut.show_if_requested()
     """
-    print('[testres] draw_feat_scoresep')
+    logger.info('[testres] draw_feat_scoresep')
     import plottool_ibeis as pt
 
     def load_feat_scores(qreq_, qaids):
@@ -191,7 +191,7 @@ def draw_feat_scoresep(testres, f=None, disttype=None):
         # testres.print_pcfg_info()
         score_group = []
         for cfgx, qreq_ in zip(cfgxs, testres.cfgx2_qreq_):
-            print('Loading cached chipmatches')
+            logger.info('Loading cached chipmatches')
             qaids = cfgx2_valid_qaids[cfgx]
             tp_scores, tn_scores, scorecfg = load_feat_scores(qreq_, qaids)
             score_group.append((tp_scores, tn_scores, scorecfg))
@@ -374,7 +374,7 @@ def compare_featscores():
     learnkw = {}
     ibs, testres = ibeis.testdata_expts(
         defaultdb='PZ_MTEST', a=['default'], p=['default:K=1'])
-    print('nfs_cfg_list = ' + ut.repr3(nfs_cfg_list))
+    logger.info('nfs_cfg_list = ' + ut.repr3(nfs_cfg_list))
 
     encoder_list = []
     lbl_list = []
@@ -392,7 +392,7 @@ def compare_featscores():
                 encoder = vt.ScoreNormalizer()
                 encoder.load(cfgstr=cfgstr)
             except IOError:
-                print('datakw = %r' % (datakw,))
+                logger.info('datakw = %r' % (datakw,))
                 encoder = learn_featscore_normalizer(qreq_, datakw, learnkw)
                 encoder.save(cfgstr=cfgstr)
             encoder_list.append(encoder)
@@ -591,8 +591,8 @@ def learn_featscore_normalizer(qreq_, datakw={}, learnkw={}):
         >>> ut.show_if_requested()
     """
     cm_list = qreq_.execute()
-    print('learning scorenorm')
-    print('datakw = %s' % ut.repr3(datakw))
+    logger.info('learning scorenorm')
+    logger.info('datakw = %s' % ut.repr3(datakw))
     tp_scores, tn_scores, scorecfg = get_training_featscores(
         qreq_, cm_list, **datakw)
     _learnkw = dict(monotonize=True, adjust=2)
@@ -728,7 +728,7 @@ def get_training_featscores(qreq_, cm_list, disttype=None, namemode=True,
         for cm in cm_list
     ]
     cm_list_ = ut.compress(cm_list, trainable)
-    print('training using %d chipmatches' % (len(cm_list)))
+    logger.info('training using %d chipmatches' % (len(cm_list)))
 
     if disttype is None:
         fsv_col_lbls = cm.fsv_col_lbls
@@ -928,7 +928,6 @@ def get_training_fsv(cm, namemode=True, num=None, top_percent=None):
     return tp_fsv, tn_fsv
 
 
-@profile
 def get_training_desc_dist(cm, qreq_, fsv_col_lbls=[], namemode=True,
                            top_percent=None, data_annots=None,
                            query_annots=None, num=None):

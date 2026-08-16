@@ -2,8 +2,8 @@
 """
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 import utool as ut
-(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[preproc_residual]')
 
 
 def add_residual_params_gen(ibs, fid_list, qreq_=None):
@@ -11,8 +11,8 @@ def add_residual_params_gen(ibs, fid_list, qreq_=None):
 
 
 def on_delete(ibs, featweight_rowid_list):
-    print('Warning: Not Implemented')
-    print('Probably nothing to do here')
+    logger.info('Warning: Not Implemented')
+    logger.info('Probably nothing to do here')
 
 
 if __name__ == '__main__':

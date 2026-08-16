@@ -1,9 +1,9 @@
+from loguru import logger
 import utool as ut
 import six
 import itertools as it
 from ibeis import _ibeis_object
 from ibeis.control.controller_inject import make_ibs_register_decorator
-(print, rrr, profile) = ut.inject2(__name__, '[annot]')
 
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 
@@ -125,7 +125,6 @@ class _AnnotPropInjector(BASE_TYPE):
     """
     def __init__(metaself, name, bases, dct):
         super(_AnnotPropInjector, metaself).__init__(name, bases, dct)
-        metaself.rrr = rrr
 
         attrs = ANNOT_BASE_ATTRS
 
@@ -368,7 +367,6 @@ class Annots(BASE):
 class _AnnotGroupPropInjector(BASE_TYPE):
     def __init__(metaself, name, bases, dct):
         super(_AnnotGroupPropInjector, metaself).__init__(name, bases, dct)
-        metaself.rrr = rrr
 
         # TODO: move to ibeis object as a group call
         def _make_unflat_getter(objname, attrname):
@@ -383,7 +381,7 @@ class _AnnotGroupPropInjector(BASE_TYPE):
 
         for attrname in ANNOT_BASE_ATTRS:
             if hasattr(metaself, attrname):
-                print('Cannot inject annot group attrname = %r' % (attrname,))
+                logger.info('Cannot inject annot group attrname = %r' % (attrname,))
                 continue
             ibs_unflat_getter = _make_unflat_getter('annot', attrname)
             setattr(metaself, '_unflat_get_' + attrname, ibs_unflat_getter)
@@ -448,7 +446,6 @@ class _AnnotMatchPropInjector(BASE_TYPE):
     """
     def __init__(metaself, name, bases, dct):
         super(_AnnotMatchPropInjector, metaself).__init__(name, bases, dct)
-        metaself.rrr = rrr
 
         attrs = [
             'aid1', 'aid2', 'confidence', 'count', 'evidence_decision',

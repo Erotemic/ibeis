@@ -3,10 +3,10 @@
 Interface to Darknet object proposals.
 """
 from __future__ import absolute_import, division, print_function
+from loguru import logger
 import utool as ut
 from os import listdir
 from os.path import join, isfile, isdir
-(print, rrr, profile) = ut.inject2(__name__, '[rf]')
 
 
 VERBOSE_SVM = ut.get_argflag('--verbrf') or ut.VERBOSE
@@ -103,7 +103,7 @@ def classify(vector_list, weight_filepath, verbose=VERBOSE_SVM, **kwargs):
         vectors_list = [ vector_list for _ in range(num_weights) ]
         args_list = zip(weight_filepath_list, vectors_list)
         nTasks = num_weights
-        print('Processing ensembles in parallel using %d ensembles' % (num_weights, ))
+        logger.info('Processing ensembles in parallel using %d ensembles' % (num_weights, ))
     else:
         num_cpus = multiprocessing.cpu_count()
         vector_batch = int(np.ceil(float(num_vectors) / num_cpus))
@@ -126,7 +126,7 @@ def classify(vector_list, weight_filepath, verbose=VERBOSE_SVM, **kwargs):
                 args_list.append(args)
 
         nTasks = len(args_list)
-        print('Processing vectors in parallel using vector_batch = %r' % (vector_batch, ))
+        logger.info('Processing vectors in parallel using vector_batch = %r' % (vector_batch, ))
 
     # Perform inference
     classify_iter = ut.generate2(classify_helper, args_list, nTasks=nTasks,

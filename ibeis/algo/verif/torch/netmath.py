@@ -1,10 +1,10 @@
+from loguru import logger
 import utool as ut
 import numpy as np
 import vtool_ibeis as vt
 import six
 import torch
 # from torch.autograd import Variable  # NOQA
-print, rrr, profile = ut.inject2(__name__)
 
 # from pysseg import getLogger
 # logger = getLogger(__name__)
@@ -138,7 +138,7 @@ class LRSchedules(NetMathParams):
             lr *= 0.1
 
         if epoch % lr_decay_epoch == 0:
-            print('LR is set to {}'.format(lr))
+            logger.info('LR is set to {}'.format(lr))
 
         for param_group in optimizer.param_groups:
             param_group['lr'] = lr

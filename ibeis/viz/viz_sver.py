@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function
+from loguru import logger
 import utool as ut
 import plottool_ibeis.draw_sv as draw_sv
-(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[viz_sver]', DEBUG=False)
 
 
 WRITE_SV_DEBUG = ut.get_argflag('--write-sv-debug')
@@ -65,7 +65,7 @@ def show_sver(ibs, aid1, aid2, chipmatch_FILT=None, aid2_svtup=None, config2_=No
         >>> import plottool_ibeis as pt
         >>> exec(pt.present())
     """
-    print('\n[show_sver] ====================== [show_sver]')
+    logger.info('\n[show_sver] ====================== [show_sver]')
     #print(ut.func_str(show_sv, kwargs=locals()))
     if chipmatch_FILT is None or aid2_svtup is None:
         chipmatch_FILT, aid2_svtup = _compute_svvars(ibs, aid1)
@@ -74,7 +74,7 @@ def show_sver(ibs, aid1, aid2, chipmatch_FILT=None, aid2_svtup=None, config2_=No
     if WRITE_SV_DEBUG:
         keys = ('chip1', 'chip2', 'kpts1', 'kpts2', 'fm', 'homog_tup', 'aff_tup')
         ut.save_testdata(*keys)
-        print('[vizsv] write test info')
+        logger.info('[vizsv] write test info')
         ut.qflag()
     draw_sv.show_sv(chip1, chip2, kpts1, kpts2, fm, homog_tup=homog_tup, aff_tup=aff_tup, **kwargs)
 

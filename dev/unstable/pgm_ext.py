@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 import six  # NOQA
 import utool as ut
 import numpy as np
@@ -14,7 +15,6 @@ except ImportError:
     HAS_PGMPY = False
     pass
 # from ibeis.algo.hots.pgm_viz import *  # NOQA
-print, rrr, profile = ut.inject2(__name__)
 
 
 def define_model(cpd_list):
@@ -197,7 +197,7 @@ class ApproximateFactor(object):
         return data_ids
 
     def consolidate(self, inplace=False):
-        """ removes duplicate entries
+        r""" removes duplicate entries
 
         Example:
             >>> # UNSTABLE_DOCTEST
@@ -376,7 +376,7 @@ def print_factors(model, factor_list):
     else:
         semtypes = [0] * len(factor_list)
     for type_, factors in ut.group_items(factor_list, semtypes).items():
-        print('Result Factors (%r)' % (type_,))
+        logger.info('Result Factors (%r)' % (type_,))
         factors = ut.sortedby(factors, [f.variables[0] for f in factors])
         for fs_ in ut.ichunks(factors, 4):
             ut.colorprint(ut.hz_str([f._str('phi', 'psql') for f in fs_]),
@@ -659,7 +659,7 @@ def map_example():
     marg_factors = infr.query(['A0', 'B0']).values()
     print_factors(model, marg_factors)
     map_res = infr.map_query()
-    print('map_res = %r' % (map_res,))
+    logger.info('map_res = %r' % (map_res,))
     return model
 
 

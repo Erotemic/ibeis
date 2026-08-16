@@ -11,7 +11,6 @@ from os.path import join  # NOQA
 from ibeis.algo.graph import nx_utils as nxu
 from ibeis.algo.graph.nx_utils import e_
 from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV  # NOQA
-print, rrr, profile = ut.inject2(__name__)
 
 
 class AnnotInfrMatching(object):
@@ -19,7 +18,6 @@ class AnnotInfrMatching(object):
     Methods for running matching algorithms
     """
 
-    @profile
     def exec_matching(infr, qaids=None, daids=None, prog_hook=None,
                       cfgdict=None, name_method='node', use_cache=False,
                       invalidate_supercache=False):
@@ -161,7 +159,6 @@ class AnnotInfrMatching(object):
                 raise KeyError('No ChipMatch for edge (%r, %r)' % (aid1, aid2))
         return cm, aid1, aid2
 
-    @profile
     def apply_match_edges(infr, review_cfg={}):
         """
         Adds results from one-vs-many rankings as edges in the graph
@@ -316,7 +313,6 @@ class AnnotInfrMatching(object):
             edge_to_data[(u, v)]['rank'] = rank
         return edge_to_data
 
-    @profile
     def apply_match_scores(infr):
         """
 
@@ -606,7 +602,6 @@ class _RedundancyAugmentation(object):
         check_edges = set(it.starmap(e_, check_edges))
         return check_edges
 
-    @profile
     def find_pos_redun_candidate_edges(infr, k=None, verbose=False):
         r"""
         Searches for augmenting edges that would make PCCs k-positive redundant
@@ -639,7 +634,6 @@ class _RedundancyAugmentation(object):
                 for edge in infr.find_pos_augment_edges(pcc, k=k):
                     yield nxu.e_(*edge)
 
-    @profile
     def find_neg_redun_candidate_edges(infr, k=None):
         """
         Get pairs of PCCs that are not complete.
@@ -694,7 +688,6 @@ class _RedundancyAugmentation(object):
 class CandidateSearch(_RedundancyAugmentation):
     """ Search for candidate edges """
 
-    @profile
     def find_lnbnn_candidate_edges(infr):
         """
 
@@ -794,7 +787,6 @@ class CandidateSearch(_RedundancyAugmentation):
                 # Set edge task attribute as well
                 infr.set_edge_attrs(task, probs_dict)
 
-    @profile
     def ensure_priority_scores(infr, priority_edges):
         """
         Ensures that priority attributes are assigned to the edges.
@@ -913,7 +905,6 @@ class CandidateSearch(_RedundancyAugmentation):
         metric, priority = infr.ensure_priority_scores(priority_edges)
         infr.prioritize(metric=metric, edges=priority_edges, scores=priority)
 
-    @profile
     def add_candidate_edges(infr, candidate_edges):
         candidate_edges = list(candidate_edges)
         new_edges = infr.ensure_edges_from(candidate_edges)
@@ -940,7 +931,6 @@ class CandidateSearch(_RedundancyAugmentation):
                 infr.on_new_candidate_edges(infr, new_edges)
         return len(priority_edges)
 
-    @profile
     def refresh_candidate_edges(infr):
         """
         Search for candidate edges.
@@ -963,7 +953,6 @@ class CandidateSearch(_RedundancyAugmentation):
         infr.add_candidate_edges(candidate_edges)
         infr.assert_consistency_invariant()
 
-    @profile
     def _make_task_probs(infr, edges):
         """
         Predict edge probs for each pairwise classifier task
@@ -985,7 +974,6 @@ class CandidateSearch(_RedundancyAugmentation):
             task_probs[task_key] = probs_df
         return task_probs
 
-    @profile
     def _make_lnbnn_scores(infr, edges):
         edge_to_data = infr._get_cm_edge_data(edges)
         edges = list(edge_to_data.keys())

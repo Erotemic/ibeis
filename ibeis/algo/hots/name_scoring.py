@@ -5,7 +5,6 @@ import itertools
 from ibeis.algo.hots import hstypes
 from ibeis.algo.hots import _pipeline_helpers as plh  # NOQA
 from collections import namedtuple
-(print, rrr, profile) = ut.inject2(__name__, '[nscoring]')
 
 NameScoreTup = namedtuple('NameScoreTup', ('sorted_nids', 'sorted_nscore',
                                            'sorted_aids', 'sorted_scores'))
@@ -41,7 +40,6 @@ def testdata_chipmatch():
     return cm
 
 
-@profile
 def compute_fmech_score(cm, qreq_=None, hack_single_ori=False):
     r"""
     nsum. This is the fmech scoring mechanism.
@@ -160,7 +158,6 @@ def compute_fmech_score(cm, qreq_=None, hack_single_ori=False):
     return nsum_score_list
 
 
-@profile
 def get_chipmatch_namescore_nonvoting_feature_flags(cm, qreq_=None):
     """
     DEPRICATE
@@ -200,7 +197,6 @@ def get_chipmatch_namescore_nonvoting_feature_flags(cm, qreq_=None):
     return featflag_list
 
 
-@profile
 def get_namescore_nonvoting_feature_flags(fm_list, fs_list, dnid_list, name_groupxs, kpts1=None):
     r"""
     DEPRICATE
@@ -257,7 +253,6 @@ def get_namescore_nonvoting_feature_flags(fm_list, fs_list, dnid_list, name_grou
     return featflag_list
 
 
-@profile
 def align_name_scores_with_annots(annot_score_list, annot_aid_list, daid2_idx, name_groupxs, name_score_list):
     r"""
     takes name scores and gives them to the best annotation

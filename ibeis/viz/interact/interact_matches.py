@@ -9,6 +9,7 @@ Main development file
 CommandLine:
     python -m ibeis.viz.interact.interact_matches show_coverage --show
 """
+from loguru import logger
 import utool as ut
 import numpy as np
 import plottool_ibeis as pt
@@ -21,7 +22,6 @@ from ibeis.viz import viz_hough
 from ibeis.viz import viz_chip
 from plottool_ibeis import interact_matches
 from ibeis.viz.interact.interact_chip import ishow_chip
-(print, rrr, profile) = ut.inject2(__name__, '[interact_matches]')
 
 
 def testdata_match_interact(**kwargs):
@@ -239,8 +239,8 @@ class MatchInteraction(interact_matches.MatchInteraction2):
         dstncvs1, dstncvs2 = scoring.get_kpts_distinctiveness(self.ibs,
                                                               [self.qaid,
                                                                self.daid])
-        print('dstncvs1_stats = ' + ut.get_stats_str(dstncvs1))
-        print('dstncvs2_stats = ' + ut.get_stats_str(dstncvs2))
+        logger.info('dstncvs1_stats = ' + ut.get_stats_str(dstncvs1))
+        logger.info('dstncvs2_stats = ' + ut.get_stats_str(dstncvs2))
         weight_label = 'dstncvs'
         showkw = dict(weight_label=weight_label, ell=False, pts=True)
         viz_chip.show_chip(self.ibs, self.qaid, weights=dstncvs1,
@@ -256,11 +256,6 @@ class MatchInteraction(interact_matches.MatchInteraction2):
         viz_hough.show_probability_chip(self.ibs, self.daid, fnum=pt.next_fnum())
         pt.draw()
         #self.draw()
-
-    def dev_reload(self):
-        ih.disconnect_callback(self.fig, 'button_press_event')
-        self.rrr()
-        self.set_callbacks()
 
     def dev_embed(self):
         ut.embed()
@@ -314,7 +309,6 @@ class MatchInteraction(interact_matches.MatchInteraction2):
         #if self.H1 is not None:
         #    options.append(('Toggle homog', self.toggle_homog))
         if ut.is_developer():
-            options.append(('dev_reload', self.dev_reload))
             options.append(('dev_embed', self.dev_embed))
         #options.append(('cancel', lambda: print('cancel')))
         options += super(MatchInteraction, self).get_popup_options()
@@ -330,25 +324,25 @@ class MatchInteraction(interact_matches.MatchInteraction2):
         is_match_type = viztype in ['matches', 'multi_match']
 
         key = '' if event.key is None else event.key
-        print('key=%r ' % key)
+        logger.info('key=%r ' % key)
         ctrl_down = key.find('control') == 0
         # Click in match axes
         if event.button == 3:
             return super(MatchInteraction, self).on_click_inside(event, ax)
         if is_match_type and ctrl_down:
             # Ctrl-Click
-            print('.. control click')
+            logger.info('.. control click')
             return self.sv_view()
         elif viztype in ['warped', 'unwarped']:
-            print('clicked at patch')
+            logger.info('clicked at patch')
             ut.print_dict(ph.get_plotdat_dict(ax))
             hs_aid = {
                 'aid1': self.qaid,
                 'aid2': self.daid,
             }[vh.get_ibsdat(ax, 'aid', None)]
             hs_fx = vh.get_ibsdat(ax, 'fx', None)
-            print('hs_fx = %r' % (hs_fx,))
-            print('hs_aid = %r' % (hs_aid,))
+            logger.info('hs_fx = %r' % (hs_fx,))
+            logger.info('hs_aid = %r' % (hs_aid,))
             if hs_aid is not None and viztype == 'unwarped':
                 ishow_chip(ibs, hs_aid, fx=hs_fx, fnum=pt.next_fnum())
             elif hs_aid is not None and viztype == 'warped':

@@ -1,9 +1,9 @@
+from loguru import logger
 import utool as ut
 import plottool_ibeis as pt
 from plottool_ibeis import plot_helpers as ph
 from ibeis.viz import viz_helpers as vh
 from ibeis.viz import viz_image
-(print,  rrr, profile) = ut.inject2(__name__, '[viz_chip]')
 
 
 def HARDCODE_SHOW_PB_PAIR():
@@ -61,12 +61,12 @@ def testdata_showchip():
     kwargs['ell_alpha'] = ut.get_argval('--ellalpha', default=.4)
     kwargs['ell_linewidth'] = ut.get_argval('--ell_linewidth', default=2)
     kwargs['draw_lbls'] = ut.get_argval('--draw_lbls', default=True)
-    print('kwargs = ' + ut.repr4(kwargs, nl=True))
+    logger.info('kwargs = ' + ut.repr4(kwargs, nl=True))
     default_config = dict(ibeis.algo.Config.FeatureWeightConfig().parse_items())
     cfgdict = ut.argparse_dict(default_config)
-    print('[viz_chip.testdata] cfgdict = %r' % (cfgdict,))
+    logger.info('[viz_chip.testdata] cfgdict = %r' % (cfgdict,))
     config2_ = cfgdict
-    print('[viz_chip.testdata] aid_list = %r' % (aid_list,))
+    logger.info('[viz_chip.testdata] aid_list = %r' % (aid_list,))
     return ibs, aid_list, kwargs, config2_
 
 
@@ -88,7 +88,7 @@ def show_many_chips(ibs, aid_list, config2_=None, fnum=None, pnum=None, vert=Tru
         >>> ut.show_if_requested()
     """
     if ut.VERBOSE:
-        print('[viz] show_many_chips')
+        logger.info('[viz] show_many_chips')
     in_image = False
     chip_list = vh.get_chips(ibs, aid_list, in_image=in_image, config2_=config2_)
     import vtool_ibeis as vt
@@ -161,7 +161,7 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='',
         >>> pt.show_if_requested()
     """
     if ut.VERBOSE:
-        print('[viz] show_chip(aid=%r)' % (aid,))
+        logger.info('[viz] show_chip(aid=%r)' % (aid,))
     #ibs.assert_valid_aids((aid,))
     # Get chip
     #print('in_image = %r' % (in_image,))

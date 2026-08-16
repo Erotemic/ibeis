@@ -3,6 +3,7 @@
 Interface to Darknet object proposals.
 """
 from __future__ import absolute_import, division, print_function
+from loguru import logger
 import utool as ut
 import vtool_ibeis as vt
 from six.moves import zip
@@ -12,7 +13,6 @@ import shlex
 import os
 from os.path import abspath, dirname, expanduser, join, exists  # NOQA
 import numpy as np
-(print, rrr, profile) = ut.inject2(__name__, '[darknet]')
 
 # SCRIPT_PATH = abspath(dirname(__file__))
 SCRIPT_PATH = abspath(expanduser(join('~', 'code', 'darknet')))
@@ -22,7 +22,7 @@ if not ut.get_argflag('--no-darknet'):
         assert exists(SCRIPT_PATH)
     except AssertionError:
         if 0:
-            print('WARNING Failed to find darknet. '
+            logger.info('WARNING Failed to find darknet. '
                   'Darknet is unavailable')
         # if ut.SUPER_STRICT:
         #     raise
@@ -207,7 +207,7 @@ def detect(gpath_list, config_filepath, weight_filepath, class_filepath, sensiti
         bash_args = (data_filepath, config_filepath, weight_filepath, gpath, temp_filepath, sensitivity, )
         bash_str = './darknet detector test %s %s %s %s %s -thresh %0.5f' % bash_args
         if verbose:
-            print('Calling: %s' % (bash_str, ))
+            logger.info('Calling: %s' % (bash_str, ))
         bash_list = shlex.split(bash_str)
         with open(os.devnull, 'w') as null:
             process_id = subprocess.Popen(bash_list, stdout=null, cwd=SCRIPT_PATH)

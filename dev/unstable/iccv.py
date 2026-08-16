@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 import numpy as np
 import pandas as pd
 import utool as ut
 import pathlib
 from ibeis.algo.graph.state import POSTV, NEGTV, INCMP
-print, rrr, profile = ut.inject2(__name__)
 
 
 def qt_review():
@@ -146,7 +146,7 @@ def gt_review():
 
         labels, groupxs = ut.group_indices(real.values)
         for label, groupx in zip(labels, groupxs):
-            print('label = %r' % (label,))
+            logger.info('label = %r' % (label,))
             real_probs_ = real_probs.iloc[groupx]
             pred_probs_ = pred_probs.iloc[groupx]
             diff = real_probs_ - pred_probs_
@@ -159,7 +159,7 @@ def gt_review():
     infr, pred_probs = data
 
     # TODO: add an inspect pair to infr
-    print('[graph_widget] show_selected')
+    logger.info('[graph_widget] show_selected')
     import guitool_ibeis as gt
     from ibeis.viz import viz_graph2
     app = gt.ensure_qapp()[0]  # NOQA
@@ -274,9 +274,9 @@ def debug_expanded_aids(ibs, expanded_aids_list, verbose=1):
         stats = ibs.get_annotconfig_stats(qaids, daids, **cfgargs)
         hashids = (stats['qaid_stats']['qhashid'],
                    stats['daid_stats']['dhashid'])
-        print('hashids = %r' % (hashids,))
+        logger.info('hashids = %r' % (hashids,))
         if verbose > 1:
-            print(ut.repr2(stats, strvals=True, strkeys=True, nl=2))
+            logger.info(ut.repr2(stats, strvals=True, strkeys=True, nl=2))
 
 
 def encounter_stuff(ibs, aids):
@@ -295,7 +295,7 @@ def encounter_stuff(ibs, aids):
                                           combo_enc_info=False)
         hashids = (stats['qaid_stats']['qhashid'],
                    stats['daid_stats']['dhashid'])
-        print('hashids = %r' % (hashids,))
+        logger.info('hashids = %r' % (hashids,))
         # print(ut.repr2(stats, strvals=True, strkeys=True, nl=2))
 
 
@@ -320,7 +320,7 @@ def iccv_data(defaultdb=None):
         filt_kw['min_pername'] = 3
 
     expt_aids = ibs.filter_annots_general(**filt_kw)
-    print('len(expt_aids) = %r' % (len(expt_aids),))
+    logger.info('len(expt_aids) = %r' % (len(expt_aids),))
 
     if ibs.dbname == 'PZ_Master1':
         mtest_aids = ibeis.dbio.export_subset.find_overlap_annots(
@@ -330,8 +330,8 @@ def iccv_data(defaultdb=None):
         expt_aids.extend(mtest_aids)
         expt_aids.extend(pbtest_aids)
         expt_aids = sorted(set(expt_aids))
-        print('Expanding dataset')
-        print('len(expt_aids) = %r' % (len(expt_aids),))
+        logger.info('Expanding dataset')
+        logger.info('len(expt_aids) = %r' % (len(expt_aids),))
 
     main_helpers.monkeypatch_encounters(ibs, aids=expt_aids, **enc_kw)
 
@@ -669,7 +669,7 @@ def draw_saved_roc(dbname):
     fig.set_size_inches([7.4375,  3.125])
     fig.savefig(str(fig_fpath))
     clip_fpath = vt.clipwhite_ondisk(str(fig_fpath))
-    print('clip_fpath = %r' % (clip_fpath,))
+    logger.info('clip_fpath = %r' % (clip_fpath,))
 
     clf_bins = info['clf_bins']
     clf_pos_freq = info['clf_pos_freq']
@@ -719,7 +719,6 @@ def draw_saved_roc(dbname):
     ut.show_if_requested()
 
 
-# @profile
 def end_to_end():
     r"""
     CommandLine:
@@ -782,7 +781,7 @@ def end_to_end():
             # ensure thresholds are over .5
             thresh_df[POSTV] = max(.51, thresh_df[POSTV])
             thresh_df[NEGTV] = max(.51, thresh_df[NEGTV])
-        print('fpr_thresholds = %s' % (ut.repr3(fpr_thresholds),))
+        logger.info('fpr_thresholds = %s' % (ut.repr3(fpr_thresholds),))
         thresh_cacher.save(fpr_thresholds)
 
     clf_cacher = ut.Cacher('deploy_clf_v2_',
@@ -927,7 +926,7 @@ def end_to_end():
             name=dials['name'],
         )
         infr.init_simulation(**new_dials)
-        print('new_dials = %s' % (ut.repr4(new_dials),))
+        logger.info('new_dials = %s' % (ut.repr4(new_dials),))
         infr.reset(state='empty')
         infr.main_loop(max_loops=dials['max_loops'])
         metrics_df = pd.DataFrame.from_dict(infr.metrics_list)
@@ -971,7 +970,7 @@ def end_to_end():
             ut.save_cPkl(str(ete_info_fpath), ete_info)
         except Exception:
             for k, v in vars(ete_info['infr']).items():
-                print('k = %r' % (k,))
+                logger.info('k = %r' % (k,))
                 pickle.dumps(v)
             raise
 
@@ -1018,8 +1017,8 @@ def draw_ete(dbname):
     for fpath in expt_dpath.glob('*.cPkl'):
         x = ut.load_cPkl(str(fpath))
         infr = x['infr']
-        print('DIALS')
-        print(ut.repr4(x['dials']))
+        logger.info('DIALS')
+        logger.info(ut.repr4(x['dials']))
         if getattr(infr, 'vsmany_qreq_', None) is not None:
             infr.vsmany_qreq_ = None
             ut.save_cPkl(str(fpath), x)
@@ -1033,20 +1032,20 @@ def draw_ete(dbname):
             groups_nid = ut.ddict(list)
             groups_type = ut.ddict(list)
             for edge, error in list(infr.measure_error_edges()):
-                print('error = %s' % (ut.repr2(error),))
+                logger.info('error = %s' % (ut.repr2(error),))
                 data = infr.graph.get_edge_data(*edge)
-                print('user_id = %r' % (data['user_id'],))
+                logger.info('user_id = %r' % (data['user_id'],))
                 aid1, aid2 = edge
                 nid1 = infr.graph.nodes[aid1]['orig_name_label']
                 nid2 = infr.graph.nodes[aid2]['orig_name_label']
                 cc1 = infr.nid_to_gt_cc[nid1]
                 cc2 = infr.nid_to_gt_cc[nid2]
-                print('nid1, nid2 = %r, %r' % (nid1, nid2))
-                print('len1, len2 = %r, %r' % (len(cc1), len(cc2)))
+                logger.info('nid1, nid2 = %r, %r' % (nid1, nid2))
+                logger.info('len1, len2 = %r, %r' % (len(cc1), len(cc2)))
                 list(ut.nx_edges_between(infr.graph, cc1, cc2))
                 groups_type[(error['real'], error['pred'])].append(edge)
                 groups_nid[(nid1, nid2)].append((edge, error))
-            print('error breakdown: %r' % ut.map_dict_vals(len, groups_type))
+            logger.info('error breakdown: %r' % ut.map_dict_vals(len, groups_type))
 
             for (real, pred), edges in groups_type.items():
                 for edge in edges:
@@ -1138,8 +1137,8 @@ def draw_ete(dbname):
     fig.savefig(str(plot_fpath))
     import vtool_ibeis as vt
     clip_fpath = vt.clipwhite_ondisk(str(plot_fpath))
-    print('plot_fpath = %r' % (plot_fpath,))
-    print('clip_fpath = %r' % (clip_fpath,))
+    logger.info('plot_fpath = %r' % (plot_fpath,))
+    logger.info('clip_fpath = %r' % (clip_fpath,))
 
     # infr.show(fnum=3, groupby='name_label')
     ut.show_if_requested()

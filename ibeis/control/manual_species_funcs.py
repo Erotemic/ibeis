@@ -6,6 +6,7 @@ sh Tgen.sh --key species --invert --Tcfg with_getters=True with_setters=False --
 # TODO: Fix this name it is too special case
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 import uuid
 import functools
 import six  # NOQA
@@ -17,7 +18,6 @@ from ibeis import constants as const
 from ibeis.control import accessor_decors, controller_inject  # NOQA
 import utool as ut
 from ibeis.control.controller_inject import make_ibs_register_decorator
-print, rrr, profile = ut.inject2(__name__)
 
 
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
@@ -278,7 +278,7 @@ def delete_species(ibs, species_rowid_list):
         URL:    /api/species/
     """
     if ut.VERBOSE:
-        print('[ibs] deleting %d speciess' % len(species_rowid_list))
+        logger.info('[ibs] deleting %d speciess' % len(species_rowid_list))
     ibs.db.delete_rowids(const.SPECIES_TABLE, species_rowid_list)
     #ibs.delete_lblannots(species_rowid_list)
 

@@ -2,12 +2,12 @@
 TODO: semantic_uuids should be replaced with PCC-like hashes pertaining to
 annotation clusters if any form of name scoring is used.
 """
+from loguru import logger
 from os.path import exists, join
 from ibeis.algo.hots import chip_match
 import utool as ut
 import numpy as np
 from ibeis.util import util_decor
-(print, rrr, profile) = ut.inject2(__name__, '[mc5]')
 
 
 class EstimatorRequest(ut.NiceRepr):
@@ -173,7 +173,7 @@ def execute_bulk(qreq_):
         bc_cfgstr = qreq_.get_cfgstr(with_input=True)
         try:
             cm_list = ut.load_cache(bc_dpath, bc_fname, bc_cfgstr)
-            print('... bulk cache hit %r/%r' % (len(qreq_), len(qreq_)))
+            logger.info('... bulk cache hit %r/%r' % (len(qreq_), len(qreq_)))
         except (IOError, AttributeError):
             # Fallback to smallcache
             cm_list = execute_singles(qreq_)
@@ -220,7 +220,7 @@ def _load_singles_fallback(fpaths_hit):
             pass
         else:
             qaid_to_hit[cm.qaid] = cm
-    print('%d / %d cached matches need to be recomputed' % (
+    logger.info('%d / %d cached matches need to be recomputed' % (
         len(fpaths_hit) - len(qaid_to_hit), len(fpaths_hit)))
     return qaid_to_hit
 
@@ -237,7 +237,7 @@ def execute_singles(qreq_):
         qaid_to_cm = qaid_to_hit
     else:
         if hit_any:
-            print('... partial cm cache hit %d/%d' % (
+            logger.info('... partial cm cache hit %d/%d' % (
                 len(qaid_to_hit), len(qreq_)))
             hit_aids = list(qaid_to_hit.keys())
             miss_aids = ut.setdiff(qreq_.qaids, hit_aids)

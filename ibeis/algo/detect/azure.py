@@ -6,7 +6,6 @@ import utool as ut
 import numpy as np
 from six.moves import zip
 from os.path import abspath, dirname, expanduser, join, exists  # NOQA
-(print, rrr, profile) = ut.inject2(__name__, '[azure]')
 
 
 VERBOSE_AZURE = ut.get_argflag('--verbazure') or ut.VERBOSE

@@ -5,13 +5,13 @@ Also defines annotation context menu.
 CommandLine:
     python -m ibeis.viz.interact.interact_chip ishow_chip --show --aid 2
 """
+from loguru import logger
 import utool as ut
 import plottool_ibeis as pt  # NOQA
 from functools import partial
 from ibeis import viz
 from ibeis.viz import viz_helpers as vh
 from plottool_ibeis import interact_helpers as ih
-(print, rrr, profile) = ut.inject2(__name__)
 
 
 def interact_multichips(ibs, aid_list, config2_=None, **kwargs):
@@ -123,9 +123,9 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
         def _wrp():
             ret = func()
             if refresh_func is None:
-                print('no refresh func')
+                logger.info('no refresh func')
             else:
-                print('calling refresh_func=%r' % (refresh_func,))
+                logger.info('calling refresh_func=%r' % (refresh_func,))
                 refresh_func()
             return ret
         return _wrp
@@ -141,25 +141,25 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
     @refresh_wrp
     def toggle_exemplar_func():
         new_flag = not is_exemplar
-        print('set_annot_exemplar(%r, %r)' % (aid, new_flag))
+        logger.info('set_annot_exemplar(%r, %r)' % (aid, new_flag))
         ibs.set_annot_exemplar_flags(aid, new_flag)
     def set_viewpoint_func(view_code):
         #@refresh_wrp()
         def _wrap_view():
             ibs.set_annot_viewpoint_codes([aid], [view_code])
-            print('set_annot_yaw(%r, %r)' % (aid, view_code))
+            logger.info('set_annot_yaw(%r, %r)' % (aid, view_code))
         return _wrap_view
     def set_quality_func(qualtext):
         #@refresh_wrp()
         def _wrp_qual():
             ibs.set_annot_quality_texts([aid], [qualtext])
-            print('set_annot_quality(%r, %r)' % (aid, qualtext))
+            logger.info('set_annot_quality(%r, %r)' % (aid, qualtext))
         return _wrp_qual
     def set_multiple_func(flag):
         #@refresh_wrp()
         def _wrp():
             ibs.set_annot_multiple([aid], [flag])
-            print('set_annot_multiple(%r, %r)' % (aid, flag))
+            logger.info('set_annot_multiple(%r, %r)' % (aid, flag))
         return _wrp
     # Define popup menu
     callback_list = []
@@ -259,11 +259,11 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
 
         def _wrap_set_annot_prop(prop, toggle_val):
             if ut.VERBOSE:
-                print('[SETTING] Clicked set prop=%r to val=%r' %
+                logger.info('[SETTING] Clicked set prop=%r to val=%r' %
                       (prop, toggle_val,))
             ibs.set_annot_prop(prop, [aid], [toggle_val])
             if ut.VERBOSE:
-                print('[SETTING] done')
+                logger.info('[SETTING] done')
 
         annot_tag_options = []
         for case, case_hotlink in zip(case_list, case_hotlink_list):
@@ -292,7 +292,7 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
         name = ibs.get_annot_name_texts([aid])[0]
         newname = gt.user_input(title='edit name', msg=name, text=name)
         if newname is not None:
-            print('[ctx] _setname_callback aid=%r resp=%r' % (aid, newname))
+            logger.info('[ctx] _setname_callback aid=%r resp=%r' % (aid, newname))
             ibs.set_annot_name_texts([aid], [newname])
 
     callback_list += [
@@ -309,24 +309,24 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
         exemplar=False)
 
     def print_annot_info():
-        print('[interact_chip] Annotation Info = ' + ut.repr2(annot_info, nl=4))
-        print('config2_ = %r' % (config2_,))
+        logger.info('[interact_chip] Annotation Info = ' + ut.repr2(annot_info, nl=4))
+        logger.info('config2_ = %r' % (config2_,))
         if config2_ is not None:
-            print('config2_.__dict__ = %s' % (ut.repr3(config2_.__dict__),))
+            logger.info('config2_.__dict__ = %s' % (ut.repr3(config2_.__dict__),))
 
     dev_callback_list = []
 
     def dev_edit_annot_tags():
-        print('ibs = %r' % (ibs,))
+        logger.info('ibs = %r' % (ibs,))
         text = ibs.get_annot_tag_text([aid])[0]
         resp = gt.user_input(title='edit tags', msg=text, text=text)
         if resp is not None:
             try:
-                print('resp = %r' % (resp,))
-                print('[ctx] set_annot_tag_text aid=%r resp=%r' % (aid, resp))
+                logger.info('resp = %r' % (resp,))
+                logger.info('[ctx] set_annot_tag_text aid=%r resp=%r' % (aid, resp))
                 ibs.set_annot_tag_text(aid, resp)
                 new_text = ibs.get_annot_tag_text([aid])[0]
-                print('new_text = %r' % (new_text,))
+                logger.info('new_text = %r' % (new_text,))
                 assert new_text == resp, 'should have had text change'
             except Exception as ex:
                 ut.printex(ex, 'error in dev edit tags')
@@ -337,11 +337,11 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
         resp = gt.user_input(title='edit species', msg=text, text=text)
         if resp is not None:
             try:
-                print('resp = %r' % (resp,))
-                print('[ctx] set_annot_tag_text aid=%r resp=%r' % (aid, resp))
+                logger.info('resp = %r' % (resp,))
+                logger.info('[ctx] set_annot_tag_text aid=%r resp=%r' % (aid, resp))
                 ibs.set_annot_species(aid, resp)
                 new_text = ibs.get_annot_species_texts([aid])[0]
-                print('new_text = %r' % (new_text,))
+                logger.info('new_text = %r' % (new_text,))
                 assert new_text == resp, 'should have had text change'
             except Exception as ex:
                 ut.printex(ex, 'error in dev edit species')
@@ -355,8 +355,8 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
 
     if ut.is_developer():
         def dev_debug():
-            print('aid = %r' % (aid,))
-            print('config2_ = %r' % (config2_,))
+            logger.info('aid = %r' % (aid,))
+            logger.info('config2_ = %r' % (config2_,))
         def dev_embed(ibs=ibs, aid=aid, config2_=config2_):
             #import plottool_ibeis as pt
             #pt.plt.ioff()
@@ -455,7 +455,7 @@ def ishow_chip(ibs, aid, fnum=2, fx=None, dodraw=True, config2_=None,
         draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols, px, None)
 
     def _chip_view(mode=0, pnum=(1, 1, 1), **kwargs):
-        print('... _chip_view mode=%r' % mode_ptr[0])
+        logger.info('... _chip_view mode=%r' % mode_ptr[0])
         kwargs['ell'] = mode_ptr[0] == 1
         kwargs['pts'] = mode_ptr[0]  == 2
 
@@ -467,11 +467,11 @@ def ishow_chip(ibs, aid, fnum=2, fx=None, dodraw=True, config2_=None,
         pt.set_figtitle('Chip View')
 
     def _on_chip_click(event):
-        print('[inter] clicked chip')
+        logger.info('[inter] clicked chip')
         ax, x, y = event.inaxes, event.xdata, event.ydata
         if ih.clicked_outside_axis(event):
             if not ischild:
-                print('... out of axis')
+                logger.info('... out of axis')
                 mode_ptr[0] = (mode_ptr[0] + 1) % 3
                 _chip_view(**kwargs)
         else:
@@ -493,7 +493,7 @@ def ishow_chip(ibs, aid, fnum=2, fx=None, dodraw=True, config2_=None,
                 #    with_interact_chip=False, config2_=config2_)
             else:
                 viztype = vh.get_ibsdat(ax, 'viztype')
-                print('[ic] viztype=%r' % viztype)
+                logger.info('[ic] viztype=%r' % viztype)
                 if viztype == 'chip' and event.key == 'shift':
                     _chip_view(**kwargs)
                     ih.disconnect_callback(fig, 'button_press_event')
@@ -502,17 +502,17 @@ def ishow_chip(ibs, aid, fnum=2, fx=None, dodraw=True, config2_=None,
                     if len(kpts) > 0:
                         fx = nearest_point(
                             x, y, kpts, conflict_mode='next')[0]
-                        print('... clicked fx=%r' % fx)
+                        logger.info('... clicked fx=%r' % fx)
                         _select_fxth_kpt(fx)
                     else:
-                        print('... len(kpts) == 0')
+                        logger.info('... len(kpts) == 0')
                 elif viztype in ['warped', 'unwarped']:
                     fx = vh.get_ibsdat(ax, 'fx')
                     if fx is not None and viztype == 'warped':
                         viz.show_keypoint_gradient_orientations(
                             ibs, aid, fx, fnum=pt.next_fnum())
                 else:
-                    print('...Unknown viztype: %r' % viztype)
+                    logger.info('...Unknown viztype: %r' % viztype)
 
         viz.draw()
 

@@ -41,12 +41,12 @@ CommandLine;
     python -m ibeis wildbook_signal_annot_name_changes:2
 """
 from __future__ import absolute_import, division, print_function
+from loguru import logger
 import utool as ut
 import requests
 from ibeis.control import controller_inject
 from ibeis.control import wildbook_manager as wb_man  # NOQA
 from ibeis.control.controller_inject import make_ibs_register_decorator
-print, rrr, profile = ut.inject2(__name__)
 
 
 DISABLE_WILDBOOK_SIGNAL = ut.get_argflag('--no-wb-signal')
@@ -69,7 +69,7 @@ if ut.get_computer_name() == 'hyrule':
 def get_wildbook_base_url(ibs, wb_target=None):
     if DISABLE_WILDBOOK_SIGNAL:
         message = 'Wildbook signals are turned off via the command line'
-        print(message)
+        logger.info(message)
         raise IOError(message)
 
     wb_port = 8080
@@ -88,7 +88,7 @@ def get_wildbook_base_url(ibs, wb_target=None):
     wildbook_base_url = 'http://%s:%s/%s/' % (wb_hostname, wb_port, wb_target, )
     wildbook_base_url = wildbook_base_url.strip('/')
 
-    print('USING WB BASEURL: %r' % (wildbook_base_url, ))
+    logger.info('USING WB BASEURL: %r' % (wildbook_base_url, ))
     return wildbook_base_url
 
 
@@ -100,10 +100,10 @@ def assert_ia_available_for_wb(ibs, wb_target=None):
 
         if ia_url is None:
             message = 'Wildbook signals are turned off via the command line'
-            print(message)
+            logger.info(message)
             raise IOError(message)
     except IOError:
-        print('[ibs.assert_ia_available_for_wb] Caught IOError, returning None')
+        logger.info('[ibs.assert_ia_available_for_wb] Caught IOError, returning None')
         return None
     except Exception as ex:
         ut.printex(ex, 'Could not get IA url. BLINDLY CHARCHING FORWARD!', iswarning=True)
@@ -141,7 +141,7 @@ def get_wildbook_ia_url(ibs, wb_target=None):
     try:
         wb_url = ibs.get_wildbook_base_url(wb_target)
     except IOError:
-        print('[ibs.get_wildbook_ia_url] Caught IOError, returning None')
+        logger.info('[ibs.get_wildbook_ia_url] Caught IOError, returning None')
         return None
 
     response = requests.get(wb_url + '/ia?status')
@@ -222,11 +222,11 @@ def wildbook_signal_annot_name_changes(ibs, aid_list=None, wb_target=None,
         >>> # Signal what currently exists (should put them back to normal)
         >>> result = ibs.wildbook_signal_annot_name_changes(aid_list, wb_target, dryrun)
     """
-    print('[ibs.wildbook_signal_annot_name_changes] signaling annot name changes to wildbook')
+    logger.info('[ibs.wildbook_signal_annot_name_changes] signaling annot name changes to wildbook')
     try:
         wb_url = ibs.get_wildbook_base_url(wb_target)
     except IOError:
-        print('[ibs.wildbook_signal_annot_name_changes] Caught IOError, returning None')
+        logger.info('[ibs.wildbook_signal_annot_name_changes] Caught IOError, returning None')
         return None
 
     try:
@@ -249,14 +249,14 @@ def wildbook_signal_annot_name_changes(ibs, aid_list=None, wb_target=None,
     ]
     status_list = []
     for json_payload in ut.ProgressIter(payloads, lbl='submitting URL', freq=1):
-        print('[_send] URL=%r with json_payload=%r' % (url, json_payload))
+        logger.info('[_send] URL=%r with json_payload=%r' % (url, json_payload))
         if dryrun:
             status = False
         else:
             response = requests.post(url, json=json_payload)
             status = response.status_code == 200
             if not status:
-                print('Failed to push new names')
+                logger.info('Failed to push new names')
                 # print(response.text)
         status_list.append(status)
     return status_list
@@ -283,11 +283,11 @@ def wildbook_signal_name_changes(ibs, nid_list, new_name_list, wb_target=None,
         >>> wb_target = None
         >>> dryrun = ut.get_argflag('--dryrun')
     """
-    print('[ibs.wildbook_signal_name_changes] signaling name changes to wildbook')
+    logger.info('[ibs.wildbook_signal_name_changes] signaling name changes to wildbook')
     try:
         wb_url = ibs.get_wildbook_base_url(wb_target)
     except IOError:
-        print('[ibs.wildbook_signal_name_changes] Caught IOError, returning None')
+        logger.info('[ibs.wildbook_signal_name_changes] Caught IOError, returning None')
         return None
 
     try:
@@ -306,7 +306,7 @@ def wildbook_signal_name_changes(ibs, nid_list, new_name_list, wb_target=None,
         }
     }
     status_list = []
-    print('[_send] URL=%r with json_payload=%r' % (url, json_payload))
+    logger.info('[_send] URL=%r with json_payload=%r' % (url, json_payload))
     if dryrun:
         status = False
     else:
@@ -315,7 +315,7 @@ def wildbook_signal_name_changes(ibs, nid_list, new_name_list, wb_target=None,
         status = response.status_code == 200 and response_json['success']
         if not status:
             status_list = False
-            print('Failed to update names')
+            logger.info('Failed to update names')
             # print(response.text)
         else:
             for name_response in response_json['results']:
@@ -329,11 +329,11 @@ def wildbook_signal_name_changes(ibs, nid_list, new_name_list, wb_target=None,
 
 @register_ibs_method
 def wildbook_get_existing_names(ibs, wb_target=None):
-    print('[ibs.wildbook_get_existing_names] getting existing names out of wildbook')
+    logger.info('[ibs.wildbook_get_existing_names] getting existing names out of wildbook')
     try:
         wb_url = ibs.get_wildbook_base_url(wb_target)
     except IOError:
-        print('[ibs.wildbook_get_existing_names] Caught IOError, returning None')
+        logger.info('[ibs.wildbook_get_existing_names] Caught IOError, returning None')
         return None
 
     try:
@@ -442,7 +442,7 @@ def wildbook_signal_imgsetid_list(ibs, imgsetid_list=None,
     try:
         wb_url = ibs.get_wildbook_base_url(wb_target)
     except IOError:
-        print('[ibs.wildbook_signal_imgsetid_list] Caught IOError, returning None')
+        logger.info('[ibs.wildbook_signal_imgsetid_list] Caught IOError, returning None')
         return None
 
     try:
@@ -472,10 +472,10 @@ def wildbook_signal_imgsetid_list(ibs, imgsetid_list=None,
              'not been named') % (imgsetid, unnamed_ok_aid_list, ))
 
     # Call Wildbook url to signal update
-    print('[ibs.wildbook_signal_imgsetid_list] ship imgsetid_list = %r to wildbook' % (
+    logger.info('[ibs.wildbook_signal_imgsetid_list] ship imgsetid_list = %r to wildbook' % (
         imgsetid_list, ))
     imageset_uuid_list = ibs.get_imageset_uuid(imgsetid_list)
-    print('[ibs.wildbook_signal_imgsetid_list] ship imgset_uuid_list = %r to wildbook' % (
+    logger.info('[ibs.wildbook_signal_imgsetid_list] ship imgset_uuid_list = %r to wildbook' % (
         imageset_uuid_list, ))
 
     url = wb_url + '/ia'
@@ -486,14 +486,14 @@ def wildbook_signal_imgsetid_list(ibs, imgsetid_list=None,
     # Check and push 'done' imagesets
     status_list = []
     for imgsetid, imageset_uuid in zip(imgsetid_list, imageset_uuid_list):
-        print('[_send] URL=%r' % (url, ))
+        logger.info('[_send] URL=%r' % (url, ))
         json_payload = {'resolver': {'fromIAImageSet': str(imageset_uuid) }}
         if dryrun:
             status = False
         else:
             response = requests.post(url, json=json_payload)
             status = response.status_code == 200
-            print('response = %r' % (response,))
+            logger.info('response = %r' % (response,))
             if set_shipped_flag:
                 ibs.set_imageset_shipped_flags([imgsetid], [status])
                 if status and open_url_on_complete:

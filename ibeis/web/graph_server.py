@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 from ibeis.control import controller_inject
 import utool as ut
 import concurrent
@@ -7,7 +8,6 @@ import random
 import time
 # from ibeis.web import futures_utils as futures_actors
 import futures_actors
-print, rrr, profile = ut.inject2(__name__)
 
 
 def double_review_test():
@@ -28,14 +28,14 @@ def double_review_test():
     payload = {'action': 'start', 'dbdir': dbdir, 'aids': 'all',
                'config': config, 'init': 'annotmatch'}
     start_resp = actor.handle(payload)
-    print('start_resp = {!r}'.format(start_resp))
+    logger.info('start_resp = {!r}'.format(start_resp))
     infr = actor.infr
 
     infr.verbose = 100
 
     user_resp = infr.continue_review()
     edge, p, d = user_resp[0]
-    print('edge = {!r}'.format(edge))
+    logger.info('edge = {!r}'.format(edge))
 
     last = None
 
@@ -43,7 +43,7 @@ def double_review_test():
         infr.add_feedback(edge, infr.edge_decision(edge))
         user_resp = infr.continue_review()
         edge, p, d = user_resp[0]
-        print('edge = {!r}'.format(edge))
+        logger.info('edge = {!r}'.format(edge))
         assert last != edge
         last = edge
 
@@ -89,7 +89,7 @@ def testdata_feedback_payload(edge, decision):
 
 
 def test_foo(future):
-    print('FOO %r' % (future, ))
+    logger.info('FOO %r' % (future, ))
 
 
 GRAPH_ACTOR_CLASS = futures_actors.ProcessActor if ut.LINUX or ut.WIN32 else futures_actors.ThreadActor
@@ -190,8 +190,8 @@ class GraphActor(GRAPH_ACTOR_CLASS):
                         actor.infr.print('Actor Server Error: {!r}'.format(ex))
                         actor.infr.print('Actor Server Traceback: {!r}'.format(trace))
                     else:
-                        print(ex)
-                        print(trace)
+                        logger.info(ex)
+                        logger.info(trace)
 
                     raise sys.exc_info()[0](trace)
 
@@ -204,7 +204,7 @@ class GraphActor(GRAPH_ACTOR_CLASS):
                            force_serial=True)
 
         # Create the AnnotInference
-        print('starting via actor with ibs = %r' % (ibs, ))
+        logger.info('starting via actor with ibs = %r' % (ibs, ))
         actor.infr = ibeis.AnnotInference(ibs=ibs, aids=aids, autoinit=True)
         actor.infr.print('started via actor')
         actor.infr.print('config = {}'.format(ut.repr3(config)))
@@ -245,18 +245,18 @@ class GraphActor(GRAPH_ACTOR_CLASS):
         return response
 
     def remove_annots(actor, aids, **kwargs):
-        print('Removing aids=%r from AnnotInference' % (aids, ))
+        logger.info('Removing aids=%r from AnnotInference' % (aids, ))
         response = actor.infr.remove_aids(aids)
-        print('\t got response = %r' % (response, ))
-        print('Applying NonDynamic Update to AnnotInference')
+        logger.info('\t got response = %r' % (response, ))
+        logger.info('Applying NonDynamic Update to AnnotInference')
         actor.infr.apply_nondynamic_update()
-        print('\t ...applied')
+        logger.info('\t ...applied')
         return 'removed'
 
     def update_task_thresh(actor, task, decision, value, **kwargs):
-        print('Updating actor.infr.task_thresh with %r %r %r' % (task, decision, value, ))
+        logger.info('Updating actor.infr.task_thresh with %r %r %r' % (task, decision, value, ))
         actor.infr.task_thresh[task][decision] = value
-        print('Updated actor.infr.task_thresh = %r' % (actor.infr.task_thresh, ))
+        logger.info('Updated actor.infr.task_thresh = %r' % (actor.infr.task_thresh, ))
         return 'updated'
 
     def add_annots(actor, aids, **kwargs):
@@ -306,7 +306,6 @@ class GraphActor(GRAPH_ACTOR_CLASS):
             return match_state_verifier.extr
 
 
-@ut.reloadable_class
 class GraphClient(object):
     """
     CommandLine:
@@ -494,7 +493,7 @@ class GraphClient(object):
         client.review_vip = None
 
         if data_list is None:
-            print('GRAPH CLIENT GOT NONE UPDATE')
+            logger.info('GRAPH CLIENT GOT NONE UPDATE')
             client.review_dict = None
         else:
             data_list = list(data_list)
@@ -503,8 +502,8 @@ class GraphClient(object):
             num_samples = min(num_samples, num_items)
             first = list(data_list[:num_samples])
 
-            print('UPDATING GRAPH CLIENT WITH {} ITEM(S):'.format(num_items))
-            print('First few are: ' + ut.repr4(first, si=2, precision=4))
+            logger.info('UPDATING GRAPH CLIENT WITH {} ITEM(S):'.format(num_items))
+            logger.info('First few are: ' + ut.repr4(first, si=2, precision=4))
             client.review_dict = {}
 
             for (edge, priority, edge_data_dict) in data_list:
@@ -527,7 +526,7 @@ class GraphClient(object):
     def sample(client, previous_edge_list=[], max_previous_edges=10):
         if client.review_dict is None:
             raise controller_inject.WebReviewFinishedException(client.graph_uuid)
-        print('SAMPLING')
+        logger.info('SAMPLING')
         edge_list = list(client.review_dict.keys())
         if len(edge_list) == 0:
             return None
@@ -545,21 +544,21 @@ class GraphClient(object):
                         break
 
                 if not found:
-                    print('SHOWING VIP TO USER!!!')
+                    logger.info('SHOWING VIP TO USER!!!')
                     edge = client.review_vip
                     client.prev_vip = edge
                     client.review_vip = None
                 else:
-                    print('VIP ALREADY SHOWN TO THIS USER!!! (PROBABLY A RACE CONDITION, SAMPLE RANDOMLY INSTEAD)')
+                    logger.info('VIP ALREADY SHOWN TO THIS USER!!! (PROBABLY A RACE CONDITION, SAMPLE RANDOMLY INSTEAD)')
             else:
-                print('GETTING TOO LOW FOR VIP RACE CONDITION CHECK!!!')
+                logger.info('GETTING TOO LOW FOR VIP RACE CONDITION CHECK!!!')
 
         if edge is None:
-            print('VIP ALREADY SHOWN!!!')
+            logger.info('VIP ALREADY SHOWN!!!')
             edge = random.choice(edge_list)
 
         priority, data_dict = client.review_dict[edge]
-        print('SAMPLED edge = {!r}'.format(edge))
+        logger.info('SAMPLED edge = {!r}'.format(edge))
         return edge, priority, data_dict
 
 

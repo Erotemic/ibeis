@@ -1,9 +1,9 @@
+from loguru import logger
 import utool
 import six
 from os.path import join, realpath
 from itertools import cycle
 # from ibeis.util.util_grabdata import grab_zipped_url
-print, rrr, profile = utool.inject2(__name__)
 
 
 def get_testdata_dir(ensure=True, key='testdb1'):
@@ -84,4 +84,4 @@ def ensure_demodata():
 
 if __name__ == '__main__':
     testdata_dir = get_testdata_dir()
-    print('testdata lives in: %r' % testdata_dir)
+    logger.info('testdata lives in: %r' % testdata_dir)

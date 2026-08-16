@@ -6,7 +6,6 @@ import vtool_ibeis as vt
 import pandas as pd
 from ibeis.algo.graph.nx_utils import ensure_multi_index
 from ibeis.algo.graph.state import POSTV, NEGTV, INCMP
-print, rrr, profile = ut.inject2(__name__)
 
 
 class Groundtruth(object):

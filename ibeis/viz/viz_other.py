@@ -1,6 +1,5 @@
 import utool as ut
 import plottool_ibeis as pt
-(print,  rrr, profile) = ut.inject2(__name__, '[viz_chip]')
 
 
 def chip_montage(ibs, qaids, config=None):

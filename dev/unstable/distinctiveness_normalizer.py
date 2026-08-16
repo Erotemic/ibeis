@@ -8,6 +8,7 @@ stores some set of vectors which lose their association with
 their parent.
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 import utool as ut
 import numpy as np
 from six.moves import map
@@ -15,7 +16,6 @@ import six  # NOQA
 from ibeis import constants as const
 from ibeis.init import sysres
 from ibeis.algo.hots import hstypes
-print, rrr, profile = ut.inject2(__name__)
 
 
 DCVS_DEFAULT = ut.ParamInfoList('distinctivness', [
@@ -133,14 +133,14 @@ class DistinctivnessNormalizer(ut.Cachable):
         publish_dpath = PUBLISH_DIR
         publish_fpath = join(publish_dpath, archive_fname)
         if ut.checkpath(publish_fpath, verbose=True):
-            print('Overwriting model')
-            print('old nBytes(publish_fpath) = %s' %
+            logger.info('Overwriting model')
+            logger.info('old nBytes(publish_fpath) = %s' %
                   (ut.get_file_nBytes_str(publish_fpath),))
-            print('new nBytes(archive_fpath) = %s' %
+            logger.info('new nBytes(archive_fpath) = %s' %
                   (ut.get_file_nBytes_str(archive_fpath),))
         else:
-            print('Publishing model')
-        print('publish_fpath = %r' % (publish_fpath,))
+            logger.info('Publishing model')
+        logger.info('publish_fpath = %r' % (publish_fpath,))
         ut.copy(archive_fpath, publish_fpath)
 
     def get_flann_fpath(dstcnvs_normer, cachedir):
@@ -226,7 +226,7 @@ class DistinctivnessNormalizer(ut.Cachable):
         cachedir = dstcnvs_normer.cachedir if cachedir is None else cachedir
         flann_fpath = dstcnvs_normer.get_flann_fpath(cachedir)
         if verbose:
-            print('flann.save_index(%r)' % ut.path_ndir_split(flann_fpath, n=5))
+            logger.info('flann.save_index(%r)' % ut.path_ndir_split(flann_fpath, n=5))
         dstcnvs_normer.flann.save_index(flann_fpath)
 
     def init_support(dstcnvs_normer, vecs, verbose=True):
@@ -434,8 +434,8 @@ def request_species_distinctiveness_normalizer(species, cachedir=None, verbose=F
             # download normalizer if it doesn't exist
             download_baseline_distinctiveness_normalizer(cachedir, species)
         dstcnvs_normer.load(cachedir)
-        print(ut.get_object_size_str(dstcnvs_normer, 'dstcnvs_normer = '))
-        print('Loaded distinctivness normalizer')
+        logger.info(ut.get_object_size_str(dstcnvs_normer, 'dstcnvs_normer = '))
+        logger.info('Loaded distinctivness normalizer')
         #dstcnvs_normer.ensure_flann(cachedir)
         assert dstcnvs_normer.exists(cachedir, need_flann=True), (
             'normalizer should have been downloaded, but it doesnt exist')
@@ -450,7 +450,7 @@ def clear_distinctivness_cache(j):
 
 def list_distinctivness_cache():
     global_distinctdir = sysres.get_global_distinctiveness_modeldir()
-    print(ut.repr2(ut.ls(global_distinctdir)))
+    logger.info(ut.repr2(ut.ls(global_distinctdir)))
 
 
 def list_published_distinctivness():
@@ -540,8 +540,8 @@ def tst_single_annot_distinctiveness_params(ibs, aid):
 
     varied_dict = Config.DCVS_DEFAULT.get_varydict()
 
-    print('Varied Dict: ')
-    print(ut.repr2(varied_dict))
+    logger.info('Varied Dict: ')
+    logger.info(ut.repr2(varied_dict))
 
     cfgdict_list, cfglbl_list = ut.make_constrained_cfg_and_lbl_list(varied_dict)
 
@@ -608,9 +608,9 @@ def dev_train_distinctiveness(species=None):
         with ut.Timer('loading distinctiveness'):
             dstcnvs_normer.load(cachedir)
         # Cache hit
-        print('distinctivness model cache hit')
+        logger.info('distinctivness model cache hit')
     except IOError:
-        print('distinctivness model cache miss')
+        logger.info('distinctivness model cache miss')
         with ut.Timer('training distinctiveness'):
             # Need to train
             # Add one example from each name
@@ -631,16 +631,16 @@ def dev_train_distinctiveness(species=None):
             aid_list = ut.get_list_column(aids_list, 0)
             # Keep only a certain number of annots for distinctiveness mapping
             aid_list_ = ut.listclip(aid_list, max_annots)
-            print('total num named annots = %r' % (sum(num_annots_list)))
-            print('training distinctiveness using %d/%d singleton annots' %
+            logger.info('total num named annots = %r' % (sum(num_annots_list)))
+            logger.info('training distinctiveness using %d/%d singleton annots' %
                   (len(aid_list_), len(aid_list)))
             # vec
             # FIXME: qreq_ params for config rowid
             vecs_list = ibs.get_annot_vecs(aid_list_)
             num_vecs = sum(list(map(len, vecs_list)))
-            print('num_vecs = %r' % (num_vecs,))
+            logger.info('num_vecs = %r' % (num_vecs,))
             vecs = np.vstack(vecs_list)
-            print('vecs size = %r' % (ut.get_object_size_str(vecs),))
+            logger.info('vecs size = %r' % (ut.get_object_size_str(vecs),))
             dstcnvs_normer.init_support(vecs)
             dstcnvs_normer.save(global_distinctdir)
 

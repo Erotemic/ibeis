@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 import six
 import numpy as np
 import utool as ut
@@ -9,7 +10,6 @@ import itertools as it
 import ibeis.constants as const
 from ibeis.algo.graph.state import (POSTV, NEGTV, INCMP, NULL)
 from ibeis.algo.graph.refresh import RefreshCriteria
-print, rrr, profile = ut.inject2(__name__)
 
 
 class InfrLoops(object):
@@ -69,7 +69,7 @@ class InfrLoops(object):
                 max_loops = np.inf
 
         if infr.test_mode:
-            print('------------------ {} -------------------'.format(infr.name))
+            logger.info('------------------ {} -------------------'.format(infr.name))
 
         # Initialize a refresh criteria
         infr.init_refresh()
@@ -130,8 +130,8 @@ class InfrLoops(object):
                     for _ in infr.pos_redun_gen():
                         yield _
 
-                print('prob_any_remain = %r' % (infr.refresh.prob_any_remain(),))
-                print('infr.refresh.num_meaningful = {!r}'.format(
+                logger.info('prob_any_remain = %r' % (infr.refresh.prob_any_remain(),))
+                logger.info('infr.refresh.num_meaningful = {!r}'.format(
                     infr.refresh.num_meaningful))
 
                 if (count + 1) >= max_loops:
@@ -468,7 +468,6 @@ class InfrLoops(object):
 
 
 class InfrReviewers(object):
-    @profile
     def try_auto_review(infr, edge):
         review = {
             'user_id': 'algo:auto_clf',
@@ -515,7 +514,7 @@ class InfrReviewers(object):
                 pb_thresh = infr.task_thresh['photobomb_state']['pb']
                 confounded = pb_probs['pb'] > pb_thresh
             except KeyError:
-                print('Warning: confounding task probs not set (i.e. photobombs)')
+                logger.info('Warning: confounding task probs not set (i.e. photobombs)')
                 confounded = False
             if not confounded:
                 # decision = decision_flags.argmax()

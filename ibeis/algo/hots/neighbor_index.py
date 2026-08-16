@@ -5,6 +5,7 @@ multi_index.py as well
 
 https://github.com/spotify/annoy
 """
+from loguru import logger
 import numpy as np
 import utool as ut
 import vtool_ibeis as vt
@@ -12,7 +13,6 @@ from vtool_ibeis._pyflann_backend import pyflann as pyflann
 from os.path import basename
 from ibeis.algo.hots import hstypes
 from ibeis.algo.hots import _pipeline_helpers as plh  # NOQA
-(print, rrr, profile) = ut.inject2(__name__)
 
 USE_HOTSPOTTER_CACHE = not ut.get_argflag('--nocache-hs')
 NOSAVE_FLANN = ut.get_argflag('--nosave-flann')
@@ -141,7 +141,7 @@ def invert_index(vecs_list, fgws_list, ax_list, fxs_list, verbose=ut.NOT_QUIET):
         output depth_profile = [(1912, 128), 1912, 1912, 1912]
     """
     if ut.VERYVERBOSE:
-        print('[nnindex] stacking descriptors from %d annotations' % len(ax_list))
+        logger.info('[nnindex] stacking descriptors from %d annotations' % len(ax_list))
     try:
         nFeat_list = np.array(list(map(len, vecs_list)))
         # Remove input without any features
@@ -174,9 +174,9 @@ def invert_index(vecs_list, fgws_list, ax_list, fxs_list, verbose=ut.NOT_QUIET):
         ut.printex(ex, 'cannot build inverted index', '[!memerror]')
         raise
     if ut.VERYVERBOSE or verbose:
-        print('[nnindex] stacked nVecs={nVecs} from nAnnots={nAnnots}'.format(
+        logger.info('[nnindex] stacked nVecs={nVecs} from nAnnots={nAnnots}'.format(
             nVecs=len(idx2_vec), nAnnots=len(ax_list)))
-        print('[nnindex] idx2_vecs dtype={}, memory={}'.format(
+        logger.info('[nnindex] idx2_vecs dtype={}, memory={}'.format(
             idx2_vec.dtype,
             ut.byte_str2(idx2_vec.size * idx2_vec.dtype.itemsize)))
     return idx2_vec, idx2_fgw, idx2_ax, idx2_fx
@@ -231,7 +231,7 @@ class NeighborIndex(object):
         """
         assert indexer.flann is None, 'already initalized'
 
-        print('[nnindex] Preparing data for indexing / loading index')
+        logger.info('[nnindex] Preparing data for indexing / loading index')
         # Check input
         assert len(aid_list) == len(vecs_list), 'invalid input. bad len'
         assert len(aid_list) > 0, ('len(aid_list) == 0.'
@@ -272,13 +272,13 @@ class NeighborIndex(object):
         from ibeis.algo.hots.neighbor_index import clear_memcache
         clear_memcache()
         if verbose:
-            print('[nnindex] request add %d annots to single-indexer' % (
+            logger.info('[nnindex] request add %d annots to single-indexer' % (
                 len(new_daid_list)))
         indexed_aids = nnindexer.get_indexed_aids()
         duplicate_aids = set(new_daid_list).intersection(indexed_aids)
         if len(duplicate_aids) > 0:
             if verbose:
-                print(('[nnindex] request has %d annots that are already '
+                logger.info(('[nnindex] request has %d annots that are already '
                        'indexed. ignore those') % (len(duplicate_aids),))
             new_daid_list_ = np.array(sorted(list(set(new_daid_list) -
                                                   duplicate_aids)))
@@ -286,7 +286,7 @@ class NeighborIndex(object):
             new_daid_list_ = new_daid_list
         if len(new_daid_list_) == 0:
             if verbose:
-                print('[nnindex] Nothing to do')
+                logger.info('[nnindex] Nothing to do')
         else:
             tup = get_support_data(qreq_, new_daid_list_)
             new_vecs_list, new_fgws_list, new_fxs_list = tup
@@ -299,7 +299,7 @@ class NeighborIndex(object):
         # TODO: ensure that the memcache changes appropriately
         """
         if verbose:
-            print('[nnindex] request remove %d annots from single-indexer' %
+            logger.info('[nnindex] request remove %d annots from single-indexer' %
                   (len(remove_daid_list)))
         from ibeis.algo.hots.neighbor_index import clear_memcache
         clear_memcache()
@@ -333,7 +333,7 @@ class NeighborIndex(object):
             >>> assert qfx2_idx1.max() > ax2_nvecs[0], 'should get points from everyone'
         """
         if ut.DEBUG2:
-            print('REMOVING POINTS')
+            logger.info('REMOVING POINTS')
         # TODO: ensure no duplicates
         from ibeis.util import util_compat
         ax2_remove_flag = util_compat.in1d_port(nnindexer.ax2_aid, remove_daid_list)
@@ -341,9 +341,9 @@ class NeighborIndex(object):
         idx2_remove_flag = util_compat.in1d_port(nnindexer.idx2_ax, remove_ax_list)
         remove_idx_list = np.nonzero(idx2_remove_flag)[0]
         if verbose:
-            print('[nnindex] Found %d / %d annots that need removing' %
+            logger.info('[nnindex] Found %d / %d annots that need removing' %
                   (len(remove_ax_list), len(remove_daid_list)))
-            print('[nnindex] Removing %d indexed features' % (len(remove_idx_list),))
+            logger.info('[nnindex] Removing %d indexed features' % (len(remove_idx_list),))
         # FIXME: indicies may need adjustment after remove points
         # Currently this is not being done and the data is just being left alone
         # This should be ok temporarilly because removed ids should not
@@ -364,7 +364,7 @@ class NeighborIndex(object):
         # to add the same points back again.
 
         if ut.DEBUG2:
-            print('DONE REMOVE POINTS')
+            logger.info('DONE REMOVE POINTS')
 
     def add_support(nnindexer, new_daid_list, new_vecs_list, new_fgws_list, new_fxs_list,
                     verbose=ut.NOT_QUIET):
@@ -406,11 +406,11 @@ class NeighborIndex(object):
         new_idx2_vec, new_idx2_fgw, new_idx2_ax, new_idx2_fx = tup
         nNewVecs = len(new_idx2_vec)
         if verbose or ut.VERYVERBOSE:
-            print(('[nnindex] Adding %d vecs from %d annots to nnindex '
+            logger.info(('[nnindex] Adding %d vecs from %d annots to nnindex '
                    'with %d vecs and %d annots') %
                   (nNewVecs, nNewAnnots, nVecs, nAnnots))
         if ut.DEBUG2:
-            print('STACKING')
+            logger.info('STACKING')
         # Stack inverted information
         old_idx2_vec = nnindexer.idx2_vec
         if nnindexer.idx2_fgw is not None:
@@ -424,7 +424,7 @@ class NeighborIndex(object):
         if nnindexer.idx2_fgw is not None:
             _idx2_fgw = np.hstack((nnindexer.idx2_fgw, new_idx2_fgw))
         if ut.DEBUG2:
-            print('REPLACING')
+            logger.info('REPLACING')
         nnindexer.ax2_aid  = _ax2_aid
         nnindexer.idx2_ax  = _idx2_ax
         nnindexer.idx2_vec = _idx2_vec
@@ -436,12 +436,12 @@ class NeighborIndex(object):
         #nnindexer.idx2_oris   = None
         # Add new points to flann structure
         if ut.DEBUG2:
-            print('ADD POINTS (FIXME: SOMETIMES SEGFAULT OCCURS)')
-            print('new_idx2_vec.dtype = %r' % new_idx2_vec.dtype)
-            print('new_idx2_vec.shape = %r' % (new_idx2_vec.shape,))
+            logger.info('ADD POINTS (FIXME: SOMETIMES SEGFAULT OCCURS)')
+            logger.info('new_idx2_vec.dtype = %r' % new_idx2_vec.dtype)
+            logger.info('new_idx2_vec.shape = %r' % (new_idx2_vec.shape,))
         nnindexer.flann.add_points(new_idx2_vec)
         if ut.DEBUG2:
-            print('DONE ADD POINTS')
+            logger.info('DONE ADD POINTS')
 
     def ensure_indexer(nnindexer, cachedir, verbose=True, force_rebuild=False,
                        memtrack=None, prog_hook=None):
@@ -450,7 +450,7 @@ class NeighborIndex(object):
         indexer or rebuilds a new one.
         """
         if NOCACHE_FLANN or force_rebuild:
-            print('...nnindex flann cache is forced off')
+            logger.info('...nnindex flann cache is forced off')
             load_success = False
         else:
             load_success = nnindexer.load(cachedir, verbose=verbose)
@@ -458,13 +458,13 @@ class NeighborIndex(object):
             if not ut.QUIET:
                 nVecs   = nnindexer.num_indexed_vecs()
                 nAnnots = nnindexer.num_indexed_annots()
-                print('...nnindex flann cache hit: %d vectors, %d annots' %
+                logger.info('...nnindex flann cache hit: %d vectors, %d annots' %
                       (nVecs, nAnnots))
         else:
             if not ut.QUIET:
                 nVecs   = nnindexer.num_indexed_vecs()
                 nAnnots = nnindexer.num_indexed_annots()
-                print('...nnindex flann cache miss: %d vectors, %d annots' %
+                logger.info('...nnindex flann cache miss: %d vectors, %d annots' %
                       (nVecs, nAnnots))
             if prog_hook is not None:
                 prog_hook.set_progress(1, 2, 'Building new indexer (may take some time)')
@@ -484,12 +484,12 @@ class NeighborIndex(object):
         verbose_ = ut.VERYVERBOSE or verbose or (
             not ut.QUIET and num_vecs > notify_num)
         if verbose_:
-            print('[nnindex] ...building kdtree over %d points (this may take a sec).' % num_vecs)
+            logger.info('[nnindex] ...building kdtree over %d points (this may take a sec).' % num_vecs)
             tt = ut.tic(msg='Building index')
         idx2_vec = nnindexer.idx2_vec
         flann_params = nnindexer.flann_params
         if num_vecs == 0:
-            print('WARNING: CANNOT BUILD FLANN INDEX OVER 0 POINTS. THIS MAY BE A SIGN OF A DEEPER ISSUE')
+            logger.info('WARNING: CANNOT BUILD FLANN INDEX OVER 0 POINTS. THIS MAY BE A SIGN OF A DEEPER ISSUE')
         else:
             if memtrack is not None:
                 memtrack.report('BEFORE BUILD FLANN INDEX')
@@ -507,7 +507,7 @@ class NeighborIndex(object):
         """
         if NOSAVE_FLANN:
             if ut.VERYVERBOSE or verbose:
-                print('[nnindex] flann save is deactivated')
+                logger.info('[nnindex] flann save is deactivated')
             return False
         if fpath is None:
             flann_fpath = nnindexer.get_fpath(cachedir)
@@ -515,7 +515,7 @@ class NeighborIndex(object):
             flann_fpath = fpath
         nnindexer.flann_fpath = flann_fpath
         if ut.VERYVERBOSE or verbose:
-            print('[nnindex] flann.save_index(%r)' %
+            logger.info('[nnindex] flann.save_index(%r)' %
                   ut.path_ndir_split(flann_fpath, n=5))
         nnindexer.flann.save_index(flann_fpath)
 
@@ -611,7 +611,6 @@ class NeighborIndex(object):
     def get_dtype(nnindexer):
         return nnindexer.idx2_vec.dtype
 
-    @profile
     def knn(indexer, qfx2_vec, K):
         r"""
         Returns the indices and squared distance to the nearest K neighbors.
@@ -716,7 +715,6 @@ class NeighborIndex(object):
                     'inconsistant distance calculations')
         return (qfx2_idx, qfx2_dist)
 
-    @profile
     def requery_knn(indexer, qfx2_vec, K, pad, impossible_aids, recover=True):
         """
         hack for iccv - this is a highly coupled function
@@ -799,12 +797,12 @@ class NeighborIndex(object):
         # FIXME: they might not agree if data has been added / removed
         init_data, extra_data = nnindexer.flann.get_indexed_data()
         with ut.Indenter('[NNINDEX_DEBUG]'):
-            print('extra_data = %r' % (extra_data,))
-            print('init_data = %r' % (init_data,))
-            print('nnindexer.max_distance_sqrd = %r' % (nnindexer.max_distance_sqrd,))
+            logger.info('extra_data = %r' % (extra_data,))
+            logger.info('init_data = %r' % (init_data,))
+            logger.info('nnindexer.max_distance_sqrd = %r' % (nnindexer.max_distance_sqrd,))
             data_agrees = nnindexer.idx2_vec is nnindexer.flann.get_indexed_data()[0]
             if data_agrees:
-                print('indexed_data agrees')
+                logger.info('indexed_data agrees')
             assert vt.check_sift_validity(init_data), 'bad SIFT properties'
             assert data_agrees, 'indexed data does not agree'
 
@@ -881,9 +879,9 @@ class NeighborIndex(object):
             qfx2_aid = nnindexer.ax2_aid.take(qfx2_ax)
         except Exception as ex:
             ut.printex(ex, 'Error occurred in aid lookup. Dumping debug info. Are the neighbors idxs correct?')
-            print('qfx2_nnidx.shape = %r' % (qfx2_nnidx.shape,))
-            print('qfx2_nnidx.max() = %r' % (qfx2_nnidx.max(),))
-            print('qfx2_nnidx.min() = %r' % (qfx2_nnidx.min(),))
+            logger.info('qfx2_nnidx.shape = %r' % (qfx2_nnidx.shape,))
+            logger.info('qfx2_nnidx.max() = %r' % (qfx2_nnidx.max(),))
+            logger.info('qfx2_nnidx.min() = %r' % (qfx2_nnidx.min(),))
             nnindexer.debug_nnindexer()
             raise
         return qfx2_aid

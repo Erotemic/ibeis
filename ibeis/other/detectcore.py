@@ -10,6 +10,7 @@ TODO: need to split up into sub modules:
     within this file
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 from six.moves import zip
 from os.path import exists, expanduser, join, abspath, basename, splitext
 import numpy as np
@@ -23,7 +24,6 @@ from ibeis.other.detectfuncs import (general_parse_gt, general_get_imageset_gids
 import random
 
 # Inject utool functions
-(print, rrr, profile) = ut.inject2(__name__, '[other.detectcore]')
 
 
 CLASS_INJECT_KEY, register_ibs_method = (
@@ -52,8 +52,8 @@ def export_to_xml(ibs, species_list, species_mapping=None, offset='auto', enforc
     from detecttools.pypascalmarkup import PascalVOC_Markup_Annotation
 
     if species_mapping is not None:
-        print('Received species_mapping = %r' % (species_mapping, ))
-        print('Using species_list = %r' % (species_list, ))
+        logger.info('Received species_mapping = %r' % (species_mapping, ))
+        logger.info('Using species_list = %r' % (species_list, ))
 
     def _add_annotation(bbox, theta, species_name, viewpoint, decrease,
                         part_name=None):
@@ -89,7 +89,7 @@ def export_to_xml(ibs, species_list, species_mapping=None, offset='auto', enforc
             species_name = '%s+%s' % (species_name, part_name, )
 
         area = (xmax - xmin) * (ymax - ymin)
-        print('\t\tAdding %r with area %0.04f pixels^2' % (species_name, area, ))
+        logger.info('\t\tAdding %r with area %0.04f pixels^2' % (species_name, area, ))
 
         annotation.add_object(
             species_name,
@@ -137,7 +137,7 @@ def export_to_xml(ibs, species_list, species_mapping=None, offset='auto', enforc
     train_gid_set = set(general_get_imageset_gids(ibs, 'TRAIN_SET', **kwargs))
     test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET', **kwargs))
 
-    print('Exporting %d images' % (len(gid_list),))
+    logger.info('Exporting %d images' % (len(gid_list),))
     for gid in gid_list:
         aid_list = ibs.get_image_aids(gid)
         image_uri = ibs.get_image_uris(gid)
@@ -206,7 +206,7 @@ def export_to_xml(ibs, species_list, species_mapping=None, offset='auto', enforc
                 raise AssertionError('All gids must be either in the TRAIN_SET or TEST_SET imagesets')
 
             # Write XML
-            print("Copying:\n%r\n%r\n%r\n\n" % (
+            logger.info("Copying:\n%r\n%r\n%r\n\n" % (
                 image_path, dst_img, (width, height), ))
             xml_data = open(dst_annot, 'w')
             xml_data.write(annotation.xml())
@@ -218,7 +218,7 @@ def export_to_xml(ibs, species_list, species_mapping=None, offset='auto', enforc
                 out_name = "%d_%06d" % (current_year, index, )
                 dst_annot = annotdir + out_name  + '.xml'
         else:
-            print("Skipping:\n%r\n\n" % (image_path, ))
+            logger.info("Skipping:\n%r\n\n" % (image_path, ))
 
     for key in sets_dict.keys():
         with open(mainsetsdir + key + '.txt', 'w') as file_:
@@ -227,7 +227,7 @@ def export_to_xml(ibs, species_list, species_mapping=None, offset='auto', enforc
             content = '\n'.join(content)
             file_.write(content)
 
-    print('...completed')
+    logger.info('...completed')
     return datadir
 
 
@@ -242,8 +242,8 @@ def export_to_coco(ibs, species_list, species_mapping=None, target_size=1200,
     import json
 
     if species_mapping is not None:
-        print('Received species_mapping = %r' % (species_mapping, ))
-        print('Using species_list = %r' % (species_list, ))
+        logger.info('Received species_mapping = %r' % (species_mapping, ))
+        logger.info('Using species_list = %r' % (species_list, ))
 
     current_year = int(date.today().year)
     datadir = abspath(join(ibs.get_cachedir(), 'coco'))
@@ -322,7 +322,7 @@ def export_to_coco(ibs, species_list, species_mapping=None, target_size=1200,
 
     aid_dict = {}
 
-    print('Exporting %d images' % (len(gid_list),))
+    logger.info('Exporting %d images' % (len(gid_list),))
     for gid in gid_list:
 
         if gid in test_gid_set:
@@ -369,7 +369,7 @@ def export_to_coco(ibs, species_list, species_mapping=None, target_size=1200,
             'ibeis_image_uuid' : str(ibs.get_image_uuids(gid)),
         })
 
-        print('Copying:\n%r\n%r\n%r\n\n' % (image_path, image_filepath, (width, height), ))
+        logger.info('Copying:\n%r\n%r\n%r\n\n' % (image_path, image_filepath, (width, height), ))
 
         aid_list = ibs.get_image_aids(gid)
         bbox_list = ibs.get_annot_bboxes(aid_list)
@@ -436,7 +436,7 @@ def export_to_coco(ibs, species_list, species_mapping=None, target_size=1200,
                 'individual_ids'    : individuals,
                 'review_ids'        : list(zip(ids, decisions)),
             })
-            print('\t\tAdding %r with area %0.04f pixels^2' % (species_name, area, ))
+            logger.info('\t\tAdding %r with area %0.04f pixels^2' % (species_name, area, ))
 
             aid_dict[aid] = annot_index
             annot_index += 1
@@ -463,7 +463,7 @@ def export_to_coco(ibs, species_list, species_mapping=None, target_size=1200,
         with open(json_filepath, 'w') as json_file:
             json.dump(output_dict[dataset], json_file)
 
-    print('...completed')
+    logger.info('...completed')
     return datadir
 
 
@@ -479,7 +479,7 @@ def imageset_train_test_split(ibs, train_split=0.8, **kwargs):
             distro_dict[total] = []
         distro_dict[total].append(gid)
 
-    print('Processing train/test imagesets...')
+    logger.info('Processing train/test imagesets...')
     global_train_list = []
     global_test_list = []
     for distro, gid_list_ in distro_dict.items():
@@ -492,11 +492,11 @@ def imageset_train_test_split(ibs, train_split=0.8, **kwargs):
             split_index = np.around(split_index)
         split_index = int(split_index)
         args = (distro, total, split_index, )
-        print('\tnum aids distro: %d - total: %d - split_index: %d' % args)
+        logger.info('\tnum aids distro: %d - total: %d - split_index: %d' % args)
         train_list = gid_list_[split_index:]
         test_list = gid_list_[:split_index]
         args = (len(test_list), len(train_list), len(train_list) / total, )
-        print('\ttest: %d\n\ttrain: %d\n\tsplit: %0.04f' % args)
+        logger.info('\ttest: %d\n\ttrain: %d\n\tsplit: %0.04f' % args)
         global_train_list.extend(train_list)
         global_test_list.extend(test_list)
 
@@ -519,7 +519,7 @@ def imageset_train_test_split(ibs, train_split=0.8, **kwargs):
     ibs.set_image_imgsetids(global_train_list, [train_imgsetid] * len(global_train_list))
     ibs.set_image_imgsetids(global_test_list, [test_imgsetid] * len(global_test_list))
 
-    print('Complete... %d train + %d test = %d (%0.04f %0.04f)' % args)
+    logger.info('Complete... %d train + %d test = %d (%0.04f %0.04f)' % args)
 
 
 @register_ibs_method
@@ -551,20 +551,20 @@ def localizer_distributions(ibs, threshold=10, dataset=None):
                 species_dict[species][viewpoint] = 0
             species_dict[species][viewpoint] += 1
 
-    print('Annotation density distribution (annotations per image)')
+    logger.info('Annotation density distribution (annotations per image)')
     for distro in sorted(distro_dict.keys()):
-        print('{:>6} annot(s): {:>5}'.format(distro, distro_dict[distro]))
-    print('')
+        logger.info('{:>6} annot(s): {:>5}'.format(distro, distro_dict[distro]))
+    logger.info('')
 
     for species in sorted(species_dict.keys()):
-        print('Species viewpoint distribution: %r' % (species, ))
+        logger.info('Species viewpoint distribution: %r' % (species, ))
         viewpoint_dict = species_dict[species]
         total = 0
         for viewpoint in const.VIEWTEXT_TO_VIEWPOINT_RADIANS:
             count = viewpoint_dict.get(viewpoint, 0)
-            print('{:>15}: {:>5}'.format(viewpoint, count))
+            logger.info('{:>15}: {:>5}'.format(viewpoint, count))
             total += count
-        print('TOTAL: %d\n' % (total, ))
+        logger.info('TOTAL: %d\n' % (total, ))
 
     # visualize_distributions(distro_dict, threshold=threshold)
 
@@ -684,7 +684,7 @@ def classifier_visualize_training_localizations(ibs, classifier_weight_filepath,
 
     if values is None:
         # Load data
-        print('Loading pre-trained features for filtered localizations')
+        logger.info('Loading pre-trained features for filtered localizations')
         train_gid_list = general_get_imageset_gids(ibs, 'TRAIN_SET', **kwargs)
         train_gid_list = train_gid_list[:10]
 
@@ -702,20 +702,20 @@ def classifier_visualize_training_localizations(ibs, classifier_weight_filepath,
             # 'index_thresh' : 0.25,
         }
 
-        print('\tGather Ground-Truth')
+        logger.info('\tGather Ground-Truth')
         gt_dict = general_parse_gt(ibs, test_gid_list=train_gid_list, **config)
 
-        print('\tGather Predictions')
+        logger.info('\tGather Predictions')
         pred_dict = localizer_parse_pred(ibs, test_gid_list=train_gid_list, **config)
 
-        print('Mine proposals')
+        logger.info('Mine proposals')
         reviewed_gid_dict = {}
         values = _bootstrap_mine(ibs, gt_dict, pred_dict, scheme,
                                  reviewed_gid_dict, **kwargs)
 
     mined_gid_list, mined_gt_list, mined_pos_list, mined_neg_list = values
 
-    print('Prepare images')
+    logger.info('Prepare images')
     # Get images and a dictionary based on their gids
     image_list = ibs.get_images(mined_gid_list)
     image_dict = { gid: image for gid, image in zip(mined_gid_list, image_list) }
@@ -741,7 +741,7 @@ def classifier_visualize_training_localizations(ibs, classifier_weight_filepath,
     color = (255, 0, 0)
     _draw(image_dict, list_, color)
 
-    print('Write images to %r' % (output_path, ))
+    logger.info('Write images to %r' % (output_path, ))
     # Write images to disk
     for gid in image_dict:
         output_filename = 'localizations_gid_%d.png' % (gid, )
@@ -768,7 +768,7 @@ def redownload_detection_models(ibs):
         >>> result = redownload_detection_models(ibs)
         >>> print(result)
     """
-    print('[other.detectcore] redownload_detection_models')
+    logger.info('[other.detectcore] redownload_detection_models')
     from ibeis.algo.detect import grabmodels
     modeldir = ibs.get_detect_modeldir()
     grabmodels.redownload_models(modeldir=modeldir)
@@ -776,7 +776,7 @@ def redownload_detection_models(ibs):
 
 @register_ibs_method
 def view_model_dir(ibs):
-    print('[other.detectcore] redownload_detection_models')
+    logger.info('[other.detectcore] redownload_detection_models')
     modeldir = ibs.get_detect_modeldir()
     ut.view_directory(modeldir)
     #grabmodels.redownload_models(modeldir=modeldir)
@@ -846,7 +846,7 @@ def _bootstrap_mine(ibs, gt_dict, pred_dict, scheme, reviewed_gid_dict,
             mined_neg_list += [pred_list[idx] for idx in neg_idx_list]
 
     args = (len(mined_pos_list), len(mined_neg_list), len(mined_gid_list), )
-    print('Mined %d positive, %d negative from %d images' % args)
+    logger.info('Mined %d positive, %d negative from %d images' % args)
 
     return mined_gid_list, mined_gt_list, mined_pos_list, mined_neg_list
 
@@ -878,10 +878,10 @@ def visualize_bounding_boxes(ibs, config, version, gid_list=None, randomize=Fals
     assert version is not None
     version = version.lower()
     if version == 'prediction':
-        print('\tGather Predictions')
+        logger.info('\tGather Predictions')
         val_dict = localizer_parse_pred(ibs, test_gid_list=gid_list, **config)
     elif version == 'ground_truth':
-        print('\tGather Ground-Truth')
+        logger.info('\tGather Ground-Truth')
         val_dict = general_parse_gt(ibs, test_gid_list=gid_list, **config)
 
     if output_path is None:
@@ -904,7 +904,7 @@ def visualize_bounding_boxes(ibs, config, version, gid_list=None, randomize=Fals
 
         write_filename = 'bboxes_%d_%s.png' % (gid, version, )
         write_filepath = join(output_path, write_filename)
-        print(write_filepath)
+        logger.info(write_filepath)
         cv2.imwrite(write_filepath, image)
 
 if __name__ == '__main__':

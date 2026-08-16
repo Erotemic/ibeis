@@ -1,6 +1,5 @@
 import utool as ut
 import numpy as np  # NOQA
-(print, rrr, profile) = ut.inject2(__name__, '[_ibeis_object]')
 
 
 def _find_ibeis_attrs(ibs, objname, blacklist=[]):

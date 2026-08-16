@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 from os.path import join  # NOQA
 import cv2
 import numpy as np
@@ -7,7 +8,6 @@ import torch
 import torch.nn
 import utool as ut
 import torchvision
-print, rrr, profile = ut.inject2(__name__)
 
 
 class LRSchedule(object):
@@ -20,7 +20,7 @@ class LRSchedule(object):
             lr *= 0.1
 
         if epoch % lr_decay_epoch == 0:
-            print('LR is set to {}'.format(lr))
+            logger.info('LR is set to {}'.format(lr))
 
         for param_group in optimizer.param_groups:
             param_group['lr'] = lr
@@ -70,9 +70,9 @@ def siam_vsone_train():
     vali_dataset = load_dataset(val_idx)
     test_dataset = load_dataset(test_idx)
 
-    print('* len(train_dataset) = {}'.format(len(train_dataset)))
-    print('* len(vali_dataset) = {}'.format(len(vali_dataset)))
-    print('* len(test_dataset) = {}'.format(len(test_dataset)))
+    logger.info('* len(train_dataset) = {}'.format(len(train_dataset)))
+    logger.info('* len(vali_dataset) = {}'.format(len(vali_dataset)))
+    logger.info('* len(test_dataset) = {}'.format(len(test_dataset)))
 
     from ibeis.algo.verif.torch import gpu_util
     gpu_num = gpu_util.find_unused_gpu(min_memory=6000)
@@ -104,7 +104,7 @@ def siam_vsone_train():
     optimizer_cls = netmath.Optimizers.Adam
 
     class_weights = train_dataset.class_weights()
-    print('class_weights = {!r}'.format(class_weights))
+    logger.info('class_weights = {!r}'.format(class_weights))
 
     harn = fit_harness.FitHarness(
         model=model,

@@ -15,7 +15,6 @@ import utool as ut
 from ibeis.control import controller_inject
 
 # Inject utool functions
-(print, rrr, profile) = ut.inject2(__name__, '[other.detecttrain]')
 
 
 CLASS_INJECT_KEY, register_ibs_method = (

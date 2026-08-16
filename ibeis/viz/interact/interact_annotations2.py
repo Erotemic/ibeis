@@ -1,7 +1,7 @@
+from loguru import logger
 from plottool_ibeis import interact_annotations
 import plottool_ibeis as pt  # NOQA
 import utool as ut
-print, rrr, profile = ut.inject2(__name__)
 
 
 #DESTROY_OLD_WINDOW = True
@@ -85,8 +85,8 @@ class ANNOTATION_Interaction2(object):
         TODO: Rename to commit_callback
         Callback from interact_annotations to ibs for when data is modified
         """
-        print('[interact_annot2] enter commit_callback')
-        print('[interact_annot2] nUnchanged=%d, nDelete=%d, nChanged=%d, nNew=%d' %
+        logger.info('[interact_annot2] enter commit_callback')
+        logger.info('[interact_annot2] nUnchanged=%d, nDelete=%d, nChanged=%d, nNew=%d' %
               (len(unchanged_indices), len(deleted_indices),
                len(changed_indices), len(new_annottups)))
         rows_updated = False
@@ -94,8 +94,8 @@ class ANNOTATION_Interaction2(object):
         if len(deleted_indices) > 0:
             rows_updated = True
             deleted_aids = [self.aid_list[del_index] for del_index in deleted_indices]
-            print('[interact_annot2] deleted_indexes: %r' % (deleted_indices,))
-            print('[interact_annot2] deleted_aids: %r' % (deleted_aids,))
+            logger.info('[interact_annot2] deleted_indexes: %r' % (deleted_indices,))
+            logger.info('[interact_annot2] deleted_aids: %r' % (deleted_aids,))
             self.ibs.delete_annots(deleted_aids)
         # Set/Change annotations
         if len(changed_annottups) > 0:
@@ -103,8 +103,8 @@ class ANNOTATION_Interaction2(object):
             bbox_list1    = [bbox for (bbox, t, s) in changed_annottups]
             theta_list1   = [t    for (bbox, t, s) in changed_annottups]
             species_list1 = [s    for (bbox, t, s) in changed_annottups]
-            print('[interact_annot2] changed_indexes: %r' % (changed_indices,))
-            print('[interact_annot2] changed_aid: %r' % (changed_aid,))
+            logger.info('[interact_annot2] changed_indexes: %r' % (changed_indices,))
+            logger.info('[interact_annot2] changed_aid: %r' % (changed_aid,))
             self.ibs.set_annot_species(changed_aid, species_list1)
             self.ibs.set_annot_thetas(changed_aid, theta_list1, delete_thumbs=False)
             self.ibs.set_annot_bboxes(changed_aid, bbox_list1, delete_thumbs=True)
@@ -119,13 +119,13 @@ class ANNOTATION_Interaction2(object):
             new_aids = self.ibs.add_annots(gid_list, bbox_list=bbox_list2,
                                            theta_list=theta_list2,
                                            species_list=species_list2)
-            print('[interact_annot2] new_indexes: %r' % (new_annottups,))
-            print('[interact_annot2] new_aids: %r' % (new_aids,))
+            logger.info('[interact_annot2] new_indexes: %r' % (new_annottups,))
+            logger.info('[interact_annot2] new_aids: %r' % (new_aids,))
 
-        print('[interact_annot2] about to exit callback')
+        logger.info('[interact_annot2] about to exit callback')
         if rows_updated and self.rows_updated_callback is not None:
             self.rows_updated_callback()
-        print('[interact_annot2] exit callback')
+        logger.info('[interact_annot2] exit callback')
 
     def update_image_and_callbacks(self, gid, nextcb, prevcb, do_save=True):
         if do_save:

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 import utool as ut
 import numpy as np
 import vtool_ibeis as vt
@@ -7,7 +8,6 @@ import functools
 from ibeis.algo.hots import hstypes
 from ibeis.algo.hots import _pipeline_helpers as plh
 from six.moves import zip, range, map  # NOQA
-print, rrr, profile = ut.inject2(__name__)
 
 """
 FIXME: qfx2_ no longer applies due to fgw_thresh. Need to change names in this file
@@ -35,7 +35,7 @@ def _register_nn_normalized_weight_func(func):
     """
     filtkey = ut.get_funcname(func).replace('_fn', '').lower()
     if ut.VERYVERBOSE:
-        print('[nn_weights] registering norm func: %r' % (filtkey,))
+        logger.info('[nn_weights] registering norm func: %r' % (filtkey,))
     filtfunc = functools.partial(nn_normalized_weight, func)
     NN_WEIGHT_FUNC_DICT[filtkey] = filtfunc
     return func
@@ -47,7 +47,7 @@ def _register_nn_simple_weight_func(func):
     """
     filtkey = ut.get_funcname(func).replace('_match_weighter', '').lower()
     if ut.VERYVERBOSE:
-        print('[nn_weights] registering simple func: %r' % (filtkey,))
+        logger.info('[nn_weights] registering simple func: %r' % (filtkey,))
     NN_WEIGHT_FUNC_DICT[filtkey] = func
     return func
 
@@ -55,7 +55,7 @@ def _register_nn_simple_weight_func(func):
 def _register_misc_weight_func(func):
     filtkey = ut.get_funcname(func).replace('_match_weighter', '').lower()
     if ut.VERYVERBOSE:
-        print('[nn_weights] registering simple func: %r' % (filtkey,))
+        logger.info('[nn_weights] registering simple func: %r' % (filtkey,))
     MISC_WEIGHT_FUNC_DICT[filtkey] = func
     return func
 
@@ -639,7 +639,7 @@ def all_normalized_weights_test():
         weight_list2, nomx_list2 = nn_normonly_weight(nns_list, nnvalid0_list, qreq_)
         weights2 = weight_list2[0]
         assert np.all(weights1 == weights2)
-        print(nn_weight + ' passed')
+        logger.info(nn_weight + ' passed')
 
     for nn_weight in six.iterkeys(nn_weights.NN_WEIGHT_FUNC_DICT):
         normweight_key = nn_weight + '_fn'

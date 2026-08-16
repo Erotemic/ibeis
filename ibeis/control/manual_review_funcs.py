@@ -6,6 +6,7 @@ sh Tgen.sh --key review --invert --Tcfg with_getters=True with_setters=False --m
 # TODO: Fix this name it is too special case
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 import six  # NOQA
 from six.moves import zip, map, reduce
 #import numpy as np
@@ -17,7 +18,6 @@ from ibeis.control import accessor_decors, controller_inject  # NOQA
 import utool as ut
 import uuid
 from ibeis.control.controller_inject import make_ibs_register_decorator
-print, rrr, profile = ut.inject2(__name__)
 
 
 VERBOSE_SQL    = ut.get_argflag(('--print-sql', '--verbose-sql', '--verb-sql', '--verbsql'))
@@ -268,7 +268,7 @@ def delete_review(ibs, review_rowid_list):
         URL:    /api/review/
     """
     if ut.VERBOSE:
-        print('[ibs] deleting %d reviews' % len(review_rowid_list))
+        logger.info('[ibs] deleting %d reviews' % len(review_rowid_list))
     ibs.staging.delete_rowids(const.REVIEW_TABLE, review_rowid_list)
 
 

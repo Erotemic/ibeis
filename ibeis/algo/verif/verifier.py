@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 import numpy as np
 import pandas as pd
 import utool as ut
@@ -8,7 +9,6 @@ from ibeis.algo.verif import sklearn_utils
 import vtool_ibeis as vt
 # import itertools as it
 # from os.path import join
-print, rrr, profile = ut.inject2(__name__)
 
 
 class BaseVerifier(ut.NiceRepr):
@@ -190,7 +190,7 @@ class IntraVerifier(BaseVerifier):
         assert set(have_edges) | set(need_edges) == set(want_edges)
 
         # Predict on unseen edges using an ensemble of evaluation classifiers
-        print('Predicting %s probabilities' % (task_key,))
+        logger.info('Predicting %s probabilities' % (task_key,))
         eclf_probs = verif.ensemble.predict_proba_df(need_edges)
 
         # Combine probabilities --- get probabilites for each sample

@@ -5,13 +5,13 @@ TODO:
     * encounter vs database (time filtering)
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 import functools
 import copy
 import utool as ut
 import numpy as np
 import six
 from ibeis.control import controller_inject
-(print, rrr, profile) = ut.inject2(__name__)
 
 VERB_TESTDATA = ut.get_verbflag('testdata', 'td', 'acfg')[0]
 
@@ -29,11 +29,10 @@ _tup = controller_inject.make_ibs_register_decorator(__name__)
 CLASS_INJECT_KEY, register_ibs_method = _tup
 
 
-@profile
 def time_filter_annots():
     """
     python -m ibeis.init.filter_annots time_filter_annots \
-            --db PZ_Master1 -a ctrl:qmingt=2 --profile
+            --db PZ_Master1 -a ctrl:qmingt=2
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -147,7 +146,6 @@ def sample_annots_general(ibs, aid_list=None, filter_kw={}, verbose=False,
     return aid_list_
 
 
-@profile
 def get_default_annot_filter_form():
     r"""
     Returns dictionary containing defaults for all valid filter parameters
@@ -296,7 +294,6 @@ def get_acfg_cacheinfo(ibs, aidcfg):
     return acfg_cacheinfo
 
 
-@profile
 def expand_single_acfg(ibs, aidcfg, verbose=None):
     """
     for main_helpers """
@@ -304,11 +301,11 @@ def expand_single_acfg(ibs, aidcfg, verbose=None):
     if verbose is None:
         verbose = VERB_TESTDATA
     if verbose:
-        print('+=== EXPAND_SINGLE_ACFG ===')
-        print(' * acfg = %s' %
+        logger.info('+=== EXPAND_SINGLE_ACFG ===')
+        logger.info(' * acfg = %s' %
               (ut.repr2(annotation_configs.compress_aidcfg(aidcfg),
                            align=True),))
-        print('+---------------------')
+        logger.info('+---------------------')
     avail_aids = ibs._get_all_aids()
     avail_aids = ibs.filter_annotation_set(avail_aids, is_staged=False)
     avail_aids = filter_annots_independent(ibs, avail_aids, aidcfg, verbose=verbose)
@@ -317,11 +314,10 @@ def expand_single_acfg(ibs, aidcfg, verbose=None):
     avail_aids = subindex_annots(ibs, avail_aids, aidcfg, verbose=verbose)
     aids = avail_aids
     if verbose:
-        print('L___ EXPAND_SINGLE_ACFG ___')
+        logger.info('L___ EXPAND_SINGLE_ACFG ___')
     return aids
 
 
-@profile
 def hack_remove_label_errors(ibs, expanded_aids, verbose=None):
     qaids_, daids_ = expanded_aids
 
@@ -362,7 +358,6 @@ def hack_remove_label_errors(ibs, expanded_aids, verbose=None):
     return expanded_aids
 
 
-@profile
 def hack_extra(ibs, expanded_aids):
     # SUCH HACK to get a larger database
     from ibeis.expt import annotation_configs
@@ -863,7 +858,6 @@ def annot_crossval(ibs, aid_list, n_qaids_per_name=1, n_daids_per_name=1,
     return expanded_aids_list
 
 
-@profile
 def expand_acfgs(ibs, aidcfg, verbose=None, use_cache=None,
                  hack_exclude_keys=None, initial_aids=None, save_cache=True):
     r"""
@@ -978,7 +972,7 @@ def expand_acfgs(ibs, aidcfg, verbose=None, use_cache=None,
 
     if verbose:
         ut.colorprint('+=== EXPAND_ACFGS ===', 'yellow')
-        print(' * acfg = %s' % (ut.repr2(comp_acfg, align=True),))
+        logger.info(' * acfg = %s' % (ut.repr2(comp_acfg, align=True),))
         ut.colorprint('+---------------------', 'yellow')
 
     # Breakup into common, query, and database configs
@@ -1083,8 +1077,8 @@ def expand_acfgs(ibs, aidcfg, verbose=None, use_cache=None,
         avail_qaids, avail_daids = partition_avail_aids
 
     except Exception as ex:
-        print('PRINTING ERROR INFO')
-        print(' * acfg = %s' % (ut.repr2(comp_acfg, align=True),))
+        logger.info('PRINTING ERROR INFO')
+        logger.info(' * acfg = %s' % (ut.repr2(comp_acfg, align=True),))
         ut.printex(ex, 'Error executing filter chains')
         raise
 
@@ -1115,7 +1109,6 @@ def expand_species(ibs, species, avail_aids=None):
     return species
 
 
-@profile
 @register_ibs_method
 def filter_annots_independent(ibs, avail_aids, aidcfg, prefix='',
                               verbose=VERB_TESTDATA, withpre=False):
@@ -1164,7 +1157,7 @@ def filter_annots_independent(ibs, avail_aids, aidcfg, prefix='',
     from ibeis.other import ibsfuncs
     if aidcfg is None:
         if verbose:
-            print('No annot filter returning')
+            logger.info('No annot filter returning')
         return avail_aids
 
     VerbosityContext = verb_context('FILTER_INDEPENDENT', aidcfg, verbose)
@@ -1401,7 +1394,6 @@ def filter_annots_independent(ibs, avail_aids, aidcfg, prefix='',
     return avail_aids
 
 
-@profile
 def filter_annots_intragroup(ibs, avail_aids, aidcfg, prefix='',
                              verbose=VERB_TESTDATA, withpre=False):
     r"""
@@ -1423,7 +1415,7 @@ def filter_annots_intragroup(ibs, avail_aids, aidcfg, prefix='',
 
     if aidcfg is None:
         if verbose:
-            print('No annot filter returning')
+            logger.info('No annot filter returning')
         return avail_aids
 
     VerbosityContext = verb_context('FILTER_INTRAGROUP', aidcfg, verbose)
@@ -1521,7 +1513,6 @@ def filter_annots_intragroup(ibs, avail_aids, aidcfg, prefix='',
     return avail_aids
 
 
-@profile
 def get_reference_preference_order(ibs, gt_ref_grouped_aids,
                                    gt_avl_grouped_aids, prop_getter, cmp_func,
                                    aggfn, rng, verbose=VERB_TESTDATA):
@@ -1549,7 +1540,6 @@ def get_reference_preference_order(ibs, gt_ref_grouped_aids,
     return gt_preference_idx_list
 
 
-@profile
 def sample_annots_wrt_ref(ibs, avail_aids, aidcfg, ref_aids, prefix='',
                           verbose=VERB_TESTDATA):
     """
@@ -1620,7 +1610,7 @@ def sample_annots_wrt_ref(ibs, avail_aids, aidcfg, ref_aids, prefix='',
         sample_size = int(round((len(avail_aids) * sample_size +
                                  (1 - sample_size) * len(ref_aids))))
         if verbose:
-            print('Expanding sample size to: %r' % (sample_size,))
+            logger.info('Expanding sample size to: %r' % (sample_size,))
 
     # This function first partitions aids into a one set that corresonds with
     # the reference set and another that does not correspond with the reference
@@ -1693,12 +1683,12 @@ def sample_annots_wrt_ref(ibs, avail_aids, aidcfg, ref_aids, prefix='',
         num_remove_gf = num_gf - num_keep_gf
         if num_remove_gf < 0:
             # Too few ground false
-            print(('Warning: Cannot meet sample_size=%r. available_%saids '
+            logger.info(('Warning: Cannot meet sample_size=%r. available_%saids '
                    'will be undersized by at least %d')
                   % (sample_size, prefix, -num_remove_gf,))
         if num_keep_gf < 0:
             # Too many multitons; Can never remove a multiton
-            print('Warning: Cannot meet sample_size=%r. available_%saids '
+            logger.info('Warning: Cannot meet sample_size=%r. available_%saids '
                   'will be oversized by at least %d'
                   % (sample_size, prefix, -num_keep_gf,))
         rng = np.random.RandomState(SEED2)
@@ -1716,7 +1706,6 @@ def sample_annots_wrt_ref(ibs, avail_aids, aidcfg, ref_aids, prefix='',
     return avail_aids
 
 
-@profile
 def multi_sampled_seaturtle_queries():
     import ibeis
     from ibeis.expt import annotation_configs
@@ -1746,7 +1735,7 @@ def multi_sampled_seaturtle_queries():
                     break
                 qaids_list.append(qaids)
                 daids_list.append(daids)
-                print(qaids)
+                logger.info(qaids)
             if len(qaids_list) == prev:
                 break
             prev = len(qaids_list)
@@ -1769,13 +1758,12 @@ def multi_sampled_seaturtle_queries():
                 break
             qaids_list.append(qaids)
             daids_list.append(daids)
-            print(qaids)
+            logger.info(qaids)
 
         for qaids, daids in zip(qaids_list, daids_list):
             ibs.print_annotconfig_stats(qaids, daids, enc_per_name=True, per_enc=True)
 
 
-@profile
 def sample_annots(ibs, avail_aids, aidcfg, prefix='', verbose=VERB_TESTDATA):
     r"""
     Sampling preserves input sample structure and thust does not always return
@@ -1920,7 +1908,7 @@ def sample_annots(ibs, avail_aids, aidcfg, prefix='', verbose=VERB_TESTDATA):
     if sample_size is not None:
         # BUG: Should sample annots while preserving name size
         if sample_size > len(avail_aids):
-            print('Warning sample size too large')
+            logger.info('Warning sample size too large')
         rng = np.random.RandomState(SEED2)
         # Randomly sample names rather than annotations this makes sampling a
         # knapsack problem. Use a random greedy solution
@@ -1937,14 +1925,13 @@ def sample_annots(ibs, avail_aids, aidcfg, prefix='', verbose=VERB_TESTDATA):
             avail_aids = ut.flatten(subgroup_aids)
             #avail_aids = ut.random_sample(avail_aids, sample_size, rng=rng)
         if total_value != sample_size:
-            print('Sampling could not get exactly right sample size')
+            logger.info('Sampling could not get exactly right sample size')
         avail_aids = sorted(avail_aids)
 
     VerbosityContext.endfilter()
     return avail_aids
 
 
-@profile
 def subindex_annots(ibs, avail_aids, aidcfg, ref_aids=None,
                            prefix='', verbose=VERB_TESTDATA):
     """
@@ -1972,7 +1959,6 @@ def subindex_annots(ibs, avail_aids, aidcfg, ref_aids=None,
     return avail_aids
 
 
-@profile
 def ensure_flatiterable(input_):
     if isinstance(input_, six.string_types):
         input_ = ut.fuzzy_int(input_)
@@ -2016,11 +2002,11 @@ def verb_context(filtertype, aidcfg, verbose):
                 if len(keys) > 0:
                     subdict = ut.dict_subset(aidcfg, keys, None)
                     infostr += '' + ut.repr2(subdict, **dictkw)
-                print('[%s] * Filter by %s' % (
+                logger.info('[%s] * Filter by %s' % (
                     self.prefix.upper(), infostr.strip()))
                 if verbose > 1 and len(filterextra) > 0:
                     infostr2 = ut.repr2(filterextra, nl=False, explicit=False)
-                    print('[%s]      %s' % (
+                    logger.info('[%s]      %s' % (
                         self.prefix.upper(), infostr2))
 
         def __enter__(self):
@@ -2033,7 +2019,7 @@ def verb_context(filtertype, aidcfg, verbose):
                 num_after = len(aids)
                 num_removed = self.num_before - num_after
                 if num_removed > 0 or verbose > 1:
-                    print('[%s]   ... removed %d annots. %d remain' %
+                    logger.info('[%s]   ... removed %d annots. %d remain' %
                           (self.prefix.upper(), num_removed, num_after))
 
         @staticmethod
@@ -2060,7 +2046,7 @@ def verb_context(filtertype, aidcfg, verbose):
             """
             if verbose:
                 prefix = ut.get_var_from_stack('prefix', verbose=False)
-                print('[%s] * [%s] %sAIDS' % (prefix.upper(), filtertype,
+                logger.info('[%s] * [%s] %sAIDS' % (prefix.upper(), filtertype,
                                               prefix))
                 if verbose > 1 and withpre:
                     ibs    = ut.get_var_from_stack('ibs', verbose=False)
@@ -2080,8 +2066,8 @@ def verb_context(filtertype, aidcfg, verbose):
                     if verbose > 1:
                         VerbosityContext.report_annot_stats(ibs, aids, prefix,
                                                             '_post')
-                print('[%s] * HAHID: %s' % (prefix.upper(), hashid))
-                print('[%s] * [%s]: len(avail_%saids) = %r\n' % (
+                logger.info('[%s] * HAHID: %s' % (prefix.upper(), hashid))
+                logger.info('[%s] * [%s]: len(avail_%saids) = %r\n' % (
                     prefix.upper(), filtertype, prefix, len(aids)))
     return VerbosityContext
 

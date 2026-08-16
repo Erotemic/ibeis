@@ -7,11 +7,11 @@ select subsets of annotations, pipeline configurations, and other filters.
 TODO: standardize function signatures
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 import utool as ut
 import ubelt as ub
 import six
 #from ibeis.init import old_main_helpers
-(print, rrr, profile) = ut.inject2(__name__, '[main_helpers]')
 
 
 # DEPRICATE
@@ -25,7 +25,7 @@ VERB_MAIN_HELPERS = VERB_TESTDATA
 
 def testdata_filtcfg(default=None):
     from ibeis.expt import cfghelpers
-    print('[main_helpers] testdata_filtcfg')
+    logger.info('[main_helpers] testdata_filtcfg')
     if default is None:
         default = ['']
     filt_cfg = cfghelpers.parse_argv_cfg(('--filt', '-f'), default=default)[0]
@@ -60,7 +60,7 @@ def testdata_expts(defaultdb='testdb1',
         >>> print('testres = %r' % (testres,))
     """
     if ut.VERBOSE:
-        print('[main_helpers] testdata_expts')
+        logger.info('[main_helpers] testdata_expts')
     import ibeis
     from ibeis.expt import harness
     if a is not None:
@@ -108,7 +108,7 @@ def testdata_expts(defaultdb='testdb1',
     #testres = test_result.combine_testres_list(ibs, testres_list)
 
     if ut.VERBOSE:
-        print(testres)
+        logger.info(testres)
     return ibs, testres
 
 
@@ -145,7 +145,7 @@ def testdata_aids(defaultdb=None, a=None, adefault='default', ibs=None,
     from ibeis.expt import cfghelpers
 
     if verbose is None or verbose >= 1:
-        print('[main_helpers] testdata_aids')
+        logger.info('[main_helpers] testdata_aids')
     if a is None:
         a = adefault
     a, _specified_a = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=str,
@@ -215,10 +215,10 @@ def testdata_pipecfg(p=None, t=None, ibs=None, verbose=None):
         >>> print(result)
     """
     if verbose is None or verbose >= 1:
-        print('[main_helpers] testdata_pipecfg')
+        logger.info('[main_helpers] testdata_pipecfg')
     if t is not None and p is None:
         p = t
-        print('WARNING DO NOT USE t. Use p instead')
+        logger.info('WARNING DO NOT USE t. Use p instead')
     if p is None:
         p = ['default']
 
@@ -275,7 +275,7 @@ def testdata_expanded_aids(defaultdb=None, a=None, ibs=None,
         verbose = 1
 
     if verbose:
-        print('[main_helpers] testdata_expanded_aids')
+        logger.info('[main_helpers] testdata_expanded_aids')
 
     default_qaids = ut.get_argval(('--qaid', '--qaid-override'), type_=list,
                                   default=default_qaids)
@@ -372,7 +372,7 @@ def testdata_qreq_(p=None, a=None, t=None, default_qaids=None,
         >>> result = ('qreq_ = %s' % (str(qreq_),))
     """
     if verbose is None or verbose >= 1:
-        print('[main_helpers] testdata_qreq_')
+        logger.info('[main_helpers] testdata_qreq_')
     if t is not None and p is None:
         p = t
     if p is None:
@@ -406,7 +406,7 @@ def testdata_cmlist(defaultdb=None, default_qaids=None, default_daids=None,
         list, ibeis.QueryRequest: cm_list, qreq_
     """
     if verbose is None or verbose >= 1:
-        print('[main_helpers] testdata_cmlist')
+        logger.info('[main_helpers] testdata_cmlist')
     qreq_ = testdata_qreq_(defaultdb=defaultdb, default_qaids=default_qaids,
                            default_daids=default_daids, t=t, p=p, a=a)
     cm_list = qreq_.execute()
@@ -428,13 +428,13 @@ def testdata_cm(defaultdb=None, default_qaids=None, default_daids=None, t=None, 
         >>> cm.show_single_annotmatch(qreq_, 2)
         >>> ut.show_if_requested()
     """
-    print('[main_helpers] testdata_cm')
+    logger.info('[main_helpers] testdata_cm')
     cm_list, qreq_ = testdata_cmlist(defaultdb=defaultdb,
                                      default_daids=default_daids,
                                      default_qaids=default_qaids, t=t, p=p,
                                      a=a)
     qaids = qreq_.qaids
-    print('qaids = %r' % (qaids,))
+    logger.info('qaids = %r' % (qaids,))
     assert len(qaids) == 1, 'only one qaid for this tests, qaids=%r' % (qaids,)
     cm = cm_list[0]
     return cm, qreq_
@@ -474,7 +474,7 @@ def monkeypatch_encounters(ibs, aids, cache=None, **kwargs):
     cacher = ub.Cacher('occurrence_labels', depends=cfgstr, enabled=cache)
     data = cacher.tryload()
     if data is None:
-        print('Computing occurrences for monkey patch for %d aids' % (len(aids)))
+        logger.info('Computing occurrences for monkey patch for %d aids' % (len(aids)))
         posixtimes = annots.image_unixtimes_asfloat
         latlons = annots.gps
         data = cluster_timespace_sec(posixtimes, latlons,

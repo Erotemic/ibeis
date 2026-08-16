@@ -10,6 +10,7 @@ TODO: need to split up into sub modules:
     within this file
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
+from loguru import logger
 from six.moves import zip, range
 from os.path import expanduser, join, abspath
 import numpy as np
@@ -19,7 +20,6 @@ import cv2
 from ibeis.control import controller_inject
 
 # Inject utool functions
-(print, rrr, profile) = ut.inject2(__name__, '[other.detectfuncs]')
 
 SAMPLES = 1000
 AP_SAMPLE_POINTS = [_ / float(SAMPLES) for _ in range(0, SAMPLES + 1)]
@@ -31,7 +31,7 @@ CLASS_INJECT_KEY, register_ibs_method = (
 
 def _resize(image, t_width=None, t_height=None, verbose=False):
     if verbose:
-        print('RESIZING WITH t_width = %r and t_height = %r' % (t_width, t_height, ))
+        logger.info('RESIZING WITH t_width = %r and t_height = %r' % (t_width, t_height, ))
     height, width = image.shape[:2]
     if t_width is None and t_height is None:
         return image
@@ -147,7 +147,7 @@ def general_precision_recall_algo(ibs, label_list, confidence_list, category='po
             tpr_list.append(tpr)
             fpr_list.append(fpr)
         except ZeroDivisionError:
-            print('Zero division error (%r) - tp: %r tn: %r fp: %r fn: %r' % (conf, tp, tn, fp, fn, ))
+            logger.info('Zero division error (%r) - tp: %r tn: %r fp: %r fn: %r' % (conf, tp, tn, fp, fn, ))
 
     return conf_list_, pr_list, re_list, tpr_list, fpr_list
 
@@ -241,7 +241,7 @@ def general_area_best_conf(conf_list, x_list, y_list, label='Unknown', color='b'
                 break
 
     if len(best_conf_list) > 1:
-        print('WARNING: Multiple best operating points found %r' % (best_conf_list, ))
+        logger.info('WARNING: Multiple best operating points found %r' % (best_conf_list, ))
 
     assert len(best_conf_list) > 0
     best_conf = best_conf_list[0]
@@ -621,14 +621,14 @@ def localizer_parse_pred(ibs, test_gid_list=None, species_mapping={}, **kwargs):
 
     # Get updated confidences for boxes
     if kwargs.get('classify', False):
-        print('Using alternate classifications')
+        logger.info('Using alternate classifications')
         # depc.delete_property('localizations_classifier', test_gid_list, config=kwargs)
         confss_list = depc.get_property('localizations_classifier', test_gid_list,
                                         'score', config=kwargs)
 
     # Get updated confidences for boxes
     if kwargs.get('interest', False):
-        print('Using alternate AoI interest flags')
+        logger.info('Using alternate AoI interest flags')
         interests_list = depc.get_property('localizations_classifier', test_gid_list,
                                            'score', config=kwargs)
 
@@ -684,10 +684,10 @@ def localizer_precision_recall_algo(ibs, samples=SAMPLES, test_gid_list=None,
 
     test_uuid_list = ibs.get_image_uuids(test_gid_list)
 
-    print('\tGather Ground-Truth')
+    logger.info('\tGather Ground-Truth')
     gt_dict = general_parse_gt(ibs, test_gid_list=test_gid_list, **kwargs)
 
-    print('\tGather Predictions')
+    logger.info('\tGather Predictions')
     pred_dict = localizer_parse_pred(ibs, test_gid_list=test_gid_list, **kwargs)
 
     species_set = kwargs.get('species_set', None)
@@ -833,7 +833,7 @@ def localizer_tp_fp(uuid_list, gt_dict, pred_dict, min_overlap=0.5, **kwargs):
 
 def localizer_precision_recall_algo_plot(ibs, **kwargs):
     label = kwargs['label']
-    print('Processing Precision-Recall for: %r' % (label, ))
+    logger.info('Processing Precision-Recall for: %r' % (label, ))
     conf_list, pr_list, re_list = localizer_precision_recall_algo(ibs, **kwargs)
     return general_area_best_conf(conf_list, re_list, pr_list, **kwargs)
 
@@ -845,10 +845,10 @@ def localizer_confusion_matrix_algo_plot(ibs, label=None, target_conf=None,
 
     test_uuid_list = ibs.get_image_uuids(test_gid_list)
 
-    print('\tGather Ground-Truth')
+    logger.info('\tGather Ground-Truth')
     gt_dict = general_parse_gt(ibs, test_gid_list=test_gid_list, **kwargs)
 
-    print('\tGather Predictions')
+    logger.info('\tGather Predictions')
     pred_dict = localizer_parse_pred(ibs, test_gid_list=test_gid_list, **kwargs)
 
     species_set = kwargs.get('species_set', None)
@@ -896,7 +896,7 @@ def localizer_confusion_matrix_algo_plot(ibs, label=None, target_conf=None,
         ut.embed()
         return np.nan, (np.nan, None)
 
-    print('Processing Confusion Matrix for: %r (Conf = %0.02f, Accuracy = %0.02f)' % (label, best_conf, best_accuracy, ))
+    logger.info('Processing Confusion Matrix for: %r (Conf = %0.02f, Accuracy = %0.02f)' % (label, best_conf, best_accuracy, ))
     tp, fp, fn = best_args
 
     label_list = []
@@ -924,7 +924,7 @@ def localizer_confusion_matrix_algo_plot(ibs, label=None, target_conf=None,
 @register_ibs_method
 def localizer_precision_recall(ibs, test_gid_list=None, **kwargs):
     if test_gid_list is not None:
-        print('Using %d test gids' % (len(test_gid_list), ))
+        logger.info('Using %d test gids' % (len(test_gid_list), ))
 
     species_mapping = {
         'giraffe_masai'       : 'giraffe',
@@ -1315,7 +1315,7 @@ def localizer_precision_recall_algo_display(ibs, config_list, config_tag='', min
 def localizer_precision_recall_algo_display_animate(ibs, config_list, **kwargs):
     for value in range(10):
         min_overlap = value / 10.0
-        print('Processing: %r' % (min_overlap, ))
+        logger.info('Processing: %r' % (min_overlap, ))
         ibs.localizer_precision_recall_algo_display(config_list, min_overlap=min_overlap, **kwargs)
 
 
@@ -1545,21 +1545,21 @@ def classifier_cameratrap_precision_recall_algo(ibs, positive_imageset_id, negat
 
 def classifier_cameratrap_precision_recall_algo_plot(ibs, **kwargs):
     label = kwargs['label']
-    print('Processing Precision-Recall for: %r' % (label, ))
+    logger.info('Processing Precision-Recall for: %r' % (label, ))
     conf_list, pr_list, re_list, tpr_list, fpr_list = classifier_cameratrap_precision_recall_algo(ibs, **kwargs)
     return general_area_best_conf(conf_list, re_list, pr_list, **kwargs)
 
 
 def classifier_cameratrap_roc_algo_plot(ibs, **kwargs):
     label = kwargs['label']
-    print('Processing ROC for: %r' % (label, ))
+    logger.info('Processing ROC for: %r' % (label, ))
     conf_list, pr_list, re_list, tpr_list, fpr_list = classifier_cameratrap_precision_recall_algo(ibs, **kwargs)
     return general_area_best_conf(conf_list, fpr_list, tpr_list, interpolate=False,
                                   target=(0.0, 1.0), **kwargs)
 
 
 def classifier_cameratrap_confusion_matrix_algo_plot(ibs, label, color, conf, positive_imageset_id, negative_imageset_id, output_cases=False, **kwargs):
-    print('Processing Confusion Matrix for: %r (Conf = %0.02f)' % (label, conf, ))
+    logger.info('Processing Confusion Matrix for: %r (Conf = %0.02f)' % (label, conf, ))
     depc = ibs.depc_image
     test_gid_set_ = set(general_get_imageset_gids(ibs, 'TEST_SET'))
     test_gid_set_ = list(test_gid_set_)
@@ -1904,7 +1904,7 @@ def classifier2_precision_recall_algo(ibs, category, species_mapping={},
         thumbnail_list = depc.get_property('thumbnails', test_gid_list, 'img', config=config_)
         zipped = zip(test_gid_list, thumbnail_list, species_set_list, confidence_dict_list)
         for index, (test_gid, thumbnail, species_set, confidence_dict) in enumerate(zipped):
-            print(index)
+            logger.info(index)
             x = ';'.join(species_set)
             y = []
             for key in confidence_dict:
@@ -1920,14 +1920,14 @@ def classifier2_precision_recall_algo(ibs, category, species_mapping={},
 
 def classifier2_precision_recall_algo_plot(ibs, **kwargs):
     label = kwargs['label']
-    print('Processing Precision-Recall for: %r' % (label, ))
+    logger.info('Processing Precision-Recall for: %r' % (label, ))
     conf_list, pr_list, re_list, tpr_list, fpr_list = classifier2_precision_recall_algo(ibs, **kwargs)
     return general_area_best_conf(conf_list, re_list, pr_list, **kwargs)
 
 
 def classifier2_roc_algo_plot(ibs, **kwargs):
     label = kwargs['label']
-    print('Processing ROC for: %r' % (label, ))
+    logger.info('Processing ROC for: %r' % (label, ))
     conf_list, pr_list, re_list, tpr_list, fpr_list = classifier2_precision_recall_algo(ibs, **kwargs)
     return general_area_best_conf(conf_list, fpr_list, tpr_list, interpolate=False,
                                   target=(0.0, 1.0), **kwargs)
@@ -2033,8 +2033,8 @@ def classifier2_precision_recall_algo_display(ibs, species_list=None,
                 species_set_.add(key)
         if len(species_set ^ species_set_) == 0:
             correct += 1
-    print('Accuracy: %0.04f' % (100.0 * correct / len(test_gid_list)))
-    print('\t using op_dict = %r' % (op_dict, ))
+    logger.info('Accuracy: %0.04f' % (100.0 * correct / len(test_gid_list)))
+    logger.info('\t using op_dict = %r' % (op_dict, ))
 
     fig_filename = 'classifier2-precision-recall-roc.png'
     fig_path = abspath(expanduser(join('~', 'Desktop', fig_filename)))
@@ -2384,14 +2384,14 @@ def aoi2_precision_recall_algo(ibs, category_list=None, test_gid_set_=None, **kw
 
 def aoi2_precision_recall_algo_plot(ibs, **kwargs):
     label = kwargs['label']
-    print('Processing Precision-Recall for: %r' % (label, ))
+    logger.info('Processing Precision-Recall for: %r' % (label, ))
     conf_list, pr_list, re_list, tpr_list, fpr_list = aoi2_precision_recall_algo(ibs, **kwargs)
     return general_area_best_conf(conf_list, re_list, pr_list, **kwargs)
 
 
 def aoi2_roc_algo_plot(ibs, **kwargs):
     label = kwargs['label']
-    print('Processing ROC for: %r' % (label, ))
+    logger.info('Processing ROC for: %r' % (label, ))
     conf_list, pr_list, re_list, tpr_list, fpr_list = aoi2_precision_recall_algo(ibs, **kwargs)
     return general_area_best_conf(conf_list, fpr_list, tpr_list, interpolate=False,
                                   target=(0.0, 1.0), **kwargs)
@@ -2399,7 +2399,7 @@ def aoi2_roc_algo_plot(ibs, **kwargs):
 
 def aoi2_confusion_matrix_algo_plot(ibs, label, color, conf, output_cases=False,
                                     category_list=None, test_gid_set_=None, **kwargs):
-    print('Processing Confusion Matrix for: %r (Conf = %0.02f)' % (label, conf, ))
+    logger.info('Processing Confusion Matrix for: %r (Conf = %0.02f)' % (label, conf, ))
     depc = ibs.depc_annot
     if test_gid_set_ is None:
         test_gid_set_ = general_get_imageset_gids(ibs, 'TEST_SET')

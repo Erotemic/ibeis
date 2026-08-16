@@ -1,8 +1,8 @@
+from loguru import logger
 import numpy as np
 import vtool_ibeis as vt
 import utool as ut
 from ibeis.control import controller_inject
-print, rrr, profile = ut.inject2(__name__)
 
 
 # Create dectorator to inject functions in this module into the IBEISController
@@ -596,7 +596,6 @@ def filterflags_general_tags(tags_list,
 
 
 @register_ibs_method
-@profile
 def get_annotmatch_case_tags(ibs, annotmatch_rowids):
     r"""
     Args:
@@ -650,7 +649,6 @@ def get_annotmatch_case_tags(ibs, annotmatch_rowids):
     return tags_list
 
 
-@profile
 def get_annotmatch_standard_prop(ibs, prop, annotmatch_rowids):
     getter = getattr(ibs, 'get_annotmatch_is_' + prop.lower())
     flag_list = getter(annotmatch_rowids)
@@ -658,7 +656,6 @@ def get_annotmatch_standard_prop(ibs, prop, annotmatch_rowids):
 
 
 @register_ibs_method
-@profile
 def get_annotmatch_prop(ibs, prop, annotmatch_rowids):
     r"""
     hacky getter for dynamic properties of annotmatches using notes table
@@ -720,7 +717,7 @@ def set_annotmatch_prop(ibs, prop, annotmatch_rowids, flags):
     """
     hacky setter for dynamic properties of annotmatches using notes table
     """
-    print('[ibs] set_annotmatch_prop prop=%s for %d pairs' % (prop, len(annotmatch_rowids)))
+    logger.info('[ibs] set_annotmatch_prop prop=%s for %d pairs' % (prop, len(annotmatch_rowids)))
     #if prop.lower() in ANNOTMATCH_PROPS_STANDARD_SET:
     #    setter = getattr(ibs, 'set_annotmatch_is_' + prop.lower())
     #    return setter(annotmatch_rowids, flags)
@@ -744,7 +741,6 @@ def _remove_tag(tags, prop):
     return tags
 
 
-@profile
 def get_annotmatch_other_prop(ibs, prop, annotmatch_rowids):
     annotmatch_tag_texts_list = ibs.get_annotmatch_tag_text(annotmatch_rowids)
     flag_list = get_textformat_tag_flags(prop, annotmatch_tag_texts_list)
@@ -760,7 +756,6 @@ def set_annotmatch_other_prop(ibs, prop, annotmatch_rowids, flags):
     ibs.set_annotmatch_tag_text(annotmatch_rowids, new_notes_list)
 
 
-@profile
 def get_textformat_tag_flags(prop, text_list):
     """ general text tag getter hack """
     tags_list = [None if note is None else _parse_tags(note)
@@ -1004,7 +999,6 @@ def get_annot_case_tags(ibs, aid_list):
 
 
 @register_ibs_method
-@profile
 def get_annot_annotmatch_tags(ibs, aid_list):
     r"""
     Args:
@@ -1035,7 +1029,6 @@ def get_annot_annotmatch_tags(ibs, aid_list):
 
 
 @register_ibs_method
-@profile
 def get_annot_all_tags(ibs, aid_list=None):
     """
     CommandLine:
