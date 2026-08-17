@@ -80,7 +80,8 @@ def _init_gui(activate=True):
     return back
 
 
-def _init_ibeis(dbdir=None, verbose=None, use_cache=True, web=None, **kwargs):
+def _init_ibeis(dbdir=None, verbose=None, use_cache=True, web=None,
+                make_backups=True, **kwargs):
     """
     Private function that calls code to create an ibeis controller
     """
@@ -102,7 +103,7 @@ def _init_ibeis(dbdir=None, verbose=None, use_cache=True, web=None, **kwargs):
         ibs = IBEISControl.request_IBEISController(
             dbdir=dbdir, use_cache=use_cache,
             request_dbversion=request_dbversion,
-            force_serial=force_serial)
+            force_serial=force_serial, make_backups=make_backups)
         if web is None:
             web = ut.get_argflag(('--webapp', '--webapi', '--web', '--browser'),
                                  help_='automatically launch the web app / web api')
@@ -488,7 +489,7 @@ def opendb_fg_web(*args, **kwargs):
 
 def opendb(db=None, dbdir=None, defaultdb='cache', allow_newdir=False,
            delete_ibsdir=False, verbose=False, use_cache=True,
-           web=None, **kwargs):
+           web=None, make_backups=True, **kwargs):
     """
     main without the preload (except for option to delete database before
     opening)
@@ -506,6 +507,8 @@ def opendb(db=None, dbdir=None, defaultdb='cache', allow_newdir=False,
         web (bool): starts webserver if True (default=param specification)
         use_cache (bool): if True will try to return a previously loaded
             controller
+        make_backups (bool): if False, skip automatic database backups
+            while opening the controller
 
     Returns:
         ibeis.IBEISController: ibs
@@ -534,8 +537,9 @@ def opendb(db=None, dbdir=None, defaultdb='cache', allow_newdir=False,
         assert allow_newdir, (
             'must be making new directory if you are deleting everything!')
         ibsfuncs.delete_ibeis_database(dbdir)
-    ibs = _init_ibeis(dbdir, verbose=verbose, use_cache=use_cache, web=web,
-                      **kwargs)
+    ibs = _init_ibeis(
+        dbdir, verbose=verbose, use_cache=use_cache, web=web,
+        make_backups=make_backups, **kwargs)
     return ibs
 
 

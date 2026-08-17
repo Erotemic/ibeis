@@ -181,7 +181,7 @@ CORE_DB_UUID_INIT_API_RULE = '/api/core/db/uuid/init/'
 def request_IBEISController(
         dbdir=None, ensure=True, wbaddr=None, verbose=ut.VERBOSE,
         use_cache=True, request_dbversion=None, request_stagingversion=None,
-        force_serial=False, asproxy=None, check_hsdb=True):
+        force_serial=False, asproxy=None, check_hsdb=True, make_backups=True):
     r"""
     Alternative to directory instantiating a new controller object. Might
     return a memory cached object
@@ -195,6 +195,8 @@ def request_IBEISController(
             Make sure this is false if calling from a Thread. (default=True)
         request_dbversion (str): developer flag. Do not use.
         request_stagingversion (str): developer flag. Do not use.
+        make_backups (bool): create automatic database backups while opening.
+            Tests with disposable database copies can disable this.
 
     Returns:
         IBEISController: ibs
@@ -231,7 +233,8 @@ def request_IBEISController(
             ibs = IBEISController(
                 dbdir=dbdir, ensure=ensure, wbaddr=wbaddr, verbose=verbose,
                 force_serial=force_serial, request_dbversion=request_dbversion,
-                request_stagingversion=request_stagingversion)
+                request_stagingversion=request_stagingversion,
+                make_backups=make_backups)
         if use_cache:
             __IBEIS_CONTROLLER_CACHE__[dbdir] = ibs
     return ibs
@@ -277,7 +280,7 @@ class IBEISController(BASE_CLASS):
 
     def __init__(ibs, dbdir=None, ensure=True, wbaddr=None, verbose=True,
                  request_dbversion=None, request_stagingversion=None,
-                 force_serial=None):
+                 force_serial=None, make_backups=True):
         """ Creates a new IBEIS Controller associated with one database """
         #if verbose and ut.VERBOSE:
         logger.info('\n[ibs.__init__] new IBEISController')
@@ -292,6 +295,7 @@ class IBEISController(BASE_CLASS):
                        'It does not exist or has not been built.')
                 ut.printex(ex, msg, iswarning=True)
         ibs.dbname = None
+        ibs.make_backups = make_backups
         # an dict to hack in temporary state
         ibs.const = const
         ibs.readonly = None
@@ -524,7 +528,7 @@ class IBEISController(BASE_CLASS):
         ibs._init_rowid_constants()
 
     def _needs_backup(ibs):
-        needs_backup = not ut.get_argflag('--nobackup')
+        needs_backup = ibs.make_backups and not ut.get_argflag('--nobackup')
         if ibs.get_dbname() == 'PZ_MTEST':
             needs_backup = False
         if dtool_ibeis.sql_control.READ_ONLY:

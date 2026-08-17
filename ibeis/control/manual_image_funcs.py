@@ -295,33 +295,24 @@ def add_images(ibs, gpath_list, params_list=None, as_annots=False,
     CommandLine:
         python -m ibeis.control.manual_image_funcs add_images
 
-    Doctest:
-        >>> # Test returns None on fail to add
-        >>> from ibeis.control.manual_image_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> gpath_list = ['doesnotexist.jpg']
-        >>> assert not ut.checkpath(gpath_list[0])
-        >>> gid_list = ibs.add_images(gpath_list)
-        >>> assert len(gid_list) == len(gpath_list)
-        >>> assert gid_list[0] is None
-
-    Doctest:
-        >>> # test double add
-        >>> from ibeis.control.manual_image_funcs import *  # NOQA
-        >>> import ibeis
-        >>> import kwimage
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> gpath = kwimage.grab_test_image_fpath('carl')
-        >>> new_gpath_list = [gpath]
-        >>> new_gids1 = ibs.add_images(new_gpath_list, auto_localize=False)
-        >>> new_gids2 = ibs.add_images(new_gpath_list, auto_localize=False)
-        >>> #new_gids2 = ibs.add_images(new_gpath_list, auto_localize=True)
-        >>> assert new_gids1 == new_gids2, 'should be the same'
-        >>> new_gpath_list2 = ibs.get_image_paths(new_gids1)
-        >>> assert new_gpath_list == new_gpath_list2, 'should not move when autolocalize is False'
-        >>> # Clean things up
-        >>> ibs.delete_images(new_gids1)
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from pathlib import Path
+        >>> from ibeis.tests.fixtures import IBEISControllerFixture
+        >>> with IBEISControllerFixture() as ibs:
+        ...     before_gids = set(ibs.get_valid_gids())
+        ...     gpath = Path(ibs.dbdir).parent / 'new-fixture-image.ppm'
+        ...     pixels = bytes([
+        ...         255, 0, 0, 0, 255, 0,
+        ...         0, 0, 255, 255, 255, 0,
+        ...     ])
+        ...     gpath.write_bytes(b'P6\n2 2\n255\n' + pixels)
+        ...     gid1 = ibs.add_images([str(gpath)], auto_localize=True)[0]
+        ...     gid2 = ibs.add_images([str(gpath)], auto_localize=True)[0]
+        ...     assert gid1 == gid2
+        ...     assert gid1 not in before_gids
+        ...     assert set(ibs.get_valid_gids()) == before_gids | {gid1}
+        ...     assert Path(ibs.get_image_paths([gid1])[0]).is_file()
     """
     logger.info('[ibs] add_images')
     logger.info('[ibs] len(gpath_list) = %d' % len(gpath_list))

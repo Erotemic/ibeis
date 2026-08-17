@@ -23,7 +23,7 @@ import tempfile
 from pathlib import Path
 
 
-_FIXTURE_REVISION = 1
+_FIXTURE_REVISION = 2
 _READY_FNAME = '_ibeis_test_fixture_ready.txt'
 _SEED_IMAGE_NAMES = (
     'fixture-a.ppm',
@@ -100,6 +100,7 @@ def _build_seed_database(dbdir):
             allow_newdir=True,
             use_cache=False,
             web=False,
+            make_backups=False,
         )
         gid_list = ibs.add_images(
             [os.fspath(path) for path in image_paths],
@@ -206,6 +207,7 @@ class IBEISControllerFixture:
                 allow_newdir=False,
                 use_cache=False,
                 web=False,
+                make_backups=False,
             )
         except Exception:
             self._tempdir.cleanup()

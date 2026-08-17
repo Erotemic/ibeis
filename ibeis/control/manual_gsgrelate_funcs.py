@@ -29,14 +29,15 @@ def delete_empty_imgsetids(ibs):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_gsgrelate_funcs import *  # NOQA
-        >>> import ibeis
-        >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> # execute function
-        >>> result = ibs.delete_empty_imgsetids()
-        >>> # verify results
-        >>> print(result)
+        >>> from ibeis.tests.fixtures import IBEISControllerFixture
+        >>> with IBEISControllerFixture() as ibs:
+        ...     populated = set(ibs.get_valid_imgsetids(min_num_gids=1))
+        ...     empty_imgsetid = ibs.add_imagesets(['fixture-empty'])[0]
+        ...     assert empty_imgsetid in ibs.get_valid_imgsetids(min_num_gids=0)
+        ...     assert empty_imgsetid not in populated
+        ...     ibs.delete_empty_imgsetids()
+        ...     assert empty_imgsetid not in ibs.get_valid_imgsetids(min_num_gids=0)
+        ...     assert set(ibs.get_valid_imgsetids(min_num_gids=1)) == populated
     """
     imgsetid_list = ibs.get_valid_imgsetids(min_num_gids=0)
     nGids_list = ibs.get_imageset_num_gids(imgsetid_list)

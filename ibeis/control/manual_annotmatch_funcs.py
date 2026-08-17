@@ -141,12 +141,14 @@ def delete_annotmatch(ibs, annotmatch_rowid_list):
         tbl = annotmatch
 
     Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.control.manual_annotmatch_funcs import *  # NOQA
-        >>> ibs, config2_ = testdata_annotmatch()
-        >>> annotmatch_rowid_list = ibs._get_all_annotmatch_rowids()[:2]
-        >>> num_deleted = ibs.delete_annotmatch(annotmatch_rowid_list)
-        >>> print('num_deleted = %r' % (num_deleted,))
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.tests.fixtures import IBEISControllerFixture
+        >>> with IBEISControllerFixture() as ibs:
+        ...     aid1, aid2 = ibs.get_valid_aids()[:2]
+        ...     rowid = ibs.add_annotmatch([aid1], [aid2])[0]
+        ...     assert rowid in ibs._get_all_annotmatch_rowids()
+        ...     assert ibs.delete_annotmatch([rowid]) == 1
+        ...     assert rowid not in ibs._get_all_annotmatch_rowids()
     """
     #from ibeis.algo.preproc import preproc_annotmatch
     # NO EXTERN IMPORT
