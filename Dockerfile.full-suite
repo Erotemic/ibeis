@@ -35,6 +35,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         libfontconfig1 \
         libgl1 \
         libglib2.0-0 \
+        libhdf5-dev \
+        liblz4-dev \
         libopencv-dev \
         libx11-xcb1 \
         libxcb-cursor0 \
@@ -78,20 +80,20 @@ RUN set -eux; \
 
 # Install the complete ecosystem in dependency order. Each local project is
 # installed before anything that depends on its unpublished development
-# version, preventing pip from silently substituting a PyPI copy. Binary
-# projects are intentionally built editable from the checked-out sources.
-RUN set -eux; \
-    python -m pip install -e './tpl/utool[tests,optional]'; \
-    python -m pip install -e './tpl/futures_actors'; \
-    python -m pip install -e './tpl/pyflann_ibeis[tests]'; \
-    python -m pip install -e './tpl/pyhesaff[tests,headless]'; \
-    python -m pip install -e './tpl/vtool_ibeis_ext[tests,headless]'; \
-    python -m pip install -e './tpl/vtool_ibeis[tests,headless,optional]'; \
-    python -m pip install -e './tpl/guitool_ibeis[tests,headless,optional]'; \
-    python -m pip install -e './tpl/dtool_ibeis[tests,headless,optional]'; \
-    python -m pip install -e './tpl/plottool_ibeis[tests,headless,optional]'; \
-    python -m pip install -e '.[tests,headless,optional]'; \
-    python -m pip check
+# version, preventing pip from silently substituting a PyPI copy. Keep each
+# project in its own Docker layer so a late native-build failure does not force
+# every already-successful editable install to be repeated on the next build.
+RUN python -m pip install -e './tpl/utool[tests,optional]'
+RUN python -m pip install -e './tpl/futures_actors'
+RUN python -m pip install -e './tpl/pyflann_ibeis[tests]'
+RUN python -m pip install -e './tpl/pyhesaff[tests,headless]'
+RUN python -m pip install -e './tpl/vtool_ibeis_ext[tests,headless]'
+RUN python -m pip install -e './tpl/vtool_ibeis[tests,headless,optional]'
+RUN python -m pip install -e './tpl/guitool_ibeis[tests,headless,optional]'
+RUN python -m pip install -e './tpl/dtool_ibeis[tests,headless,optional]'
+RUN python -m pip install -e './tpl/plottool_ibeis[tests,headless,optional]'
+RUN python -m pip install -e '.[tests,headless,optional]'
+RUN python -m pip check
 
 # Fail the image build if an ecosystem import resolves outside the copied
 # checkout. This catches accidental replacement of an editable development
