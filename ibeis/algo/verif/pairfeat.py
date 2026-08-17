@@ -502,7 +502,13 @@ class PairwiseFeatureExtractor(object):
             #     print('Load match cache size: {}'.format(
             #         ut.get_file_nBytes_str(fpath)))
 
-            data = cacher.tryload()
+            # Pairwise features are a fully derived cache. In particular,
+            # cached pandas objects may become unreadable after a pandas
+            # upgrade even when the feature configuration itself is unchanged.
+            # Treat deserialization failures as stale cache entries: clear the
+            # incompatible artifact, recompute below, and save it in the
+            # current environment.
+            data = cacher.tryload(on_error='clear')
             if data is None:
                 data = extr._make_pairwise_features(edges)
                 cacher.save(data)
