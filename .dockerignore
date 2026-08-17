@@ -1,0 +1,46 @@
+# Keep Docker's build context focused on source code.  Local IBEIS workdirs,
+# caches, VCS metadata, coverage output, and native build products can easily
+# make the context several gigabytes and are not inputs to the editable build.
+
+# Version-control metadata is unnecessary for these projects' package versions.
+.git/
+**/.git/
+
+# IBEIS runtime/test workdirs and generated reports.
+ibeis_default_workdir/
+.full-suite-reports/
+**/_ibeis_cache/
+
+# Python caches, virtual environments, and test/report output.
+**/__pycache__/
+**/*.py[cod]
+**/.pytest_cache/
+**/.mypy_cache/
+**/.ruff_cache/
+**/.tox/
+**/.nox/
+**/.venv/
+**/venv/
+**/.coverage
+**/.coverage.*
+**/htmlcov/
+
+# Packaging and native build products.  The image rebuilds these from source.
+**/build/
+**/dist/
+**/_skbuild/
+**/*.egg-info/
+**/.eggs/
+**/CMakeFiles/
+**/CMakeCache.txt
+**/cmake_install.cmake
+**/*.so
+**/*.dylib
+**/*.dll
+**/*.pyd
+**/*.a
+**/*.lib
+
+# Common editor / OS noise.
+**/.DS_Store
+**/*~
