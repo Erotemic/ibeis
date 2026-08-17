@@ -53,3 +53,6 @@ ibeis_default_workdir/
 git-of-theseus/
 synthetic_creatures/
 .venv/
+
+# Full ecosystem pre-publish test reports
+.full-suite-reports/

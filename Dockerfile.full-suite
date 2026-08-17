@@ -1,0 +1,130 @@
+# syntax=docker/dockerfile:1.7
+# Full IBEIS ecosystem pre-publish test environment.
+#
+# Build from the IBEIS repository root after updating all tpl submodules:
+#   docker build -f Dockerfile.full-suite -t ibeis-full-suite .
+#
+# Run every repository test suite:
+#   docker run --rm --shm-size=2g ibeis-full-suite
+#
+# Override the supported Python line when useful:
+#   docker build --build-arg PYTHON_VERSION=3.13 -f Dockerfile.full-suite -t ibeis-full-suite .
+
+ARG PYTHON_VERSION=3.13
+FROM python:${PYTHON_VERSION}-bookworm
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    MPLBACKEND=Agg \
+    QT_QPA_PLATFORM=offscreen \
+    XDG_RUNTIME_DIR=/tmp/xdg-runtime
+
+# Native development dependencies are required because the purpose of this
+# image is to test the checked-out binary submodules, not their published
+# wheels. Xvfb / Qt runtime libraries make GUI tests usable in a headless
+# container.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        build-essential \
+        cmake \
+        git \
+        libdbus-1-3 \
+        libegl1 \
+        libfontconfig1 \
+        libgl1 \
+        libglib2.0-0 \
+        libopencv-dev \
+        libx11-xcb1 \
+        libxcb-cursor0 \
+        libxcb-icccm4 \
+        libxcb-image0 \
+        libxcb-keysyms1 \
+        libxcb-render-util0 \
+        libxcb-xinerama0 \
+        libxcb-xkb1 \
+        libxkbcommon-x11-0 \
+        ninja-build \
+        pkg-config \
+        xauth \
+        xvfb \
+    && rm -rf /var/lib/apt/lists/* \
+    && mkdir -p "$XDG_RUNTIME_DIR" \
+    && chmod 700 "$XDG_RUNTIME_DIR"
+
+WORKDIR /workspace/ibeis
+COPY . /workspace/ibeis
+
+RUN python -m pip install --upgrade pip setuptools wheel
+
+# The image must test the caller's exact submodule checkout. Fail rather than
+# cloning or falling back to published packages when a submodule is absent.
+RUN set -eux; \
+    for repo in \
+        tpl/utool \
+        tpl/futures_actors \
+        tpl/pyflann_ibeis \
+        tpl/pyhesaff \
+        tpl/vtool_ibeis_ext \
+        tpl/vtool_ibeis \
+        tpl/guitool_ibeis \
+        tpl/dtool_ibeis \
+        tpl/plottool_ibeis; \
+    do \
+        test -d "$repo"; \
+        test -f "$repo/pyproject.toml" -o -f "$repo/setup.py"; \
+    done
+
+# Install the complete ecosystem in dependency order. Each local project is
+# installed before anything that depends on its unpublished development
+# version, preventing pip from silently substituting a PyPI copy. Binary
+# projects are intentionally built editable from the checked-out sources.
+RUN set -eux; \
+    python -m pip install -e './tpl/utool[tests,optional]'; \
+    python -m pip install -e './tpl/futures_actors'; \
+    python -m pip install -e './tpl/pyflann_ibeis[tests]'; \
+    python -m pip install -e './tpl/pyhesaff[tests,headless]'; \
+    python -m pip install -e './tpl/vtool_ibeis_ext[tests,headless]'; \
+    python -m pip install -e './tpl/vtool_ibeis[tests,headless,optional]'; \
+    python -m pip install -e './tpl/guitool_ibeis[tests,headless,optional]'; \
+    python -m pip install -e './tpl/dtool_ibeis[tests,headless,optional]'; \
+    python -m pip install -e './tpl/plottool_ibeis[tests,headless,optional]'; \
+    python -m pip install -e '.[tests,headless,optional]'; \
+    python -m pip check
+
+# Fail the image build if an ecosystem import resolves outside the copied
+# checkout. This catches accidental replacement of an editable development
+# package by a published wheel.
+RUN python - <<'PY'
+from pathlib import Path
+
+root = Path('/workspace/ibeis').resolve()
+modules = [
+    'ibeis',
+    'utool',
+    'vtool_ibeis',
+    'dtool_ibeis',
+    'plottool_ibeis',
+    'guitool_ibeis',
+    'futures_actors',
+    'pyhesaff',
+    'pyflann_ibeis',
+    'vtool_ibeis_ext',
+]
+
+print('[editable-check] import locations')
+for name in modules:
+    module = __import__(name)
+    module_path = Path(module.__file__).resolve()
+    print(f'  {name:<18} {module_path}')
+    if root not in module_path.parents:
+        raise RuntimeError(
+            f'{name} resolved outside the editable workspace: {module_path}'
+        )
+print('[editable-check] all ecosystem modules resolve into the workspace')
+PY
+
+RUN chmod +x /workspace/ibeis/run_full_suite.sh
+
+CMD ["/workspace/ibeis/run_full_suite.sh"]
