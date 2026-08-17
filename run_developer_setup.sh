@@ -55,7 +55,6 @@ PUREPY_PKGS=(
     tpl/dtool_ibeis
     tpl/plottool_ibeis
     tpl/guitool_ibeis
-    tpl/futures_actors
 )
 
 # Compiled repos: default to the PyPI wheels pulled in as ibeis deps.
@@ -106,7 +105,7 @@ python - <<'EOF'
 import sys
 mods = [
     'ibeis', 'utool', 'vtool_ibeis', 'dtool_ibeis', 'plottool_ibeis',
-    'guitool_ibeis', 'futures_actors', 'pyhesaff', 'pyflann_ibeis',
+    'guitool_ibeis', 'pyhesaff', 'pyflann_ibeis',
     'vtool_ibeis_ext',
 ]
 bad = []

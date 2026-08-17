@@ -65,7 +65,6 @@ RUN python -m pip install --upgrade pip setuptools wheel
 RUN set -eux; \
     for repo in \
         tpl/utool \
-        tpl/futures_actors \
         tpl/pyflann_ibeis \
         tpl/pyhesaff \
         tpl/vtool_ibeis_ext \
@@ -84,10 +83,25 @@ RUN set -eux; \
 # project in its own Docker layer so a late native-build failure does not force
 # every already-successful editable install to be repeated on the next build.
 RUN python -m pip install -e './tpl/utool[tests,optional]'
-RUN python -m pip install -e './tpl/futures_actors'
 RUN python -m pip install -e './tpl/pyflann_ibeis[tests]'
 RUN python -m pip install -e './tpl/pyhesaff[tests,headless]'
 RUN python -m pip install -e './tpl/vtool_ibeis_ext[tests,headless]'
+
+# Classic scikit-build editable installs expose the Python source tree but do
+# not reliably place CMake install artifacts into that source tree. The wrapper
+# intentionally loads libsver from vtool_ibeis_ext/lib, so build and install
+# that native target explicitly into the editable checkout. This keeps Python
+# editable while ensuring the native code was compiled inside this container.
+RUN cmake \
+        -S /workspace/ibeis/tpl/vtool_ibeis_ext \
+        -B /tmp/vtool_ibeis_ext-build \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_INSTALL_PREFIX=/workspace/ibeis/tpl/vtool_ibeis_ext \
+    && cmake --build /tmp/vtool_ibeis_ext-build --parallel \
+    && cmake --install /tmp/vtool_ibeis_ext-build \
+    && find /workspace/ibeis/tpl/vtool_ibeis_ext/vtool_ibeis_ext/lib \
+        -maxdepth 1 -type f -print
+
 RUN python -m pip install -e './tpl/vtool_ibeis[tests,headless,optional]'
 RUN python -m pip install -e './tpl/guitool_ibeis[tests,headless,optional]'
 RUN python -m pip install -e './tpl/dtool_ibeis[tests,headless,optional]'
@@ -109,7 +123,6 @@ modules = [
     'dtool_ibeis',
     'plottool_ibeis',
     'guitool_ibeis',
-    'futures_actors',
     'pyhesaff',
     'pyflann_ibeis',
     'vtool_ibeis_ext',
@@ -125,6 +138,12 @@ for name in modules:
             f'{name} resolved outside the editable workspace: {module_path}'
         )
 print('[editable-check] all ecosystem modules resolve into the workspace')
+
+# Import the native wrapper during the image build so an editable/native
+# packaging mismatch fails immediately instead of cascading through vtool and
+# IBEIS test suites later.
+from vtool_ibeis_ext import sver_c_wrapper
+print(f'[editable-check] libsver={sver_c_wrapper.lib_fname}')
 PY
 
 RUN chmod +x /workspace/ibeis/run_full_suite.sh

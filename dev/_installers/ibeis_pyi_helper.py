@@ -94,7 +94,6 @@ SOURCE_INTROSPECTED_PKGS = [
     "dtool_ibeis",
     "plottool_ibeis",
     "guitool_ibeis",
-    "futures_actors",
     "pyhesaff",
     "pyflann_ibeis",
     "vtool_ibeis_ext",

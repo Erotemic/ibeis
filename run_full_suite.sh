@@ -9,6 +9,7 @@ set -uo pipefail
 REPO_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 REPORT_DIR=${IBEIS_TEST_REPORT_DIR:-"$REPO_ROOT/.full-suite-reports"}
 FAIL_FAST=${IBEIS_TEST_FAIL_FAST:-0}
+IBEIS_WORKDIR=${IBEIS_TEST_WORKDIR:-/tmp/ibeis-full-suite-workdir}
 
 export MPLBACKEND=${MPLBACKEND:-Agg}
 export QT_QPA_PLATFORM=${QT_QPA_PLATFORM:-offscreen}
@@ -16,11 +17,15 @@ export XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR:-/tmp/xdg-runtime}
 mkdir -p "$XDG_RUNTIME_DIR" "$REPORT_DIR"
 chmod 700 "$XDG_RUNTIME_DIR" 2>/dev/null || true
 
+# A persistent host-mounted report directory is useful across container runs,
+# but reports for suites removed from the matrix would otherwise linger and
+# look current. Only clear generated logs; leave unrelated user files alone.
+find "$REPORT_DIR" -maxdepth 1 -type f -name '*.log' -delete
+
 # Dependency-oriented order makes failures easier to interpret. IBEIS itself is
 # last so its result reflects the exact local ecosystem that was just tested.
 SUITES=(
     "utool|tpl/utool"
-    "futures_actors|tpl/futures_actors"
     "pyflann_ibeis|tpl/pyflann_ibeis"
     "pyhesaff|tpl/pyhesaff"
     "vtool_ibeis_ext|tpl/vtool_ibeis_ext"
@@ -30,6 +35,27 @@ SUITES=(
     "plottool_ibeis|tpl/plottool_ibeis"
     "ibeis|."
 )
+
+prepare_ibeis_suite() {
+    # Mirror the database preparation performed by the regular IBEIS CI job.
+    # A fresh workdir keeps this full-stack run independent of developer caches
+    # and ensures doctests can resolve testdb1 / PZ_MTEST / the other fixtures
+    # they expect.
+    rm -rf "$IBEIS_WORKDIR"
+    mkdir -p "$IBEIS_WORKDIR"
+    (
+        cd "$REPO_ROOT"
+        python -m ibeis --set-workdir="$IBEIS_WORKDIR" --nogui
+        python -m ibeis --resetdbs
+        # --resetdbs intentionally prepares only the small CI databases. Two
+        # active H.O.T.S. tests use PZ_MTEST directly, so include that standard
+        # fixture in the full ecosystem environment as well.
+        python - <<'PY'
+import ibeis
+ibeis.ensure_pz_mtest()
+PY
+    )
+}
 
 run_suite() {
     local name=$1
@@ -46,6 +72,14 @@ run_suite() {
     echo "================================================================================"
     echo "[full-suite] START $name ($relpath)"
     echo "================================================================================"
+
+    if [[ "$name" == "ibeis" ]]; then
+        echo "[full-suite] preparing IBEIS test databases in $IBEIS_WORKDIR"
+        if ! prepare_ibeis_suite 2>&1 | tee "$REPORT_DIR/ibeis-prepare.log"; then
+            echo "[full-suite] FAIL ibeis database preparation"
+            return 3
+        fi
+    fi
 
     local -a command
     case "$name" in

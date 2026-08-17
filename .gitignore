@@ -56,3 +56,6 @@ synthetic_creatures/
 
 # Full ecosystem pre-publish test reports
 .full-suite-reports/
+*.tar.gz
+*.cPkl
+*.cPkl.meta.json

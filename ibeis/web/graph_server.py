@@ -6,8 +6,7 @@ import utool as ut
 import concurrent
 import random
 import time
-# from ibeis.web import futures_utils as futures_actors
-import futures_actors
+from ibeis.web import futures_utils
 
 
 def double_review_test():
@@ -92,7 +91,7 @@ def test_foo(future):
     logger.info('FOO %r' % (future, ))
 
 
-GRAPH_ACTOR_CLASS = futures_actors.ProcessActor if ut.LINUX or ut.WIN32 else futures_actors.ThreadActor
+GRAPH_ACTOR_CLASS = futures_utils.ProcessActor if ut.LINUX or ut.WIN32 else futures_utils.ThreadActor
 
 
 class GraphActor(GRAPH_ACTOR_CLASS):

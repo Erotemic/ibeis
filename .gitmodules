@@ -19,9 +19,6 @@
 [submodule "tpl/pyflann_ibeis"]
 	path = tpl/pyflann_ibeis
 	url = https://github.com/Erotemic/pyflann_ibeis.git
-[submodule "tpl/futures_actors"]
-	path = tpl/futures_actors
-	url = https://github.com/Erotemic/futures_actors.git
 [submodule "tpl/vtool_ibeis_ext"]
 	path = tpl/vtool_ibeis_ext
 	url = https://github.com/Erotemic/vtool_ibeis_ext.git

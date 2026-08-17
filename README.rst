@@ -274,8 +274,6 @@ In the interest of modular code we are actively developing several different mod
 +-----------------------------------------------------------------+--------------------------------+
 | `vtool_ibeis <https://github.com/Erotemic/vtool_ibeis>`_        | |vtool_ibeis_extGithubActions| |
 +-----------------------------------------------------------------+--------------------------------+
-| `futures_actors <https://github.com/Erotemic/futures_actors>`_  |  ---                           |
-+-----------------------------------------------------------------+--------------------------------+
 
 .. |ibeisGithubActions| image:: https://github.com/Erotemic/ibeis/actions/workflows/tests.yml/badge.svg?branch=main
     :target: https://github.com/Erotemic/ibeis/actions?query=branch%3Amain

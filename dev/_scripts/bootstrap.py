@@ -204,7 +204,6 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
         # Amazon server
         'boto',
         #
-        'futures_actors',
     ]
 
     import platform
