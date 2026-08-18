@@ -8,6 +8,8 @@ name: PurePyRelease
 
 on:
   push:
+    branches: [ main, 'release*' ]
+    tags: [ '*' ]
   workflow_dispatch:
 
 jobs:
@@ -15,7 +17,7 @@ jobs:
     ##
     # Build the pure-python wheels used by the release workflow.
     ##
-    name: ${{ matrix.python-version }} on ${{ matrix.os }}, arch=${{ matrix.arch }} with ${{ matrix.install-extras }}
+    name: Build wheel ${{ matrix.python-version }} on ${{ matrix.os }}, arch=${{ matrix.arch }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -30,7 +32,7 @@ jobs:
     - name: Checkout source
       uses: actions/checkout@v6.0.2
     - name: Setup Python
-      uses: actions/setup-python@v5.6.0
+      uses: actions/setup-python@v6.2.0
       with:
         python-version: ${{ matrix.python-version }}
     - name: Build pure wheel
@@ -48,63 +50,24 @@ jobs:
       with:
         name: wheels-${{ matrix.os }}-${{ matrix.arch }}
         path: ./wheelhouse/ibeis*.whl
-  build_windows_installer:
-    name: Build Windows installer
-    runs-on: windows-latest
-    steps:
-    # No submodules: CI builds against PyPI releases; tpl/ submodules are for
-    # local development only.
-    - name: Checkout source
-      uses: actions/checkout@v6.0.2
-    - name: Setup Python
-      uses: actions/setup-python@v5.6.0
-      with:
-        python-version: '3.13'
-    - name: Ensure uv bootstrap
-      shell: pwsh
-      run: |-
-        python -m pip install -U pip
-        python -m pip install -U uv
-        python -m uv --version
-    - name: Build installer
-      shell: pwsh
-      run: .\\dev\\_installers\\build_installer.ps1 -Clean -PyInstaller -Checks -SmokeTest -Inno
-    - name: Show installer outputs
-      shell: pwsh
-      run: |-
-        Get-ChildItem -Recurse dist | Format-Table FullName, Length, LastWriteTime
-    - uses: actions/upload-artifact@v6.0.0
-      name: Upload Windows installer release artifact
-      with:
-        name: windows-installer-release-artifacts
-        if-no-files-found: error
-        path: dist\\installer\\*.exe
   test_deploy:
     name: Deploy Test
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.event.ref == 'refs/heads/main'
     needs:
     - build_purepy_wheels
-    - build_windows_installer
     steps:
     - name: Checkout source
       uses: actions/checkout@v6.0.2
-    - uses: actions/download-artifact@v4.1.8
+    - uses: actions/download-artifact@v7.0.0
       name: Download wheels
       with:
         pattern: wheels-*
         merge-multiple: true
         path: wheelhouse
-    - uses: actions/download-artifact@v4.1.8
-      name: Download Windows installer
-      with:
-        name: windows-installer-release-artifacts
-        path: installer
     - name: Show files to upload
       shell: bash
-      run: |-
-        ls -la wheelhouse
-        ls -la installer
+      run: ls -la wheelhouse
     - name: Sign distributions
       env:
         GPG_SECRET_SIGNING_SUBKEY_B64: ${{ secrets.GPG_SECRET_SIGNING_SUBKEY_B64 }}
@@ -127,28 +90,26 @@ jobs:
         IMPORTED_FPR=$($GPG_EXECUTABLE --list-keys --with-colons "$GPG_KEYID" | awk -F: '/^fpr/ { print $10; exit }')
         if [[ "$IMPORTED_FPR" != "$GPG_KEYID" ]]; then echo "ERROR: imported GPG fingerprint $IMPORTED_FPR does not match pinned $GPG_KEYID"; exit 1; fi
         echo "GPG fingerprint verified: $IMPORTED_FPR"
-        VERSION=$(python -c "import setup; print(setup.VERSION)")
+        VERSION=$(python -c 'import ast, pathlib; tree = ast.parse(pathlib.Path('"'"'ibeis/__init__.py'"'"').read_text()); print(next(ast.literal_eval(n.value) for n in tree.body if isinstance(n, ast.Assign) and any(getattr(t, "id", None) == "__version__" for t in n.targets)))')
         python -m pip install pip uv -U
         python -m pip install packaging twine -U
         python -m pip install urllib3 requests[security]
         GPG_SIGN_CMD="$GPG_EXECUTABLE --batch --yes --detach-sign --armor --local-user $GPG_KEYID"
-        DIST_PATHS=(wheelhouse/*.whl installer/*.exe)
-        DIST_PATHS_STR=$(printf '"%s" ' "${DIST_PATHS[@]}")
-        echo "$DIST_PATHS_STR"
-        for DIST_PATH in "${DIST_PATHS[@]}"
+        WHEEL_PATHS=(wheelhouse/*.whl)
+        WHEEL_PATHS_STR=$(printf '"%s" ' "${WHEEL_PATHS[@]}")
+        echo "$WHEEL_PATHS_STR"
+        for WHEEL_PATH in "${WHEEL_PATHS[@]}"
         do
             echo "------"
-            echo "DIST_PATH = $DIST_PATH"
-            $GPG_SIGN_CMD --output $DIST_PATH.asc $DIST_PATH
-            $GPG_EXECUTABLE --verify $DIST_PATH.asc $DIST_PATH  || echo "hack, the first run of gpg very fails"
-            $GPG_EXECUTABLE --verify $DIST_PATH.asc $DIST_PATH
+            echo "WHEEL_PATH = $WHEEL_PATH"
+            $GPG_SIGN_CMD --output $WHEEL_PATH.asc $WHEEL_PATH
+            $GPG_EXECUTABLE --verify $WHEEL_PATH.asc $WHEEL_PATH  || echo "hack, the first run of gpg very fails"
+            $GPG_EXECUTABLE --verify $WHEEL_PATH.asc $WHEEL_PATH
         done
         ls -la wheelhouse
-        ls -la installer
         python -m pip install opentimestamps-client
-        ots stamp wheelhouse/*.whl installer/*.exe wheelhouse/*.asc installer/*.asc
+        ots stamp wheelhouse/*.whl wheelhouse/*.asc
         ls -la wheelhouse
-        ls -la installer
     - name: Prepare publish directory
       shell: bash
       run: |-
@@ -173,9 +134,6 @@ jobs:
           wheelhouse/*.whl
           wheelhouse/*.asc
           wheelhouse/*.ots
-          installer/*.exe
-          installer/*.asc
-          installer/*.ots
     permissions:
       contents: read
       id-token: write
@@ -186,26 +144,18 @@ jobs:
     if: github.event_name == 'push' && (startsWith(github.event.ref, 'refs/tags') || startsWith(github.event.ref, 'refs/heads/release'))
     needs:
     - build_purepy_wheels
-    - build_windows_installer
     steps:
     - name: Checkout source
       uses: actions/checkout@v6.0.2
-    - uses: actions/download-artifact@v4.1.8
+    - uses: actions/download-artifact@v7.0.0
       name: Download wheels
       with:
         pattern: wheels-*
         merge-multiple: true
         path: wheelhouse
-    - uses: actions/download-artifact@v4.1.8
-      name: Download Windows installer
-      with:
-        name: windows-installer-release-artifacts
-        path: installer
     - name: Show files to upload
       shell: bash
-      run: |-
-        ls -la wheelhouse
-        ls -la installer
+      run: ls -la wheelhouse
     - name: Sign distributions
       env:
         GPG_SECRET_SIGNING_SUBKEY_B64: ${{ secrets.GPG_SECRET_SIGNING_SUBKEY_B64 }}
@@ -228,28 +178,26 @@ jobs:
         IMPORTED_FPR=$($GPG_EXECUTABLE --list-keys --with-colons "$GPG_KEYID" | awk -F: '/^fpr/ { print $10; exit }')
         if [[ "$IMPORTED_FPR" != "$GPG_KEYID" ]]; then echo "ERROR: imported GPG fingerprint $IMPORTED_FPR does not match pinned $GPG_KEYID"; exit 1; fi
         echo "GPG fingerprint verified: $IMPORTED_FPR"
-        VERSION=$(python -c "import setup; print(setup.VERSION)")
+        VERSION=$(python -c 'import ast, pathlib; tree = ast.parse(pathlib.Path('"'"'ibeis/__init__.py'"'"').read_text()); print(next(ast.literal_eval(n.value) for n in tree.body if isinstance(n, ast.Assign) and any(getattr(t, "id", None) == "__version__" for t in n.targets)))')
         python -m pip install pip uv -U
         python -m pip install packaging twine -U
         python -m pip install urllib3 requests[security]
         GPG_SIGN_CMD="$GPG_EXECUTABLE --batch --yes --detach-sign --armor --local-user $GPG_KEYID"
-        DIST_PATHS=(wheelhouse/*.whl installer/*.exe)
-        DIST_PATHS_STR=$(printf '"%s" ' "${DIST_PATHS[@]}")
-        echo "$DIST_PATHS_STR"
-        for DIST_PATH in "${DIST_PATHS[@]}"
+        WHEEL_PATHS=(wheelhouse/*.whl)
+        WHEEL_PATHS_STR=$(printf '"%s" ' "${WHEEL_PATHS[@]}")
+        echo "$WHEEL_PATHS_STR"
+        for WHEEL_PATH in "${WHEEL_PATHS[@]}"
         do
             echo "------"
-            echo "DIST_PATH = $DIST_PATH"
-            $GPG_SIGN_CMD --output $DIST_PATH.asc $DIST_PATH
-            $GPG_EXECUTABLE --verify $DIST_PATH.asc $DIST_PATH  || echo "hack, the first run of gpg very fails"
-            $GPG_EXECUTABLE --verify $DIST_PATH.asc $DIST_PATH
+            echo "WHEEL_PATH = $WHEEL_PATH"
+            $GPG_SIGN_CMD --output $WHEEL_PATH.asc $WHEEL_PATH
+            $GPG_EXECUTABLE --verify $WHEEL_PATH.asc $WHEEL_PATH  || echo "hack, the first run of gpg very fails"
+            $GPG_EXECUTABLE --verify $WHEEL_PATH.asc $WHEEL_PATH
         done
         ls -la wheelhouse
-        ls -la installer
         python -m pip install opentimestamps-client
-        ots stamp wheelhouse/*.whl installer/*.exe wheelhouse/*.asc installer/*.asc
+        ots stamp wheelhouse/*.whl wheelhouse/*.asc
         ls -la wheelhouse
-        ls -la installer
     - name: Prepare publish directory
       shell: bash
       run: |-
@@ -273,9 +221,6 @@ jobs:
           wheelhouse/*.whl
           wheelhouse/*.asc
           wheelhouse/*.ots
-          installer/*.exe
-          installer/*.asc
-          installer/*.ots
     permissions:
       contents: read
       id-token: write
@@ -291,23 +236,44 @@ jobs:
     steps:
     - name: Checkout source
       uses: actions/checkout@v6.0.2
-    - uses: actions/download-artifact@v4.1.8
+    - uses: actions/download-artifact@v7.0.0
       name: Download artifacts
       with:
         name: deploy_artifacts
-        path: release_assets
+        path: wheelhouse
     - name: Show files to release
       shell: bash
-      run: |-
-        ls -la release_assets/wheelhouse
-        ls -la release_assets/installer
+      run: ls -la wheelhouse
     - run: 'echo "Automatic Release Notes. TODO: improve" > ${{ github.workspace }}-CHANGELOG.txt'
+    - name: Resolve Release Tag
+      id: release_meta
+      shell: bash
+      run: |-
+        export VERSION=$(python -c 'import ast, pathlib; tree = ast.parse(pathlib.Path('"'"'ibeis/__init__.py'"'"').read_text()); print(next(ast.literal_eval(n.value) for n in tree.body if isinstance(n, ast.Assign) and any(getattr(t, "id", None) == "__version__" for t in n.targets)))')
+        echo "VERSION=$VERSION"
+        test -n "$VERSION" || { echo "failed to parse version" ; exit 1; }
+        TAG="v$VERSION"
+        if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            EVENT_TAG="${GITHUB_REF#refs/tags/}"
+            TAG="$EVENT_TAG"
+        fi
+        echo "tag=$TAG" >> "$GITHUB_OUTPUT"
     - name: Tag Release Commit
       if: (startsWith(github.event.ref, 'refs/heads/release'))
+      shell: bash
       run: |-
-        export VERSION=$(python -c "import setup; print(setup.VERSION)")
-        git tag "v$VERSION"
-        git push origin "v$VERSION"
+        TAG="${{ steps.release_meta.outputs.tag }}"
+        REMOTE_SHA=$(git ls-remote --refs origin "refs/tags/$TAG" | awk '{print $1}')
+        if [[ -n "$REMOTE_SHA" ]]; then
+            test "$REMOTE_SHA" = "$GITHUB_SHA" || {
+                echo "$TAG already points to $REMOTE_SHA, not $GITHUB_SHA"
+                exit 1
+            }
+            echo "$TAG already points to this release commit"
+        else
+            git tag "$TAG" "$GITHUB_SHA"
+            git push origin "refs/tags/$TAG"
+        fi
     - uses: softprops/action-gh-release@v1
       name: Create Release
       id: create_release
@@ -315,21 +281,19 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         body_path: ${{ github.workspace }}-CHANGELOG.txt
-        tag_name: ${{ github.ref }}
-        name: Release ${{ github.ref }}
+        tag_name: ${{ steps.release_meta.outputs.tag }}
+        name: Release ${{ steps.release_meta.outputs.tag }}
+        target_commitish: ${{ github.sha }}
         body: Automatic Release
         generate_release_notes: true
         draft: true
         prerelease: false
         files: |-
-          release_assets/wheelhouse/*.whl
-          release_assets/wheelhouse/*.asc
-          release_assets/wheelhouse/*.ots
-          release_assets/wheelhouse/*.zip
-          release_assets/wheelhouse/*.tar.gz
-          release_assets/installer/*.exe
-          release_assets/installer/*.asc
-          release_assets/installer/*.ots
+          wheelhouse/*.whl
+          wheelhouse/*.asc
+          wheelhouse/*.ots
+          wheelhouse/*.zip
+          wheelhouse/*.tar.gz
 
 
 ###

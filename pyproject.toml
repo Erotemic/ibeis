@@ -1,49 +1,155 @@
 [build-system]
-requires = [ "setuptools>=67.2.0", "setuptools_scm>=6.0.0", "wheel>=0.37.1",]
+build-backend = "setuptools.build_meta"
+requires = [
+  "setuptools>=67.2.0",
+  "setuptools>=77",
+  "setuptools-scm>=6.0.0",
+  "wheel>=0.37.1",
+]
+
+[project]
+name = "ibeis"
+description = "IBEIS - Image Based Ecological Information System"
+license = "Apache-2.0"
+license-files = [
+  "LICENSE",
+]
+authors = [ { name = "Jon Crall, Jason Parham", email = "erotemic@gmail.com" } ]
+requires-python = ">=3.11"
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+  "Topic :: Utilities",
+]
+dynamic = [
+  "dependencies",
+  "optional-dependencies",
+  "version",
+]
+urls.Homepage = "https://github.com/Erotemic/ibeis"
+scripts.ibeis = "ibeis.__main__:run_ibeis"
+
+[tool.setuptools]
+include-package-data = true
+dynamic.dependencies.file = [
+  "requirements/runtime.txt",
+]
+dynamic.optional-dependencies.all.file = [
+  "requirements/optional.txt",
+  "requirements/headless.txt",
+  "requirements/graphics.txt",
+  "requirements/problematic.txt",
+  "requirements/super_setup.txt",
+]
+dynamic.optional-dependencies.docs.file = [
+  "requirements/docs.txt",
+]
+dynamic.optional-dependencies.graphics.file = [
+  "requirements/graphics.txt",
+]
+dynamic.optional-dependencies.headless.file = [
+  "requirements/headless.txt",
+]
+dynamic.optional-dependencies.optional.file = [
+  "requirements/optional.txt",
+]
+dynamic.optional-dependencies.problematic.file = [
+  "requirements/problematic.txt",
+]
+dynamic.optional-dependencies.super_setup.file = [
+  "requirements/super_setup.txt",
+]
+dynamic.optional-dependencies.tests.file = [
+  "requirements/tests.txt",
+]
+dynamic.readme.file = [
+  "README.rst",
+]
+dynamic.readme.content-type = "text/x-rst"
+dynamic.version.attr = "ibeis.__version__"
+package-data."*" = [
+  "requirements/*.txt",
+]
+packages.find.where = [
+  ".",
+]
+packages.find.include = [
+  "ibeis*",
+]
 
 [tool.mypy]
 ignore_missing_imports = true
 
+[tool.pytest]
+ini_options.addopts = "-p no:doctest --xdoctest --xdoctest-style=google --ignore-glob=setup.py --ignore-glob=dev --ignore-glob=docs"
+ini_options.norecursedirs = ".git ignore build __pycache__ dev _skbuild docs"
+ini_options.filterwarnings = [
+  "default",
+  "ignore:.*No cfgstr given in Cacher constructor or call.*:Warning",
+  "ignore:.*Define the __nice__ method for.*:Warning",
+  "ignore:.*private pytest class or function.*:Warning",
+]
+
+[tool.coverage]
+run.branch = true
+report.exclude_lines = [
+  ".*  # nocover",
+  ".*  # pragma: no cover",
+  ".*if six.PY2:",
+  "^ *pass *$",
+  "^ *raise",
+  "def __repr__",
+  "if __name__ == .__main__.:",
+  "if _debug:",
+  "if 0:",
+  "if trace is not None",
+  "pragma: no cover",
+  "raise AssertionError",
+  "raise NotImplementedError",
+  "verbose = .*",
+]
+report.omit = [
+  "*/setup.py",
+  "ibeis/__main__.py",
+]
+
 [tool.xcookie]
-# TODO: allow xcookie config to be specified in __init__.py
-tags = [ "erotemic", "purepy", "github", "cv2", "notypes", "nosrcdist",
- #"ipfs"
+tags = [
+  "erotemic",
+  "purepy",
+  "github",
+  "cv2",
+  "notypes",
+  "nosrcdist",
 ]
 mod_name = "ibeis"
-os = [ "linux" ]
+os = [
+  "linux",
+]
 repo_name = "ibeis"
 ci_pypy_versions = []
-min_python = '3.11'
-max_python = '3.13'
-ci_versions_minimal_strict = '*'
-ci_versions_full_strict = 'min'
-ci_versions_minimal_loose = 'max'
-ci_versions_full_loose = '*'
-
+min_python = "3.11"
+max_python = "3.13"
+ci_versions_minimal_strict = "*"
+ci_versions_full_strict = "min"
+ci_versions_minimal_loose = "max"
+ci_versions_full_loose = "*"
 description = "IBEIS - Image Based Ecological Information System"
-url="https://github.com/Erotemic/ibeis"
-author="Jon Crall, Jason Parham"
-author_email="erotemic@gmail.com"
+url = "https://github.com/Erotemic/ibeis"
+author = "Jon Crall, Jason Parham"
+author_email = "erotemic@gmail.com"
 version = "{mod_dpath}/__init__.py::__version__"
 license = "Apache 2"
 dev_status = "stable"
 autostage = true
-
-
-[tool.xcookie.entry_points]
-# the console_scripts entry point creates the xdoctest executable
-console_scripts = [
-    "ibeis = ibeis.__main__:run_ibeis",
+use_setup_py = false
+use_pyproject_requirements = false
+ci_pypi_trusted_publishing = true
+enable_gpg = true
+entry_points.console_scripts = [
+  "ibeis = ibeis.__main__:run_ibeis",
 ]
-
-[tool.pytest.ini_options]
-addopts = "-p no:doctest --xdoctest --xdoctest-style=google --ignore-glob=setup.py --ignore-glob=super_setup.py"
-norecursedirs = ".git ignore build __pycache__ dev _skbuild"
-filterwarnings = [ "default", "ignore:.*No cfgstr given in Cacher constructor or call.*:Warning", "ignore:.*Define the __nice__ method for.*:Warning", "ignore:.*private pytest class or function.*:Warning",]
-
-[tool.coverage.run]
-branch = true
-
-[tool.coverage.report]
-exclude_lines = [ "pragma: no cover", ".*  # pragma: no cover", ".*  # nocover", "def __repr__", "raise AssertionError", "raise NotImplementedError", "if 0:", "if trace is not None", "verbose = .*", "^ *raise", "^ *pass *$", "if _debug:", "if __name__ == .__main__.:", ".*if six.PY2:",]
-omit = [ "ibeis/__main__.py", "*/setup.py",]

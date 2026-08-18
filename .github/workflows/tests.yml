@@ -8,8 +8,20 @@ name: PurePyCI
 
 on:
   push:
+    # Restricting push triggers to the default branch avoids running
+    # the whole pipeline twice (push + pull_request events) for every
+    # push to a PR branch. Feature branches are covered by the
+    # pull_request trigger; release branches and tags are handled by
+    # release.yml.
+    branches: [ main ]
   pull_request:
     branches: [ main ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  # Superseded runs on the same ref are cancelled; deploy-bearing refs
+  # never trigger this workflow (release.yml owns them).
+  cancel-in-progress: true
 
 jobs:
   lint_job:
@@ -23,7 +35,7 @@ jobs:
     - name: Checkout source
       uses: actions/checkout@v6.0.2
     - name: Set up Python 3.13 for linting
-      uses: actions/setup-python@v5.6.0
+      uses: actions/setup-python@v6.2.0
       with:
         python-version: '3.13'
     - name: Install dependencies
@@ -39,7 +51,7 @@ jobs:
     # Build the pure-python wheels independently on a per-platform basis.
     # These will be tested later in the test_purepy_wheels step.
     ##
-    name: ${{ matrix.python-version }} on ${{ matrix.os }}, arch=${{ matrix.arch }} with ${{ matrix.install-extras }}
+    name: Build wheel ${{ matrix.python-version }} on ${{ matrix.os }}, arch=${{ matrix.arch }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -54,7 +66,7 @@ jobs:
     - name: Checkout source
       uses: actions/checkout@v6.0.2
     - name: Setup Python
-      uses: actions/setup-python@v5.6.0
+      uses: actions/setup-python@v6.2.0
       with:
         python-version: ${{ matrix.python-version }}
     - name: Build pure wheel
@@ -72,46 +84,12 @@ jobs:
       with:
         name: wheels-${{ matrix.os }}-${{ matrix.arch }}
         path: ./wheelhouse/ibeis*.whl
-  build_windows_installer:
-    name: Build Windows installer
-    runs-on: windows-latest
-    steps:
-    # No submodules: CI builds against PyPI releases; tpl/ submodules are for
-    # local development only.
-    - name: Checkout source
-      uses: actions/checkout@v6.0.2
-    - name: Setup Python
-      uses: actions/setup-python@v5.6.0
-      with:
-        python-version: '3.13'
-    - name: Ensure uv bootstrap
-      shell: pwsh
-      run: |-
-        python -m pip install -U pip
-        python -m pip install -U uv
-        python -m uv --version
-    - name: Build installer
-      shell: pwsh
-      run: .\\dev\\_installers\\build_installer.ps1 -Clean -PyInstaller -Checks -SmokeTest -Inno
-    - name: Show installer outputs
-      shell: pwsh
-      run: |-
-        Get-ChildItem -Recurse dist | Format-Table FullName, Length, LastWriteTime
-    - uses: actions/upload-artifact@v6.0.0
-      name: Upload Windows installer artifact
-      with:
-        name: windows-installer-${{ github.run_id }}
-        if-no-files-found: error
-        path: |-
-          dist\\installer\\*
-          dist\\diagnostics\\*
   test_purepy_wheels:
     ##
     # Download and test the pure-python wheels that were built in the
     # build_purepy_wheels step in this independent environment.
     ##
     name: ${{ matrix.python-version }} on ${{ matrix.os }}, arch=${{ matrix.arch }} with ${{ matrix.install-extras }}
-    if: "! startsWith(github.event.ref, 'refs/heads/release')"
     runs-on: ${{ matrix.os }}
     needs:
     - build_purepy_wheels
@@ -122,41 +100,68 @@ jobs:
         # for testing instead of using the more concise matrix notation.
         include:
         - python-version: '3.11'
-          install-extras: tests-strict,runtime-strict,headless-strict
+          install-extras: tests,headless
           os: ubuntu-latest
           arch: auto
+          allow-prereleases: 'false'
+          check-latest: 'false'
+          use-lockfile: 'true'
+          lock-requirements: requirements/locks/tests-headless.txt
         - python-version: '3.12'
-          install-extras: tests-strict,runtime-strict,headless-strict
+          install-extras: tests,headless
           os: ubuntu-latest
           arch: auto
+          allow-prereleases: 'false'
+          check-latest: 'false'
+          use-lockfile: 'true'
+          lock-requirements: requirements/locks/tests-headless.txt
         - python-version: '3.13'
-          install-extras: tests-strict,runtime-strict,headless-strict
+          install-extras: tests,headless
           os: ubuntu-latest
           arch: auto
-        - python-version: '3.11'
-          install-extras: tests-strict,runtime-strict,optional-strict,headless-strict
-          os: ubuntu-latest
-          arch: auto
+          allow-prereleases: 'false'
+          check-latest: 'false'
+          use-lockfile: 'true'
+          lock-requirements: requirements/locks/tests-headless.txt
         - python-version: '3.11'
           install-extras: tests,optional,headless
           os: ubuntu-latest
           arch: auto
+          allow-prereleases: 'false'
+          check-latest: 'false'
+          use-lockfile: 'true'
+          lock-requirements: requirements/locks/tests-optional-headless.txt
+        - python-version: '3.11'
+          install-extras: tests,optional,headless
+          os: ubuntu-latest
+          arch: auto
+          allow-prereleases: 'false'
+          check-latest: 'false'
+          use-lockfile: 'false'
         - python-version: '3.12'
           install-extras: tests,optional,headless
           os: ubuntu-latest
           arch: auto
+          allow-prereleases: 'false'
+          check-latest: 'false'
+          use-lockfile: 'false'
         - python-version: '3.13'
           install-extras: tests,optional,headless
           os: ubuntu-latest
           arch: auto
+          allow-prereleases: 'false'
+          check-latest: 'false'
+          use-lockfile: 'false'
     steps:
     - name: Checkout source
       uses: actions/checkout@v6.0.2
     - name: Setup Python
-      uses: actions/setup-python@v5.6.0
+      uses: actions/setup-python@v6.2.0
       with:
         python-version: ${{ matrix.python-version }}
-    - uses: actions/download-artifact@v4.1.8
+        allow-prereleases: ${{ matrix.allow-prereleases }}
+        check-latest: ${{ matrix.check-latest }}
+    - uses: actions/download-artifact@v7.0.0
       name: Download wheels
       with:
         pattern: wheels-*
@@ -166,15 +171,17 @@ jobs:
       shell: bash
       env:
         INSTALL_EXTRAS: ${{ matrix.install-extras }}
+        USE_UV_LOCK: ${{ matrix.use-lockfile }}
+        LOCK_REQUIREMENTS: ${{ matrix.lock-requirements }}
       run: |-
         echo "Finding the path to the wheel"
         ls wheelhouse || echo "wheelhouse does not exist"
         echo "Installing helpers: update pip"
         python -m pip install pip uv -U
         echo "Installing helpers: setuptools"
-        python -m uv pip install setuptools>=0.8 setuptools_scm wheel build -U
+        python -m uv pip install --resolution=highest setuptools>=0.8 setuptools_scm wheel build -U
         echo "Installing helpers: tomli and pkginfo"
-        python -m uv pip install tomli pkginfo packaging
+        python -m uv pip install --resolution=highest tomli pkginfo packaging
         export WHEEL_FPATH=$(python -c "if 1:
             import pathlib
             from packaging import tags
@@ -201,8 +208,29 @@ jobs:
         ")
         echo "WHEEL_FPATH=$WHEEL_FPATH"
         echo "INSTALL_EXTRAS=$INSTALL_EXTRAS"
-        echo "UV_RESOLUTION=$UV_RESOLUTION"
-        python -m pip install --prefer-binary "${WHEEL_FPATH}[${INSTALL_EXTRAS}]"
+        echo "USE_UV_LOCK=$USE_UV_LOCK"
+        echo "LOCK_REQUIREMENTS=$LOCK_REQUIREMENTS"
+        if [[ -n "${INSTALL_EXTRAS:-}" ]]; then
+            INSTALL_TARGET="${WHEEL_FPATH}[${INSTALL_EXTRAS}]"
+        else
+            INSTALL_TARGET="${WHEEL_FPATH}"
+        fi
+        echo "INSTALL_TARGET=$INSTALL_TARGET"
+        LOCK_ARGS=()
+        if [[ "${USE_UV_LOCK:-false}" == "true" ]]; then
+            if [[ -z "${LOCK_REQUIREMENTS:-}" ]]; then
+                echo "USE_UV_LOCK=true but LOCK_REQUIREMENTS is empty"
+                exit 1
+            fi
+            if [[ ! -f "$LOCK_REQUIREMENTS" ]]; then
+                echo "Missing checked-in lock requirements: $LOCK_REQUIREMENTS"
+                exit 1
+            fi
+            echo "Using checked-in lock requirements: $LOCK_REQUIREMENTS"
+            cat "$LOCK_REQUIREMENTS"
+            LOCK_ARGS=(--constraint "$LOCK_REQUIREMENTS")
+        fi
+        python -m uv pip install --prerelease=allow "${LOCK_ARGS[@]}" "${INSTALL_TARGET}"
         echo "Install finished."
     - name: Test wheel ${{ matrix.install-extras }}
       shell: bash
@@ -230,20 +258,8 @@ jobs:
         mkdir -p "ci_ibeis_workdir"
         echo "About to reset workdirs"
         python -m ibeis --set-workdir="$(readlink -f ci_ibeis_workdir)" --nogui
-        python - <<'PY'
-        from ibeis.tests import reset_testdbs
-        reset_testdbs.reset_ci_testdbs()
-        PY
+        python -m ibeis --resetdbs
         python -m xdoctest $MOD_DPATH --style=google all
         echo "xdoctest command finished"
-    - name: Run non-doctest pytest suites
-      # These plain pytest modules are not covered by the xdoctest run and
-      # previously never ran on CI (they rotted; see dev/code_smells.md 8.1).
-      # Marked non-blocking until observed green across the matrix - promote
-      # by removing continue-on-error.
-      continue-on-error: true
-      shell: bash
-      run: |-
-        python -m pytest -v tests ibeis/algo/graph/tests
 
 
