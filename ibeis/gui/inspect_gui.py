@@ -535,7 +535,7 @@ class QueryResultsWidget(gt.APIItemWidget):
                 review_logger = qres_wgt.logger
                 review_logger.debug(msg)
                 review_logger.info('START MASS_THRESHOLD_MERGE')
-                review_review_logger.info('num_groups=%d thresh=%r' % (
+                review_logger.info('num_groups=%d thresh=%r' % (
                     len(dbside_groups), thresh,))
                 for count, subgraph in enumerate(dbside_groups):
                     thresh_aid_pairs = [
@@ -630,8 +630,9 @@ def set_annot_pair_as_negative_match_(ibs, aid1, aid2, cm, qreq_, **kwargs):
     """
     def on_nontrivial_split(ibs, aid1, aid2):
         aid1_groundtruth = ibs.get_annot_groundtruth(aid1, noself=True)
-        logger.info('There are %d annots in this name. Need more sophisticated split'
-              % (len(aid1_groundtruth)))
+        logger.info(
+            'There are %d annots in this name. Need more sophisticated split' %
+            (len(aid1_groundtruth)))
         raise guiexcept.NeedsUserInput('non-trivial split')
     try:
         status = ibs.set_annot_pair_as_negative_match(
@@ -1014,12 +1015,12 @@ def make_aidpair_tag_context_options(ibs, aid1, aid2):
         logger.info('[inspect_gui] tags = %r' % (tags,))
     if ut.VERBOSE:
         logger.info('[inspect_gui] Making case hotlist: ' +
-              ut.repr2(case_hotlink_list))
+                    ut.repr2(case_hotlink_list))
 
     def _wrap_set_annotmatch_prop(prop, toggle_val):
         if ut.VERBOSE:
             logger.info('[SETTING] Clicked set prop=%r to val=%r' %
-                  (prop, toggle_val,))
+                        (prop, toggle_val,))
         am_rowid = ibs.add_annotmatch_undirected([aid1], [aid2])[0]
         if ut.VERBOSE:
             logger.info('[SETTING] aid1, aid2 = %r, %r' % (aid1, aid2,))
@@ -1036,7 +1037,7 @@ def make_aidpair_tag_context_options(ibs, aid1, aid2):
                 tags = [_.lower() for _ in tags]
             logger.info('[inspect_gui] aid1, aid2 = %r, %r' % (aid1, aid2,))
             logger.info('[inspect_gui] annotmatch_rowid = %r' %
-                  (annotmatch_rowid,))
+                        (annotmatch_rowid,))
             logger.info('[inspect_gui] tags = %r' % (tags,))
 
     for case, case_hotlink in zip(case_list, case_hotlink_list):
@@ -1053,9 +1054,9 @@ def make_aidpair_tag_context_options(ibs, aid1, aid2):
         ]
     if ut.VERBOSE:
         logger.info('Partial tag funcs:' +
-              ut.repr2(
-                  [ut.func_str(func, func.args, func.keywords)
-                   for func in ut.get_list_column(pair_tag_options, 1)]))
+                    ut.repr2(
+                        [ut.func_str(func, func.args, func.keywords)
+                         for func in ut.get_list_column(pair_tag_options, 1)]))
     return pair_tag_options
 
 
