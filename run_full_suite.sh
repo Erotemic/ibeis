@@ -39,20 +39,18 @@ SUITES=(
 prepare_ibeis_suite() {
     # Mirror the database preparation performed by the regular IBEIS CI job.
     # A fresh workdir keeps this full-stack run independent of developer caches
-    # and ensures doctests can resolve testdb1 / PZ_MTEST / the other fixtures
+    # and ensures doctests can resolve the local deterministic fixtures
     # they expect.
     rm -rf "$IBEIS_WORKDIR"
     mkdir -p "$IBEIS_WORKDIR"
     (
         cd "$REPO_ROOT"
         python -m ibeis --set-workdir="$IBEIS_WORKDIR" --nogui
-        python -m ibeis --resetdbs
-        # --resetdbs intentionally prepares only the small CI databases. Two
-        # active H.O.T.S. tests use PZ_MTEST directly, so include that standard
-        # fixture in the full ecosystem environment as well.
+        # The CI reset provisions the synthetic matching/inference fixture
+        # directly; no historical PZ_MTEST archive is needed.
         python - <<'PY'
-import ibeis
-ibeis.ensure_pz_mtest()
+from ibeis.tests import reset_testdbs
+reset_testdbs.reset_ci_testdbs()
 PY
     )
 }

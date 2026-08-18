@@ -72,7 +72,7 @@ def get_testdata_dir(ensure=True, key='testdb1'):
 # Convert stanadardized names to true names
 TEST_DBNAMES_MAP = {
     'nauts':         'NAUT_test',
-    'mtest':         'PZ_MTEST',
+    'mtest':         'PZ_MTEST',  # compatibility name for synthetic mtest fixture
     'testdb0':       'testdb0',
     'testdb1':       'testdb1',
     'testdb2':       'testdb2',
@@ -149,6 +149,12 @@ def ensure_smaller_testingdbs():
 
 
 def reset_ci_testdbs():
+    """Reset the deterministic databases used by automated tests.
+
+    The mtest fixture is always synthesized locally. ``PZ_MTEST`` remains its
+    compatibility database name because many legacy doctests still spell that
+    name, but no PZ_MTEST archive or external image data is involved.
+    """
     import ibeis
     from ibeis.init import sysres
     import ubelt as ub
@@ -157,6 +163,7 @@ def reset_ci_testdbs():
     (workdir / 'testdb0').delete()
     (workdir / 'testdb1').delete()
     ensure_smaller_testingdbs()
+    ensure_synthetic_mtest(reset=True)
 
 
 def reset_testdbs(**kwargs):
@@ -180,20 +187,23 @@ def reset_testdbs(**kwargs):
         if argdict.get('reset_' + key, False) or argdict['reset_all']:
             delete_dbdir(dbname)
 
-    # Just do this one
+    # Synthetic fixtures are the default test data. Historical remote demo
+    # datasets are provisioned only when their reset flag is explicitly given.
     ensure_synthetic_db1(reset=True)
 
-    # Step 3) Ensure DBs that dont exist
+    # Step 3) Ensure the ordinary local test databases and deterministic mtest.
     ensure_smaller_testingdbs()
-    workdir = sysres.get_workdir()
-    if not ut.checkpath(join(workdir, 'PZ_MTEST'), verbose=True):
-        ibeis.ensure_pz_mtest()
-    if not ut.checkpath(join(workdir, 'NAUT_test'), verbose=True):
+    ensure_synthetic_mtest(
+        reset=argdict.get('reset_mtest', False) or argdict['reset_all'])
+
+    # Keep remote fixtures available for explicit compatibility / integration
+    # testing without putting network access on the default test path.
+    if argdict.get('reset_nauts', False) or argdict['reset_all']:
         ibeis.ensure_nauts()
-    # if not ut.checkpath(join(workdir, 'wd_peter2'), verbose=True):
-    #     ibeis.ensure_wilddogs()
-    if not ut.checkpath(join(workdir, 'testdb2'), verbose=True):
+    if argdict.get('reset_testdb2', False) or argdict['reset_all']:
         sysres.ensure_testdb2()
+    if argdict.get('reset_wds', False) or argdict['reset_all']:
+        ibeis.ensure_wilddogs()
 
     # Step 4) testdb1 becomes the main database
     workdir = sysres.get_workdir()
@@ -214,12 +224,20 @@ def reset_mtest():
     return reset_testdbs(reset_mtest=True)
 
 
-def generate_synthetic_images(raw_img_dpath, image_size=512, images_per_name=4, num_names=10):
+def generate_synthetic_images(
+        raw_img_dpath, image_size=512, images_per_name=4, num_names=10,
+        name_sizes=None):
     import ubelt as ub
+    if name_sizes is None:
+        name_sizes = [images_per_name] * num_names
+    else:
+        name_sizes = list(name_sizes)
+        num_names = len(name_sizes)
+
     synthetic_items = []
-    for name_idx in range(1, num_names + 1):
+    for name_idx, num_variants in enumerate(name_sizes, start=1):
         creature_name = f'creature_{name_idx:04d}'
-        for variant in range(images_per_name):
+        for variant in range(num_variants):
             stem = f"{creature_name}__v{variant:02d}"
             name_dpath = (raw_img_dpath / creature_name)
             image_fpath = name_dpath / f"{stem}.png"
@@ -231,8 +249,7 @@ def generate_synthetic_images(raw_img_dpath, image_size=512, images_per_name=4, 
 
     depends = {
         'image_size': image_size,
-        'num_names': num_names,
-        'images_per_name': images_per_name,
+        'name_sizes': tuple(name_sizes),
     }
     imgstamp = ub.CacheStamp('img_stamp', dpath=raw_img_dpath, depends=depends)
     if imgstamp.expired():
@@ -248,6 +265,128 @@ def generate_synthetic_images(raw_img_dpath, image_size=512, images_per_name=4, 
         imgstamp.renew()
     return synthetic_items
 
+
+
+def synthetic_mtest_spec():
+    """Describe the deterministic matching/inference fixture used by tests.
+
+    The contract is intentionally test-owned rather than copied from the
+    historical PZ_MTEST archive. Forty identities with three sightings each
+    gives 120 annotations: enough for legacy doctests that address rowids up to
+    119, while giving every identity the same simple repeated-sighting shape.
+    """
+    return {
+        'dbname': 'PZ_MTEST',  # compatibility locator, not historical content
+        'num_names': 40,
+        'images_per_name': 3,
+        'num_annots': 120,
+        'image_size': 384,
+    }
+
+
+def _prepare_synthetic_mtest(ibs, synthetic_items):
+    """Populate deterministic metadata and graph state for the mtest fixture."""
+    import ibeis
+    import numpy as np
+    from ibeis.init import sysres
+
+    aids = ibs.get_valid_aids()
+    gids = ibs.get_valid_gids()
+
+    ibs.set_annot_species(aids, [ibeis.const.TEST_SPECIES.ZEB_PLAIN] * len(aids))
+    ibs.set_annot_quality_texts(aids, [ibeis.const.QUAL_GOOD] * len(aids))
+    view_cycle = ['left', 'front', 'right']
+    view_codes = [view_cycle[item['variant'] % len(view_cycle)]
+                  for item in synthetic_items]
+    ibs.set_annot_viewpoint_code(aids, view_codes)
+    ibs.update_annot_semantic_uuids(aids)
+
+    # Each variant represents a repeat sighting at a different occurrence.
+    for variant in range(3):
+        variant_gids = [gid for gid, item in zip(gids, synthetic_items)
+                        if item['variant'] == variant]
+        ibs.set_image_imagesettext(
+            variant_gids,
+            ['Occurrence {}'.format(variant + 1)] * len(variant_gids),
+        )
+
+    unixtimes = [1_600_000_000 + (idx * 3600) for idx in range(len(gids))]
+    ibs.set_image_unixtime(gids, unixtimes)
+    gps = np.array([
+        [-1.40 + ((idx % 17) * 0.001), 36.80 + ((idx % 23) * 0.001)]
+        for idx in range(len(gids))
+    ])
+    ibs.set_image_gps(gids, gps)
+
+    # Deterministic tags exercise filtering without encoding historical rowids.
+    foal_aids = aids[3::5]
+    foal_set = set(foal_aids)
+    mother_aids = [aid for aid in aids[8::9] if aid not in foal_set]
+    ibs.append_annot_case_tags(foal_aids, ['foal'] * len(foal_aids))
+    ibs.append_annot_case_tags(mother_aids, ['mother'] * len(mother_aids))
+
+    ibs.set_exemplars_from_quality_and_viewpoint()
+    ibs.update_all_image_special_imageset()
+    sysres.reset_mtest_graph(ibs=ibs)
+    return ibs
+
+
+def ensure_synthetic_mtest(reset=False, image_size=None):
+    """Build the default local matching/inference fixture for automated tests.
+
+    ``PZ_MTEST`` is retained only as a compatibility database name so existing
+    doctests can open the fixture without a flag day. Its contents and shape
+    are defined entirely here and generated from deterministic synthetic
+    creatures; no PZ_MTEST archive is downloaded or required.
+    """
+    import os
+    import ubelt as ub
+    import ibeis
+    from ibeis.control import IBEISControl
+    from ibeis.init import sysres
+
+    spec = synthetic_mtest_spec()
+    if image_size is None:
+        image_size = spec['image_size']
+
+    ibeis.ENABLE_WILDBOOK_SIGNAL = False
+    workdir = ub.Path(sysres.get_workdir()).ensuredir()
+    dbdir = workdir / spec['dbname']
+    source_dpath = workdir / '_synthetic_testdata' / 'mtest'
+
+    if reset:
+        dbdir.delete()
+        source_dpath.delete()
+
+    if dbdir.exists():
+        ibs = ibeis.opendb(dbdir=os.fspath(dbdir))
+        if (len(ibs.get_valid_aids()) == spec['num_annots'] and
+                len(ibs.get_valid_nids()) == spec['num_names']):
+            return ibs
+        raise AssertionError(
+            'Refusing to reuse an unexpected synthetic mtest fixture at {!r}'
+            .format(os.fspath(dbdir)))
+
+    raw_img_dpath = (source_dpath / 'raw_images').ensuredir()
+    synthetic_items = generate_synthetic_images(
+        raw_img_dpath,
+        image_size=image_size,
+        images_per_name=spec['images_per_name'],
+        num_names=spec['num_names'],
+    )
+
+    dbdir.ensuredir()
+    ibs = IBEISControl.request_IBEISController(os.fspath(dbdir))
+    image_paths = [os.fspath(item['image_fpath']) for item in synthetic_items]
+    names = [item['creature_name'] for item in synthetic_items]
+    gids = ibs.add_images(image_paths)
+    bbox_list = [[0, 0, image_size, image_size] for _ in gids]
+    aids = ibs.add_annots(gids, bbox_list=bbox_list)
+    ibs.set_annot_name_texts(aids, names)
+
+    assert len(ibs.get_valid_aids()) == spec['num_annots']
+    assert len(ibs.get_valid_nids()) == spec['num_names']
+    return _prepare_synthetic_mtest(ibs, synthetic_items)
 
 def ensure_synthetic_db1(reset=False):
     """

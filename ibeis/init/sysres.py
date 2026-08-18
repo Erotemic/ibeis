@@ -434,32 +434,10 @@ def ensure_wd_peter2():
     return ensure_db_from_url(zipped_db_url)
 
 
-def ensure_pz_mtest():
-    """
-    Ensures that you have the PZ_MTEST dataset
 
-    CommandLine:
-        python -m ibeis.init.sysres ensure_pz_mtest
-        python -m ibeis --tf ensure_pz_mtest
 
-    Ignore:
-        from ibeis.tests.reset_testdbs import delete_dbdir
-        delete_dbdir('PZ_MTEST')
-
-    Example:
-        >>> # SCRIPT
-        >>> from ibeis.init.sysres import *  # NOQA
-        >>> ensure_pz_mtest()
-    """
-    logger.info('ensure_pz_mtest')
-    from ibeis import sysres
-    workdir = sysres.get_workdir()
-    mtest_zipped_url = const.ZIPPED_URLS.PZ_MTEST
-    mtest_dir = util_grabdata.grab_zipped_url(mtest_zipped_url, ensure=True, download_dir=workdir)
-    logger.info('have mtest_dir=%r' % (mtest_dir,))
-    # update the the newest database version
-    import ibeis
-    ibs = ibeis.opendb('PZ_MTEST')
+def _prepare_pz_mtest(ibs):
+    """Normalize metadata and graph state expected by PZ_MTEST doctests."""
     logger.info('cleaning up old database and ensureing everything is properly computed')
     ibs.db.vacuum()
     valid_aids = ibs.get_valid_aids()
@@ -490,7 +468,7 @@ def ensure_pz_mtest():
     ibs.set_image_imagesettext(other_gids1, ['Occurrence 2'] * len(other_gids1))
     ibs.set_image_imagesettext(other_gids2, ['Occurrence 3'] * len(other_gids2))
 
-    # hack in some tags
+    # Preserve the historical case-tag surface used by filtering tests.
     logger.info('Hacking in some tags')
     foal_aids = [4, 8, 15, 21, 28, 34, 38, 41, 45, 49, 51, 56, 60, 66, 69, 74,
                  80, 83, 91, 97, 103, 107, 109, 119]
@@ -498,12 +476,45 @@ def ensure_pz_mtest():
     ibs.append_annot_case_tags(foal_aids, ['foal'] * len(foal_aids))
     ibs.append_annot_case_tags(mother_aids, ['mother'] * len(mother_aids))
 
-    # make part of the database complete and the other part semi-complete
-    # make staging ahead of annotmatch.
-    reset_mtest_graph()
+    # Make staging ahead of annotmatch in the same way as historical PZ_MTEST.
+    reset_mtest_graph(ibs=ibs)
+    return ibs
 
 
-def reset_mtest_graph():
+def ensure_pz_mtest():
+    """
+    Ensures that you have the PZ_MTEST dataset.
+
+    This is the explicit historical/demo-data helper. Automated tests use the
+    deterministic synthetic mtest fixture in :mod:`ibeis.tests.reset_testdbs`
+    and do not call this download path.
+
+    CommandLine:
+        python -m ibeis.init.sysres ensure_pz_mtest
+        python -m ibeis --tf ensure_pz_mtest
+
+    Ignore:
+        from ibeis.tests.reset_testdbs import delete_dbdir
+        delete_dbdir('PZ_MTEST')
+
+    Example:
+        >>> # SCRIPT
+        >>> from ibeis.init.sysres import *  # NOQA
+        >>> ensure_pz_mtest()
+    """
+    logger.info('ensure_pz_mtest')
+    from ibeis import sysres
+    workdir = sysres.get_workdir()
+    mtest_zipped_url = const.ZIPPED_URLS.PZ_MTEST
+    mtest_dir = util_grabdata.grab_zipped_url(
+        mtest_zipped_url, ensure=True, download_dir=workdir)
+    logger.info('have mtest_dir=%r' % (mtest_dir,))
+    import ibeis
+    ibs = ibeis.opendb('PZ_MTEST')
+    return _prepare_pz_mtest(ibs)
+
+
+def reset_mtest_graph(ibs=None):
     """
     Resets the annotmatch and stating table
 
@@ -516,9 +527,11 @@ def reset_mtest_graph():
         >>> reset_mtest_graph()
     """
     if True:
-        # Delete the graph databases to and set them up for tests
+        # Delete graph review state and rebuild the deterministic inference
+        # surface. Passing a controller decouples this logic from any db name.
         import ibeis
-        ibs = ibeis.opendb('PZ_MTEST')
+        if ibs is None:
+            ibs = ibeis.opendb('PZ_MTEST')
         annotmatch = ibs.db['annotmatch']
         staging = ibs.staging['reviews']
         annotmatch.clear()
@@ -621,11 +634,10 @@ def ensure_pz_mtest_batchworkflow_test():
         >>> ensure_pz_mtest_batchworkflow_test()
     """
     import ibeis
-    ibeis.ensure_pz_mtest()
+    from ibeis.tests import reset_testdbs
+    source_ibs = reset_testdbs.ensure_synthetic_mtest()
     workdir = ibeis.sysres.get_workdir()
-    mtest_dbpath = join(workdir, 'PZ_MTEST')
-
-    source_dbdir = mtest_dbpath
+    source_dbdir = source_ibs.get_dbdir()
     dest_dbdir = join(workdir, 'PZ_BATCH_WORKFLOW_MTEST')
 
     if ut.get_argflag('--reset'):
@@ -637,8 +649,9 @@ def ensure_pz_mtest_batchworkflow_test():
         copy_ibeisdb(source_dbdir, dest_dbdir)
 
     ibs = ibeis.opendb('PZ_BATCH_WORKFLOW_MTEST')
-    assert len(ibs.get_valid_aids()) == 119
-    assert len(ibs.get_valid_nids()) == 41
+    spec = reset_testdbs.synthetic_mtest_spec()
+    assert len(ibs.get_valid_aids()) == spec['num_annots']
+    assert len(ibs.get_valid_nids()) == spec['num_names']
 
     ibs.delete_all_imagesets()
 
@@ -727,11 +740,10 @@ def ensure_pz_mtest_mergesplit_test():
         >>> ensure_pz_mtest_mergesplit_test()
     """
     import ibeis
-    ibeis.ensure_pz_mtest()
+    from ibeis.tests import reset_testdbs
+    source_ibs = reset_testdbs.ensure_synthetic_mtest()
     workdir = ibeis.sysres.get_workdir()
-    mtest_dbpath = join(workdir, 'PZ_MTEST')
-
-    source_dbdir = mtest_dbpath
+    source_dbdir = source_ibs.get_dbdir()
     dest_dbdir = join(workdir, 'PZ_MERGESPLIT_MTEST')
 
     if ut.get_argflag('--reset'):
@@ -742,8 +754,9 @@ def ensure_pz_mtest_mergesplit_test():
     copy_ibeisdb(source_dbdir, dest_dbdir)
 
     ibs = ibeis.opendb('PZ_MERGESPLIT_MTEST')
-    assert len(ibs.get_valid_aids()) == 119
-    assert len(ibs.get_valid_nids()) == 41
+    spec = reset_testdbs.synthetic_mtest_spec()
+    assert len(ibs.get_valid_aids()) == spec['num_annots']
+    assert len(ibs.get_valid_nids()) == spec['num_names']
 
     aid_list = ibs.get_valid_aids()
     aids_list, nid_list = ibs.group_annots_by_name(aid_list)
