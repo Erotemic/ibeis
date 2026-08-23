@@ -8,6 +8,23 @@ import os
 import sys
 
 
+def _ensure_standard_streams() -> None:
+    """Provide null standard streams for the windowed Windows executable.
+
+    PyInstaller's Windows ``console=False`` bootloader follows ``pythonw.exe``
+    and leaves ``sys.stdin``, ``sys.stdout``, and ``sys.stderr`` as ``None``.
+    IBEIS and some of its dependencies contain legacy console writes, so give
+    those writes harmless file objects when no console exists.  The console
+    executable already has real streams and is left unchanged.
+    """
+    if sys.stdin is None:
+        sys.stdin = open(os.devnull, "r")
+    if sys.stdout is None:
+        sys.stdout = open(os.devnull, "w")
+    if sys.stderr is None:
+        sys.stderr = open(os.devnull, "w")
+
+
 def _frozen_selftest() -> int:
     """Verify runtime source-introspection works in the frozen app.
 
@@ -36,6 +53,7 @@ def _frozen_selftest() -> int:
 
 
 def main() -> None:
+    _ensure_standard_streams()
     multiprocessing.freeze_support()
 
     if os.environ.get("IBEIS_FROZEN_SELFTEST") == "1":

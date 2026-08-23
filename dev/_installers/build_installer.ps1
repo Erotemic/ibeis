@@ -343,7 +343,19 @@ function Invoke-Checks([string]$AppDir, [string]$DiagDir, [switch]$DoSmokeTest) 
     try {
         & (Join-Path $AppDir "IBEIS-console.exe") 2>&1 | Tee-Object -FilePath $SelftestLog
         if ($LASTEXITCODE -ne 0) {
-            throw "Frozen selftest FAILED (exit $LASTEXITCODE). See $SelftestLog"
+            throw "Frozen console selftest FAILED (exit $LASTEXITCODE). See $SelftestLog"
+        }
+
+        Write-Section "Frozen selftest (windowed startup)"
+        $GuiExe = Join-Path $AppDir "IBEIS.exe"
+        $GuiProc = Start-Process -FilePath $GuiExe -WorkingDirectory $AppDir -PassThru
+        if (-not $GuiProc.WaitForExit(20000)) {
+            Stop-Process -Id $GuiProc.Id -Force -ErrorAction SilentlyContinue
+            throw "Frozen windowed selftest timed out after 20 seconds"
+        }
+        $GuiProc.Refresh()
+        if ($GuiProc.ExitCode -ne 0) {
+            throw "Frozen windowed selftest FAILED (exit $($GuiProc.ExitCode))"
         }
     } finally {
         Remove-Item Env:IBEIS_FROZEN_SELFTEST -ErrorAction SilentlyContinue
