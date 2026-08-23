@@ -11,7 +11,13 @@ Snapshot helpers without checks:
 ROOT=/media/joncrall/flash1/vms/win11-fresh
 WORK=$ROOT/win11-fresh.qcow2
 
-sudo rm "$WORK"
+virsh shutdown win11-fresh
+
+while [ "$(virsh domstate win11-fresh)" != "shut off" ]; do
+    sleep 1
+done
+
+sudo rm -f "$WORK"
 
 cd "$ROOT"
 
