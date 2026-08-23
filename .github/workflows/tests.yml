@@ -261,5 +261,35 @@ jobs:
         python -m ibeis --resetdbs
         python -m xdoctest $MOD_DPATH --style=google all
         echo "xdoctest command finished"
+  build_windows_installer:
+    name: Build Windows installer
+    runs-on: windows-latest
+    steps:
+    - name: Checkout source
+      uses: actions/checkout@v6.0.2
+    - name: Setup Python
+      uses: actions/setup-python@v6.2.0
+      with:
+        python-version: '3.13'
+    - name: Set up Windows installer build
+      shell: pwsh
+      run: |-
+        python -m pip install -U pip
+        python -m pip install -U uv
+        python -m uv --version
+    - name: Build Windows installer
+      shell: pwsh
+      run: .\dev\_installers\build_installer.ps1 -Clean -PyInstaller -Checks -SmokeTest -Inno
+    - name: Inspect Windows installer outputs
+      shell: pwsh
+      run: Get-ChildItem -Recurse dist | Format-Table FullName, Length, LastWriteTime
+    - uses: actions/upload-artifact@v6.0.0
+      name: Upload Windows installer artifact
+      with:
+        name: windows-installer
+        if-no-files-found: error
+        path: |-
+          dist\installer\*
+          dist\diagnostics\*
 
 

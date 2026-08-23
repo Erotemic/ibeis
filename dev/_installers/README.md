@@ -2,9 +2,11 @@
 
 This directory contains everything needed to turn a source checkout into a
 Windows installer (`IBEIS-Setup-<version>.exe`) and to verify the result on a
-clean Windows VM. The same script drives the CI job
+clean Windows VM. The same script drives the generated CI job
 (`build_windows_installer` in `.github/workflows/tests.yml`), so a local build
-and a CI build are the same thing.
+and a CI build are the same thing. The job is declared in
+`[tool.xcookie.ci_artifacts.windows_installer]` in `pyproject.toml`; edit that
+declaration rather than the generated workflow files.
 
 Key files:
 
