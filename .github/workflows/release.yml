@@ -39,7 +39,7 @@ jobs:
       shell: bash
       run: |-
         python -m pip install pip uv -U
-        python -m uv pip install setuptools>=0.8 wheel build twine
+        python -m uv pip install setuptools>=77 wheel build twine
         python -m build --wheel --outdir wheelhouse
         python -m twine check ./wheelhouse/ibeis*.whl
     - name: Show built files

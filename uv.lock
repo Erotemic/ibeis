@@ -792,16 +792,21 @@ wheels = [
 
 [[package]]
 name = "dtool-ibeis"
-version = "1.1.2"
+version = "1.2.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "cachetools", marker = "python_full_version < '4'" },
+    { name = "loguru" },
+    { name = "networkx" },
+    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
+    { name = "numpy", version = "2.5.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
+    { name = "parse" },
     { name = "ubelt" },
     { name = "utool" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/e7/11/07217e770858c47ef7934f69511dd72024b7ab5821cd309159b0c3df5307/dtool_ibeis-1.1.2.tar.gz", hash = "sha256:fca2583ed4b71f467ae06f390f95af3067e1a8e1cdc76a8f00ff8c023247c293", size = 108197, upload-time = "2024-04-16T04:15:12.002Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/03/e2/6bc3193a2a47e7f68a72ac82c0b7fca21097a112e673fa87f2037cbe420c/dtool_ibeis-1.2.0.tar.gz", hash = "sha256:9674d6ef4a3a13f4fa0fb938e2987a105d6a42e31114922f51dc9874a31ef7ef", size = 107279, upload-time = "2026-08-23T20:33:44.072Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/20/84/9f9a9f4b316924dbc90bfb8084e5b9c25c750cb0f76e6d9929999859fc16/dtool_ibeis-1.1.2-py3-none-any.whl", hash = "sha256:039fad912f97f84c6ee949a58bb8a4c0ea573a151a3777dd8656b7042b749dbc", size = 107178, upload-time = "2024-04-16T04:15:10.297Z" },
+    { url = "https://files.pythonhosted.org/packages/58/1d/07b3be94923d140b05251148ade36b9f6a48894d81fcc6140f7396dc328f/dtool_ibeis-1.2.0-py3-none-any.whl", hash = "sha256:b607174252382296d799f5b0ffb2522cd28d7008268ea3bfeb181d874520bcb8", size = 106855, upload-time = "2026-08-23T20:33:42.472Z" },
 ]
 
 [[package]]
@@ -936,10 +941,11 @@ wheels = [
 
 [[package]]
 name = "guitool-ibeis"
-version = "2.2.0"
+version = "2.3.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "cachetools", marker = "python_full_version < '4'" },
+    { name = "loguru" },
     { name = "matplotlib", marker = "python_full_version < '4'" },
     { name = "pyqt5", marker = "python_full_version < '4'" },
     { name = "six", marker = "python_full_version < '4'" },
@@ -947,9 +953,9 @@ dependencies = [
     { name = "utool" },
     { name = "vtool-ibeis" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/75/06/92b627b958a51a117574f7c596f5150174991d220db69ea1d2dbe28badec/guitool_ibeis-2.2.0.tar.gz", hash = "sha256:3c961a06216d9545837414c5e47ac3e9c3062690e3a4bb00e4f9c989514b272a", size = 108898, upload-time = "2024-04-15T15:22:41.274Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/ad/7d/83b78cd6ca2fde0521d18fc2564320f12c59733b40a078855c8351a05f56/guitool_ibeis-2.3.0.tar.gz", hash = "sha256:a7c48fd53da89eb883f3ae2003ebed3cdbee75906e0acdbb31b62a5b50d0b258", size = 103085, upload-time = "2026-08-23T20:17:21.588Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ec/b4/65d754882631ad9a717d4d06c80a559718dc25e8db6e426409bd0c158c76/guitool_ibeis-2.2.0-py3-none-any.whl", hash = "sha256:908fce9a47efb816baa9cd730355c26d4241ccfd9a1ecc101eaf225bce821f27", size = 118343, upload-time = "2024-04-15T15:22:35.584Z" },
+    { url = "https://files.pythonhosted.org/packages/69/65/8b72f152eeafc68ec36552f274a35ed8d1e65495955298f7b46d85bc3653/guitool_ibeis-2.3.0-py3-none-any.whl", hash = "sha256:dc5435f9565eab664dfcc6653650a8461c4b89b4c4bf1384a939afebd25c3ef0", size = 114776, upload-time = "2026-08-23T20:17:20.08Z" },
 ]
 
 [[package]]
@@ -1112,13 +1118,13 @@ requires-dist = [
     { name = "coverage", marker = "python_full_version == '3.11.*' and extra == 'tests'", specifier = ">=6.1.1" },
     { name = "coverage", marker = "python_full_version == '3.12.*' and extra == 'tests'", specifier = ">=7.3.0" },
     { name = "coverage", marker = "python_full_version >= '3.13' and python_full_version < '4' and extra == 'tests'", specifier = ">=7.6.1" },
-    { name = "dtool-ibeis", specifier = ">=1.1.2" },
+    { name = "dtool-ibeis", specifier = ">=1.2.0" },
     { name = "flask", specifier = ">=2.1.3" },
     { name = "flask-cors", marker = "extra == 'all'", specifier = ">=3.0.10" },
     { name = "flask-cors", marker = "extra == 'optional'", specifier = ">=3.0.10" },
     { name = "gitpython", marker = "python_full_version >= '3.11' and python_full_version < '4' and extra == 'all'", specifier = ">=3.1.25" },
     { name = "gitpython", marker = "python_full_version >= '3.11' and python_full_version < '4' and extra == 'super-setup'", specifier = ">=3.1.25" },
-    { name = "guitool-ibeis", specifier = ">=2.2.0" },
+    { name = "guitool-ibeis", specifier = ">=2.3.0" },
     { name = "ipython", specifier = ">=7.16.2" },
     { name = "jupyter", marker = "extra == 'all'", specifier = ">=1.0.0" },
     { name = "jupyter", marker = "extra == 'optional'", specifier = ">=1.0.0" },
@@ -1135,12 +1141,12 @@ requires-dist = [
     { name = "numpy", marker = "python_full_version == '3.12.*'", specifier = ">=1.26.0" },
     { name = "numpy", marker = "python_full_version == '3.13.*'", specifier = ">=2.1.0" },
     { name = "numpy", marker = "python_full_version >= '3.14' and python_full_version < '4'", specifier = ">=2.3.4" },
-    { name = "opencv-python", marker = "python_version < '0'", specifier = ">=4.5.4.58" },
+    { name = "opencv-python", marker = "python_full_version < '0'", specifier = ">=4.5.4.58" },
     { name = "opencv-python", marker = "python_full_version >= '3.11' and python_full_version < '3.13' and extra == 'all'", specifier = ">=4.5.5.64" },
     { name = "opencv-python", marker = "python_full_version >= '3.11' and python_full_version < '3.13' and extra == 'graphics'", specifier = ">=4.5.5.64" },
     { name = "opencv-python", marker = "python_full_version >= '3.13' and python_full_version < '4' and extra == 'all'", specifier = ">=4.10.0.84" },
     { name = "opencv-python", marker = "python_full_version >= '3.13' and python_full_version < '4' and extra == 'graphics'", specifier = ">=4.10.0.84" },
-    { name = "opencv-python-headless", marker = "python_version < '0'", specifier = ">=4.5.4.58" },
+    { name = "opencv-python-headless", marker = "python_full_version < '0'", specifier = ">=4.5.4.58" },
     { name = "opencv-python-headless", marker = "python_full_version >= '3.11' and python_full_version < '3.13' and extra == 'all'", specifier = ">=4.5.5.64" },
     { name = "opencv-python-headless", marker = "python_full_version >= '3.11' and python_full_version < '3.13' and extra == 'headless'", specifier = ">=4.5.5.64" },
     { name = "opencv-python-headless", marker = "python_full_version >= '3.13' and python_full_version < '4' and extra == 'all'", specifier = ">=4.10.0.84" },
@@ -1153,7 +1159,7 @@ requires-dist = [
     { name = "pillow", marker = "python_full_version == '3.11.*'", specifier = ">=9.4.0" },
     { name = "pillow", marker = "python_full_version == '3.12.*'", specifier = ">=10.0.0" },
     { name = "pillow", marker = "python_full_version >= '3.13' and python_full_version < '4'", specifier = ">=11.3.0" },
-    { name = "plottool-ibeis", specifier = ">=2.3.0" },
+    { name = "plottool-ibeis", specifier = ">=2.4.0" },
     { name = "psutil", marker = "python_full_version == '3.11.*'", specifier = ">=5.9.4" },
     { name = "psutil", marker = "python_full_version == '3.12.*'", specifier = ">=5.9.6" },
     { name = "psutil", marker = "python_full_version == '3.13.*'", specifier = ">=6.1.0" },
@@ -1219,7 +1225,7 @@ requires-dist = [
     { name = "ubelt", marker = "extra == 'all'", specifier = ">=1.2.3" },
     { name = "ubelt", marker = "extra == 'super-setup'", specifier = ">=1.2.3" },
     { name = "utool", specifier = ">=2.3.0" },
-    { name = "vtool-ibeis", specifier = ">=2.3.0" },
+    { name = "vtool-ibeis", specifier = ">=2.4.0" },
     { name = "vtool-ibeis-ext", specifier = ">=0.1.3" },
     { name = "werkzeug", specifier = ">=2.2.2" },
     { name = "xdoctest", marker = "extra == 'tests'", specifier = ">=1.1.5" },
@@ -1786,6 +1792,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/51/09/0e555288cdedf3eac3738dfc8e3b6bfe07a01021e34024b49bb9ab42c6d9/kwarray-0.7.1.tar.gz", hash = "sha256:80c76a27516a1f371d53c783938e1ebc19588167c8e31725939e6e43bb69cead", size = 112869, upload-time = "2024-10-18T04:06:07.649Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/b2/a2/89e0bcbaa742950581cb6213a33b0f96f3d3e8e7e6186db2b98afb16ec38/kwarray-0.7.1-py3-none-any.whl", hash = "sha256:378eacfeeae27ee967eaa15c49f5141c8ce1f0cf869c1aea8139bf216c6d7f4b", size = 108944, upload-time = "2024-10-18T04:06:05.16Z" },
+]
+
+[[package]]
+name = "kwconf"
+version = "0.11.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/c6/77/20ce9cf65bc20e769db9a506e72e291f7a38ee766393110858a15e93ea1b/kwconf-0.11.0.tar.gz", hash = "sha256:cd8e9192a3c0e54750368980f9bf6b02676f75b76ac3830b656e977cc55f988f", size = 172077, upload-time = "2026-08-07T15:25:34.385Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/fa/7a/4b4a1c503cc621eb2256e5d18385ccfb546f536008cdb4db0189426f5e77/kwconf-0.11.0-py3-none-any.whl", hash = "sha256:4691afdf7173ca0d42302a2cf17910917ac3bd02729e0b2f2cb2aa1e3b2ee18b", size = 110488, upload-time = "2026-08-07T15:25:32.964Z" },
 ]
 
 [[package]]
@@ -2505,7 +2520,7 @@ name = "pexpect"
 version = "4.9.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "ptyprocess" },
+    { name = "ptyprocess", marker = "(python_full_version >= '4' and sys_platform == 'emscripten') or (python_full_version >= '4' and sys_platform == 'win32') or (sys_platform != 'emscripten' and sys_platform != 'win32')" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/42/92/cc564bf6381ff43ce1f4d06852fc19a2f11d180f23dc32d9588bee2f149d/pexpect-4.9.0.tar.gz", hash = "sha256:ee7d41123f3c9911050ea2c2dac107568dc43b2d3b0c7557a33212c398ead30f", size = 166450, upload-time = "2023-11-25T09:07:26.339Z" }
 wheels = [
@@ -2608,11 +2623,12 @@ wheels = [
 
 [[package]]
 name = "plottool-ibeis"
-version = "2.3.0"
+version = "2.4.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "cachetools", marker = "python_full_version < '4'" },
     { name = "guitool-ibeis" },
+    { name = "loguru" },
     { name = "matplotlib", marker = "python_full_version < '4'" },
     { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
     { name = "numpy", version = "2.5.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12' and python_full_version < '4'" },
@@ -2621,9 +2637,9 @@ dependencies = [
     { name = "utool" },
     { name = "vtool-ibeis" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/df/6e/6d8b5273523d675605829002dc5fbfa78fb480577aae1599067f7eb2e9f0/plottool_ibeis-2.3.0.tar.gz", hash = "sha256:f245eb2417eda88029f7cfc2cd2c6baf710e632b6210adeadf36f83c0cbed897", size = 182396, upload-time = "2024-04-16T01:36:53.978Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/ff/35/2059a3c00b3f4844f1e74235cc0dfac012ef8d252de7d75c5ae892306d3c/plottool_ibeis-2.4.0.tar.gz", hash = "sha256:f8bc958c784f18298cf9bfb20047313b4f3109350e691bc7bc0e337ec6222b35", size = 176854, upload-time = "2026-08-23T20:24:18.455Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/87/45/b808984944bcfedf5541de8107bac30987aaefa49a33dcea7f27ca829529/plottool_ibeis-2.3.0-py3-none-any.whl", hash = "sha256:e2aa4a2b889248fd9055cf92aa3a0f2b15c17cfb4d28b109c1b4d29a78c186c7", size = 200559, upload-time = "2024-04-16T01:36:51.677Z" },
+    { url = "https://files.pythonhosted.org/packages/f8/f6/6ecf526dd2c6b293d0936fff87dfda55ab062db0b0c256c32ba9cf1849da/plottool_ibeis-2.4.0-py3-none-any.whl", hash = "sha256:f6e87f33906c94d25e59735d9817dc897bda9f3dffa4866875af3493c19afeb3", size = 197596, upload-time = "2026-08-23T20:24:17.069Z" },
 ]
 
 [[package]]
@@ -3565,19 +3581,6 @@ wheels = [
 ]
 
 [[package]]
-name = "scriptconfig"
-version = "0.9.1"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "pyyaml", marker = "python_full_version < '4'" },
-    { name = "ubelt" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/a4/4c/6d0ecc5e29b498dc6b5402a0c561e97dd00ce1aeebdc5e494cc5fa8a0b6b/scriptconfig-0.9.1.tar.gz", hash = "sha256:9766c2ee601c4b8d97753ba13a914f8c0a212da4f6d2aec18ad628fd8b53d7ef", size = 112424, upload-time = "2026-03-02T17:33:34.405Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/57/00/2bf691dfc2b0170013d466fcdbbfc9d036e26d6049d74efaf7775401321d/scriptconfig-0.9.1-py3-none-any.whl", hash = "sha256:4b69e2f4eb681ec4480e9bb5d6c82d2f8c82a9badc703a261ee8940736101d86", size = 87103, upload-time = "2026-03-02T17:33:31.394Z" },
-]
-
-[[package]]
 name = "send2trash"
 version = "2.1.0"
 source = { registry = "https://pypi.org/simple" }
@@ -4287,27 +4290,25 @@ wheels = [
 
 [[package]]
 name = "vtool-ibeis"
-version = "2.3.1"
+version = "2.4.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
+    { name = "kwconf" },
     { name = "networkx", marker = "python_full_version < '4'" },
     { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
     { name = "numpy", version = "2.5.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12' and python_full_version < '4'" },
-    { name = "packaging" },
     { name = "pillow", marker = "python_full_version < '4'" },
     { name = "scikit-image", marker = "python_full_version < '4'" },
     { name = "scikit-learn", marker = "python_full_version < '4'" },
     { name = "scipy", version = "1.17.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
     { name = "scipy", version = "1.18.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12' and python_full_version < '4'" },
-    { name = "scriptconfig" },
-    { name = "six" },
     { name = "statsmodels", marker = "python_full_version < '4'" },
     { name = "ubelt" },
     { name = "utool" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/b3/e3/a8f631b18945da00fd113c818d188150848dab0c570b60d8834aa214a3ea/vtool_ibeis-2.3.1.tar.gz", hash = "sha256:96064ec8b5d014c0e28a87826c2bec679d9b5a5d5514160ab51cbf4971693820", size = 339532, upload-time = "2026-02-05T02:15:37.364Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/14/b6/8aaef7d4562c487bab6e28979fd464f8fd9f301a2269820d8d3eadffbfef/vtool_ibeis-2.4.0.tar.gz", hash = "sha256:c0f7fe1709815a22d231f7774e73e4af286cfabb33e46356c2b1d8672f52f33b", size = 334346, upload-time = "2026-08-23T20:23:19.433Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/6c/69/6682629113612896c7c6f175c7fbf3e3cf096954daabc1320038357cc3a3/vtool_ibeis-2.3.1-py3-none-any.whl", hash = "sha256:9429287b79e3725e4d3ede56b40dba7654161adc416c4a0b1a098ac8cafa138e", size = 263364, upload-time = "2026-02-05T02:15:29.905Z" },
+    { url = "https://files.pythonhosted.org/packages/b2/f0/3847183d9ac482a47c677ecbd8d2bfd9ad2b3336f6588ded63b99dfdb1c3/vtool_ibeis-2.4.0-py3-none-any.whl", hash = "sha256:3e994ac3d03363113231ff1874eb060cc87d91069648c392298805bc9ed4d9f1", size = 261466, upload-time = "2026-08-23T20:23:17.821Z" },
 ]
 
 [[package]]

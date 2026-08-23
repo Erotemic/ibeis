@@ -28,6 +28,7 @@ classifiers = [
 dynamic = [
   "dependencies",
   "optional-dependencies",
+  "readme",
   "version",
 ]
 urls.Homepage = "https://github.com/Erotemic/ibeis"
@@ -40,8 +41,8 @@ dynamic.dependencies.file = [
 ]
 dynamic.optional-dependencies.all.file = [
   "requirements/optional.txt",
-  "requirements/headless.txt",
   "requirements/graphics.txt",
+  "requirements/headless.txt",
   "requirements/problematic.txt",
   "requirements/super_setup.txt",
 ]
