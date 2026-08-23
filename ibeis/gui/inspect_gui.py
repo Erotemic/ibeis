@@ -85,35 +85,26 @@ class QueryResultsWidget(gt.APIItemWidget):
         python -m ibeis.gui.inspect_gui QueryResultsWidget --cmd
 
     Example:
-        >>> # DISABLE_DOCTEST
         >>> from ibeis.gui.inspect_gui import *  # NOQA
-        >>> import ibeis
-        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='PZ_MTEST', a='default:qindex=0:5,dindex=0:20', t='default:SV=False,AQH=True')
-        >>> ibs = qreq_.ibs
-        >>> assert qreq_.ibs.dbname in ['PZ_MTEST', 'testdb1'], 'do not use on a real database'
-        >>> if ut.get_argflag('--fresh-inspect'):
-        >>>     #ut.remove_files_in_dir(ibs.get_match_thumbdir())
-        >>>     ibs.delete_annotmatch(ibs._get_all_annotmatch_rowids())
+        >>> from ibeis.tests import reset_testdbs
+        >>> import guitool_ibeis as gt
+        >>> ibs = reset_testdbs.ensure_synthetic_match_db()
+        >>> aid_list = ibs.get_valid_aids()
+        >>> qaid_list = [aid_list[0], aid_list[3]]
+        >>> daid_list = [aid for aid in aid_list[0:12] if aid not in qaid_list]
+        >>> qreq_ = ibs.new_query_request(qaid_list, daid_list, verbose=False)
         >>> cm_list = qreq_.execute()
-        >>> print('[inspect_matches] make_qres_widget')
         >>> review_cfg = dict(
-        >>>     ranks_top=10000,
-        >>>     #filter_reviewed=True,
-        >>>     filter_reviewed=True,
-        >>>     #filter_true_matches=False,
-        >>> )
-        >>> #ut.view_directory(ibs.get_match_thumbdir())
+        >>>     ranks_top=5, filter_reviewed=False, filter_true_matches=False,
+        >>>     filter_photobombs=False)
         >>> gt.ensure_qapp()
-        >>> qres_wgt = QueryResultsWidget(qreq_.ibs, cm_list, qreq_=qreq_, review_cfg=review_cfg)
-        >>> ut.quit_if_noshow()
-        >>> qres_wgt.show()
-        >>> qres_wgt.raise_()
-        >>> print('</inspect_matches>')
-        >>> # simulate double click
-        >>> #qres_wgt._on_click(qres_wgt.model.index(2, 2))
-        >>> #qres_wgt._on_doubleclick(qres_wgt.model.index(2, 0))
-        >>> # TODO: add in qwin to main loop
-        >>> gt.qtapp_loop(qwin=qres_wgt)
+        >>> qres_wgt = QueryResultsWidget(
+        >>>     ibs, cm_list, qreq_=qreq_, review_cfg=review_cfg)
+        >>> assert qres_wgt.review_api.nRows > 0
+        >>> assert qres_wgt.model.num_rows_total == qres_wgt.review_api.nRows
+        >>> qres_wgt.model.fetchMore()
+        >>> assert qres_wgt.model.rowCount() == qres_wgt.review_api.nRows
+        >>> qres_wgt.close()
     """
 
     def __init__(qres_wgt, ibs, cm_list, parent=None, callback=None,

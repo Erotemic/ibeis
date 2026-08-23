@@ -72,7 +72,7 @@ def get_testdata_dir(ensure=True, key='testdb1'):
 # Convert stanadardized names to true names
 TEST_DBNAMES_MAP = {
     'nauts':         'NAUT_test',
-    'mtest':         'PZ_MTEST',  # compatibility name for synthetic mtest fixture
+    'mtest':         'PZ_MTEST',
     'testdb0':       'testdb0',
     'testdb1':       'testdb1',
     'testdb2':       'testdb2',
@@ -149,12 +149,7 @@ def ensure_smaller_testingdbs():
 
 
 def reset_ci_testdbs():
-    """Reset the deterministic databases used by automated tests.
-
-    The mtest fixture is always synthesized locally. ``PZ_MTEST`` remains its
-    compatibility database name because many legacy doctests still spell that
-    name, but no PZ_MTEST archive or external image data is involved.
-    """
+    """Reset the deterministic databases used by automated tests."""
     import ibeis
     from ibeis.init import sysres
     import ubelt as ub
@@ -163,7 +158,7 @@ def reset_ci_testdbs():
     (workdir / 'testdb0').delete()
     (workdir / 'testdb1').delete()
     ensure_smaller_testingdbs()
-    ensure_synthetic_mtest(reset=True)
+    ensure_synthetic_match_db(reset=True)
 
 
 def reset_testdbs(**kwargs):
@@ -191,10 +186,13 @@ def reset_testdbs(**kwargs):
     # datasets are provisioned only when their reset flag is explicitly given.
     ensure_synthetic_db1(reset=True)
 
-    # Step 3) Ensure the ordinary local test databases and deterministic mtest.
+    # Step 3) Ensure the ordinary local test databases and the synthetic
+    # matching fixture. PZ_MTEST is separate historical/demo data and is only
+    # downloaded when its explicit reset flag is requested.
     ensure_smaller_testingdbs()
-    ensure_synthetic_mtest(
-        reset=argdict.get('reset_mtest', False) or argdict['reset_all'])
+    ensure_synthetic_match_db(reset=argdict['reset_all'])
+    if argdict.get('reset_mtest', False) or argdict['reset_all']:
+        sysres.ensure_pz_mtest()
 
     # Keep remote fixtures available for explicit compatibility / integration
     # testing without putting network access on the default test path.
@@ -242,6 +240,7 @@ def generate_synthetic_images(
             name_dpath = (raw_img_dpath / creature_name)
             image_fpath = name_dpath / f"{stem}.png"
             synthetic_items.append({
+                'name_idx': name_idx,
                 'creature_name': creature_name,
                 'variant': variant,
                 'image_fpath': image_fpath,
@@ -267,25 +266,29 @@ def generate_synthetic_images(
 
 
 
-def synthetic_mtest_spec():
+def synthetic_match_spec():
     """Describe the deterministic matching/inference fixture used by tests.
 
-    The contract is intentionally test-owned rather than copied from the
-    historical PZ_MTEST archive. Forty identities with three sightings each
-    gives 120 annotations: enough for legacy doctests that address rowids up to
-    119, while giving every identity the same simple repeated-sighting shape.
+    This fixture deliberately has its own identity.  It is not PZ_MTEST and
+    does not attempt to preserve PZ_MTEST rowids or image content.  Instead we
+    own the data contract: enough repeated sightings for matching/inference,
+    three viewpoints/occurrences, and explicit mother/foal case tags for
+    filtering paths that historically used those properties of PZ_MTEST.
     """
+    num_names = 40
+    images_per_name = 3
     return {
-        'dbname': 'PZ_MTEST',  # compatibility locator, not historical content
-        'num_names': 40,
-        'images_per_name': 3,
-        'num_annots': 120,
+        'dbname': 'synthetic_match',
+        'num_names': num_names,
+        'images_per_name': images_per_name,
+        'num_annots': num_names * images_per_name,
         'image_size': 384,
+        'family_pairs': 6,
     }
 
 
-def _prepare_synthetic_mtest(ibs, synthetic_items):
-    """Populate deterministic metadata and graph state for the mtest fixture."""
+def _prepare_synthetic_match_db(ibs, synthetic_items, spec):
+    """Populate deterministic metadata and graph state for synthetic matching."""
     import ibeis
     import numpy as np
     from ibeis.init import sysres
@@ -318,26 +321,32 @@ def _prepare_synthetic_mtest(ibs, synthetic_items):
     ])
     ibs.set_image_gps(gids, gps)
 
-    # Deterministic tags exercise filtering without encoding historical rowids.
-    foal_aids = aids[3::5]
-    foal_set = set(foal_aids)
-    mother_aids = [aid for aid in aids[8::9] if aid not in foal_set]
-    ibs.append_annot_case_tags(foal_aids, ['foal'] * len(foal_aids))
+    # Encode a few explicit family roles.  All sightings of a selected
+    # identity carry the same role, so filtering tests can make stable semantic
+    # assertions without depending on arbitrary annotation rowids.
+    family_pairs = spec['family_pairs']
+    mother_name_idxs = set(range(1, 2 * family_pairs + 1, 2))
+    foal_name_idxs = set(range(2, 2 * family_pairs + 1, 2))
+    mother_aids = [aid for aid, item in zip(aids, synthetic_items)
+                   if item['name_idx'] in mother_name_idxs]
+    foal_aids = [aid for aid, item in zip(aids, synthetic_items)
+                 if item['name_idx'] in foal_name_idxs]
+    assert len(mother_aids) == family_pairs * spec['images_per_name']
+    assert len(foal_aids) == family_pairs * spec['images_per_name']
     ibs.append_annot_case_tags(mother_aids, ['mother'] * len(mother_aids))
+    ibs.append_annot_case_tags(foal_aids, ['foal'] * len(foal_aids))
 
     ibs.set_exemplars_from_quality_and_viewpoint()
     ibs.update_all_image_special_imageset()
-    sysres.reset_mtest_graph(ibs=ibs)
+    sysres.reset_test_graph(ibs)
     return ibs
 
 
-def ensure_synthetic_mtest(reset=False, image_size=None):
-    """Build the default local matching/inference fixture for automated tests.
+def ensure_synthetic_match_db(reset=False, image_size=None):
+    """Build the canonical local matching/inference fixture for tests.
 
-    ``PZ_MTEST`` is retained only as a compatibility database name so existing
-    doctests can open the fixture without a flag day. Its contents and shape
-    are defined entirely here and generated from deterministic synthetic
-    creatures; no PZ_MTEST archive is downloaded or required.
+    The database is generated entirely from deterministic synthetic images and
+    metadata.  It never downloads or aliases a historical demo database.
     """
     import os
     import ubelt as ub
@@ -345,14 +354,14 @@ def ensure_synthetic_mtest(reset=False, image_size=None):
     from ibeis.control import IBEISControl
     from ibeis.init import sysres
 
-    spec = synthetic_mtest_spec()
+    spec = synthetic_match_spec()
     if image_size is None:
         image_size = spec['image_size']
 
     ibeis.ENABLE_WILDBOOK_SIGNAL = False
     workdir = ub.Path(sysres.get_workdir()).ensuredir()
     dbdir = workdir / spec['dbname']
-    source_dpath = workdir / '_synthetic_testdata' / 'mtest'
+    source_dpath = workdir / '_synthetic_testdata' / 'match'
 
     if reset:
         dbdir.delete()
@@ -364,7 +373,7 @@ def ensure_synthetic_mtest(reset=False, image_size=None):
                 len(ibs.get_valid_nids()) == spec['num_names']):
             return ibs
         raise AssertionError(
-            'Refusing to reuse an unexpected synthetic mtest fixture at {!r}'
+            'Refusing to reuse an unexpected synthetic match fixture at {!r}'
             .format(os.fspath(dbdir)))
 
     raw_img_dpath = (source_dpath / 'raw_images').ensuredir()
@@ -386,7 +395,7 @@ def ensure_synthetic_mtest(reset=False, image_size=None):
 
     assert len(ibs.get_valid_aids()) == spec['num_annots']
     assert len(ibs.get_valid_nids()) == spec['num_names']
-    return _prepare_synthetic_mtest(ibs, synthetic_items)
+    return _prepare_synthetic_match_db(ibs, synthetic_items, spec)
 
 def ensure_synthetic_db1(reset=False):
     """

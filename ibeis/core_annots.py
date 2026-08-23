@@ -1027,24 +1027,21 @@ def compute_feats(depc, cid_list, config=None):
         python -m ibeis.core_annots compute_feats:1
 
     Doctest:
-        >>> # DISABLE_DOCTEST
         >>> from ibeis.core_annots import *  # NOQA
-        >>> ibs, depc, aid_list = testdata_core()
+        >>> from ibeis.tests import reset_testdbs
+        >>> ibs = reset_testdbs.ensure_synthetic_match_db()
+        >>> depc = ibs.depc_annot
+        >>> aid_list = ibs.get_valid_aids()[0:3]
         >>> chip_config = {}
         >>> config = FeatConfig()
         >>> cid_list = depc.get_rowids('chips', aid_list, config=chip_config)
-        >>> featgen = compute_feats(depc, cid_list, config)
-        >>> feat_list = list(featgen)
+        >>> feat_list = list(compute_feats(depc, cid_list, config))
         >>> assert len(feat_list) == len(aid_list)
-        >>> (nFeat, kpts, vecs) = feat_list[0]
-        >>> assert nFeat == len(kpts) and nFeat == len(vecs)
-        >>> assert kpts.shape[1] == 6
-        >>> assert vecs.shape[1] == 128
-        >>> ut.quit_if_noshow()
-        >>> import plottool_ibeis as pt
-        >>> chip = depc.get_native('chips', cid_list[0:1], 'img')[0]
-        >>> pt.interact_keypoints.KeypointInteraction(chip, kpts, vecs, autostart=True)
-        >>> ut.show_if_requested()
+        >>> for n_feat, kpts, vecs in feat_list:
+        >>>     assert n_feat > 0
+        >>>     assert n_feat == len(kpts) == len(vecs)
+        >>>     assert kpts.shape[1] == 6
+        >>>     assert vecs.shape[1] == 128
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -1521,26 +1518,20 @@ def compute_neighbor_index(depc, fids_list, config):
         python -m ibeis.control.IBEISControl show_depc_annot_table_input --show --tablename=neighbor_index
 
     Example:
-        >>> # DISABLE_DOCTEST
         >>> from ibeis.core_annots import *  # NOQA
-        >>> import ibeis
-        >>> ibs, aid_list = ibeis.testdata_aids('testdb1')
+        >>> from ibeis.tests import reset_testdbs
+        >>> ibs = reset_testdbs.ensure_synthetic_match_db()
         >>> depc = ibs.depc_annot
+        >>> aid_list = ibs.get_valid_aids()[0:8]
         >>> fid_list = depc.get_rowids('feat', aid_list)
-        >>> aids_list = tuple([aid_list])
-        >>> fids_list = tuple([fid_list])
-        >>> # Compute directly from function
+        >>> fids_list = (fid_list,)
         >>> config = ibs.depc_annot['neighbor_index'].configclass()
-        >>> result1 = list(compute_neighbor_index(depc, fids_list, config))
-        >>> nnindexer1 = result1[0][0]
-        >>> # Compute using depcache
-        >>> result2 = ibs.depc_annot.get('neighbor_index', [aids_list], 'indexer', config, recompute=False, _debug=True)
-        >>> #result3 = ibs.depc_annot.get('neighbor_index', [tuple(fids_list)], 'indexer', config, recompute=False)
-        >>> print(result2)
-        >>> print(result3)
-        >>> assert result2[0] is not result3[0]
-        >>> assert nnindexer1.knn(ibs.get_annot_vecs(1), 1) is not None
-        >>> assert result3[0].knn(ibs.get_annot_vecs(1), 1) is not None
+        >>> nnindexer = list(compute_neighbor_index(depc, fids_list, config))[0][0]
+        >>> query_vecs = ibs.get_annot_vecs(aid_list[0])
+        >>> assert len(query_vecs) > 0
+        >>> knn_result = nnindexer.knn(query_vecs[0:8], 1)
+        >>> assert knn_result is not None
+        >>> assert len(knn_result[0]) == min(8, len(query_vecs))
     """
     logger.info('[IBEIS] COMPUTE_NEIGHBOR_INDEX:')
     # TODO: allow augment

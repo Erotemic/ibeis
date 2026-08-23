@@ -47,16 +47,22 @@ def get_review_edges(cm_list, ibs=None, review_cfg={}):
         python -m ibeis.gui.id_review_api get_review_edges:0
 
     Example0:
-        >>> # ENABLE_DOCTEST
         >>> from ibeis.gui.id_review_api import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> qreq_ = ibeis.main_helpers.testdata_qreq_()
+        >>> from ibeis.tests import reset_testdbs
+        >>> ibs = reset_testdbs.ensure_synthetic_match_db()
+        >>> aid_list = ibs.get_valid_aids()
+        >>> qaid_list = [aid_list[0], aid_list[3]]
+        >>> daid_list = [aid for aid in aid_list[0:12] if aid not in qaid_list]
+        >>> qreq_ = ibs.new_query_request(qaid_list, daid_list, verbose=False)
         >>> cm_list = qreq_.execute()
-        >>> review_cfg = dict(ranks_top=5, directed=True, name_scoring=False,
-        >>>                   filter_true_matches=True)
+        >>> review_cfg = dict(
+        >>>     ranks_top=5, directed=True, name_scoring=False,
+        >>>     filter_reviewed=False, filter_true_matches=False,
+        >>>     filter_photobombs=False)
         >>> review_edges = get_review_edges(cm_list, ibs=ibs, review_cfg=review_cfg)
-        >>> print(review_edges)
+        >>> assert len(review_edges) == 4
+        >>> assert len(review_edges[0]) > 0
+        >>> assert all(len(part) == len(review_edges[0]) for part in review_edges)
 
     Example1:
         >>> # xdoctest: +SKIP

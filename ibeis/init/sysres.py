@@ -485,9 +485,9 @@ def ensure_pz_mtest():
     """
     Ensures that you have the PZ_MTEST dataset.
 
-    This is the explicit historical/demo-data helper. Automated tests use the
-    deterministic synthetic mtest fixture in :mod:`ibeis.tests.reset_testdbs`
-    and do not call this download path.
+    This is the explicit historical/demo-data helper. Automated tests that do
+    not require the real dataset should use the independently named synthetic
+    fixtures in :mod:`ibeis.tests.reset_testdbs`.
 
     CommandLine:
         python -m ibeis.init.sysres ensure_pz_mtest
@@ -514,28 +514,13 @@ def ensure_pz_mtest():
     return _prepare_pz_mtest(ibs)
 
 
-def reset_mtest_graph(ibs=None):
-    """
-    Resets the annotmatch and stating table
-
-    CommandLine:
-        python -m ibeis reset_mtest_graph
-
-    Example:
-        >>> # SCRIPT
-        >>> from ibeis.init.sysres import *  # NOQA
-        >>> reset_mtest_graph()
-    """
-    if True:
-        # Delete graph review state and rebuild the deterministic inference
-        # surface. Passing a controller decouples this logic from any db name.
-        import ibeis
-        if ibs is None:
-            ibs = ibeis.opendb('PZ_MTEST')
-        annotmatch = ibs.db['annotmatch']
-        staging = ibs.staging['reviews']
-        annotmatch.clear()
-        staging.clear()
+def reset_test_graph(ibs):
+    """Rebuild the deterministic graph-review state used by test databases."""
+    import ibeis
+    annotmatch = ibs.db['annotmatch']
+    staging = ibs.staging['reviews']
+    annotmatch.clear()
+    staging.clear()
 
     # Make this CC connected using positive edges
     from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, DIFF, NULL, SAME  # NOQA
@@ -551,7 +536,8 @@ def reset_mtest_graph(ibs=None):
     small_ccs = [cc for cc in infr.positive_components() if len(cc) <= 3 and len(cc) > 1]
     # single_ccs = [cc for cc in infr.positive_components() if len(cc) == 1]
 
-    cc = infr.pos_graph.connected_to(1)
+    first_aid = ibs.get_valid_aids()[0]
+    cc = infr.pos_graph.connected_to(first_aid)
     for edge in nxu.edges_between(infr.graph, cc):
         infr.add_feedback(edge, POSTV, user_id='user:setup1')
 
@@ -593,6 +579,14 @@ def reset_mtest_graph(ibs=None):
     # print(ibs.staging['reviews'].as_pandas())
 
 
+def reset_mtest_graph(ibs=None):
+    """Reset graph-review state for the historical PZ_MTEST database."""
+    if ibs is None:
+        import ibeis
+        ibs = ibeis.opendb('PZ_MTEST')
+    return reset_test_graph(ibs)
+
+
 def copy_ibeisdb(source_dbdir, dest_dbdir):
     # TODO: rectify with rsync, script, and merge script.
     from os.path import normpath
@@ -621,24 +615,24 @@ def copy_ibeisdb(source_dbdir, dest_dbdir):
     ut.copy(src_list, dst_list)
 
 
-def ensure_pz_mtest_batchworkflow_test():
+def ensure_synthetic_batchworkflow_test():
     r"""
     CommandLine:
-        python -m ibeis.init.sysres ensure_pz_mtest_batchworkflow_test
-        python -m ibeis.init.sysres ensure_pz_mtest_batchworkflow_test --reset
-        python -m ibeis.init.sysres ensure_pz_mtest_batchworkflow_test --reset
+        python -m ibeis.init.sysres ensure_synthetic_batchworkflow_test
+        python -m ibeis.init.sysres ensure_synthetic_batchworkflow_test --reset
+        python -m ibeis.init.sysres ensure_synthetic_batchworkflow_test --reset
 
     Example:
         >>> # SCRIPT
         >>> from ibeis.init.sysres import *  # NOQA
-        >>> ensure_pz_mtest_batchworkflow_test()
+        >>> ensure_synthetic_batchworkflow_test()
     """
     import ibeis
     from ibeis.tests import reset_testdbs
-    source_ibs = reset_testdbs.ensure_synthetic_mtest()
+    source_ibs = reset_testdbs.ensure_synthetic_match_db()
     workdir = ibeis.sysres.get_workdir()
     source_dbdir = source_ibs.get_dbdir()
-    dest_dbdir = join(workdir, 'PZ_BATCH_WORKFLOW_MTEST')
+    dest_dbdir = join(workdir, 'SYNTHETIC_BATCH_WORKFLOW_TEST')
 
     if ut.get_argflag('--reset'):
         ut.delete(dest_dbdir)
@@ -648,8 +642,8 @@ def ensure_pz_mtest_batchworkflow_test():
     else:
         copy_ibeisdb(source_dbdir, dest_dbdir)
 
-    ibs = ibeis.opendb('PZ_BATCH_WORKFLOW_MTEST')
-    spec = reset_testdbs.synthetic_mtest_spec()
+    ibs = ibeis.opendb('SYNTHETIC_BATCH_WORKFLOW_TEST')
+    spec = reset_testdbs.synthetic_match_spec()
     assert len(ibs.get_valid_aids()) == spec['num_annots']
     assert len(ibs.get_valid_nids()) == spec['num_names']
 
@@ -727,24 +721,24 @@ def ensure_pz_mtest_batchworkflow_test():
     ibs.delete_annot_nids(aid_list)
 
 
-def ensure_pz_mtest_mergesplit_test():
+def ensure_synthetic_mergesplit_test():
     r"""
     Make a test database for MERGE and SPLIT cases
 
     CommandLine:
-        python -m ibeis.init.sysres ensure_pz_mtest_mergesplit_test
+        python -m ibeis.init.sysres ensure_synthetic_mergesplit_test
 
     Example:
         >>> # SCRIPT
         >>> from ibeis.init.sysres import *  # NOQA
-        >>> ensure_pz_mtest_mergesplit_test()
+        >>> ensure_synthetic_mergesplit_test()
     """
     import ibeis
     from ibeis.tests import reset_testdbs
-    source_ibs = reset_testdbs.ensure_synthetic_mtest()
+    source_ibs = reset_testdbs.ensure_synthetic_match_db()
     workdir = ibeis.sysres.get_workdir()
     source_dbdir = source_ibs.get_dbdir()
-    dest_dbdir = join(workdir, 'PZ_MERGESPLIT_MTEST')
+    dest_dbdir = join(workdir, 'SYNTHETIC_MERGESPLIT_TEST')
 
     if ut.get_argflag('--reset'):
         ut.delete(dest_dbdir)
@@ -753,8 +747,8 @@ def ensure_pz_mtest_mergesplit_test():
 
     copy_ibeisdb(source_dbdir, dest_dbdir)
 
-    ibs = ibeis.opendb('PZ_MERGESPLIT_MTEST')
-    spec = reset_testdbs.synthetic_mtest_spec()
+    ibs = ibeis.opendb('SYNTHETIC_MERGESPLIT_TEST')
+    spec = reset_testdbs.synthetic_match_spec()
     assert len(ibs.get_valid_aids()) == spec['num_annots']
     assert len(ibs.get_valid_nids()) == spec['num_names']
 

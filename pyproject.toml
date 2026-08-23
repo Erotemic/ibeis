@@ -151,6 +151,7 @@ use_setup_py = false
 use_pyproject_requirements = false
 ci_pypi_trusted_publishing = true
 enable_gpg = true
+test_env = { QT_QPA_PLATFORM = "offscreen" }
 entry_points.console_scripts = [
   "ibeis = ibeis.__main__:run_ibeis",
 ]
