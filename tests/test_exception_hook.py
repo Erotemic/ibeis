@@ -20,6 +20,7 @@ def test_installs_ibeis_exception_hook(monkeypatch):
 
 def test_exception_hook_routes_traceback_through_loguru(monkeypatch):
     calls = []
+    dialogs = []
 
     class DummyLogger:
         def opt(self, **kwargs):
@@ -30,6 +31,11 @@ def test_exception_hook_routes_traceback_through_loguru(monkeypatch):
             calls.append(('critical', message))
 
     monkeypatch.setattr(main_module, 'logger', DummyLogger())
+    monkeypatch.setattr(
+        main_module,
+        '_show_exception_dialog',
+        lambda exc_value, report: dialogs.append((exc_value, report)),
+    )
     exc_info = _captured_exception()
 
     main_module._ibeis_excepthook(*exc_info)
@@ -37,6 +43,9 @@ def test_exception_hook_routes_traceback_through_loguru(monkeypatch):
     assert calls[0][0] == 'opt'
     assert calls[0][1]['exception'] == exc_info
     assert calls[1] == ('critical', 'Unhandled exception')
+    assert len(dialogs) == 1
+    assert str(dialogs[0][0]) == 'qt callback exploded'
+    assert 'RuntimeError: qt callback exploded' in dialogs[0][1]
 
 
 def test_exception_hook_falls_back_to_python_hook(monkeypatch):
@@ -56,3 +65,15 @@ def test_exception_hook_falls_back_to_python_hook(monkeypatch):
     main_module._ibeis_excepthook(*exc_info)
 
     assert calls == [exc_info]
+
+
+def test_exception_report_contains_support_context():
+    exc_info = _captured_exception()
+
+    report = main_module._format_exception_report(*exc_info)
+
+    assert 'IBEIS unexpected error report' in report
+    assert 'IBEIS version:' in report
+    assert 'Python:' in report
+    assert 'Platform:' in report
+    assert 'RuntimeError: qt callback exploded' in report

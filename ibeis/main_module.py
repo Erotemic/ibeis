@@ -4,6 +4,8 @@ ibeis.opendb and ibeis.main are the main entry points
 """
 import sys
 import multiprocessing
+import platform
+import traceback
 
 from loguru import logger
 import utool as ut
@@ -39,17 +41,76 @@ def _reset_signals():
     signal.signal(signal.SIGINT, signal.SIG_DFL)  # reset ctrl+c behavior
 
 
-def _ibeis_excepthook(exc_type, exc_value, tb):
-    """Report uncaught exceptions through the application logging sinks."""
+_REPORTING_EXCEPTION = False
+
+
+def _format_exception_report(exc_type, exc_value, tb):
+    """Build the text a user can copy into a bug report."""
+    import ibeis
+
+    log_fpath = ut.get_current_log_fpath()
+    traceback_text = ''.join(traceback.format_exception(exc_type, exc_value, tb))
+    lines = [
+        'IBEIS unexpected error report',
+        'IBEIS version: {}'.format(ibeis.__version__),
+        'Python: {}'.format(sys.version.replace('\n', ' ')),
+        'Platform: {}'.format(platform.platform()),
+        'Log file: {}'.format(log_fpath if log_fpath is not None else '<none>'),
+        '',
+        traceback_text.rstrip(),
+    ]
+    return '\n'.join(lines)
+
+
+def _show_exception_dialog(exc_value, report):
+    """Show a nonfatal error report when a Qt application is available."""
+    if not USE_GUI:
+        return
     try:
+        import guitool_ibeis as gt
+        from guitool_ibeis.__PYQT__ import QtCore
+
+        qapp = gt.get_qtapp()
+        if qapp is None or QtCore.QThread.currentThread() != qapp.thread():
+            return
+        log_fpath = ut.get_current_log_fpath()
+        log_note = ''
+        if log_fpath is not None:
+            log_note = '\n\nThe full traceback was also written to:\n{}'.format(log_fpath)
+        msg = (
+            'The current action failed. IBEIS kept the application open.\n'
+            'If anything looks inconsistent, restart IBEIS before continuing.\n\n'
+            'Error: {}\n\n'
+            'Click "Show Details..." and copy the report when requesting support.'
+            '{}'
+        ).format(exc_value, log_note)
+        gt.msgbox(title='IBEIS Error', msg=msg, detailed_msg=report)
+    except Exception:
+        # Do not recurse if Qt itself is involved in the failure.
+        logger.exception('Failed to show the IBEIS error dialog')
+
+
+def _ibeis_excepthook(exc_type, exc_value, tb):
+    """Log an uncaught exception and present a copyable GUI report."""
+    global _REPORTING_EXCEPTION
+    if _REPORTING_EXCEPTION:
+        sys.__excepthook__(exc_type, exc_value, tb)
+        return
+
+    _REPORTING_EXCEPTION = True
+    try:
+        report = _format_exception_report(exc_type, exc_value, tb)
         logger.opt(exception=(exc_type, exc_value, tb)).critical('Unhandled exception')
+        _show_exception_dialog(exc_value, report)
     except Exception:
         # Exception reporting must never hide the original failure.
         sys.__excepthook__(exc_type, exc_value, tb)
+    finally:
+        _REPORTING_EXCEPTION = False
 
 
 def _install_exception_hook():
-    """Ensure Qt callbacks and normal Python failures share one crash path."""
+    """Ensure Qt callbacks and normal Python failures share one report path."""
     sys.excepthook = _ibeis_excepthook
 
 

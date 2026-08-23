@@ -72,13 +72,11 @@ def backreport(func):
         except guiexcept.UserCancel:
             logger.info('handling user cancel')
             return None
-        except Exception as ex:
-            #error_msg = "Error caught while performing function. \n %r" % ex
-            error_msg = 'Error: %s' % (ex,)
-            import traceback  # NOQA
-            detailed_msg = traceback.format_exc()
-            gt.msgbox(title="Error Catch!", msg=error_msg, detailed_msg=detailed_msg)
-            raise
+        except Exception:
+            # Backend slots are GUI callback boundaries.  Report the complete
+            # traceback once, then stop this action without unwinding into Qt.
+            sys.excepthook(*sys.exc_info())
+            return None
         return result
     backreport_wrapper = ut.preserve_sig(backreport_wrapper, func)
     return backreport_wrapper
