@@ -260,10 +260,10 @@ jobs:
         echo "About to reset workdirs"
         python -m ibeis --set-workdir="$(readlink -f ci_ibeis_workdir)" --nogui
         python -m ibeis --resetdbs
-        python -m xdoctest $MOD_DPATH --style=google all
-        echo "xdoctest command finished"
-  build_windows_installer:
-    name: Build Windows installer
+        python -m pytest --verbose -p pytester -p no:doctest --xdoctest --cov-config ../pyproject.toml --cov-report term --durations=100 --cov="$MOD_NAME" "$MOD_DPATH" ../tests
+        echo "pytest command finished, moving the coverage file to the repo root"
+  build_windows_installer_integration:
+    name: Build Windows installer (tpl integration)
     runs-on: windows-latest
     steps:
     - name: Checkout source
@@ -272,25 +272,26 @@ jobs:
       uses: actions/setup-python@v6.2.0
       with:
         python-version: '3.13'
-    - name: Set up Windows installer build
+    - name: Set up Windows installer (tpl integration) build
       shell: pwsh
       run: |-
         python -m pip install -U pip
         python -m pip install -U uv
         python -m uv --version
-    - name: Build Windows installer
+    - name: Build Windows installer (tpl integration)
       shell: pwsh
-      run: .\dev\_installers\build_installer.ps1 -Clean -PyInstaller -Checks -SmokeTest -Inno
-    - name: Inspect Windows installer outputs
+      run: .\dev\_installers\build_installer.ps1 -Clean -LocalPurePythonTpl -PyInstaller -Checks -SmokeTest -Inno
+    - name: Inspect Windows installer (tpl integration) outputs
       shell: pwsh
       run: Get-ChildItem -Recurse dist | Format-Table FullName, Length, LastWriteTime
     - uses: actions/upload-artifact@v6.0.0
-      name: Upload Windows installer artifact
+      name: Upload Windows installer (tpl integration) artifact
       with:
-        name: windows-installer
+        name: windows-installer-integration
         if-no-files-found: error
         path: |-
           dist\installer\*
           dist\diagnostics\*
+          dist\tpl_wheelhouse\*
 
 
