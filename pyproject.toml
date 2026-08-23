@@ -157,6 +157,28 @@ entry_points.console_scripts = [
 ]
 
 
+[tool.xcookie.ci_artifacts.windows_installer_integration]
+name = "Windows installer (tpl integration)"
+runner = "windows-latest"
+shell = "pwsh"
+python_version = "3.13"
+setup_commands = [
+  "python -m pip install -U pip",
+  "python -m pip install -U uv",
+  "python -m uv --version",
+]
+build_command = ".\\dev\\_installers\\build_installer.ps1 -Clean -LocalPurePythonTpl -PyInstaller -Checks -SmokeTest -Inno"
+post_build_commands = [
+  "Get-ChildItem -Recurse dist | Format-Table FullName, Length, LastWriteTime",
+]
+artifact_paths = [
+  "dist\\installer\\*",
+  "dist\\diagnostics\\*",
+  "dist\\tpl_wheelhouse\\*",
+]
+test = true
+release = false
+
 [tool.xcookie.ci_artifacts.windows_installer]
 name = "Windows installer"
 runner = "windows-latest"
@@ -175,6 +197,7 @@ artifact_paths = [
   "dist\\installer\\*",
   "dist\\diagnostics\\*",
 ]
+test = false
 release = true
 release_paths = [
   "dist\\installer\\*.exe",
