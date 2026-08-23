@@ -4609,7 +4609,7 @@ def get_annot_stats_dict(ibs, aids, prefix='', forceall=False, old=True,
         >>> aids = ibs.annots().aids
         >>> stats = ibs.get_annot_stats_dict(aids)
         >>> import ubelt as ub
-        >>> print('annot_stats = {}'.format(ub.repr2(stats, nl=1)))
+        >>> print('annot_stats = {}'.format(ub.urepr(stats, nl=1)))
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -4627,7 +4627,7 @@ def get_annot_stats_dict(ibs, aids, prefix='', forceall=False, old=True,
         >>> old = ut.get_argval('--old', default=True)
         >>> use_hist = ut.get_argval('--use_hist', default=True)
         >>> aid_stats_dict = get_annot_stats_dict(ibs, aids, prefix, use_hist=use_hist, old=old, **kwargs)
-        >>> result = ('aid_stats_dict = %s' % (ub.repr2(aid_stats_dict, strkeys=True, strvals=True, nl=2, precision=2),))
+        >>> result = ('aid_stats_dict = %s' % (ub.urepr(aid_stats_dict, strkeys=True, strvals=True, nl=2, precision=2),))
         >>> print(result)
     """
     kwargs = kwargs.copy()
@@ -4820,7 +4820,11 @@ def get_annot_stats_dict(ibs, aids, prefix='', forceall=False, old=True,
             np.nan if dists is None else dists.min() / (60 * 60)
             for dists in timedeltas]
         #min_timedelta_list = [np.nan if dists is None else dists.min() for dists in timedeltas]
-        min_name_timedelta_stats = ut.get_stats(min_timedelta_list, use_nan=True)
+        min_timedelta_arr = np.asarray(min_timedelta_list, dtype=float)
+        is_nan = np.isnan(min_timedelta_arr)
+        min_name_timedelta_stats = ut.get_stats(min_timedelta_arr[~is_nan])
+        min_name_timedelta_stats['shape'] = min_timedelta_arr.shape
+        min_name_timedelta_stats['num_nan'] = int(is_nan.sum())
         keyval_list += [(prefix + 'min_name_hourdist', _stat_str(min_name_timedelta_stats, precision=4))]
 
     aid_stats_dict = ut.odict(keyval_list)
