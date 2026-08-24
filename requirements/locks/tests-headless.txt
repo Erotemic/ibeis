@@ -53,7 +53,7 @@ gitdb==4.0.12
     # via gitpython
 gitpython==3.1.59
     # via utool
-guitool-ibeis==2.3.0
+guitool-ibeis==2.3.1
     # via
     #   ibeis
     #   plottool-ibeis
@@ -354,7 +354,7 @@ ubelt==1.4.3
     #   vtool-ibeis-ext
 urllib3==2.7.0
     # via requests
-utool==2.3.0
+utool==2.4.0
     # via
     #   dtool-ibeis
     #   guitool-ibeis
