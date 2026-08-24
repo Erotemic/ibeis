@@ -368,7 +368,7 @@ function Install-LocalPurePythonTpl($Ctx, [string]$DiagDir) {
         }
 
         Write-Host "Building local wheel: $packageName from $relpath @ $revision (dirty=$dirty)"
-        $before = @((Get-ChildItem $wheelhouse -Filter "*.whl" -File -ErrorAction SilentlyContinue).FullName)
+        $before = @(Get-ChildItem $wheelhouse -Filter "*.whl" -File -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName })
         & $Ctx.VenvPython -m pip wheel --no-deps --wheel-dir $wheelhouse $srcPath | Out-Host
         if ($LASTEXITCODE -ne 0) {
             throw "Wheel build failed for $packageName (exit $LASTEXITCODE)"
