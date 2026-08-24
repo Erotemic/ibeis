@@ -179,32 +179,14 @@ def add_species(ibs, species_nice_list, species_text_list=None,
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_species_funcs import *  # NOQA
-        >>> import ibeis
-        >>> import utool as ut
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> species_text_list = [
-        ...     'jaguar', 'zebra_plains', 'zebra_plains', '____', 'TYPO',
-        ...     '____', 'zebra_grevys', 'bear_polar']
-        >>> species_rowid_list = ibs.add_species(species_text_list)
-        >>> print(ut.repr2(list(zip(species_text_list, species_rowid_list))))
-        >>> ibs.print_species_table()
-        >>> species_text = ibs.get_species_texts(species_rowid_list)
-        >>> # Ensure we leave testdb1 in a clean state
-        >>> ibs.delete_species(ibs.get_species_rowids_from_text(['jaguar', 'TYPO']))
-        >>> all_species_rowids = ibs._get_all_species_rowids()
-        >>> result =  ut.repr2(species_text, nl=False) + '\n'
-        >>> result += ut.repr2(all_species_rowids, nl=False) + '\n'
-        >>> result += ut.repr2(ibs.get_species_texts(all_species_rowids), nl=False)
-        >>> print(result)
-        ['jaguar', 'zebra_plains', 'zebra_plains', '____', 'typo', '____', 'zebra_grevys', 'bear_polar']
-        [1, 2, 3]
-        ['zebra_plains', 'zebra_grevys', 'bear_polar']
-
-    [u'jaguar', u'zebra_plains', u'zebra_plains', '____', '____', '____', u'zebra_grevys', u'bear_polar']
-    [8, 9, 10]
-    [u'zebra_plains', u'zebra_grevys', u'bear_polar']
-
+        >>> from ibeis.tests.fixtures import IBEISControllerFixture
+        >>> with IBEISControllerFixture() as ibs:
+        ...     before_species = set(ibs._get_all_species_rowids())
+        ...     sid1, sid2 = ibs.add_species(['Fixture Lynx', 'Fixture Lynx'])
+        ...     assert sid1 == sid2
+        ...     assert sid1 not in before_species
+        ...     assert ibs.get_species_texts([sid1]) == ['fixture_lynx']
+        ...     assert set(ibs._get_all_species_rowids()) == before_species | {sid1}
     """
     # Strip all spaces
     species_nice_list = [ const.UNKNOWN if _ is None else _.strip() for _ in species_nice_list ]

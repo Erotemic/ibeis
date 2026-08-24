@@ -2,9 +2,12 @@
 
 This directory contains everything needed to turn a source checkout into a
 Windows installer (`IBEIS-Setup-<version>.exe`) and to verify the result on a
-clean Windows VM. The same script drives the CI job
-(`build_windows_installer` in `.github/workflows/tests.yml`), so a local build
-and a CI build are the same thing.
+clean Windows VM. The same script drives two generated xcookie artifact jobs:
+`build_windows_installer_integration` in the test workflow builds selected
+pure-Python dependencies from the exact `tpl/` submodule revisions, while
+`build_windows_installer` in the release workflow uses only published PyPI
+dependencies. Both jobs are declared under `[tool.xcookie.ci_artifacts.*]` in
+`pyproject.toml`; edit those declarations rather than generated workflow files.
 
 Key files:
 
@@ -30,10 +33,11 @@ Key files:
   manually — the script finds it in Program Files, Program Files (x86),
   `%LOCALAPPDATA%\Programs`, or PATH.
 * ~10 GB free disk (venv + build + dist).
-* Git is optional — a source zip/tarball of the repo works. The `tpl/`
-  submodules are **not** needed for installer builds: CI and installers
-  install all ecosystem dependencies from PyPI; the submodules exist only for
-  local development (`run_developer_setup.sh`).
+* Git is optional for ordinary/release installer builds: a source zip/tarball
+  works and dependencies come from PyPI. `-LocalPurePythonTpl` is an explicit
+  integration mode that requires Git when its selected `tpl/` submodules are
+  not already populated. It currently allows only `utool` and
+  `guitool_ibeis`; native-extension packages remain PyPI-backed.
 
 ## 2. Get the source
 
@@ -65,12 +69,23 @@ Useful variants (see `-ShowUsage` or `Get-Help` on the script for all of them):
 # PyInstaller + Inno only, no checks (the default when no targets are given)
 .\dev\_installers\build_installer.ps1
 
+# Integration build against selected pure-Python tpl/ revisions
+.\dev\_installers\build_installer.ps1 -Clean -LocalPurePythonTpl -Checks -SmokeTest -Inno
+
 # Just rebuild the app directory, keeping the venv
 .\dev\_installers\build_installer.ps1 -PyInstaller
 
 # Environment sanity check without building anything
 .\dev\_installers\build_installer.ps1 -DiagnosticsOnly
 ```
+
+The integration mode first installs IBEIS normally from its declared dependency
+set, then builds wheels for the allowlisted submodules and force-installs those
+wheel files with `--no-deps`. Every local wheel must end in `-none-any.whl`.
+The build writes `dist\diagnostics\local_tpl_packages.txt` with the exact
+submodule revisions and wheel filenames. This mode is for CI/PR integration
+feedback; release installers deliberately omit it so the release still proves
+that the published package graph is complete.
 
 Outputs land in `dist\`:
 

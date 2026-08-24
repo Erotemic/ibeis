@@ -690,11 +690,16 @@ def predict_proba_df(clf, X_df, class_names=None):
         columns = None
     if len(X_df) == 0:
         return pd.DataFrame(columns=columns)
+
+    # Classifiers in this module are fit on X_df.values.  Keep prediction on
+    # the same representation so sklearn does not interpret DataFrame column
+    # labels as feature names that were absent during fit.
+    X = X_df.values
     try:
-        probs = clf.predict_proba(X_df)
+        probs = clf.predict_proba(X)
     except ValueError:
         # solves a problem when values are infinity for whatever reason
-        X = X_df.values.copy()
+        X = X.copy()
         X[~np.isfinite(X)] = np.nan
         probs = clf.predict_proba(X)
 

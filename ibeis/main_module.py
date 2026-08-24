@@ -4,6 +4,8 @@ ibeis.opendb and ibeis.main are the main entry points
 """
 import sys
 import multiprocessing
+import platform
+import traceback
 
 from loguru import logger
 import utool as ut
@@ -39,17 +41,182 @@ def _reset_signals():
     signal.signal(signal.SIGINT, signal.SIG_DFL)  # reset ctrl+c behavior
 
 
-def _ibeis_excepthook(exc_type, exc_value, tb):
-    """Report uncaught exceptions through the application logging sinks."""
+_REPORTING_EXCEPTION = False
+_NATIVE_FAULT_STREAM = None
+_NATIVE_FAULT_FPATH = None
+_QT_MESSAGE_HANDLER = None
+_QT_PREVIOUS_MESSAGE_HANDLER = None
+
+
+def _install_native_fault_handler():
+    """Persist Python stacks for fatal/native process termination."""
+    global _NATIVE_FAULT_STREAM
+    global _NATIVE_FAULT_FPATH
+
+    if _NATIVE_FAULT_STREAM is not None:
+        return _NATIVE_FAULT_FPATH
+
+    log_fpath = ut.get_current_log_fpath()
+    if log_fpath is None:
+        return None
+
+    import faulthandler
+    import os
+
+    fault_fpath = os.path.splitext(str(log_fpath))[0] + '.fault.log'
+    stream = open(fault_fpath, 'a', buffering=1, encoding='utf8')
     try:
+        faulthandler.enable(file=stream, all_threads=True)
+    except Exception:
+        stream.close()
+        raise
+
+    _NATIVE_FAULT_STREAM = stream
+    _NATIVE_FAULT_FPATH = fault_fpath
+    logger.info('native fault log: {!r}', fault_fpath)
+    return fault_fpath
+
+
+def _write_native_diagnostic(text):
+    """Write diagnostics without going through Qt or the Loguru GUI sink."""
+    line = str(text).rstrip('\n') + '\n'
+    stream = _NATIVE_FAULT_STREAM
+    if stream is not None:
+        try:
+            stream.write(line)
+            stream.flush()
+        except Exception:
+            pass
+
+    stderr = getattr(sys, '__stderr__', None)
+    if stderr is not None:
+        try:
+            stderr.write(line)
+            stderr.flush()
+        except Exception:
+            pass
+
+
+def _install_qt_message_handler():
+    """Mirror Qt warnings/fatals into the persistent native fault log."""
+    global _QT_MESSAGE_HANDLER
+    global _QT_PREVIOUS_MESSAGE_HANDLER
+
+    if _QT_MESSAGE_HANDLER is not None or _NATIVE_FAULT_STREAM is None:
+        return
+
+    from guitool_ibeis.__PYQT__ import QtCore
+
+    def qt_message_handler(msg_type, context, message):
+        category = getattr(context, 'category', None)
+        file_ = getattr(context, 'file', None)
+        line = getattr(context, 'line', None)
+        location = ''
+        if file_:
+            location = ' {}:{}'.format(file_, line)
+        prefix = '[Qt {}{}]'.format(msg_type, location)
+        if category:
+            prefix += '[{}]'.format(category)
+        _write_native_diagnostic('{} {}'.format(prefix, message))
+        previous = _QT_PREVIOUS_MESSAGE_HANDLER
+        if previous is not None:
+            try:
+                previous(msg_type, context, message)
+            except Exception:
+                pass
+
+    _QT_MESSAGE_HANDLER = qt_message_handler
+    _QT_PREVIOUS_MESSAGE_HANDLER = QtCore.qInstallMessageHandler(qt_message_handler)
+
+
+def _format_exception_report(exc_type, exc_value, tb):
+    """Build the text a user can copy into a bug report."""
+    import ibeis
+
+    log_fpath = ut.get_current_log_fpath()
+    traceback_text = ''.join(traceback.format_exception(exc_type, exc_value, tb))
+    lines = [
+        'IBEIS unexpected error report',
+        'IBEIS version: {}'.format(ibeis.__version__),
+        'Python: {}'.format(sys.version.replace('\n', ' ')),
+        'Platform: {}'.format(platform.platform()),
+        'Log file: {}'.format(log_fpath if log_fpath is not None else '<none>'),
+        'Native fault log: {}'.format(
+            _NATIVE_FAULT_FPATH if _NATIVE_FAULT_FPATH is not None else '<none>'),
+        '',
+        traceback_text.rstrip(),
+    ]
+    return '\n'.join(lines)
+
+
+def _show_exception_dialog(exc_text, report):
+    """Show a nonfatal error report when a Qt application is available."""
+    if not USE_GUI:
+        return
+    try:
+        import guitool_ibeis as gt
+        from guitool_ibeis.__PYQT__ import QtCore
+
+        qapp = gt.get_qtapp()
+        if qapp is None or QtCore.QThread.currentThread() != qapp.thread():
+            return
+        log_fpath = ut.get_current_log_fpath()
+        log_note = ''
+        if log_fpath is not None:
+            log_note = '\n\nThe full traceback was also written to:\n{}'.format(log_fpath)
+        msg = (
+            'The current action failed. IBEIS kept the application open.\n'
+            'If anything looks inconsistent, restart IBEIS before continuing.\n\n'
+            'Error: {}\n\n'
+            'Click "Show Details..." and copy the report when requesting support.'
+            '{}'
+        ).format(exc_text, log_note)
+        gt.msgbox(title='IBEIS Error', msg=msg, detailed_msg=report)
+    except Exception:
+        # Do not recurse if Qt itself is involved in the failure.
+        logger.exception('Failed to show the IBEIS error dialog')
+
+
+def _queue_exception_dialog(exc_type, exc_value, report):
+    """Show the dialog only after the current Qt event has unwound."""
+    if not USE_GUI:
+        return
+    try:
+        import guitool_ibeis as gt
+        from guitool_ibeis.__PYQT__ import QtCore
+
+        qapp = gt.get_qtapp()
+        if qapp is None or QtCore.QThread.currentThread() != qapp.thread():
+            return
+        exc_text = '{}: {}'.format(exc_type.__name__, exc_value)
+        QtCore.QTimer.singleShot(
+            0, lambda text=exc_text, detail=report: _show_exception_dialog(text, detail)
+        )
+    except Exception:
+        logger.exception('Failed to queue the IBEIS error dialog')
+
+
+def _ibeis_excepthook(exc_type, exc_value, tb):
+    """Log an uncaught exception and present a copyable GUI report."""
+    global _REPORTING_EXCEPTION
+    if _REPORTING_EXCEPTION:
+        sys.__excepthook__(exc_type, exc_value, tb)
+        return
+
+    _REPORTING_EXCEPTION = True
+    try:
+        report = _format_exception_report(exc_type, exc_value, tb)
         logger.opt(exception=(exc_type, exc_value, tb)).critical('Unhandled exception')
+        _queue_exception_dialog(exc_type, exc_value, report)
     except Exception:
         # Exception reporting must never hide the original failure.
         sys.__excepthook__(exc_type, exc_value, tb)
+    finally:
+        _REPORTING_EXCEPTION = False
 
 
 def _install_exception_hook():
-    """Ensure Qt callbacks and normal Python failures share one crash path."""
+    """Ensure Qt callbacks and normal Python failures share one report path."""
     sys.excepthook = _ibeis_excepthook
 
 
@@ -68,6 +235,7 @@ def _init_gui(activate=True):
     if NOT_QUIET:
         print('[main] _init_gui()')
     guitool_ibeis.ensure_qtapp()
+    _install_qt_message_handler()
     #USE_OLD_BACKEND = '--old-backend' in sys.argv
     #if USE_OLD_BACKEND:
     from ibeis.gui import guiback
@@ -80,7 +248,8 @@ def _init_gui(activate=True):
     return back
 
 
-def _init_ibeis(dbdir=None, verbose=None, use_cache=True, web=None, **kwargs):
+def _init_ibeis(dbdir=None, verbose=None, use_cache=True, web=None,
+                make_backups=True, **kwargs):
     """
     Private function that calls code to create an ibeis controller
     """
@@ -102,7 +271,7 @@ def _init_ibeis(dbdir=None, verbose=None, use_cache=True, web=None, **kwargs):
         ibs = IBEISControl.request_IBEISController(
             dbdir=dbdir, use_cache=use_cache,
             request_dbversion=request_dbversion,
-            force_serial=force_serial)
+            force_serial=force_serial, make_backups=make_backups)
         if web is None:
             web = ut.get_argflag(('--webapp', '--webapi', '--web', '--browser'),
                                  help_='automatically launch the web app / web api')
@@ -488,7 +657,7 @@ def opendb_fg_web(*args, **kwargs):
 
 def opendb(db=None, dbdir=None, defaultdb='cache', allow_newdir=False,
            delete_ibsdir=False, verbose=False, use_cache=True,
-           web=None, **kwargs):
+           web=None, make_backups=True, **kwargs):
     """
     main without the preload (except for option to delete database before
     opening)
@@ -506,6 +675,8 @@ def opendb(db=None, dbdir=None, defaultdb='cache', allow_newdir=False,
         web (bool): starts webserver if True (default=param specification)
         use_cache (bool): if True will try to return a previously loaded
             controller
+        make_backups (bool): if False, skip automatic database backups
+            while opening the controller
 
     Returns:
         ibeis.IBEISController: ibs
@@ -534,8 +705,9 @@ def opendb(db=None, dbdir=None, defaultdb='cache', allow_newdir=False,
         assert allow_newdir, (
             'must be making new directory if you are deleting everything!')
         ibsfuncs.delete_ibeis_database(dbdir)
-    ibs = _init_ibeis(dbdir, verbose=verbose, use_cache=use_cache, web=web,
-                      **kwargs)
+    ibs = _init_ibeis(
+        dbdir, verbose=verbose, use_cache=use_cache, web=web,
+        make_backups=make_backups, **kwargs)
     return ibs
 
 
@@ -572,6 +744,10 @@ def _preload(mpl=True, par=True, logging=True):
         enable_file=bool(logging and not params.args.nologging),
         appname='ibeis',
     )
+    try:
+        _install_native_fault_handler()
+    except Exception:
+        logger.exception('Failed to enable native fault diagnostics')
     if mpl:
         _init_matplotlib()
     # numpy print settings

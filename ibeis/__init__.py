@@ -3,7 +3,7 @@ IBEIS: main package init
 """
 from loguru import logger
 
-__version__ = '2.5.0'
+__version__ = '2.6.0'
 
 try:
     import cv2  # NOQA
@@ -57,12 +57,15 @@ if ut.VERBOSE:
 #import plottool_ibeis
 
 
-ENABLE_WILDBOOK_SIGNAL = True
+ENABLE_WILDBOOK_SIGNAL = False
 
 
 try:
     from ibeis import constants
     from ibeis import constants as const  # NOQA
+    # Wildbook controller methods are only loaded with the legacy web plugin.
+    # Keep signaling disabled when those methods are absent.
+    ENABLE_WILDBOOK_SIGNAL = const.ENABLE_LEGACY_WEB
     from ibeis import params
     from ibeis import main_module
     from ibeis import other

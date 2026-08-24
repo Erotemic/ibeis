@@ -375,8 +375,8 @@ class InfrLearning(object):
         Example:
             >>> # DISABLE_DOCTEST
             >>> import ibeis
-            >>> ibeis.ensure_pz_mtest()
-            >>> ibs = ibeis.opendb(db='PZ_MTEST')
+            >>> from ibeis.tests import reset_testdbs
+            >>> ibs = reset_testdbs.ensure_synthetic_match_db()
             >>> infr = ibeis.AnnotInference(ibs, aids='all')
             >>> infr.ensure_mst()
             >>> publish = False

@@ -195,7 +195,6 @@ RUN    cd /ibeis/libgpuarray \
 RUN /virtualenv/env3/bin/pip install \
     ipython==6.2.1 \
     pyqt5==5.10.1 \
-    futures_actors==0.0.5 \
     scikit-image==0.13.1 \
     mako \
     boto

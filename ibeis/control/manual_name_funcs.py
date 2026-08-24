@@ -90,6 +90,18 @@ def add_names(ibs, name_text_list, name_uuid_list=None, name_note_list=None):
     RESTful:
         Method: POST
         URL:    /api/name/
+
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.tests.fixtures import IBEISControllerFixture
+        >>> with IBEISControllerFixture() as ibs:
+        ...     before_nids = set(ibs.get_valid_nids())
+        ...     nid1, nid2 = ibs.add_names(['fixture_gamma', 'fixture_gamma'])
+        ...     assert nid1 == nid2
+        ...     assert nid1 not in before_nids
+        ...     assert ibs.get_name_texts([nid1]) == ['fixture_gamma']
+        ...     assert set(ibs.get_valid_nids()) == before_nids | {nid1}
     """
     if name_note_list is None:
         name_note_list = [''] * len(name_text_list)

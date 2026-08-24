@@ -1,11 +1,10 @@
 # Our IBEIS-specific pure python packages 
 loguru>=0.7.3
-utool>=2.2.0
-vtool_ibeis>=2.3.0
-dtool_ibeis>=1.1.2
-plottool_ibeis>=2.3.0
-guitool_ibeis>=2.2.0
-futures_actors>=0.0.5
+utool>=2.4.0
+vtool_ibeis>=2.4.0
+dtool_ibeis>=1.2.0
+plottool_ibeis>=2.4.0
+guitool_ibeis>=2.3.1
 
 # Our IBEIS-specific binary packages 
 pyflann_ibeis>=2.5.0

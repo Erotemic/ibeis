@@ -5,19 +5,9 @@ import utool as ut
 
 
 def ensure_testing_data():
+    """Provision the deterministic local fixtures used by the test suite."""
     from ibeis.tests import reset_testdbs
-    print('Making sure test data exists')
-    import ibeis
-    from os.path import join
-    ut.change_term_title('ENSURE IBEIS TETSDATA')
-    reset_testdbs.reset_testdbs()
-    workdir = ibeis.get_workdir()
-    if not ut.checkpath(join(workdir, 'PZ_MTEST')):
-        ibeis.ensure_pz_mtest()
-    if not ut.checkpath(join(workdir, 'NAUT_test')):
-        ibeis.ensure_nauts()
-    # if not ut.checkpath(join(workdir, 'wd_peter2')):
-    #     ibeis.ensure_wilddogs()
+    reset_testdbs.reset_ci_testdbs()
 
 
 def dynamic_doctest_modnames():

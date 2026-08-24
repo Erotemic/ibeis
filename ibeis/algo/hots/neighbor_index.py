@@ -945,11 +945,12 @@ class NeighborIndex2(NeighborIndex, ut.NiceRepr):
     @staticmethod
     def get_support(depc, aid_list, config):
         vecs_list = depc.get('feat', aid_list, 'vecs', config)
+        fxs_list = [np.arange(len(vecs)) for vecs in vecs_list]
         if False and config['fg_on']:
             fgws_list = depc.get('featweight', aid_list, 'fgw', config)
         else:
             fgws_list = None
-        return vecs_list, fgws_list
+        return vecs_list, fgws_list, fxs_list
 
     def on_load(nnindexer, depc):
         #print('NNINDEX ON LOAD')

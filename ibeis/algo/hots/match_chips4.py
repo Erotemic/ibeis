@@ -40,17 +40,19 @@ def submit_query_request(qreq_, use_cache=None, use_bigcache=None,
         python -m ibeis.algo.hots.match_chips4 submit_query_request
 
     Examples:
-        >>> # SLOW_DOCTEST
-        >>> # xdoctest: +SKIP
         >>> from ibeis.algo.hots.match_chips4 import *  # NOQA
-        >>> import ibeis
-        >>> qaid_list = [1]
-        >>> daid_list = [1, 2, 3, 4, 5]
-        >>> use_bigcache = True
-        >>> use_cache = True
-        >>> ibs = ibeis.opendb(db='testdb1')
-        >>> qreq_ = ibs.new_query_request(qaid_list, daid_list, verbose=True)
-        >>> cm_list = submit_query_request(qreq_=qreq_)
+        >>> from ibeis.tests import reset_testdbs
+        >>> ibs = reset_testdbs.ensure_synthetic_match_db()
+        >>> aid_list = ibs.get_valid_aids()
+        >>> qaid_list = aid_list[0:1]
+        >>> daid_list = aid_list[1:13]
+        >>> qreq_ = ibs.new_query_request(qaid_list, daid_list, verbose=False)
+        >>> cm_list = submit_query_request(
+        >>>     qreq_=qreq_, use_cache=False, use_bigcache=False,
+        >>>     save_qcache=False, use_supercache=False, verbose=False)
+        >>> assert len(cm_list) == 1
+        >>> assert cm_list[0].qaid == qaid_list[0]
+        >>> assert len(cm_list[0].daid_list) > 0
     """
     # Get flag defaults if necessary
     if verbose is None:

@@ -45,6 +45,22 @@ from plottool_ibeis import fig_presenter
 VERBOSE = ut.VERBOSE
 
 
+def _flush_legacy_stdout():
+    """Flush legacy console output when a stdout stream exists.
+
+    This compatibility hook is intentionally local to the GUI backend so it can
+    be removed once console-output behavior no longer depends on explicit
+    flushing. Windowed PyInstaller builds may not provide ``sys.stdout``.
+    """
+    stream = sys.stdout
+    flush = getattr(stream, 'flush', None)
+    if flush is not None:
+        try:
+            flush()
+        except (OSError, ValueError):
+            pass
+
+
 def backreport(func):
     """
     reports errors on backend functions
@@ -56,13 +72,11 @@ def backreport(func):
         except guiexcept.UserCancel:
             logger.info('handling user cancel')
             return None
-        except Exception as ex:
-            #error_msg = "Error caught while performing function. \n %r" % ex
-            error_msg = 'Error: %s' % (ex,)
-            import traceback  # NOQA
-            detailed_msg = traceback.format_exc()
-            gt.msgbox(title="Error Catch!", msg=error_msg, detailed_msg=detailed_msg)
-            raise
+        except Exception:
+            # Backend slots are GUI callback boundaries.  Report the complete
+            # traceback once, then stop this action without unwinding into Qt.
+            sys.excepthook(*sys.exc_info())
+            return None
         return result
     backreport_wrapper = ut.preserve_sig(backreport_wrapper, func)
     return backreport_wrapper
@@ -104,7 +118,7 @@ def blocking_slot(*types_):
         @functools.wraps(func)
         def wrapped_bslot(*args, **kwargs):
             result = func(*args, **kwargs)
-            sys.stdout.flush()
+            _flush_legacy_stdout()
             return result
         wrapped_bslot = ut.preserve_sig(wrapped_bslot, func)
         return wrapped_bslot

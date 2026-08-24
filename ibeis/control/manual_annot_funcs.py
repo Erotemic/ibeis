@@ -245,74 +245,20 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.IBEISControl import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> prevalid = ibs.get_valid_aids()
-        >>> num_add = 2
-        >>> gid_list = ibs.get_valid_gids()[0:num_add]
-        >>> bbox_list = [(int(w * .1), int(h * .6), int(w * .5), int(h *  .3))
-        ...              for (w, h) in ibs.get_image_sizes(gid_list)]
-        >>> # Add a test annotation
-        >>> print('Testing add_annots')
-        >>> aid_list = ibs.add_annots(gid_list, bbox_list=bbox_list)
-        >>> bbox_list2 = ibs.get_annot_bboxes(aid_list)
-        >>> vert_list2 = ibs.get_annot_verts(aid_list)
-        >>> theta_list2 = ibs.get_annot_thetas(aid_list)
-        >>> name_list2 = ibs.get_annot_names(aid_list)
-        >>> print('Ensure=False. Should get back None chip fpaths')
-        >>> chip_fpaths2 = ibs.get_annot_chip_fpath(aid_list, ensure=False)
-        >>> assert [fpath is None for fpath in chip_fpaths2], 'should not have fpaths'
-        >>> print('Ensure=True. Should get back None chip fpaths')
-        >>> chip_fpaths = ibs.get_annot_chip_fpath(aid_list, ensure=True)
-        >>> assert all([ut.checkpath(fpath, verbose=True) for fpath in chip_fpaths]), 'paths should exist'
-        >>> ut.assert_eq(len(aid_list), num_add)
-        >>> ut.assert_eq(len(vert_list2[0]), 4)
-        >>> assert bbox_list2 == bbox_list, 'bboxes are unequal'
-        >>> # Be sure to remove test annotation
-        >>> # if this test fails a resetdbs might be nessary
-        >>> result = ''
-        >>> visual_uuid_list = ibs.get_annot_visual_uuids(aid_list)
-        >>> semantic_uuid_list = ibs.get_annot_semantic_uuids(aid_list)
-        >>> result += str(visual_uuid_list) + '\n'
-        >>> result += str(semantic_uuid_list) + '\n'
-        >>> print('Cleaning up. Removing added annotations')
-        >>> ibs.delete_annots(aid_list)
-        >>> assert not any([ut.checkpath(fpath, verbose=True) for fpath in chip_fpaths]), 'chip paths'
-        >>> postvalid = ibs.get_valid_aids()
-        >>> assert prevalid == postvalid, 'prevalid != postvalid'
-        >>> result += str(postvalid)
-        >>> print(result)
-        [UUID('30f7639b-5161-a561-2c4f-41aed64e5b65'), UUID('5ccbb26d-104f-e655-cf2b-cf92e0ad2fd2')]
-        [UUID('58905a72-dd31-c42b-d5b5-2312adfc7cba'), UUID('dd58665a-2a8b-8e84-4919-038c80bd9be0')]
-        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
-
-    Example2:
-        >>> # Test with prevent_visual_duplicates on
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.IBEISControl import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> prevalid = ibs.get_valid_aids()
-        >>> num_add = 1
-        >>> gid_list = ibs.get_valid_gids()[0:1] * num_add
-        >>> bbox_list = [(int(w * .1), int(h * .6), int(w * .5), int(h *  .3))
-        ...              for (w, h) in ibs.get_image_sizes(gid_list)]
-        >>> bbox_list2 = [(int(w * .2), int(h * .6), int(w * .5), int(h *  .3))
-        ...              for (w, h) in ibs.get_image_sizes(gid_list)]
-        >>> # Add a test annotation
-        >>> print('Testing add_annots')
-        >>> aid_list1 = ibs.add_annots(gid_list, bbox_list=bbox_list, prevent_visual_duplicates=True)
-        >>> aid_list2 = ibs.add_annots(gid_list, bbox_list=bbox_list, prevent_visual_duplicates=True)
-        >>> aid_list3 = ibs.add_annots(gid_list, bbox_list=bbox_list2, prevent_visual_duplicates=True)
-        >>> assert aid_list1 == aid_list2, 'aid_list1 == aid_list2'
-        >>> assert aid_list1 != aid_list3, 'aid_list1 != aid_list3'
-        >>> aid_list_new = aid_list1 + aid_list3
-        >>> result = aid_list_new
-        >>> print('Cleaning up. Removing added annotations')
-        >>> ibs.delete_annots(aid_list_new)
-        >>> print(result)
-        [14, 15]
+        >>> from ibeis.tests.fixtures import IBEISControllerFixture
+        >>> with IBEISControllerFixture() as ibs:
+        ...     gid = ibs.get_valid_gids()[0]
+        ...     before_aids = set(ibs.get_valid_aids())
+        ...     bbox = (1, 1, 5, 5)
+        ...     aid1 = ibs.add_annots(
+        ...         [gid], bbox_list=[bbox], name_list=['fixture_gamma'])[0]
+        ...     aid2 = ibs.add_annots(
+        ...         [gid], bbox_list=[bbox], name_list=['fixture_gamma'])[0]
+        ...     assert aid1 == aid2
+        ...     assert aid1 not in before_aids
+        ...     assert ibs.get_annot_bboxes([aid1]) == [bbox]
+        ...     assert ibs.get_annot_names([aid1]) == ['fixture_gamma']
+        ...     assert set(ibs.get_valid_aids()) == before_aids | {aid1}
     """
     assert yaw_list is None, 'yaw is depricated'
 

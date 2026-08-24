@@ -44,6 +44,12 @@ If you pass -SmokeTest without -Checks, -Checks is implied.
 .PARAMETER DiagnosticsOnly
 Runs environment + python sanity checks only (does not require existing dist output).
 
+.PARAMETER LocalPurePythonTpl
+Build and install an explicit allowlist of pure-Python packages from tpl/
+before freezing IBEIS. This is intended for integration CI so coordinated
+IBEIS / submodule changes can be exercised before those dependencies are
+published. Release installers should omit this switch and use PyPI packages.
+
 .PARAMETER ShowUsage
 Prints copy/paste usage commands and exits.
 
@@ -79,6 +85,7 @@ param(
     # Options
     [switch]$SmokeTest,
     [switch]$DiagnosticsOnly,
+    [switch]$LocalPurePythonTpl,
     [switch]$ShowUsage,
 
     [string]$PythonVersion = "3.13",
@@ -111,6 +118,9 @@ powershell -ExecutionPolicy Bypass -File .\dev\_installers\build_installer.ps1 -
 # 3) Build + checks (+ smoke test) + Inno
 .\dev\_installers\build_installer.ps1 -Clean -Checks -SmokeTest -Inno
 
+# 3b) Integration build using selected pure-Python tpl/ submodules
+.\dev\_installers\build_installer.ps1 -Clean -LocalPurePythonTpl -Checks -SmokeTest -Inno
+
 # 4) Only run PyInstaller
 .\dev\_installers\build_installer.ps1 -PyInstaller
 
@@ -130,6 +140,7 @@ NOTES
 - Checks/Inno require an existing dist output (dist\IBEIS-dist). Run -PyInstaller first.
 - This script always uses uv. If uv is missing it will install it via python -m pip install -U uv.
 - If project deps are not installed into the venv yet, it will run: <venv-python> -m pip install -e .[headless]
+- -LocalPurePythonTpl overrides only the explicit pure-Python allowlist from tpl/ after normal dependency installation.
 - Diagnostics and logs go in: dist\diagnostics\
 ================================================================================
 '@
@@ -286,6 +297,121 @@ function Ensure-ProjectDepsForPackaging($Ctx) {
     }
 }
 
+function Install-LocalPurePythonTpl($Ctx, [string]$DiagDir) {
+    # Keep this allowlist narrow. Native-extension packages belong to the
+    # published dependency path because installer CI needs to prove their
+    # Windows wheels can be resolved exactly as an end user would resolve them.
+    $packagePaths = [ordered]@{
+        "utool" = "tpl/utool"
+        "guitool_ibeis" = "tpl/guitool_ibeis"
+    }
+
+    Write-Section "Install local pure-Python tpl wheels"
+    Write-Host "This is an integration build. Release installers must use PyPI dependencies."
+
+    $wheelhouse = Join-Path $Ctx.RepoRoot "dist\tpl_wheelhouse"
+    Remove-Item -Recurse -Force $wheelhouse -ErrorAction SilentlyContinue
+    New-Item -ItemType Directory -Force $wheelhouse | Out-Null
+
+    $manifestLines = @(
+        "IBEIS local tpl integration packages",
+        "repo=$($Ctx.RepoRoot)",
+        ""
+    )
+    $builtWheels = @()
+
+    foreach ($packageName in $packagePaths.Keys) {
+        $relpath = $packagePaths[$packageName]
+        $srcPath = Join-Path $Ctx.RepoRoot $relpath
+        $pyprojectPath = Join-Path $srcPath "pyproject.toml"
+
+        if (-not (Test-Path $pyprojectPath)) {
+            if (-not (Test-Command "git")) {
+                throw "Local tpl package '$packageName' is not populated at $relpath and git is unavailable"
+            }
+            Write-Host "Initializing submodule: $relpath"
+            Push-Location $Ctx.RepoRoot
+            try {
+                $treeEntry = (& git ls-tree HEAD -- $relpath)
+                $pinnedRevision = if ($treeEntry) { ($treeEntry -split '\s+')[2] } else { "unknown" }
+                try {
+                    & git submodule update --init -- $relpath | Out-Host
+                    if ($LASTEXITCODE -ne 0) {
+                        throw "git submodule update exited with code $LASTEXITCODE"
+                    }
+                } catch {
+                    throw (
+                        "Unable to initialize local tpl package '$packageName' at $relpath. " +
+                        "The parent repository pins submodule commit $pinnedRevision. " +
+                        "That commit must be pushed to the submodule's Git remote before CI can build it; " +
+                        "a PyPI release is not required. Original error: $($_.Exception.Message)"
+                    )
+                }
+            } finally {
+                Pop-Location
+            }
+        }
+        if (-not (Test-Path $pyprojectPath)) {
+            throw "Local tpl package '$packageName' is missing $pyprojectPath"
+        }
+
+        $revision = "unknown"
+        $dirty = "unknown"
+        if (Test-Command "git") {
+            try {
+                $revision = (& git -C $srcPath rev-parse HEAD).Trim()
+                $status = (& git -C $srcPath status --porcelain)
+                $dirty = if ($status) { "true" } else { "false" }
+            } catch {
+                Write-Warning "Could not determine git revision for $packageName"
+            }
+        }
+
+        Write-Host "Building local wheel: $packageName from $relpath @ $revision (dirty=$dirty)"
+        $before = @(Get-ChildItem $wheelhouse -Filter "*.whl" -File -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName })
+        & $Ctx.VenvPython -m pip wheel --no-deps --wheel-dir $wheelhouse $srcPath | Out-Host
+        if ($LASTEXITCODE -ne 0) {
+            throw "Wheel build failed for $packageName (exit $LASTEXITCODE)"
+        }
+        $after = @(Get-ChildItem $wheelhouse -Filter "*.whl" -File)
+        $newWheels = @($after | Where-Object { $before -notcontains $_.FullName })
+        if ($newWheels.Count -ne 1) {
+            throw "Expected exactly one wheel for $packageName, found $($newWheels.Count) new wheels"
+        }
+        $wheel = $newWheels[0]
+        if ($wheel.Name -notmatch '-none-any\.whl$') {
+            throw "Refusing non-pure wheel in -LocalPurePythonTpl mode: $($wheel.Name)"
+        }
+        $builtWheels += $wheel
+        $manifestLines += "$packageName`t$revision`tdirty=$dirty`t$($wheel.Name)"
+    }
+
+    Write-Host "Installing local tpl wheels over the published dependency set:"
+    $builtWheels | ForEach-Object { Write-Host "  $($_.FullName)" }
+    $wheelPaths = @($builtWheels | ForEach-Object { $_.FullName })
+    & $Ctx.VenvPython -m pip install --force-reinstall --no-deps @wheelPaths | Out-Host
+    if ($LASTEXITCODE -ne 0) {
+        throw "Installing local tpl wheels failed (exit $LASTEXITCODE)"
+    }
+
+    Write-Section "Verify local tpl package origins"
+    $verifyCode = @'
+import importlib
+import importlib.metadata
+for name in ['utool', 'guitool_ibeis']:
+    mod = importlib.import_module(name)
+    print(f'{name}: version={importlib.metadata.version(name)} file={mod.__file__}')
+'@
+    & $Ctx.VenvPython -c $verifyCode | Out-Host
+    if ($LASTEXITCODE -ne 0) {
+        throw "Local tpl verification failed (exit $LASTEXITCODE)"
+    }
+
+    $manifestPath = Join-Path $DiagDir "local_tpl_packages.txt"
+    $manifestLines | Set-Content -Path $manifestPath
+    Write-Host "Wrote: $manifestPath"
+}
+
 function Install-BuildDeps($Ctx) {
     Write-Section "Install build deps into venv"
     Push-Location $Ctx.RepoRoot
@@ -343,7 +469,19 @@ function Invoke-Checks([string]$AppDir, [string]$DiagDir, [switch]$DoSmokeTest) 
     try {
         & (Join-Path $AppDir "IBEIS-console.exe") 2>&1 | Tee-Object -FilePath $SelftestLog
         if ($LASTEXITCODE -ne 0) {
-            throw "Frozen selftest FAILED (exit $LASTEXITCODE). See $SelftestLog"
+            throw "Frozen console selftest FAILED (exit $LASTEXITCODE). See $SelftestLog"
+        }
+
+        Write-Section "Frozen selftest (windowed startup)"
+        $GuiExe = Join-Path $AppDir "IBEIS.exe"
+        $GuiProc = Start-Process -FilePath $GuiExe -WorkingDirectory $AppDir -PassThru
+        if (-not $GuiProc.WaitForExit(20000)) {
+            Stop-Process -Id $GuiProc.Id -Force -ErrorAction SilentlyContinue
+            throw "Frozen windowed selftest timed out after 20 seconds"
+        }
+        $GuiProc.Refresh()
+        if ($GuiProc.ExitCode -ne 0) {
+            throw "Frozen windowed selftest FAILED (exit $($GuiProc.ExitCode))"
         }
     } finally {
         Remove-Item Env:IBEIS_FROZEN_SELFTEST -ErrorAction SilentlyContinue
@@ -505,6 +643,7 @@ try {
     Write-Host "DiagDir       = $DiagDir"
     Write-Host "PSVersion     = $($PSVersionTable.PSVersion)"
     Write-Host ("Targets       = PyInstaller={0}, Checks={1}, Inno={2}, DiagnosticsOnly={3}" -f $PyInstaller,$Checks,$Inno,$DiagnosticsOnly)
+    Write-Host "LocalTpl      = $LocalPurePythonTpl"
 
     # venv/uv only needed for DiagnosticsOnly or PyInstaller builds
     if ($DiagnosticsOnly) {
@@ -525,8 +664,14 @@ try {
         $Ctx = Ensure-Venv -RepoRoot $RepoRoot -VenvDirName $VenvDir -PyVer $PythonVersion
         Write-Host ("VenvCreated   = {0}" -f $Ctx.Created)
 
-        # Ensure editable project deps needed for packaging
+        # Install the ordinary PyPI-backed project dependency set first.
         Ensure-ProjectDepsForPackaging -Ctx $Ctx
+
+        # Integration CI then replaces only the selected pure-Python packages
+        # with wheels built from the exact tpl/ revisions in this checkout.
+        if ($LocalPurePythonTpl) {
+            Install-LocalPurePythonTpl -Ctx $Ctx -DiagDir $DiagDir
+        }
 
         # Ensure build tooling deps (PyInstaller, etc.)
         Install-BuildDeps -Ctx $Ctx
