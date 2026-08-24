@@ -20,7 +20,7 @@ def test_installs_ibeis_exception_hook(monkeypatch):
 
 def test_exception_hook_routes_traceback_through_loguru(monkeypatch):
     calls = []
-    dialogs = []
+    queued = []
 
     class DummyLogger:
         def opt(self, **kwargs):
@@ -33,8 +33,10 @@ def test_exception_hook_routes_traceback_through_loguru(monkeypatch):
     monkeypatch.setattr(main_module, 'logger', DummyLogger())
     monkeypatch.setattr(
         main_module,
-        '_show_exception_dialog',
-        lambda exc_value, report: dialogs.append((exc_value, report)),
+        '_queue_exception_dialog',
+        lambda exc_type, exc_value, report: queued.append(
+            (exc_type, exc_value, report)
+        ),
     )
     exc_info = _captured_exception()
 
@@ -43,9 +45,10 @@ def test_exception_hook_routes_traceback_through_loguru(monkeypatch):
     assert calls[0][0] == 'opt'
     assert calls[0][1]['exception'] == exc_info
     assert calls[1] == ('critical', 'Unhandled exception')
-    assert len(dialogs) == 1
-    assert str(dialogs[0][0]) == 'qt callback exploded'
-    assert 'RuntimeError: qt callback exploded' in dialogs[0][1]
+    assert len(queued) == 1
+    assert queued[0][0] is RuntimeError
+    assert str(queued[0][1]) == 'qt callback exploded'
+    assert 'RuntimeError: qt callback exploded' in queued[0][2]
 
 
 def test_exception_hook_falls_back_to_python_hook(monkeypatch):
