@@ -332,9 +332,20 @@ function Install-LocalPurePythonTpl($Ctx, [string]$DiagDir) {
             Write-Host "Initializing submodule: $relpath"
             Push-Location $Ctx.RepoRoot
             try {
-                & git submodule update --init -- $relpath | Out-Host
-                if ($LASTEXITCODE -ne 0) {
-                    throw "git submodule update failed for $relpath (exit $LASTEXITCODE)"
+                $treeEntry = (& git ls-tree HEAD -- $relpath)
+                $pinnedRevision = if ($treeEntry) { ($treeEntry -split '\s+')[2] } else { "unknown" }
+                try {
+                    & git submodule update --init -- $relpath | Out-Host
+                    if ($LASTEXITCODE -ne 0) {
+                        throw "git submodule update exited with code $LASTEXITCODE"
+                    }
+                } catch {
+                    throw (
+                        "Unable to initialize local tpl package '$packageName' at $relpath. " +
+                        "The parent repository pins submodule commit $pinnedRevision. " +
+                        "That commit must be pushed to the submodule's Git remote before CI can build it; " +
+                        "a PyPI release is not required. Original error: $($_.Exception.Message)"
+                    )
                 }
             } finally {
                 Pop-Location
