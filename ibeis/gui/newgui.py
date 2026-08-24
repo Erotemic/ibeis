@@ -132,12 +132,17 @@ class ImageSetTabWidget(QtWidgets.QTabWidget):
 
     @slot_()
     def _close_all_tabs(imageset_tabwgt):
+        """Remove image-set tabs without emitting transient selection events."""
         if VERBOSE_GUI:
             logger.info('[imageset_tab_widget] _close_all_tabs()')
-        while len(imageset_tabwgt.imgsetid_list) > 0:
-            index = 0
-            imageset_tabwgt.imgsetid_list.pop(index)
-            imageset_tabwgt.removeTab(index)
+        was_blocked = imageset_tabwgt.blockSignals(True)
+        try:
+            while len(imageset_tabwgt.imgsetid_list) > 0:
+                index = 0
+                imageset_tabwgt.imgsetid_list.pop(index)
+                imageset_tabwgt.removeTab(index)
+        finally:
+            imageset_tabwgt.blockSignals(was_blocked)
 
     @slot_(int)
     def _close_tab_with_imgsetid(imageset_tabwgt, imgsetid):
@@ -197,7 +202,7 @@ class IBEISMainWindow(QtWidgets.QMainWindow):
         # Central Widget
         mainwin.ibswgt = IBEISGuiWidget(back=back, ibs=ibs, parent=mainwin)
         mainwin.setCentralWidget(mainwin.ibswgt)
-        mainwin.setAcceptDrops(True)
+        mainwin.setAcceptDrops(ibs is not None)
         if back is not None:
             mainwin.quitSignal.connect(back.quit)
         else:
@@ -306,6 +311,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
     #@QtCore.pyqtSlot
     def data_load_loop(ibswgt):
+        if ibswgt.ibs is None:
+            return
         # Get the current view
         view = ibswgt._tables_tab_widget.currentWidget()
         model = view.model()
@@ -342,6 +349,37 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         ibswgt.vsplitter = gt.newSplitter(ibswgt, orientation=Qt.Vertical)
         ibswgt.hsplitter = gt.newSplitter(ibswgt, orientation=Qt.Horizontal,
                                           verticalStretch=18)
+
+        # The startup surface is intentionally separate from database-backed
+        # controls.  A user with no open database should have exactly two
+        # obvious next actions instead of a disabled-looking data workspace.
+        ibswgt.no_database_widget = QtWidgets.QWidget(parent=ibswgt)
+        welcome_layout = QtWidgets.QVBoxLayout(ibswgt.no_database_widget)
+        welcome_layout.setContentsMargins(48, 48, 48, 48)
+        welcome_layout.addStretch(1)
+        welcome_title = QtWidgets.QLabel('No database is open')
+        welcome_title.setAlignment(Qt.AlignCenter)
+        welcome_title.setStyleSheet('font-size: 20px; font-weight: 600;')
+        welcome_layout.addWidget(welcome_title)
+        welcome_text = QtWidgets.QLabel(
+            'Open an existing IBEIS database or create a new one to begin.'
+        )
+        welcome_text.setAlignment(Qt.AlignCenter)
+        welcome_layout.addWidget(welcome_text)
+        welcome_buttons = QtWidgets.QHBoxLayout()
+        welcome_buttons.addStretch(1)
+        ibswgt.open_database_button = QtWidgets.QPushButton(
+            'Open Existing Database...')
+        ibswgt.open_database_button.clicked.connect(ibswgt.back.open_database)
+        welcome_buttons.addWidget(ibswgt.open_database_button)
+        ibswgt.new_database_button = QtWidgets.QPushButton(
+            'Create New Database...')
+        ibswgt.new_database_button.clicked.connect(ibswgt.back.new_database)
+        welcome_buttons.addWidget(ibswgt.new_database_button)
+        welcome_buttons.addStretch(1)
+        welcome_layout.addLayout(welcome_buttons)
+        welcome_layout.addStretch(1)
+        ibswgt.vlayout.addWidget(ibswgt.no_database_widget)
         #
         # Tables Tab
         ibswgt._tables_tab_widget = APITabWidget(parent=ibswgt, horizontalStretch=81)
@@ -660,17 +698,32 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         for clearSelection in hack_selections:
             clearSelection()
 
+    def set_database_state(ibswgt, has_database):
+        """Switch between startup and database-backed interaction modes."""
+        has_database = bool(has_database)
+        ibswgt.no_database_widget.setVisible(not has_database)
+        ibswgt.vsplitter.setVisible(has_database)
+        ibswgt.vsplitter.setEnabled(has_database)
+        mainwin = ibswgt.parent()
+        if mainwin is not None:
+            mainwin.setAcceptDrops(has_database)
+            guimenus.set_database_enabled(mainwin, has_database)
+
     def connect_ibeis_control(ibswgt, ibs):
-        """ Connects a new ibscontroler to the models """
+        """Connect a controller, or atomically enter no-database mode."""
         if VERBOSE_GUI:
             logger.info('[newgui] connect_ibeis_control(ibs=%r)' % (ibs,))
-        ibswgt.imageset_tabwgt._close_all_tabs()
         if ibs is None:
             if VERBOSE_GUI:
-                logger.info('[newgui] invalid ibs')
-            title = 'No Database Opened'
-            ibswgt.setWindowTitle(title)
+                logger.info('[newgui] no database controller')
+            # Make callbacks harmless before changing any tab/model UI.
+            ibswgt.ibs = None
+            ibswgt.setWindowTitle('IBEIS - No Database Open')
+            ibswgt.set_database_state(False)
+            ibswgt.imageset_tabwgt._close_all_tabs()
+            return
         else:
+            ibswgt.imageset_tabwgt._close_all_tabs()
             if VERBOSE_GUI:
                 logger.info('[newgui] Connecting valid ibs=%r' % ibs.get_dbname())
             #with ut.Indenter('[CONNECTING]'):
@@ -759,6 +812,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                     ibswgt.select_imageset_tab(imgsetid)
                 else:
                     ibswgt._change_imageset(-1)
+            ibswgt.set_database_state(True)
 
     def update_species_available(ibswgt, reselect=False,
                                  reselect_new_name=None, deleting=False):

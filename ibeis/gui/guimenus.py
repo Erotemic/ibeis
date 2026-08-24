@@ -50,10 +50,43 @@ def setup_dummy_menus():
     #gt.qtapp_loop(mainwin, frequency=100, ipy=ut.inIPython())
 
 
+def _database_action(mainwin, menu, **kwargs):
+    action = menu.newAction(**kwargs)
+    mainwin._database_required_actions.append(action)
+    return action
+
+
+def _database_menu(mainwin, menu):
+    mainwin._database_required_menus.append(menu)
+    return menu
+
+
+def _iter_menu_actions(menu):
+    for action in menu.actions():
+        yield action
+        submenu = action.menu()
+        if submenu is not None:
+            for subaction in _iter_menu_actions(submenu):
+                yield subaction
+
+
+def set_database_enabled(mainwin, enabled):
+    """Enable GUI commands that require an attached IBEIS controller."""
+    enabled = bool(enabled)
+    actions = list(getattr(mainwin, '_database_required_actions', []))
+    for menu in getattr(mainwin, '_database_required_menus', []):
+        menu.setEnabled(enabled)
+        actions.extend(_iter_menu_actions(menu))
+    for action in actions:
+        action.setEnabled(enabled)
+
+
 def setup_menus(mainwin, back=None):
     if ut.VERBOSE:
         print('[guimenus] creating menus')
     mainwin.menubar = gt.newMenubar(mainwin)
+    mainwin._database_required_actions = []
+    mainwin._database_required_menus = []
     if back is None:
         back = DummyBack()
     setup_file_menu(mainwin, back)
@@ -73,68 +106,80 @@ def setup_menus(mainwin, back=None):
 
 
 def setup_file_menu(mainwin, back):
-    """ FILE MENU """
+    """FILE menu. New/Open/Quit remain available without a database."""
     mainwin.menuFile = mainwin.menubar.newMenu('File')
     menu = mainwin.menuFile
     menu.newAction(
         name='actionNew_Database',
         text='New Database',
-        tooltip='Create a new folder to use as a database.',
+        tooltip='Create a new IBEIS database.',
         shortcut='Ctrl+N',
         triggered=back.new_database)
     menu.newAction(
         name='actionOpen_Database',
         text='Open Database',
-        tooltip='Opens a different database folder.',
+        tooltip='Open an existing IBEIS database.',
         shortcut='Ctrl+O',
         triggered=back.open_database)
+    _database_action(
+        mainwin, menu,
+        name='actionClose_Database',
+        text='Close Database',
+        tooltip='Close the current database and return to the startup screen.',
+        shortcut='Ctrl+W',
+        triggered=back.close_database)
     menu.addSeparator()
-    menu.newAction(
+    _database_action(
+        mainwin, menu,
         name='actionBackup_Database',
         tooltip='Backup the current main database.',
         text='Backup Database',
         shortcut='Ctrl+B',
         triggered=back.backup_database)
-    menu.newAction(
+    _database_action(
+        mainwin, menu,
         name='actionExport_Database',
         tooltip='Dumps and exports database as csv tables.',
         text='Export As CSV',
         triggered=back.export_database_as_csv)
-    menu.newAction(
+    _database_action(
+        mainwin, menu,
         name='actionExport_Database_KWCoco',
         tooltip='Dumps and exports database as KWCoco.',
         text='Export As KWCoco',
         triggered=back.export_database_as_kwcoco)
-    menu.newAction(
+    _database_action(
+        mainwin, menu,
         name='actionDuplicate_Database',
         tooltip='Creates a duplicate of the database',
         text='Duplicate Database',
         triggered=back.make_database_duplicate)
     menu.addSeparator()
-    menu.newAction(
+    _database_action(
+        mainwin, menu,
         name='actionImport_Img_file',
         text='Import Images (select file(s))',
         triggered=back.import_images_from_file)
-    menu.newAction(
+    _database_action(
+        mainwin, menu,
         name='actionImport_Img_dir',
         text='Import Images (select directory)',
         shortcut='Ctrl+I',
         triggered=back.import_images_from_dir)
     menu.addSeparator()
-    #menu.newAction(
-    #    name='actionImport_Img_file_with_smart',
-    #    text='Import Images (select file(s)) with smart Patrol XML',
-    #    triggered=back.import_images_from_file_with_smart)
-    menu.newAction(
+    _database_action(
+        mainwin, menu,
         name='actionImport_Img_dir_with_smart',
         text='Import Images (select directory) with smart Patrol XML',
         triggered=back.import_images_from_dir_with_smart)
     menu.addSeparator()
-    menu.newAction(
+    _database_action(
+        mainwin, menu,
         name='actionImport_Img_dir_from_encouters_1',
         text='Import Images (select folder(s)) from Encounters (1 level)',
         triggered=back.import_images_from_encounters_1)
-    menu.newAction(
+    _database_action(
+        mainwin, menu,
         name='actionImport_Img_dir_from_encouters_2',
         text='Import Images (select folder(s)) from Encounters (2 levels)',
         triggered=back.import_images_from_encounters_2)
@@ -149,12 +194,14 @@ def setup_view_menu(mainwin, back):
     mainwin.menuView = mainwin.menubar.newMenu('View')
     menu = mainwin.menuView
     menu.addSeparator()
-    menu.newAction(
+    _database_action(
+        mainwin, menu,
         name='actionExpandNamesTree',
         text='Expand Names Tree',
         triggered=mainwin.expand_names_tree)
     menu.addSeparator()
-    menu.newAction(
+    _database_action(
+        mainwin, menu,
         name='toggleThumbnails',
         text='Toggle Thumbnails',
         triggered=back.toggle_thumbnails)
@@ -162,19 +209,13 @@ def setup_view_menu(mainwin, back):
         name='toggleOutput',
         text='Toggle Output Log',
         triggered=back.toggle_output_widget)
-    # menu.newAction(
-    #     name='actionLayout_Figures',
-    #     text='Layout Figures',
-    #     tooltip='Organizes windows in a grid',
-    #     shortcut='Ctrl+L',
-    #     triggered=back.layout_figures)
-    pass
 
 
 def setup_actions_menu(mainwin, back):
     """ ACTIONS MENU """
     mainwin.menuActions = mainwin.menubar.newMenu('Actions')
     menu = mainwin.menuActions
+    _database_menu(mainwin, menu)
     menu.newAction(
         name='actionCompute_Occurrences',
         text='Group Occurrences',
@@ -291,6 +332,7 @@ def setup_option_menu(mainwin, back):
     """ OPTIONS MENU """
     mainwin.menuOptions = mainwin.menubar.newMenu('Options')
     menu = mainwin.menuOptions
+    _database_menu(mainwin, menu)
     mainwin.actionToggleQueryMode = menu.newAction(
         name='actionToggleQueryMode',
         text='Toggle Query Mode: ----',
@@ -311,49 +353,44 @@ def setup_checks_menu(mainwin, back):
 
 
 def setup_help_menu(mainwin, back):
-    """ HELP MENU """
+    """HELP menu; global diagnostics remain available before opening a DB."""
     mainwin.menuHelp = mainwin.menubar.newMenu('Help')
     menu = mainwin.menuHelp
-    #from ibeis.control import DB_SCHEMA_CURRENT
-    #version = DB_SCHEMA_CURRENT.VERSION_CURRENT
     menu.newAction(
         name='actionAbout',
         text='About',
         triggered=back.show_about_message)
-    menu.newAction(
+    _database_action(
+        mainwin, menu,
         name='actionDBInfo',
         text='Database Info',
-        triggered=back.display_dbinfo),
-    #menu.newAction(
-    #    name='actionView_Docs',
-    #    text='View Documentation',
-    #    triggered=back.view_docs)
-    # ---
+        triggered=back.display_dbinfo)
     menu.addSeparator()
-    # ---
     menu.newAction(
         text='View Global Logs',
         triggered=back.view_logs_global)
     mainwin.viewDirectoryMenu = menu.newMenu('View Directories')
-    mainwin.viewDirectoryMenu.newAction(
+    _database_action(
+        mainwin, mainwin.viewDirectoryMenu,
         text='View Local Log Directory',
         triggered=back.view_log_dir_local)
     mainwin.viewDirectoryMenu.newAction(
         text='View Global Log Directory',
         triggered=back.view_log_dir_global)
-    mainwin.viewDirectoryMenu.newAction(
+    _database_action(
+        mainwin, mainwin.viewDirectoryMenu,
         text='View Database Directory',
         triggered=back.view_database_dir)
     mainwin.viewDirectoryMenu.newAction(
         text='View Application Files Directory',
         triggered=back.view_app_files_dir)
-    # ---
     menu.addSeparator()
-    # ---
-    menu.newAction(
+    _database_action(
+        mainwin, menu,
         text='Run Integrity Checks',
         triggered=back.run_integrity_checks)
-    menu.newAction(
+    _database_action(
+        mainwin, menu,
         text='Fix/Clean Database Integrity',
         triggered=back.fix_and_clean_database)
 
@@ -361,6 +398,7 @@ def setup_help_menu(mainwin, back):
 def setup_web_menu(mainwin, back):
     mainwin.menuWeb = mainwin.menubar.newMenu('Web')
     menu = mainwin.menuWeb
+    _database_menu(mainwin, menu)
     menu.newAction(
         text='Startup Web Interface',
         triggered=back.start_web_server_parallel)
@@ -396,6 +434,7 @@ def setup_developer_menu(mainwin, back):
     """ DEV MENU """
     mainwin.menuDev = mainwin.menubar.newMenu('Dev')
     menu = mainwin.menuDev
+    _database_menu(mainwin, menu)
     menu.newAction(
         text='Download Demo Data',
         triggered=back.ensure_demodata)
@@ -487,6 +526,7 @@ def setup_developer_menu(mainwin, back):
 def setup_refresh_menu(mainwin, back):
     mainwin.menuRefresh = mainwin.menubar.newMenu('Refresh')
     menu = mainwin.menuRefresh
+    _database_menu(mainwin, menu)
     # ---------
     menu.newAction(
         name='actionDeveloper_CLS',
@@ -574,8 +614,9 @@ def setup_depricated_menu(mainwin, back):
 
 
 def setup_zebra_menu(mainwin, back):
-    mainwin.menuDev = mainwin.menubar.newMenu('Zebra')
-    menu = mainwin.menuDev
+    mainwin.menuZebra = mainwin.menubar.newMenu('Zebra')
+    menu = mainwin.menuZebra
+    _database_menu(mainwin, menu)
     menu.newAction(
         name='processImagesetAsCameraTrapImages',
         text='Process ImageSet as Camera Trap Images',

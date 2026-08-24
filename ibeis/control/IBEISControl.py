@@ -240,6 +240,37 @@ def request_IBEISController(
     return ibs
 
 
+def close_IBEISController(ibs):
+    """Release one controller and remove it from the process cache.
+
+    A controller with live observers cannot be closed because doing so would
+    invalidate another GUI/backend that still uses it.  Callers should detach
+    their observer first.
+    """
+    if ibs is None:
+        return False
+
+    live_observers = []
+    for observer_ref in list(getattr(ibs, 'observer_weakref_list', [])):
+        observer = observer_ref()
+        if observer is not None:
+            live_observers.append(observer)
+    if live_observers:
+        raise RuntimeError(
+            'Cannot close IBEIS controller while observers are still attached: {!r}'
+            .format(live_observers)
+        )
+
+    for key, cached_ibs in list(__IBEIS_CONTROLLER_CACHE__.items()):
+        if cached_ibs is ibs:
+            del __IBEIS_CONTROLLER_CACHE__[key]
+
+    if getattr(ibs, 'db', None) is not None:
+        ibs.disconnect_sqldatabase()
+    ibs.unregister_controller()
+    return True
+
+
 @atexit.register
 def __cleanup():
     """
@@ -477,13 +508,42 @@ class IBEISController(BASE_CLASS):
             observer_weakref().notify_controller_killed()
 
     def register_observer(ibs, observer):
-        logger.info('[register_observer] Observer registered: %r' % observer)
-        observer_weakref = weakref.ref(observer)
-        ibs.observer_weakref_list.append(observer_weakref)
+        """Register an observer once, pruning dead weak references."""
+        live_refs = []
+        already_registered = False
+        for observer_ref in ibs.observer_weakref_list:
+            current = observer_ref()
+            if current is None:
+                continue
+            if current is observer:
+                already_registered = True
+            live_refs.append(observer_ref)
+        ibs.observer_weakref_list[:] = live_refs
+        if not already_registered:
+            logger.info('[register_observer] Observer registered: %r' % observer)
+            ibs.observer_weakref_list.append(weakref.ref(observer))
+        return not already_registered
 
     def remove_observer(ibs, observer):
-        logger.info('[remove_observer] Observer removed: %r' % observer)
-        ibs.observer_weakref_list.remove(observer)
+        """Remove an observer by referent identity and prune dead refs.
+
+        ``observer_weakref_list`` stores ``weakref.ref`` objects, so removing
+        the observer object directly cannot match the stored list entry.
+        """
+        kept_refs = []
+        removed = False
+        for observer_ref in ibs.observer_weakref_list:
+            current = observer_ref()
+            if current is None:
+                continue
+            if current is observer:
+                removed = True
+                continue
+            kept_refs.append(observer_ref)
+        ibs.observer_weakref_list[:] = kept_refs
+        if removed:
+            logger.info('[remove_observer] Observer removed: %r' % observer)
+        return removed
 
     def notify_observers(ibs):
         logger.info('[notify_observers] Observers (if any) notified')

@@ -44,6 +44,10 @@ def parse_args():
     program_name = 'IBEIS - Lite (WARNING THESE ARGS ARE MOSTLY DEPRICATED)'
     description = 'Image Based Ecological Information System'
     parser2 = util_arg.make_argparse2(program_name, description)
+    # IBEIS is imported by tools such as pytest, whose command-line options
+    # remain in sys.argv.  Disable argparse prefix matching so an unrelated
+    # option such as pytest's ``-q`` is not mistaken for IBEIS's ``-qx``.
+    parser2.parser.allow_abbrev = False
 
     def dev_argparse(parser2):
         parser2 = parser2.add_argument_group('Developer')
@@ -104,6 +108,8 @@ def parse_args():
                         help='specifies the short name of the database to load')
         parser2.add_str('--dbdir', None,
                         help='specifies the full path of the database to load')
+        parser2.add_flag(('--no-database', '--no-db'),
+                         help='start the GUI without opening the cached database')
         parser2.add_str('--set-workdir', None)
         parser2.add_flag('--get-workdir', help='gets the default work directory')
         parser2.add_str(('--logdir', '--set-logdir'), None,
