@@ -26,6 +26,7 @@ autogenerate this module automagically from
 """
 from utool import util_arg
 import os
+import sys
 
 # Global command line arguments
 args = None     # Parsed arguments
@@ -45,8 +46,8 @@ def parse_args():
     description = 'Image Based Ecological Information System'
     parser2 = util_arg.make_argparse2(program_name, description)
     # IBEIS is imported by tools such as pytest, whose command-line options
-    # remain in sys.argv.  Disable argparse prefix matching so an unrelated
-    # option such as pytest's ``-q`` is not mistaken for IBEIS's ``-qx``.
+    # remain in sys.argv.  Disable abbreviation of long options.  Historical
+    # multi-character single-dash aliases are normalized explicitly below.
     parser2.parser.allow_abbrev = False
 
     def dev_argparse(parser2):
@@ -58,8 +59,8 @@ def parse_args():
         parser2.add_flag(('--all-cases', '--all'))
         parser2.add_flag(('--all-gt-cases', '--allgt'), help='chooses all groundtruthed annotations to be queried')
         parser2.add_flag(('--all-singleton-cases', '--allsingle'))
-        parser2.add_ints(('--qindex', '-qx', '--index'), None, help='test only these query indices. Out of bounds errors are clipped')
-        parser2.add_ints(('--dindex', '-dx'), None, help='test only these database indices. . Out of bounds errors are clipped')
+        parser2.add_ints(('--qindex', '--index'), None, help='test only these query indices. Out of bounds errors are clipped')
+        parser2.add_ints('--dindex', None, help='test only these database indices. . Out of bounds errors are clipped')
         #parser2.add_ints(('--sel-rows', '-r'), help='view row for experiment harness')
         #parser2.add_ints(('--sel-cols', '-c'), help='view col for experiment harness')
         #parser2.add_ints(('--qaid', '--qaids'), default=[], help='investigate match aid')
@@ -162,7 +163,17 @@ def parse_args():
     commands_argparse(parser2)
     postload_gui_commands_argparse(parser2)
 
-    args, unknown = parser2.parser.parse_known_args()
+    # argparse treats multi-character single-dash options as short-option
+    # clusters on some supported Python versions.  Registering ``-qx`` makes
+    # pytest's unrelated ``-q`` ambiguous and can consume the following test
+    # path as a qindex value.  Preserve the exact historical aliases without
+    # exposing them to argparse's prefix/cluster matching.
+    legacy_aliases = {
+        '-qx': '--qindex',
+        '-dx': '--dindex',
+    }
+    parse_argv = [legacy_aliases.get(arg, arg) for arg in sys.argv[1:]]
+    args, unknown = parser2.parser.parse_known_args(parse_argv)
 
     # Apply any argument postprocessing dependencies here
     args.gui = not args.nogui

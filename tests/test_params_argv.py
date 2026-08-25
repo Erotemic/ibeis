@@ -22,3 +22,15 @@ from ibeis import params
 assert params.args.no_database is True
 '''
     subprocess.run([sys.executable, '-c', code], check=True)
+
+
+def test_legacy_multi_short_index_flags_are_exact():
+    code = r'''
+import sys
+sys.argv = ['ibeis', '-qx', '3', '-dx', '4']
+from ibeis import params
+assert params.args.qindex == [3]
+assert params.args.dindex == [4]
+assert params.unknown == []
+'''
+    subprocess.run([sys.executable, '-c', code], check=True)
