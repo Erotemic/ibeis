@@ -38,7 +38,7 @@ from ibeis.gui import guiexcept
 from ibeis.gui import guiheaders as gh
 from ibeis.gui import newgui
 from ibeis.viz import interact
-from os.path import exists, join, dirname, normpath
+from os.path import exists, join, dirname, normpath, isdir
 from plottool_ibeis import fig_presenter
 
 
@@ -632,142 +632,118 @@ class CustomAnnotCfgSelector(gt.GuitoolWidget):
 
 
 class NewDatabaseWidget(gt.GuitoolWidget):
-    r"""
-    Args:
-        parent (None): (default = None)
+    """Simple create/copy database dialog body.
 
-    CommandLine:
-        python -m ibeis.gui.guiback NewDatabaseWidget --show
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.gui.guiback import *  # NOQA
-        >>> gt.ensure_qtapp()
-        >>> self = NewDatabaseWidget(back=None)
-        >>> self.resize(400, 200)
-        >>> self.show()
-        >>> ut.quit_if_noshow()
-        >>> gt.qtapp_loop(qwin=self, freq=10)
+    The user chooses a database name and the parent directory that will contain
+    it.  Creating a database never changes meaning based on whether the target
+    already exists; existing targets are rejected and must be opened through
+    File -> Open Database instead.
     """
+
     def initialize(self, back=None, mode='new', on_chosen=None):
-        # Save arguments
+        self.back = back
+        self.mode = mode
+        self.on_chosen = on_chosen
         if back is not None:
-            self.back = back
-            if on_chosen is None:
-                on_chosen = back.open_database
-            self.on_chosen = on_chosen
-            self.workdir = back.get_work_directory()
+            self.location = back.get_work_directory()
         else:
-            self.back = None
-            self.workdir = ut.truepath('.')
-            self.on_chosen = None
+            self.location = ut.truepath('.')
 
-        title_mode = {
-            'new': 'Create a new IBEIS Database',
-            'copy': 'Create an IBEIS Database copy',
-        }
-        instruction_mode = {
-            'new': 'Choose a name for the new database',
-            'copy': 'Choose a name for the database copy',
-        }
-
-        self.dbname = 'MyNewIBEISDatabase'
         if mode == 'copy':
+            title = 'Duplicate Database'
+            instruction = 'Choose a name and location for the database copy.'
             self.dbname = back.ibs.get_dbname() + '_Copy'
+            create_text = 'Create Copy'
+        else:
+            title = 'Create New Database'
+            instruction = 'Choose a name and location for the new database.'
+            self.dbname = ''
+            create_text = 'Create'
 
-        # Build layout
-        self.setWindowTitle(title_mode[mode])
-        self.instructions = self.addNewLabel(instruction_mode[mode], align='center')
-        # ---
+        self.setWindowTitle(title)
+        self.instructions = self.addNewLabel(instruction, align='left')
+
         self.dbname_row = self.addNewHWidget()
-        self.dbname_row.edit = self.dbname_row.addNewLineEdit(self.dbname, align='center')
+        self.dbname_row.addNewLabel('Database name:')
+        self.dbname_row.edit = self.dbname_row.addNewLineEdit(self.dbname)
         self.dbname_row.edit.textChanged.connect(self.update_state)
-        # ---
-        self.workdir_row = self.addNewHWidget()
-        self.workdir_row.lbl  = self.workdir_row.addNewLabel('Current Workdir:')
-        self.workdir_row.edit = self.workdir_row.addNewLineEdit(self.workdir, align='right')
-        self.workdir_row.button = self.workdir_row.addNewButton('...',
-                                                                shrink_to_text=True,
-                                                                pressed=self.change_workdir)
-        self.workdir_row.viewbut = self.workdir_row.addNewButton('➤',
-                                                                 shrink_to_text=True,
-                                                                 pressed=self.view_workdir)
-        self.workdir_row.edit.textChanged.connect(self.update_state)
-        # ---
-        self.current_row = self.addNewHWidget()
-        self.create_but = self.newButton(
-            'Create in workdir', pressed=self.create_in_workdir)
-        self.current_row.lbl  = self.current_row.addNewLabel('Current choice:', align='left')
-        self.current_row.edit = self.current_row.addNewLabel('{current_dbdir}', align='right')
+
+        self.location_row = self.addNewHWidget()
+        self.location_row.addNewLabel('Location:')
+        self.location_row.edit = self.location_row.addNewLineEdit(self.location)
+        self.location_row.edit.textChanged.connect(self.update_state)
+        self.location_row.button = self.location_row.addNewButton(
+            'Browse...', shrink_to_text=True, pressed=self.browse_location)
+
+        self.validation_label = self.addNewLabel('', align='left')
 
         self.button_row = self.addNewHWidget()
-        self.button_row.addNewButton('Cancel', pressed=self.cancel)
-        self.button_row.addNewButton('Create in a different directory',
-                                     pressed=self.create_in_customdir)
-        self.button_row.addWidget(self.create_but)
+        self.cancel_but = self.button_row.addNewButton(
+            'Cancel', pressed=self.cancel)
+        self.create_but = self.button_row.addNewButton(
+            create_text, pressed=self.create_database)
 
         self.update_state()
 
+    def _target_dbdir(self):
+        location = ut.truepath(str(self.location_row.edit.text()).strip())
+        dbname = str(self.dbname_row.edit.text()).strip()
+        if not location or not dbname:
+            return None
+        return normpath(join(location, dbname))
+
+    def _validation_error(self):
+        dbname = str(self.dbname_row.edit.text()).strip()
+        location = ut.truepath(str(self.location_row.edit.text()).strip())
+        if not dbname:
+            return 'Enter a database name.'
+        if dbname in {'.', '..'} or '/' in dbname or '\\' in dbname:
+            return 'Database name must be a single folder name.'
+        if not location or not isdir(location):
+            return 'Choose an existing location.'
+        target_dbdir = normpath(join(location, dbname))
+        if exists(target_dbdir):
+            return 'A file or folder with that name already exists.'
+        return None
+
     def update_state(self):
-        workdir = ut.truepath(self.workdir_row.edit.text())
-        dbname = self.dbname_row.edit.text()
-        current_choice = normpath(join(workdir, dbname))
-        workdir_exists = ut.checkpath(workdir, verbose=False)
-        logger.info('workdir_exists = %r' % (workdir_exists,))
-        if workdir_exists:
-            if ut.checkpath(current_choice, verbose=False):
-                self.current_row.edit.setColorFG((0, 0, 255))
-                self.create_but.setText('Open existing database')
-            else:
-                self.current_row.edit.setColorFG(None)
-                self.create_but.setText('Create in workdir')
+        error = self._validation_error()
+        target_dbdir = self._target_dbdir()
+        if error is None:
+            prefix = (
+                'Copy will be created at:'
+                if self.mode == 'copy'
+                else 'Database will be created at:'
+            )
+            self.validation_label.setText('{} {}'.format(prefix, target_dbdir))
+            self.validation_label.setStyleSheet('')
             self.create_but.setEnabled(True)
         else:
-            self.current_row.edit.setColorFG((255, 0, 0))
-            self.create_but.setText('Create in workdir')
+            self.validation_label.setText(error)
+            self.validation_label.setStyleSheet('color: #b00020;')
             self.create_but.setEnabled(False)
-        self.current_row.edit.setText(current_choice)
 
-    def view_workdir(self):
-        ut.view_directory(ut.truepath(self.workdir_row.edit.text()))
-
-    def change_workdir(self):
-        logger.info('change workdir')
-        ut.colorprint('change workdir', 'yellow')
-        new_workdir = gt.select_directory(
-            'Select new work directory',
-            other_sidebar_dpaths=[self.workdir_row.edit.text()])
-        if new_workdir is not None:
-            logger.info('new_workdir = %r' % (new_workdir,))
-            self.workdir_row.edit.setText(new_workdir)
+    def browse_location(self):
+        current = ut.truepath(str(self.location_row.edit.text()).strip())
+        new_location = gt.select_directory(
+            'Choose database location',
+            other_sidebar_dpaths=[current] if current else [],
+        )
+        if new_location:
+            self.location_row.edit.setText(new_location)
             self.update_state()
-            if self.back is not None:
-                import ibeis
-                ibeis.sysres.set_workdir(work_dir=new_workdir, allow_gui=False)
 
-    def create_in_workdir(self):
-        logger.info('Create in Workdir')
-        ut.colorprint('Create in Workdir', 'yellow')
-        self.choose_new_dbdir(self.current_row.edit.text())
-
-    def create_in_customdir(self):
-        logger.info('Create in Custom')
-        new_dbdir = gt.select_directory(
-            'Select directory for %s' % (self.dbname),
-            other_sidebar_dpaths=[self.workdir_row.edit.text()])
-        current_choice = normpath(join(new_dbdir, self.dbname))
-        self.choose_new_dbdir(current_choice)
-
-    def choose_new_dbdir(self, dbdir):
-        logger.info('Chose dbdir = %r' % (dbdir,))
-        ut.colorprint('Chose dbdir = %r' % (dbdir,), 'yellow')
-        if self.on_chosen is not None:
-            self.on_chosen(dbdir)
-        self.close()
+    def create_database(self):
+        self.update_state()
+        if not self.create_but.isEnabled() or self.on_chosen is None:
+            return False
+        target_dbdir = self._target_dbdir()
+        if self.on_chosen(target_dbdir):
+            self.close()
+            return True
+        return False
 
     def cancel(self):
-        logger.info('Cancel')
-        ut.colorprint('Cancel', 'yellow')
         self.close()
 
 
@@ -817,6 +793,7 @@ class MainWindowBackend(GUIBACK_BASE):
         back.sel_aids = []
         back.sel_nids = []
         back.sel_gids = []
+        back.sel_imgsetids = []
         back.sel_cm = []
         #if ut.is_developer():
         back.daids_mode = None
@@ -825,16 +802,17 @@ class MainWindowBackend(GUIBACK_BASE):
         #back.imageset_query_results = ut.ddict(dict)
         # used to store partials defined in the frontend
         back.special_query_funcs = {}
-        # Create GUIFrontend object
-        back.mainwin = newgui.IBEISMainWindow(back=back, ibs=ibs)
+        # Always construct the frontend in its no-database state.  Attaching a
+        # controller then goes through one state transition path below.
+        back.mainwin = newgui.IBEISMainWindow(back=back, ibs=None)
         back.front = back.mainwin.ibswgt
         back.web_ibs = None
         back.wb_server_running = None
         back.ibswgt = back.front  # Alias
         # connect signals and other objects
         fig_presenter.register_qt4_win(back.mainwin)
-        # register self with the ibeis controller
-        back.register_self()
+        if ibs is not None:
+            back.connect_ibeis_control(ibs)
         #back.changeSpeciesSignal.connect(back.ibswgt.species_combo.setItemText)
 
         #back.incQuerySignal.connect(back.incremental_query_slot)
@@ -873,8 +851,15 @@ class MainWindowBackend(GUIBACK_BASE):
 
     #@ut.indent_func
     def notify_controller_killed(back):
-        """ Observer's notify function that the ibeis controller has been killed. """
+        """Transition the GUI back to its explicit no-database state."""
         back.ibs = None
+        back.sel_aids = []
+        back.sel_nids = []
+        back.sel_gids = []
+        back.sel_imgsetids = []
+        back.sel_cm = []
+        back.daids_mode = None
+        back.front.connect_ibeis_control(None)
 
     def register_self(back):
         if back.ibs is not None:
@@ -1073,29 +1058,51 @@ class MainWindowBackend(GUIBACK_BASE):
     #----------------------
 
     def refresh_state(back):
-        """ Blanket refresh function. Try not to call this """
+        """Blanket refresh function. Try not to call this."""
+        if back.ibs is None:
+            return
         back.front.update_tables()
         back.ibswgt.update_species_available(reselect=True)
 
     def connect_ibeis_control(back, ibs):
+        """Attach a controller, or enter the explicit no-database state."""
         if ut.VERBOSE:
             logger.info('[back] connect_ibeis(ibs=%r)' % (ibs,))
+
+        old_ibs = back.ibs
+        if old_ibs is not None and old_ibs is not ibs:
+            try:
+                old_ibs.remove_observer(back)
+            except Exception as ex:
+                ut.printex(ex, '[back] old controller observer cleanup failed',
+                           iswarning=True)
+
         if ibs is None:
+            back.ibs = None
+            back.sel_aids = []
+            back.sel_nids = []
+            back.sel_gids = []
+            back.sel_imgsetids = []
+            back.sel_cm = []
+            back.daids_mode = None
+            back.front.connect_ibeis_control(None)
             return None
+
         back.ibs = ibs
-        # register self with the ibeis controller
         back.register_self()
-        # deselect
         back._set_selection(sel_gids=[], sel_aids=[], sel_nids=[],
                             sel_imgsetids=[None])
         back.front.connect_ibeis_control(ibs)
-        exemplar_gsid = ibs.get_imageset_imgsetids_from_text(const.EXEMPLAR_IMAGESETTEXT)
-        num_exemplars = len(ibsfuncs._get_gids_in_imgsetid(ibs, exemplar_gsid))
+        exemplar_gsid = ibs.get_imageset_imgsetids_from_text(
+            const.EXEMPLAR_IMAGESETTEXT)
+        num_exemplars = len(
+            ibsfuncs._get_gids_in_imgsetid(ibs, exemplar_gsid))
         if num_exemplars == 0:
             back.daids_mode = const.INTRA_OCCUR_KEY
         else:
             back.daids_mode = const.VS_EXEMPLARS_KEY
         back.set_daids_mode(back.daids_mode)
+        return ibs
 
     @blocking_slot()
     def default_config(back):
@@ -2997,115 +3004,129 @@ class MainWindowBackend(GUIBACK_BASE):
 
     @blocking_slot()
     def new_database(back, new_dbdir=None):
-        """ File -> New Database
+        """File -> New Database."""
+        if new_dbdir is not None:
+            return back.create_database(new_dbdir)
+        dlg = NewDatabaseWidget.as_dialog(
+            back.front,
+            back=back,
+            on_chosen=back.create_database,
+            mode='new',
+        )
+        dlg.exec_()
+        return None
 
-        Args:
-            new_dbdir (None): (default = None)
+    @backreport
+    def create_database(back, dbdir):
+        """Create a database at a new path and attach it to the GUI."""
+        dbdir = normpath(ut.truepath(str(dbdir)))
+        parent = dirname(dbdir)
+        if exists(dbdir):
+            back.user_warning(
+                title='Cannot Create Database',
+                msg=(
+                    'A file or folder already exists at:\n\n{}\n\n'
+                    'Choose a different database name or location.'
+                ).format(dbdir),
+            )
+            return False
+        if not isdir(parent):
+            back.user_warning(
+                title='Cannot Create Database',
+                msg='The selected location does not exist:\n\n{}'.format(parent),
+            )
+            return False
 
-        CommandLine:
-            python -m ibeis.gui.guiback new_database --show
-
-        Example:
-            >>> # DISABLE_DOCTEST
-            >>> from ibeis.gui.guiback import *  # NOQA
-            >>> import ibeis
-            >>> #back = testdata_guiback(defaultdb='testdb1')
-            >>> back = testdata_guiback(defaultdb=None)
-            >>> dbdir = None
-            >>> result = back.new_database(dbdir)
-            >>> ut.quit_if_noshow()
-            >>> gt.qtapp_loop(qwin=back.front, freq=10)
-        """
-        if new_dbdir is None:
-            old = False
-            if old:
-                new_dbname = back.user_input(
-                    msg='What do you want to name the new database?',
-                    title='New Database')
-                if new_dbname is None or len(new_dbname) == 0:
-                    logger.info('Abort new database. new_dbname=%r' % new_dbname)
-                    return
-                    new_dbdir_options = ['Choose Directory', 'My Work Dir']
-                reply = back.user_option(
-                    msg='Where should I put the new database?',
-                    title='Import Images',
-                    options=new_dbdir_options,
-                    default=new_dbdir_options[1],
-                    use_cache=False)
-                if reply == 'Choose Directory':
-                    logger.info('[back] new_database(): SELECT A DIRECTORY')
-                    putdir = gt.select_directory(
-                        'Select new database directory',
-                        other_sidebar_dpaths=[back.get_work_directory()])
-                elif reply == 'My Work Dir':
-                    putdir = back.get_work_directory()
-                else:
-                    logger.info('Abort new database')
-                    return
-                new_dbdir = join(putdir, new_dbname)
-
-                if not exists(putdir):
-                    raise ValueError('Directory %r does not exist.' % putdir)
-                if exists(new_dbdir):
-                    raise ValueError('New DB %r already exists.' % new_dbdir)
-
-                ut.ensuredir(new_dbdir)
-                logger.info('[back] new_database(new_dbdir=%r)' % new_dbdir)
-                back.open_database(dbdir=new_dbdir)
-            else:
-                from guitool_ibeis.__PYQT__.QtCore import Qt  # NOQA
-                from guitool_ibeis.__PYQT__ import QtGui  # NOQA
-                dlg = NewDatabaseWidget.as_dialog(back.front, back=back,
-                                                  on_chosen=back.open_database,
-                                                  mode='new')
-                dlg.exec_()
+        logger.info('[back] create_database(dbdir=%r)' % dbdir)
+        ut.ensuredir(dbdir)
+        try:
+            ibs = IBEISControl.request_IBEISController(dbdir=dbdir)
+            back.connect_ibeis_control(ibs)
+        except Exception:
+            logger.exception('Failed to create database at {!r}', dbdir)
+            raise
+        else:
+            sysres.set_default_dbdir(dbdir)
+            return True
 
     @blocking_slot()
     def open_database(back, dbdir=None):
-        """
-        File -> Open Database
+        """File -> Open Database.
 
-        Args:
-            dbdir (None): (default = None)
-
-        CommandLine:
-            python -m ibeis.gui.guiback open_database
-
-        Example:
-            >>> # xdoctest: +REQUIRES(--gui)
-            >>> from ibeis.gui.guiback import *  # NOQA
-            >>> back = testdata_guiback(defaultdb='testdb1')
-            >>> testdb0 = sysres.db_to_dbdir('testdb0')
-            >>> testdb1 = sysres.db_to_dbdir('testdb1')
-            >>> print('[TEST] TEST_OPEN_DATABASE testdb1=%r' % testdb1)
-            >>> back.open_database(testdb1)
-            >>> print('[TEST] TEST_OPEN_DATABASE testdb0=%r' % testdb0)
-            >>> back.open_database(testdb0)
-            >>> import ibeis
-            >>> #dbdir = join(ibeis.sysres.get_workdir(), 'PZ_MTEST', '_ibsdb')
-            >>> dbdir = None
-            >>> result = back.open_database(dbdir)
-            >>> print(result)
+        Opening is intentionally strict: the selected directory must already be
+        an IBEIS database root.  Creating a database is handled separately by
+        :meth:`create_database`.
         """
         if dbdir is None:
-            logger.info('[back] new_database(): SELECT A DIRECTORY')
-            #director
-            dbdir = gt.select_directory('Open a database directory', other_sidebar_dpaths=[back.get_work_directory()])
-            if dbdir is None:
-                return
+            dbdir = gt.select_directory(
+                'Open IBEIS database',
+                other_sidebar_dpaths=[back.get_work_directory()],
+            )
+            if not dbdir:
+                return False
+
+        dbdir = normpath(ut.truepath(str(dbdir)))
+        is_existing_database = sysres.is_ibeisdb(dbdir)
+        if not is_existing_database:
+            # Keep the long-supported HotSpotter conversion path available.
+            from ibeis.dbio import ingest_hsdb
+            is_existing_database = ingest_hsdb.is_hsdb(dbdir)
+        if not is_existing_database:
+            back.user_warning(
+                title='Cannot Open Database',
+                msg=(
+                    'The selected folder is not an IBEIS database:\n\n{}\n\n'
+                    'Choose the database root folder. To start a new database, '
+                    'use File -> New Database.'
+                ).format(dbdir),
+            )
+            return False
+
         logger.info('[back] open_database(dbdir=%r)' % dbdir)
         with ut.Indenter(lbl='    [opendb]'):
             try:
-                # should this use ibeis.opendb? probably. at least it should be
-                # be request IBEISControl
-                #ibs = IBEISControl.IBEISController(dbdir=dbdir)
                 ibs = IBEISControl.request_IBEISController(dbdir=dbdir)
                 back.connect_ibeis_control(ibs)
-            except Exception as ex:
-                ut.printex(ex, 'caught Exception while opening database')
+            except Exception:
+                logger.exception('Failed to open database at {!r}', dbdir)
                 raise
             else:
                 sysres.set_default_dbdir(dbdir)
+                return True
+
+    @blocking_slot()
+    def close_database(back):
+        """Close the active database and return to the startup screen."""
+        ibs = back.ibs
+        if ibs is None:
+            return False
+
+        logger.info('[back] close_database(dbdir=%r)' % ibs.get_dbdir())
+
+        # Secondary widgets may retain direct references to the controller.
+        # Close the common ones before releasing its SQL/depcache handles.
+        for attr in ('qres_wgt', 'edit_prefs_wgt'):
+            widget = getattr(back, attr, None)
+            if widget is not None:
+                try:
+                    widget.close()
+                finally:
+                    setattr(back, attr, None)
+
+        back.connect_ibeis_control(None)
+        try:
+            IBEISControl.close_IBEISController(ibs)
+        except Exception:
+            # If another observer still owns this controller, restore the main
+            # GUI rather than leaving it detached after a failed close.
+            back.connect_ibeis_control(ibs)
+            raise
+
+        # Closing a database is an explicit request not to reopen it on the
+        # next application launch.  Open/create set this cache again when a
+        # database becomes active.
+        sysres.set_default_dbdir(None)
+        return True
 
     @blocking_slot()
     def export_database_as_csv(back):
@@ -3135,6 +3156,7 @@ class MainWindowBackend(GUIBACK_BASE):
         logger.info('[back] make_database_duplicate')
         def on_chosen(new_dbdir):
             back.ibs.copy_database(new_dbdir)
+            return True
         dlg = NewDatabaseWidget.as_dialog(back.front, back=back,
                                           on_chosen=on_chosen,
                                           mode='copy')

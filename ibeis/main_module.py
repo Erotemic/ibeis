@@ -444,15 +444,26 @@ def main(gui=True, dbdir=None, defaultdb='cache',
         print('[main]  * computername = %r' % (ut.get_computer_name()))
         print('[main]  * cwd = %r' % (os.getcwd(),))
         print('[main]  * sys.argv = %r' % (sys.argv,))
-    # Parse directory to be loaded from command line args
-    # and explicit kwargs
-    if defaultdb in ['testdb1', 'testdb0']:
-        from ibeis.tests.reset_testdbs import ensure_smaller_testingdbs
-        ensure_smaller_testingdbs()
-        #
-    dbdir = sysres.get_args_dbdir(defaultdb=defaultdb,
-                                  allow_newdir=allow_newdir, db=db,
-                                  dbdir=dbdir)
+    # Parse directory to be loaded from command line args and explicit kwargs.
+    # ``--no-database`` is a GUI startup mode: it suppresses the cached
+    # default while still constructing the normal main window.
+    from ibeis import params
+    no_database = bool(params.args.no_database)
+    if no_database:
+        explicit_db = any([dbdir is not None, db is not None,
+                           params.args.dbdir is not None, params.args.db is not None])
+        if explicit_db:
+            raise ValueError('--no-database cannot be combined with --db or --dbdir')
+        if delete_ibsdir:
+            raise ValueError('--no-database cannot be combined with delete_ibsdir')
+        dbdir = None
+    else:
+        if defaultdb in ['testdb1', 'testdb0']:
+            from ibeis.tests.reset_testdbs import ensure_smaller_testingdbs
+            ensure_smaller_testingdbs()
+        dbdir = sysres.get_args_dbdir(defaultdb=defaultdb,
+                                      allow_newdir=allow_newdir, db=db,
+                                      dbdir=dbdir)
     if delete_ibsdir is True:
         from ibeis.other import ibsfuncs
         assert allow_newdir, 'must be making new directory if you are deleting everything!'
@@ -473,7 +484,8 @@ def main(gui=True, dbdir=None, defaultdb='cache',
     except Exception as ex:
         print('[main()] IBEIS LOAD encountered exception: %s %s' % (type(ex), ex))
         raise
-    main_commands.postload_commands(ibs, back)  # POSTLOAD CMDS
+    if ibs is not None:
+        main_commands.postload_commands(ibs, back)  # POSTLOAD CMDS
     main_locals = {'ibs': ibs, 'back': back}
     return main_locals
 
